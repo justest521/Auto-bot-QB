@@ -343,6 +343,192 @@ function PricingRules() {
 }
 
 /* =========================================
+   PRODUCT SEARCH
+   ========================================= */
+function ProductSearch() {
+  const SUPABASE_URL = 'https://izfxiaufbwrlmifrbdiv.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnhpYXVmYndybG1pZnJiZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjYzODYsImV4cCI6MjA4OTIwMjM4Nn0.3CirmkvYgGUfPIwRbYUdVJ0vcSfbJID2DCugJL2m7YM';
+
+  const CATS = {
+    all: '全部', wrench: '扳手', socket: '套筒', ratchet: '棘輪', screwdriver: '螺絲起子',
+    plier: '鉗子', power_tool: '電動工具', torque_wrench: '扭力扳手', storage: '工具車/收納',
+    light: '照明', diagnostic: '診斷', battery: '電池', tester: '測試儀', borescope: '內視鏡',
+    jack_lift: '千斤頂', torque_multiplier: '扭力倍增器', tire_inflator: '打氣機', other: '其他',
+  };
+
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('all');
+  const [products, setProducts] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [expanded, setExpanded] = useState(null);
+  const PAGE_SIZE = 25;
+
+  const doSearch = useCallback(async (q, cat, pg = 0) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set('select', 'item_number,description,us_price,tw_retail_price,tw_reseller_price,product_status,category,replacement_model,weight_kg,origin_country');
+      params.set('product_status', 'eq.Current');
+      params.set('order', 'item_number.asc');
+      params.set('offset', String(pg * PAGE_SIZE));
+      params.set('limit', String(PAGE_SIZE));
+      if (cat && cat !== 'all') params.set('category', `eq.${cat}`);
+      const trimmed = (q || '').trim();
+      if (trimmed) {
+        const escaped = trimmed.replace(/['"]/g, '');
+        const tsQuery = escaped.split(/\s+/).filter(Boolean).join(' & ');
+        params.set('or', `(item_number.ilike.*${escaped}*,search_text.fts.${tsQuery})`);
+      }
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/quickbuy_products?${params}`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, Prefer: 'count=exact' },
+      });
+      const t = parseInt(res.headers.get('content-range')?.split('/')[1] || '0', 10);
+      const data = await res.json();
+      setProducts(Array.isArray(data) ? data : []);
+      setTotal(t);
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { setPage(0); doSearch(search, category, 0); }, 300);
+    return () => clearTimeout(timer);
+  }, [search, category, doSearch]);
+
+  const goPage = (pg) => { setPage(pg); doSearch(search, category, pg); };
+
+  const fmtP = n => n ? `NT$${Number(n).toLocaleString()}` : '-';
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  return (
+    <div>
+      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy products --search</div>
+
+      <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="搜尋料號或關鍵字... (例: FDX71, wrench, socket)"
+          style={{ ...S.input, flex: 1, ...S.mono }}
+          onFocus={e => e.target.style.borderColor = '#EAB308'}
+          onBlur={e => e.target.style.borderColor = '#2a2a2a'}
+        />
+      </div>
+
+      {/* Category filter */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+        {Object.entries(CATS).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setCategory(key)}
+            style={{
+              ...S.btnGhost,
+              padding: '5px 12px',
+              fontSize: 11,
+              color: category === key ? '#EAB308' : '#666',
+              borderColor: category === key ? '#EAB30860' : '#2a2a2a',
+              background: category === key ? '#EAB30810' : 'transparent',
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: '#555', ...S.mono }}>共 {fmt(total)} 筆產品</div>
+        {totalPages > 1 && (
+          <div style={{ fontSize: 11, color: '#444', ...S.mono }}>
+            P{page + 1}/{totalPages}
+          </div>
+        )}
+      </div>
+
+      {loading ? <Loading /> : products.length === 0 ? (
+        <EmptyState text={search ? '找不到符合的產品' : '輸入料號或關鍵字開始搜尋'} />
+      ) : (
+        <>
+          {/* Table header */}
+          <div style={{ display: 'flex', padding: '8px 16px', fontSize: 10, color: '#555', ...S.mono, borderBottom: '1px solid #1f1f1f', marginBottom: 4 }}>
+            <div style={{ width: 150 }}>ITEM_NO</div>
+            <div style={{ flex: 1 }}>DESCRIPTION</div>
+            <div style={{ width: 90, textAlign: 'right' }}>CATEGORY</div>
+            <div style={{ width: 100, textAlign: 'right' }}>牌價</div>
+            <div style={{ width: 100, textAlign: 'right' }}>經銷價</div>
+          </div>
+
+          {products.map(p => (
+            <div key={p.item_number}>
+              <div
+                onClick={() => setExpanded(expanded === p.item_number ? null : p.item_number)}
+                style={{
+                  ...S.card,
+                  cursor: 'pointer',
+                  padding: '10px 16px',
+                  marginBottom: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  borderColor: expanded === p.item_number ? '#EAB30830' : '#1f1f1f',
+                  transition: 'border-color 0.15s',
+                }}
+              >
+                <div style={{ width: 150, fontWeight: 600, color: '#EAB308', fontSize: 13, ...S.mono }}>{p.item_number}</div>
+                <div style={{ flex: 1, fontSize: 12, color: '#999', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</div>
+                <div style={{ width: 90, textAlign: 'right' }}>
+                  {p.category && p.category !== 'other' && <span style={{ ...S.tag(''), fontSize: 10 }}>{CATS[p.category] || p.category}</span>}
+                </div>
+                <div style={{ width: 100, textAlign: 'right', fontSize: 13, color: '#ccc', ...S.mono }}>{fmtP(p.tw_retail_price)}</div>
+                <div style={{ width: 100, textAlign: 'right', fontSize: 13, color: '#4ade80', fontWeight: 600, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div>
+              </div>
+
+              {expanded === p.item_number && (
+                <div style={{ background: '#0c0c0c', border: '1px solid #1a1a1a', borderRadius: 6, padding: '14px 20px', marginBottom: 8, marginTop: -2 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+                    <div>
+                      <div style={{ ...S.label, marginBottom: 3 }}>US PRICE</div>
+                      <div style={{ color: '#888', fontSize: 13, ...S.mono }}>{p.us_price ? `$${Number(p.us_price).toFixed(2)}` : '-'}</div>
+                    </div>
+                    <div>
+                      <div style={{ ...S.label, marginBottom: 3 }}>牌價 (RETAIL)</div>
+                      <div style={{ color: '#ccc', fontSize: 13, ...S.mono }}>{fmtP(p.tw_retail_price)}</div>
+                    </div>
+                    <div>
+                      <div style={{ ...S.label, marginBottom: 3 }}>經銷價 (RESELLER)</div>
+                      <div style={{ color: '#4ade80', fontSize: 13, fontWeight: 600, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div>
+                    </div>
+                    <div>
+                      <div style={{ ...S.label, marginBottom: 3 }}>重量</div>
+                      <div style={{ color: '#888', fontSize: 13, ...S.mono }}>{p.weight_kg ? `${p.weight_kg} kg` : '-'}</div>
+                    </div>
+                    <div>
+                      <div style={{ ...S.label, marginBottom: 3 }}>產地</div>
+                      <div style={{ color: '#888', fontSize: 13, ...S.mono }}>{p.origin_country || '-'}</div>
+                    </div>
+                    <div>
+                      <div style={{ ...S.label, marginBottom: 3 }}>替代型號</div>
+                      <div style={{ color: p.replacement_model ? '#EAB308' : '#888', fontSize: 13, ...S.mono }}>{p.replacement_model || '-'}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Pagination */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 16 }}>
+            {page > 0 && <button onClick={() => goPage(page - 1)} style={S.btnGhost}>← 上一頁</button>}
+            <span style={{ color: '#444', padding: '8px 0', fontSize: 12, ...S.mono }}>P{page + 1}/{totalPages}</span>
+            {page < totalPages - 1 && <button onClick={() => goPage(page + 1)} style={S.btnGhost}>下一頁 →</button>}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* =========================================
    SHARED COMPONENTS
    ========================================= */
 function Loading() {
@@ -369,11 +555,12 @@ function EmptyState({ text }) {
 const TABS = [
   { id: 'dashboard', label: '儀表板', code: 'DASH' },
   { id: 'messages', label: '對話紀錄', code: 'MSG' },
+  { id: 'products', label: '產品查價', code: 'SEARCH' },
   { id: 'promotions', label: '活動管理', code: 'PROMO' },
   { id: 'pricing', label: '報價規則', code: 'PRICE' },
 ];
 
-const TAB_COMPONENTS = { dashboard: Dashboard, messages: Messages, promotions: Promotions, pricing: PricingRules };
+const TAB_COMPONENTS = { dashboard: Dashboard, messages: Messages, products: ProductSearch, promotions: Promotions, pricing: PricingRules };
 
 export default function AdminPage() {
   const [tab, setTab] = useState('dashboard');
