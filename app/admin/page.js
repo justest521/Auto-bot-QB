@@ -540,6 +540,7 @@ export default function AdminPage() {
               <div style={{ padding: '3px 0' }}>產品：120,956</div>
               <div style={{ padding: '3px 0' }}>歷史對話：86,261</div>
               <div style={{ padding: '3px 0' }}>Webhook：<span style={{ color: '#4ade80' }}>ON</span></div>
+              <div style={{ padding: '3px 0' }}>LIFF：<span style={{ color: '#4ade80' }}>ON</span></div>
             </div>
           </div>
         </div>
