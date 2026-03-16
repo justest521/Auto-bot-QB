@@ -33,7 +33,7 @@ const S = {
    ========================================= */
 function StatCard({ code, label, value, sub }) {
   return (
-    <div style={{ ...S.card, flex: '1 1 190px', minWidth: 170, padding: '18px 22px', position: 'relative', overflow: 'hidden' }}>
+    <div className="qb-stat-card" style={{ ...S.card, flex: '1 1 190px', minWidth: 170, padding: '18px 22px', position: 'relative', overflow: 'hidden', cursor: 'default' }}>
       <div style={{ position: 'absolute', top: 12, right: 16, fontSize: 10, color: '#2e2e2e', ...S.mono }}>{code}</div>
       <div style={{ fontSize: 12, color: '#ccc', marginBottom: 8, letterSpacing: 1, textTransform: 'uppercase' }}>{label}</div>
       <div style={{ fontSize: 30, fontWeight: 700, color: '#10b981', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
@@ -68,7 +68,7 @@ function Dashboard() {
         <StatCard code="PERF" label="平均回覆" value={fmtMs(stats?.avg_response_ms)} sub="response time" />
       </div>
 
-      <div style={S.card}>
+      <div className="qb-card-block" style={S.card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: '#d4d4d4' }}>熱門查詢產品</div>
           <div style={{ ...S.tag('green') }}>TOP 10</div>
@@ -76,7 +76,7 @@ function Dashboard() {
         {stats?.top_products?.length > 0 ? (
           <div>
             {stats.top_products.map((p, i) => (
-              <div key={p.item_number} style={{ display: 'flex', alignItems: 'center', padding: '12px 0', borderTop: i > 0 ? '1px solid #202020' : 'none' }}>
+              <div key={p.item_number} style={{ display: 'flex', alignItems: 'center', padding: '12px 6px', borderTop: i > 0 ? '1px solid #202020' : 'none', borderRadius: 4, cursor: 'default', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = '#282828'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <div style={{ width: 36, fontSize: 14, color: i < 3 ? '#10b981' : '#444', fontWeight: 700, ...S.mono }}>#{i + 1}</div>
                 <div style={{ flex: 1, fontSize: 15, color: '#ddd', ...S.mono }}>{p.item_number}</div>
                 <div style={{ fontSize: 15, color: '#10b981', fontWeight: 600, ...S.mono }}>{p.count}次</div>
@@ -119,11 +119,11 @@ function Messages() {
           onChange={e => setSearch(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && load(1, search)}
           placeholder="搜尋訊息內容、客戶名稱..."
-          style={{ ...S.input, flex: 1 }}
+          className="qb-input" style={{ ...S.input, flex: 1 }}
           onFocus={e => e.target.style.borderColor = '#10b981'}
           onBlur={e => e.target.style.borderColor = '#333'}
         />
-        <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
+        <button onClick={() => load(1, search)} className="qb-btn-primary" style={S.btnPrimary}>搜尋</button>
       </div>
 
       <div style={{ fontSize: 13, color: '#ddd', marginBottom: 14, ...S.mono }}>共 {data.total} 筆紀錄</div>
@@ -131,6 +131,7 @@ function Messages() {
       {loading ? <Loading /> : data.messages.map(msg => (
         <div
           key={msg.id}
+          className="qb-card-block"
           onClick={() => setExpanded(expanded === msg.id ? null : msg.id)}
           style={{ ...S.card, cursor: 'pointer', padding: '16px 20px', transition: 'border-color 0.2s', borderColor: expanded === msg.id ? '#10b98130' : '#252525' }}
         >
@@ -154,9 +155,9 @@ function Messages() {
       ))}
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 22 }}>
-        {data.page > 1 && <button onClick={() => load(data.page - 1)} style={S.btnGhost}>← prev</button>}
+        {data.page > 1 && <button onClick={() => load(data.page - 1)} className="qb-btn-ghost" style={S.btnGhost}>← prev</button>}
         <span style={{ color: '#ccc', padding: '8px 0', fontSize: 13, ...S.mono }}>P{data.page}</span>
-        {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={S.btnGhost}>next →</button>}
+        {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} className="qb-btn-ghost" style={S.btnGhost}>next →</button>}
       </div>
     </div>
   );
@@ -207,7 +208,7 @@ function Promotions() {
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
         <div style={{ fontSize: 13, color: '#ddd', ...S.mono }}>共 {promos.length} 個活動</div>
-        <button onClick={() => setShowForm(!showForm)} style={S.btnPrimary}>
+        <button onClick={() => setShowForm(!showForm)} className="qb-btn-primary" style={S.btnPrimary}>
           {showForm ? '取消' : '+ 新增活動'}
         </button>
       </div>
@@ -218,19 +219,19 @@ function Promotions() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             <div>
               <label style={S.label}>活動名稱</label>
-              <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="四月工具月" style={S.input} />
+              <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="四月工具月" className="qb-input" style={S.input} />
             </div>
             <div>
               <label style={S.label}>備註</label>
-              <input value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="滿 10,000 免運" style={S.input} />
+              <input value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="滿 10,000 免運" className="qb-input" style={S.input} />
             </div>
             <div>
               <label style={S.label}>開始日期</label>
-              <input type="date" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} style={S.input} />
+              <input type="date" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} className="qb-input" style={S.input} />
             </div>
             <div>
               <label style={S.label}>結束日期</label>
-              <input type="date" value={form.end_date} onChange={e => setForm({ ...form, end_date: e.target.value })} style={S.input} />
+              <input type="date" value={form.end_date} onChange={e => setForm({ ...form, end_date: e.target.value })} className="qb-input" style={S.input} />
             </div>
           </div>
           <div style={{ marginBottom: 20 }}>
@@ -240,21 +241,21 @@ function Promotions() {
               onChange={e => setForm({ ...form, items: e.target.value })}
               placeholder={`ATECH3FR250B → 28000\nTPGDL2000 → 8500（買一送充氣嘴組）\nCTM3000 → 120000`}
               rows={5}
-              style={{ ...S.input, resize: 'vertical', fontSize: 13, lineHeight: 1.7 }}
+              className="qb-input" style={{ ...S.input, resize: 'vertical', fontSize: 13, lineHeight: 1.7 }}
             />
           </div>
-          <button onClick={submit} style={S.btnPrimary}>建立活動</button>
+          <button onClick={submit} className="qb-btn-primary" style={S.btnPrimary}>建立活動</button>
         </div>
       )}
 
       {loading ? <Loading /> : promos.map(p => (
-        <div key={p.id} style={{ ...S.card, borderColor: p.is_active ? '#10b98120' : '#252525' }}>
+        <div key={p.id} className="qb-card-block" style={{ ...S.card, borderColor: p.is_active ? '#10b98120' : '#252525' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: '#d4d4d4' }}>{p.name}</span>
               <span style={S.tag(p.is_active ? 'green' : 'red')}>{p.is_active ? 'ACTIVE' : 'CLOSED'}</span>
             </div>
-            <button onClick={() => toggle(p.id, p.is_active)} style={{ ...S.btnGhost, color: p.is_active ? '#ef4444' : '#10b981', borderColor: p.is_active ? '#ef444420' : '#10b98120', fontSize: 13 }}>
+            <button onClick={() => toggle(p.id, p.is_active)} className="qb-btn-ghost" style={{ ...S.btnGhost, color: p.is_active ? '#ef4444' : '#10b981', borderColor: p.is_active ? '#ef444420' : '#10b98120', fontSize: 13 }}>
               {p.is_active ? '關閉' : '啟用'}
             </button>
           </div>
@@ -304,25 +305,25 @@ function PricingRules() {
         <span style={{ color: '#10b981' }}>$</span> quickbuy config --pricing
       </div>
 
-      <div style={S.card}>
+      <div className="qb-card-block" style={S.card}>
         <div style={{ fontSize: 14, fontWeight: 700, color: '#10b981', marginBottom: 22, ...S.mono }}>PRICING_CONFIG</div>
 
         <div style={{ marginBottom: 20 }}>
           <label style={S.label}>預設折扣比例</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <input type="number" step="0.01" min="0" max="1" value={rules.default_discount} onChange={e => setRules({ ...rules, default_discount: parseFloat(e.target.value) })} style={{ ...S.input, width: 130, textAlign: 'center' }} />
+            <input type="number" step="0.01" min="0" max="1" value={rules.default_discount} onChange={e => setRules({ ...rules, default_discount: parseFloat(e.target.value) })} className="qb-input" style={{ ...S.input, width: 130, textAlign: 'center' }} />
             <span style={{ color: '#ccc', fontSize: 14 }}>= {Math.round(rules.default_discount * 100)} 折（內部參考，不對外顯示）</span>
           </div>
         </div>
 
         <div style={{ marginBottom: 20 }}>
           <label style={S.label}>免運門檻 (NT$)</label>
-          <input type="number" step="100" value={rules.free_shipping_threshold} onChange={e => setRules({ ...rules, free_shipping_threshold: parseInt(e.target.value) })} style={{ ...S.input, width: 180 }} />
+          <input type="number" step="100" value={rules.free_shipping_threshold} onChange={e => setRules({ ...rules, free_shipping_threshold: parseInt(e.target.value) })} className="qb-input" style={{ ...S.input, width: 180 }} />
         </div>
 
         <div style={{ marginBottom: 20 }}>
           <label style={S.label}>優惠提示文字</label>
-          <input value={rules.promo_hint_text || '✨ 私訊享優惠價'} onChange={e => setRules({ ...rules, promo_hint_text: e.target.value })} style={S.input} />
+          <input value={rules.promo_hint_text || '✨ 私訊享優惠價'} onChange={e => setRules({ ...rules, promo_hint_text: e.target.value })} className="qb-input" style={S.input} />
         </div>
 
         <div style={{ display: 'flex', gap: 18, marginBottom: 22 }}>
@@ -336,7 +337,7 @@ function PricingRules() {
           </label>
         </div>
 
-        <button onClick={save} style={{ ...S.btnPrimary, background: saved ? '#34d399' : '#10b981', transition: 'background 0.3s', width: '100%', padding: '12px 0', fontSize: 15 }}>
+        <button onClick={save} className="qb-btn-primary" style={{ ...S.btnPrimary, background: saved ? '#34d399' : '#10b981', transition: 'background 0.3s', width: '100%', padding: '12px 0', fontSize: 15 }}>
           {saved ? '✓ SAVED' : '儲存設定'}
         </button>
       </div>
@@ -424,7 +425,7 @@ function ProductSearch() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="搜尋料號或關鍵字... (例: FDX71, wrench, socket)"
-          style={S.input}
+          className="qb-input" style={S.input}
           onFocus={e => e.target.style.borderColor = '#10b981'}
           onBlur={e => e.target.style.borderColor = '#333'}
         />
@@ -434,6 +435,7 @@ function ProductSearch() {
         {Object.entries(CATS).map(([key, label]) => (
           <button
             key={key}
+            className="qb-cat-btn"
             onClick={() => setCategory(key)}
             style={{
               background: category === key ? '#10b98118' : 'transparent',
@@ -468,6 +470,7 @@ function ProductSearch() {
           {products.map(p => (
             <div key={p.item_number}>
               <div
+                className="qb-card-row"
                 onClick={() => setExpanded(expanded === p.item_number ? null : p.item_number)}
                 style={{
                   background: expanded === p.item_number ? '#1e1e1e' : '#1a1a1a',
@@ -519,9 +522,9 @@ function ProductSearch() {
           ))}
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 18 }}>
-            {page > 0 && <button onClick={() => goPage(page - 1)} style={S.btnGhost}>← prev</button>}
+            {page > 0 && <button onClick={() => goPage(page - 1)} className="qb-btn-ghost" style={S.btnGhost}>← prev</button>}
             <span style={{ color: '#ccc', padding: '8px 0', fontSize: 14, ...S.mono }}>P{page + 1}/{totalPages}</span>
-            {page < totalPages - 1 && <button onClick={() => goPage(page + 1)} style={S.btnGhost}>next →</button>}
+            {page < totalPages - 1 && <button onClick={() => goPage(page + 1)} className="qb-btn-ghost" style={S.btnGhost}>next →</button>}
           </div>
         </>
       )}
@@ -569,7 +572,24 @@ export default function AdminPage() {
 
   return (
     <div style={S.page}>
-      <style>{`html, body { background: #1a1a1a !important; margin: 0; padding: 0; }`}</style>
+      <style>{`
+        html, body { background: #1a1a1a !important; margin: 0; padding: 0; }
+        .qb-nav-item { transition: all 0.15s ease; }
+        .qb-nav-item:hover { background: #10b98112 !important; color: #10b981 !important; }
+        .qb-card-row { transition: all 0.15s ease; }
+        .qb-card-row:hover { background: #282828 !important; border-color: #10b98130 !important; }
+        .qb-card-block { transition: all 0.15s ease; }
+        .qb-card-block:hover { border-color: #10b98125 !important; background: #262626 !important; }
+        .qb-cat-btn { transition: all 0.15s ease; }
+        .qb-cat-btn:hover { border-color: #10b98150 !important; color: #10b981 !important; background: #10b98110 !important; }
+        .qb-btn-primary { transition: all 0.15s ease; }
+        .qb-btn-primary:hover { background: #34d399 !important; }
+        .qb-btn-ghost { transition: all 0.15s ease; }
+        .qb-btn-ghost:hover { border-color: #10b98140 !important; color: #ddd !important; background: #10b98108 !important; }
+        .qb-input:focus { border-color: #10b981 !important; }
+        .qb-stat-card { transition: all 0.2s ease; }
+        .qb-stat-card:hover { border-color: #10b98130 !important; background: #262626 !important; transform: translateY(-1px); }
+      `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
       
       {/* Header */}
@@ -591,6 +611,7 @@ export default function AdminPage() {
           {TABS.map(t => (
             <div
               key={t.id}
+              className="qb-nav-item"
               onClick={() => setTab(t.id)}
               style={{
                 padding: '12px 18px',
