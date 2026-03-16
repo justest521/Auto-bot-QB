@@ -569,6 +569,7 @@ export default function AdminPage() {
 
   return (
     <div style={S.page}>
+      <style>{`html, body { background: #1a1a1a !important; margin: 0; padding: 0; }`}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
       
       {/* Header */}
@@ -576,9 +577,9 @@ export default function AdminPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <span style={{ color: '#10b981', fontWeight: 700, fontSize: 17, letterSpacing: 1.5, ...S.mono }}>QB</span>
           <span style={{ color: '#2e2e2e', fontSize: 14 }}>│</span>
-          <span style={{ color: '#ddd', fontSize: 14 }}>Quick Buy 管理後台</span>
+          <span style={{ color: '#999', fontSize: 14 }}>Quick Buy 管理後台</span>
         </div>
-        <div style={{ fontSize: 11, color: '#ddd', ...S.mono }}>v1.1.0</div>
+        <div style={{ fontSize: 11, color: '#555', ...S.mono }}>v1.1.0</div>
       </div>
 
       <div style={{ display: 'flex' }}>
@@ -610,8 +611,8 @@ export default function AdminPage() {
           ))}
           
           <div style={{ padding: '16px 18px', borderTop: '1px solid #2a2a2a', marginTop: 18 }}>
-            <div style={{ fontSize: 10, color: '#ddd', ...S.mono, marginBottom: 8, letterSpacing: 1.5 }}>SYSTEM</div>
-            <div style={{ fontSize: 13, color: '#ccc', ...S.mono }}>
+            <div style={{ fontSize: 10, color: '#666', ...S.mono, marginBottom: 8, letterSpacing: 1.5 }}>SYSTEM</div>
+            <div style={{ fontSize: 13, color: '#888', ...S.mono }}>
               <div style={{ padding: '4px 0' }}>產品：120,956</div>
               <div style={{ padding: '4px 0' }}>Webhook：<span style={{ color: '#10b981' }}>ON</span></div>
               <div style={{ padding: '4px 0' }}>LIFF：<span style={{ color: '#10b981' }}>ON</span></div>
