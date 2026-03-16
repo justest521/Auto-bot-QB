@@ -23,23 +23,23 @@ async function sbQuery(table, params = {}) {
 
 /* ========================================= STYLES ========================================= */
 const S = {
-  page: { minHeight: '100vh', background: '#0f0f0f', color: '#e5e5e5', fontFamily: "'Noto Sans TC', 'SF Mono', monospace, sans-serif" },
-  header: { height: 48, background: '#0a0a0a', borderBottom: '1px solid #1f1f1f', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100, backdropFilter: 'blur(12px)' },
-  sidebar: { width: 180, minHeight: 'calc(100vh - 48px)', background: '#0a0a0a', borderRight: '1px solid #1f1f1f', paddingTop: 8, position: 'sticky', top: 48, alignSelf: 'flex-start' },
+  page: { minHeight: '100vh', background: '#1a1a1a', color: '#e5e5e5', fontFamily: "'Noto Sans TC', 'SF Mono', monospace, sans-serif" },
+  header: { height: 48, background: '#1e1e1e', borderBottom: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100, backdropFilter: 'blur(12px)' },
+  sidebar: { width: 180, minHeight: 'calc(100vh - 48px)', background: '#1e1e1e', borderRight: '1px solid #2e2e2e', paddingTop: 8, position: 'sticky', top: 48, alignSelf: 'flex-start' },
   content: { flex: 1, padding: '24px 28px', maxWidth: 1100, minHeight: 'calc(100vh - 48px)' },
-  card: { background: '#141414', border: '1px solid #1f1f1f', borderRadius: 8, padding: '20px 22px', marginBottom: 16 },
-  input: { background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 6, padding: '9px 14px', color: '#e5e5e5', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s' },
-  btnPrimary: { background: '#EAB308', color: '#0a0a0a', border: 'none', borderRadius: 6, padding: '9px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.5 },
-  btnGhost: { background: 'transparent', color: '#888', border: '1px solid #2a2a2a', borderRadius: 6, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif" },
+  card: { background: '#212121', border: '1px solid #2e2e2e', borderRadius: 8, padding: '20px 22px', marginBottom: 16 },
+  input: { background: '#1a1a1a', border: '1px solid #333', borderRadius: 6, padding: '9px 14px', color: '#e5e5e5', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s' },
+  btnPrimary: { background: '#10b981', color: '#000', border: 'none', borderRadius: 6, padding: '9px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.5 },
+  btnGhost: { background: 'transparent', color: '#888', border: '1px solid #333', borderRadius: 6, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif" },
   btnLine: { background: '#06c755', color: '#fff', border: 'none', borderRadius: 6, padding: '9px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13 },
   label: { color: '#666', fontSize: 11, fontWeight: 500, display: 'block', marginBottom: 5, letterSpacing: 0.8, textTransform: 'uppercase' },
   mono: { fontFamily: "'SF Mono', 'Fira Code', monospace", letterSpacing: 0.5 },
-  tag: (color) => ({ display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4, background: color === 'yellow' ? '#EAB30815' : color === 'green' ? '#22c55e12' : color === 'red' ? '#ef444412' : color === 'line' ? '#06c75515' : '#ffffff08', color: color === 'yellow' ? '#EAB308' : color === 'green' ? '#4ade80' : color === 'red' ? '#f87171' : color === 'line' ? '#06c755' : '#888', border: `1px solid ${color === 'yellow' ? '#EAB30830' : color === 'green' ? '#22c55e25' : color === 'red' ? '#ef444425' : color === 'line' ? '#06c75530' : '#ffffff12'}` }),
+  tag: (color) => ({ display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4, background: color === 'green' ? '#10b98115' : color === 'green' ? '#22c55e12' : color === 'red' ? '#ef444412' : color === 'line' ? '#06c75515' : '#ffffff08', color: color === 'green' ? '#10b981' : color === 'green' ? '#4ade80' : color === 'red' ? '#f87171' : color === 'line' ? '#06c755' : '#888', border: `1px solid ${color === 'green' ? '#10b98130' : color === 'green' ? '#22c55e25' : color === 'red' ? '#ef444425' : color === 'line' ? '#06c75530' : '#ffffff12'}` }),
 };
 
 /* ========================================= SHARED ========================================= */
 function Loading() {
-  return <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div style={{ color: '#333', fontSize: 12, ...S.mono }}><span style={{ color: '#EAB308' }}>●</span> loading...</div></div>;
+  return <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div style={{ color: '#333', fontSize: 12, ...S.mono }}><span style={{ color: '#10b981' }}>●</span> loading...</div></div>;
 }
 function EmptyState({ text }) {
   return <div style={{ textAlign: 'center', padding: '40px 0', color: '#333', fontSize: 12, ...S.mono }}>{text}</div>;
@@ -49,7 +49,7 @@ function StatCard({ code, label, value, sub, accent }) {
     <div style={{ ...S.card, flex: '1 1 180px', minWidth: 165, padding: '16px 20px', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 12, right: 16, fontSize: 10, color: '#333', ...S.mono }}>{code}</div>
       <div style={{ fontSize: 11, color: '#666', marginBottom: 6, letterSpacing: 0.5 }}>{label}</div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: accent || '#EAB308', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: accent || '#10b981', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: '#444', marginTop: 4 }}>{sub}</div>}
     </div>
   );
@@ -74,13 +74,13 @@ function Dashboard() {
       <div style={S.card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#e5e5e5' }}>熱門查詢產品</div>
-          <div style={{ ...S.tag('yellow') }}>TOP 10</div>
+          <div style={{ ...S.tag('green') }}>TOP 10</div>
         </div>
         {stats?.top_products?.length > 0 ? stats.top_products.map((p, i) => (
           <div key={p.item_number} style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderTop: i > 0 ? '1px solid #1a1a1a' : 'none' }}>
-            <div style={{ width: 32, fontSize: 12, color: i < 3 ? '#EAB308' : '#444', fontWeight: 700, ...S.mono }}>#{i + 1}</div>
+            <div style={{ width: 32, fontSize: 12, color: i < 3 ? '#10b981' : '#444', fontWeight: 700, ...S.mono }}>#{i + 1}</div>
             <div style={{ flex: 1, fontSize: 13, color: '#ccc', ...S.mono }}>{p.item_number}</div>
-            <div style={{ fontSize: 13, color: '#EAB308', fontWeight: 600, ...S.mono }}>{p.count}次</div>
+            <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, ...S.mono }}>{p.count}次</div>
           </div>
         )) : <EmptyState text="等待客戶使用 Line Bot 後將顯示數據" />}
       </div>
@@ -103,23 +103,23 @@ function Messages() {
     <div>
       <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy messages --list</div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search)} placeholder="搜尋訊息內容、客戶名稱..." style={{ ...S.input, flex: 1 }} onFocus={e => e.target.style.borderColor = '#EAB308'} onBlur={e => e.target.style.borderColor = '#2a2a2a'} />
+        <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search)} placeholder="搜尋訊息內容、客戶名稱..." style={{ ...S.input, flex: 1 }} onFocus={e => e.target.style.borderColor = '#10b981'} onBlur={e => e.target.style.borderColor = '#2a2a2a'} />
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
       </div>
       <div style={{ fontSize: 11, color: '#555', marginBottom: 12, ...S.mono }}>共 {data.total} 筆紀錄</div>
       {loading ? <Loading /> : data.messages.map(msg => (
-        <div key={msg.id} onClick={() => setExpanded(expanded === msg.id ? null : msg.id)} style={{ ...S.card, cursor: 'pointer', padding: '14px 18px', transition: 'border-color 0.2s', borderColor: expanded === msg.id ? '#EAB30840' : '#1f1f1f' }}>
+        <div key={msg.id} onClick={() => setExpanded(expanded === msg.id ? null : msg.id)} style={{ ...S.card, cursor: 'pointer', padding: '14px 18px', transition: 'border-color 0.2s', borderColor: expanded === msg.id ? '#10b98140' : '#1f1f1f' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={S.tag('yellow')}>{msg.display_name || '客戶'}</span>
+              <span style={S.tag('green')}>{msg.display_name || '客戶'}</span>
               <span style={{ color: '#444', fontSize: 11, ...S.mono }}>{fmtDate(msg.created_at)}</span>
             </div>
             <span style={{ color: '#444', fontSize: 11, ...S.mono }}>{fmtMs(msg.response_time_ms)}</span>
           </div>
           <div style={{ fontSize: 13, color: '#ccc' }}><span style={{ color: '#555' }}>Q: </span>{msg.user_message}</div>
           {expanded === msg.id && (
-            <div style={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: 6, padding: '14px 16px', marginTop: 10, fontSize: 12, color: '#999', whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
-              <span style={{ color: '#EAB308', fontSize: 11, ...S.mono }}>AI_RESPONSE</span>
+            <div style={{ background: '#1a1a1a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '14px 16px', marginTop: 10, fontSize: 12, color: '#999', whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
+              <span style={{ color: '#10b981', fontSize: 11, ...S.mono }}>AI_RESPONSE</span>
               <div style={{ marginTop: 6, color: '#bbb' }}>{msg.ai_response}</div>
             </div>
           )}
@@ -164,36 +164,36 @@ function ProductSearch() {
     <div>
       <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy products --search</div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜尋料號或關鍵字... (例: FDX71, wrench)" style={{ ...S.input, flex: 1, ...S.mono }} onFocus={e => e.target.style.borderColor = '#EAB308'} onBlur={e => e.target.style.borderColor = '#2a2a2a'} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜尋料號或關鍵字... (例: FDX71, wrench)" style={{ ...S.input, flex: 1, ...S.mono }} onFocus={e => e.target.style.borderColor = '#10b981'} onBlur={e => e.target.style.borderColor = '#2a2a2a'} />
       </div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
         {Object.entries(CATS).map(([key, label]) => (
-          <button key={key} onClick={() => setCategory(key)} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: 11, color: category === key ? '#EAB308' : '#666', borderColor: category === key ? '#EAB30860' : '#2a2a2a', background: category === key ? '#EAB30810' : 'transparent' }}>{label}</button>
+          <button key={key} onClick={() => setCategory(key)} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: 11, color: category === key ? '#10b981' : '#666', borderColor: category === key ? '#10b98160' : '#2a2a2a', background: category === key ? '#10b98110' : 'transparent' }}>{label}</button>
         ))}
       </div>
       <div style={{ fontSize: 11, color: '#555', marginBottom: 12, ...S.mono }}>共 {fmt(total)} 筆產品 {totalPages > 1 && `· P${page + 1}/${totalPages}`}</div>
       {loading ? <Loading /> : products.length === 0 ? <EmptyState text={search ? '找不到符合的產品' : '輸入料號或關鍵字開始搜尋'} /> : (
         <>
-          <div style={{ display: 'flex', padding: '8px 16px', fontSize: 10, color: '#555', ...S.mono, borderBottom: '1px solid #1f1f1f', marginBottom: 4 }}>
+          <div style={{ display: 'flex', padding: '8px 16px', fontSize: 10, color: '#555', ...S.mono, borderBottom: '1px solid #2e2e2e', marginBottom: 4 }}>
             <div style={{ width: 150 }}>ITEM_NO</div><div style={{ flex: 1 }}>DESCRIPTION</div><div style={{ width: 90, textAlign: 'right' }}>分類</div><div style={{ width: 100, textAlign: 'right' }}>牌價</div><div style={{ width: 100, textAlign: 'right' }}>經銷價</div>
           </div>
           {products.map(p => (
             <div key={p.item_number}>
-              <div onClick={() => setExpanded(expanded === p.item_number ? null : p.item_number)} style={{ ...S.card, cursor: 'pointer', padding: '10px 16px', marginBottom: 2, display: 'flex', alignItems: 'center', borderColor: expanded === p.item_number ? '#EAB30830' : '#1f1f1f' }}>
-                <div style={{ width: 150, fontWeight: 600, color: '#EAB308', fontSize: 13, ...S.mono }}>{p.item_number}</div>
+              <div onClick={() => setExpanded(expanded === p.item_number ? null : p.item_number)} style={{ ...S.card, cursor: 'pointer', padding: '10px 16px', marginBottom: 2, display: 'flex', alignItems: 'center', borderColor: expanded === p.item_number ? '#10b98130' : '#1f1f1f' }}>
+                <div style={{ width: 150, fontWeight: 600, color: '#10b981', fontSize: 13, ...S.mono }}>{p.item_number}</div>
                 <div style={{ flex: 1, fontSize: 12, color: '#999', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</div>
                 <div style={{ width: 90, textAlign: 'right' }}>{p.category && p.category !== 'other' && <span style={{ ...S.tag(''), fontSize: 10 }}>{CATS[p.category] || p.category}</span>}</div>
                 <div style={{ width: 100, textAlign: 'right', fontSize: 13, color: '#ccc', ...S.mono }}>{fmtP(p.tw_retail_price)}</div>
                 <div style={{ width: 100, textAlign: 'right', fontSize: 13, color: '#4ade80', fontWeight: 600, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div>
               </div>
               {expanded === p.item_number && (
-                <div style={{ background: '#0c0c0c', border: '1px solid #1a1a1a', borderRadius: 6, padding: '14px 20px', marginBottom: 8, marginTop: -2, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+                <div style={{ background: '#1a1a1a', border: '1px solid #1a1a1a', borderRadius: 6, padding: '14px 20px', marginBottom: 8, marginTop: -2, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
                   <div><div style={S.label}>US PRICE</div><div style={{ color: '#888', fontSize: 13, ...S.mono }}>{p.us_price ? `$${Number(p.us_price).toFixed(2)}` : '-'}</div></div>
                   <div><div style={S.label}>牌價</div><div style={{ color: '#ccc', fontSize: 13, ...S.mono }}>{fmtP(p.tw_retail_price)}</div></div>
                   <div><div style={S.label}>經銷價</div><div style={{ color: '#4ade80', fontSize: 13, fontWeight: 600, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div></div>
                   <div><div style={S.label}>重量</div><div style={{ color: '#888', fontSize: 13, ...S.mono }}>{p.weight_kg ? `${p.weight_kg} kg` : '-'}</div></div>
                   <div><div style={S.label}>產地</div><div style={{ color: '#888', fontSize: 13, ...S.mono }}>{p.origin_country || '-'}</div></div>
-                  <div><div style={S.label}>替代型號</div><div style={{ color: p.replacement_model ? '#EAB308' : '#888', fontSize: 13, ...S.mono }}>{p.replacement_model || '-'}</div></div>
+                  <div><div style={S.label}>替代型號</div><div style={{ color: p.replacement_model ? '#10b981' : '#888', fontSize: 13, ...S.mono }}>{p.replacement_model || '-'}</div></div>
                 </div>
               )}
             </div>
@@ -235,8 +235,8 @@ function Promotions() {
         <button onClick={() => setShowForm(!showForm)} style={S.btnPrimary}>{showForm ? '取消' : '+ 新增活動'}</button>
       </div>
       {showForm && (
-        <div style={{ ...S.card, borderColor: '#EAB30830', marginBottom: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#EAB308', marginBottom: 18 }}>NEW_PROMOTION</div>
+        <div style={{ ...S.card, borderColor: '#10b98130', marginBottom: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#10b981', marginBottom: 18 }}>NEW_PROMOTION</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
             <div><label style={S.label}>活動名稱</label><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="四月工具月" style={S.input} /></div>
             <div><label style={S.label}>備註</label><input value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="滿 10,000 免運" style={S.input} /></div>
@@ -251,7 +251,7 @@ function Promotions() {
         </div>
       )}
       {loading ? <Loading /> : promos.map(p => (
-        <div key={p.id} style={{ ...S.card, borderColor: p.is_active ? '#EAB30825' : '#1f1f1f' }}>
+        <div key={p.id} style={{ ...S.card, borderColor: p.is_active ? '#10b98125' : '#1f1f1f' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: '#e5e5e5' }}>{p.name}</span>
@@ -261,10 +261,10 @@ function Promotions() {
           </div>
           <div style={{ color: '#555', fontSize: 12, marginTop: 6, ...S.mono }}>{p.start_date} → {p.end_date}{p.note ? ` · ${p.note}` : ''}</div>
           {p.quickbuy_promotion_items?.length > 0 && (
-            <div style={{ marginTop: 12, borderTop: '1px solid #1a1a1a', paddingTop: 10 }}>
+            <div style={{ marginTop: 12, borderTop: '1px solid #2e2e2e', paddingTop: 10 }}>
               {p.quickbuy_promotion_items.map(item => (
                 <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '5px 0', fontSize: 12 }}>
-                  <span style={{ color: '#EAB308', ...S.mono, width: 140 }}>{item.item_number}</span>
+                  <span style={{ color: '#10b981', ...S.mono, width: 140 }}>{item.item_number}</span>
                   <span style={{ color: '#4ade80', ...S.mono }}>NT${fmt(item.promo_price)}</span>
                   {item.promo_note && <span style={{ color: '#555' }}>({item.promo_note})</span>}
                 </div>
@@ -290,15 +290,15 @@ function PricingRules() {
     <div style={{ maxWidth: 560 }}>
       <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy config --pricing</div>
       <div style={S.card}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#EAB308', marginBottom: 20, ...S.mono }}>PRICING_CONFIG</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#10b981', marginBottom: 20, ...S.mono }}>PRICING_CONFIG</div>
         <div style={{ marginBottom: 18 }}><label style={S.label}>預設折扣比例</label><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><input type="number" step="0.01" min="0" max="1" value={rules.default_discount} onChange={e => setRules({ ...rules, default_discount: parseFloat(e.target.value) })} style={{ ...S.input, width: 120, textAlign: 'center', ...S.mono }} /><span style={{ color: '#555', fontSize: 12 }}>= {Math.round(rules.default_discount * 100)} 折（內部參考）</span></div></div>
         <div style={{ marginBottom: 18 }}><label style={S.label}>免運門檻 (NT$)</label><input type="number" step="100" value={rules.free_shipping_threshold} onChange={e => setRules({ ...rules, free_shipping_threshold: parseInt(e.target.value) })} style={{ ...S.input, width: 160, ...S.mono }} /></div>
         <div style={{ marginBottom: 18 }}><label style={S.label}>優惠提示文字</label><input value={rules.promo_hint_text || '✨ 私訊享優惠價'} onChange={e => setRules({ ...rules, promo_hint_text: e.target.value })} style={S.input} /></div>
         <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
-          <label style={{ color: '#888', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><input type="checkbox" checked={rules.show_retail_price} onChange={e => setRules({ ...rules, show_retail_price: e.target.checked })} style={{ accentColor: '#EAB308' }} />顯示建議售價</label>
-          <label style={{ color: '#888', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><input type="checkbox" checked={rules.show_promo_hint} onChange={e => setRules({ ...rules, show_promo_hint: e.target.checked })} style={{ accentColor: '#EAB308' }} />顯示優惠提示</label>
+          <label style={{ color: '#888', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><input type="checkbox" checked={rules.show_retail_price} onChange={e => setRules({ ...rules, show_retail_price: e.target.checked })} style={{ accentColor: '#10b981' }} />顯示建議售價</label>
+          <label style={{ color: '#888', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><input type="checkbox" checked={rules.show_promo_hint} onChange={e => setRules({ ...rules, show_promo_hint: e.target.checked })} style={{ accentColor: '#10b981' }} />顯示優惠提示</label>
         </div>
-        <button onClick={save} style={{ ...S.btnPrimary, background: saved ? '#22c55e' : '#EAB308', transition: 'background 0.3s', width: '100%', padding: '11px 0', fontSize: 14 }}>{saved ? '✓ SAVED' : '儲存設定'}</button>
+        <button onClick={save} style={{ ...S.btnPrimary, background: saved ? '#22c55e' : '#10b981', transition: 'background 0.3s', width: '100%', padding: '11px 0', fontSize: 14 }}>{saved ? '✓ SAVED' : '儲存設定'}</button>
       </div>
     </div>
   );
@@ -338,14 +338,14 @@ function AIPrompt() {
       {stats && (
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
           <StatCard code="HIST" label="歷史對話" value={fmt(stats.chatHistory)} sub="匯入的 Line 對話" accent="#06c755" />
-          <StatCard code="AI" label="AI 回覆" value={fmt(stats.aiMessages)} sub="Bot 自動回覆" accent="#EAB308" />
+          <StatCard code="AI" label="AI 回覆" value={fmt(stats.aiMessages)} sub="Bot 自動回覆" accent="#10b981" />
         </div>
       )}
 
       <div style={S.card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#EAB308', ...S.mono }}>AI_SYSTEM_PROMPT</div>
-          <div style={{ ...S.tag('yellow') }}>Claude Sonnet</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#10b981', ...S.mono }}>AI_SYSTEM_PROMPT</div>
+          <div style={{ ...S.tag('green') }}>Claude Sonnet</div>
         </div>
         <div style={{ marginBottom: 8 }}>
           <label style={S.label}>AI 回覆的 System Prompt — 控制 Bot 的回覆風格和行為</label>
@@ -358,7 +358,7 @@ function AIPrompt() {
           />
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button onClick={save} style={{ ...S.btnPrimary, flex: 1, background: saved ? '#22c55e' : '#EAB308', transition: 'background 0.3s', padding: '11px 0', fontSize: 14 }}>{saved ? '✓ SAVED' : '儲存 Prompt'}</button>
+          <button onClick={save} style={{ ...S.btnPrimary, flex: 1, background: saved ? '#22c55e' : '#10b981', transition: 'background 0.3s', padding: '11px 0', fontSize: 14 }}>{saved ? '✓ SAVED' : '儲存 Prompt'}</button>
           <div style={{ fontSize: 11, color: '#555', ...S.mono }}>{prompt.length} 字</div>
         </div>
       </div>
@@ -489,12 +489,13 @@ export default function AdminPage() {
 
   return (
     <div style={S.page}>
+      <style>{'html,body{background:#1a1a1a!important;margin:0;padding:0}'}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
       
       {/* Header */}
       <div style={S.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ color: '#EAB308', fontWeight: 700, fontSize: 15, letterSpacing: 1.5, ...S.mono }}>QB</span>
+          <span style={{ color: '#10b981', fontWeight: 700, fontSize: 15, letterSpacing: 1.5, ...S.mono }}>QB</span>
           <span style={{ color: '#333', fontSize: 12 }}>|</span>
           <span style={{ color: '#555', fontSize: 12 }}>Quick Buy 管理後台</span>
         </div>
@@ -520,20 +521,20 @@ export default function AdminPage() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 8,
-                    color: tab === t.id ? (section.accent || '#EAB308') : '#666',
-                    background: tab === t.id ? (section.accent ? section.accent + '08' : '#EAB30808') : 'transparent',
-                    borderLeft: `2px solid ${tab === t.id ? (section.accent || '#EAB308') : 'transparent'}`,
+                    color: tab === t.id ? (section.accent || '#10b981') : '#666',
+                    background: tab === t.id ? (section.accent ? section.accent + '08' : '#10b98108') : 'transparent',
+                    borderLeft: `2px solid ${tab === t.id ? (section.accent || '#10b981') : 'transparent'}`,
                     transition: 'all 0.15s',
                   }}
                 >
-                  <span style={{ fontSize: 10, color: tab === t.id ? (section.accent ? section.accent + '80' : '#EAB30880') : '#333', ...S.mono, width: 36 }}>{t.code}</span>
+                  <span style={{ fontSize: 10, color: tab === t.id ? (section.accent ? section.accent + '80' : '#10b98180') : '#333', ...S.mono, width: 36 }}>{t.code}</span>
                   {t.label}
                 </div>
               ))}
             </div>
           ))}
 
-          <div style={{ padding: '16px', borderTop: '1px solid #1a1a1a', marginTop: 12 }}>
+          <div style={{ padding: '16px', borderTop: '1px solid #2e2e2e', marginTop: 12 }}>
             <div style={{ fontSize: 10, color: '#333', ...S.mono, marginBottom: 6 }}>SYSTEM</div>
             <div style={{ fontSize: 11, color: '#444' }}>
               <div style={{ padding: '3px 0' }}>產品：120,956</div>
