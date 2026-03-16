@@ -7,21 +7,25 @@ const fmtMs = ms => !ms ? '-' : ms < 1000 ? `${ms}ms` : `${(ms/1000).toFixed(1)}
 const fmtDate = d => d ? new Date(d).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
 
 /* =========================================
-   STYLES - HYM ERP Standard
+   STYLES - Terminal Green Theme
    ========================================= */
 const S = {
-  page: { minHeight: '100vh', background: '#0f0f0f', color: '#e5e5e5', fontFamily: "'Noto Sans TC', 'SF Mono', monospace, sans-serif" },
-  header: { height: 48, background: '#0a0a0a', borderBottom: '1px solid #1f1f1f', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100, backdropFilter: 'blur(12px)' },
-  sidebar: { width: 160, minHeight: 'calc(100vh - 48px)', background: '#0a0a0a', borderRight: '1px solid #1f1f1f', paddingTop: 8 },
+  page: { minHeight: '100vh', background: '#0a0a0a', color: '#d4d4d4', fontFamily: "'SF Mono', 'Fira Code', 'Noto Sans TC', monospace, sans-serif" },
+  header: { height: 48, background: '#060606', borderBottom: '1px solid #1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100 },
+  sidebar: { width: 170, minHeight: 'calc(100vh - 48px)', background: '#060606', borderRight: '1px solid #1a1a1a', paddingTop: 8 },
   content: { flex: 1, padding: '24px 28px', maxWidth: 1100, minHeight: 'calc(100vh - 48px)' },
-  card: { background: '#141414', border: '1px solid #1f1f1f', borderRadius: 8, padding: '20px 22px', marginBottom: 16 },
-  cardHover: { background: '#181818', border: '1px solid #2a2a2a' },
-  input: { background: '#0f0f0f', border: '1px solid #2a2a2a', borderRadius: 6, padding: '9px 14px', color: '#e5e5e5', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s' },
-  btnPrimary: { background: '#EAB308', color: '#0a0a0a', border: 'none', borderRadius: 6, padding: '9px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.5 },
-  btnGhost: { background: 'transparent', color: '#888', border: '1px solid #2a2a2a', borderRadius: 6, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif" },
-  label: { color: '#666', fontSize: 11, fontWeight: 500, display: 'block', marginBottom: 5, letterSpacing: 0.8, textTransform: 'uppercase' },
+  card: { background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: 6, padding: '20px 22px', marginBottom: 12 },
+  input: { background: '#080808', border: '1px solid #1f1f1f', borderRadius: 4, padding: '9px 14px', color: '#d4d4d4', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'SF Mono', 'Fira Code', monospace", transition: 'border-color 0.2s' },
+  btnPrimary: { background: '#10b981', color: '#000', border: 'none', borderRadius: 4, padding: '9px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 13, fontFamily: "'SF Mono', monospace", letterSpacing: 0.5 },
+  btnGhost: { background: 'transparent', color: '#666', border: '1px solid #1f1f1f', borderRadius: 4, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: "'SF Mono', monospace" },
+  label: { color: '#555', fontSize: 10, fontWeight: 600, display: 'block', marginBottom: 5, letterSpacing: 1.2, textTransform: 'uppercase', fontFamily: "'SF Mono', monospace" },
   mono: { fontFamily: "'SF Mono', 'Fira Code', monospace", letterSpacing: 0.5 },
-  tag: (color) => ({ display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4, background: color === 'yellow' ? '#EAB30815' : color === 'green' ? '#22c55e12' : color === 'red' ? '#ef444412' : '#ffffff08', color: color === 'yellow' ? '#EAB308' : color === 'green' ? '#4ade80' : color === 'red' ? '#f87171' : '#888', border: `1px solid ${color === 'yellow' ? '#EAB30830' : color === 'green' ? '#22c55e25' : color === 'red' ? '#ef444425' : '#ffffff12'}` }),
+  tag: (color) => ({
+    display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 3, letterSpacing: 0.5,
+    background: color === 'green' ? '#10b98115' : color === 'red' ? '#ef444410' : color === 'amber' ? '#f59e0b12' : '#ffffff06',
+    color: color === 'green' ? '#10b981' : color === 'red' ? '#ef4444' : color === 'amber' ? '#f59e0b' : '#666',
+    border: `1px solid ${color === 'green' ? '#10b98130' : color === 'red' ? '#ef444425' : color === 'amber' ? '#f59e0b25' : '#ffffff10'}`,
+  }),
 };
 
 /* =========================================
@@ -30,10 +34,10 @@ const S = {
 function StatCard({ code, label, value, sub }) {
   return (
     <div style={{ ...S.card, flex: '1 1 180px', minWidth: 165, padding: '16px 20px', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 12, right: 16, fontSize: 10, color: '#333', ...S.mono }}>{code}</div>
-      <div style={{ fontSize: 11, color: '#666', marginBottom: 6, letterSpacing: 0.5 }}>{label}</div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: '#EAB308', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#444', marginTop: 4 }}>{sub}</div>}
+      <div style={{ position: 'absolute', top: 10, right: 14, fontSize: 9, color: '#1f1f1f', ...S.mono }}>{code}</div>
+      <div style={{ fontSize: 10, color: '#555', marginBottom: 6, letterSpacing: 1, textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: '#10b981', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
+      {sub && <div style={{ fontSize: 10, color: '#333', marginTop: 4, ...S.mono }}>{sub}</div>}
     </div>
   );
 }
@@ -53,8 +57,10 @@ function Dashboard() {
 
   return (
     <div>
-      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy stats --overview</div>
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
+      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>
+        <span style={{ color: '#10b981' }}>$</span> quickbuy stats --overview
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24 }}>
         <StatCard code="MSG_TD" label="今日查詢" value={fmt(stats?.today_messages)} sub="today" />
         <StatCard code="MSG_WK" label="本週查詢" value={fmt(stats?.week_messages)} sub="last 7d" />
         <StatCard code="MSG_ALL" label="總查詢數" value={fmt(stats?.total_messages)} sub="cumulative" />
@@ -64,16 +70,16 @@ function Dashboard() {
 
       <div style={S.card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#e5e5e5' }}>熱門查詢產品</div>
-          <div style={{ ...S.tag('yellow') }}>TOP 10</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#d4d4d4' }}>熱門查詢產品</div>
+          <div style={{ ...S.tag('green') }}>TOP 10</div>
         </div>
         {stats?.top_products?.length > 0 ? (
           <div>
             {stats.top_products.map((p, i) => (
-              <div key={p.item_number} style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderTop: i > 0 ? '1px solid #1a1a1a' : 'none' }}>
-                <div style={{ width: 32, fontSize: 12, color: i < 3 ? '#EAB308' : '#444', fontWeight: 700, ...S.mono }}>#{i + 1}</div>
-                <div style={{ flex: 1, fontSize: 13, color: '#ccc', ...S.mono }}>{p.item_number}</div>
-                <div style={{ fontSize: 13, color: '#EAB308', fontWeight: 600, ...S.mono }}>{p.count}次</div>
+              <div key={p.item_number} style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderTop: i > 0 ? '1px solid #141414' : 'none' }}>
+                <div style={{ width: 32, fontSize: 12, color: i < 3 ? '#10b981' : '#333', fontWeight: 700, ...S.mono }}>#{i + 1}</div>
+                <div style={{ flex: 1, fontSize: 13, color: '#aaa', ...S.mono }}>{p.item_number}</div>
+                <div style={{ fontSize: 13, color: '#10b981', fontWeight: 600, ...S.mono }}>{p.count}次</div>
               </div>
             ))}
           </div>
@@ -104,7 +110,9 @@ function Messages() {
 
   return (
     <div>
-      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy messages --list</div>
+      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>
+        <span style={{ color: '#10b981' }}>$</span> quickbuy messages --list
+      </div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
         <input
           value={search}
@@ -112,43 +120,43 @@ function Messages() {
           onKeyDown={e => e.key === 'Enter' && load(1, search)}
           placeholder="搜尋訊息內容、客戶名稱..."
           style={{ ...S.input, flex: 1 }}
-          onFocus={e => e.target.style.borderColor = '#EAB308'}
-          onBlur={e => e.target.style.borderColor = '#2a2a2a'}
+          onFocus={e => e.target.style.borderColor = '#10b981'}
+          onBlur={e => e.target.style.borderColor = '#1f1f1f'}
         />
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
       </div>
 
-      <div style={{ fontSize: 11, color: '#555', marginBottom: 12, ...S.mono }}>共 {data.total} 筆紀錄</div>
+      <div style={{ fontSize: 11, color: '#444', marginBottom: 12, ...S.mono }}>共 {data.total} 筆紀錄</div>
 
       {loading ? <Loading /> : data.messages.map(msg => (
         <div
           key={msg.id}
           onClick={() => setExpanded(expanded === msg.id ? null : msg.id)}
-          style={{ ...S.card, cursor: 'pointer', padding: '14px 18px', transition: 'border-color 0.2s', borderColor: expanded === msg.id ? '#EAB30840' : '#1f1f1f' }}
+          style={{ ...S.card, cursor: 'pointer', padding: '14px 18px', transition: 'border-color 0.2s', borderColor: expanded === msg.id ? '#10b98130' : '#1a1a1a' }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={S.tag('yellow')}>{msg.display_name || '客戶'}</span>
-              <span style={{ color: '#444', fontSize: 11, ...S.mono }}>{fmtDate(msg.created_at)}</span>
+              <span style={S.tag('green')}>{msg.display_name || '客戶'}</span>
+              <span style={{ color: '#333', fontSize: 11, ...S.mono }}>{fmtDate(msg.created_at)}</span>
             </div>
-            <span style={{ color: '#444', fontSize: 11, ...S.mono }}>{fmtMs(msg.response_time_ms)}</span>
+            <span style={{ color: '#333', fontSize: 11, ...S.mono }}>{fmtMs(msg.response_time_ms)}</span>
           </div>
-          <div style={{ fontSize: 13, color: '#ccc' }}>
-            <span style={{ color: '#555' }}>Q: </span>{msg.user_message}
+          <div style={{ fontSize: 13, color: '#aaa' }}>
+            <span style={{ color: '#10b981', ...S.mono }}>→ </span>{msg.user_message}
           </div>
           {expanded === msg.id && (
-            <div style={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: 6, padding: '14px 16px', marginTop: 10, fontSize: 12, color: '#999', whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
-              <span style={{ color: '#EAB308', fontSize: 11, ...S.mono }}>AI_RESPONSE</span>
-              <div style={{ marginTop: 6, color: '#bbb' }}>{msg.ai_response}</div>
+            <div style={{ background: '#080808', border: '1px solid #141414', borderRadius: 4, padding: '14px 16px', marginTop: 10, fontSize: 12, color: '#888', whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
+              <span style={{ color: '#10b981', fontSize: 10, ...S.mono }}>AI_RESPONSE</span>
+              <div style={{ marginTop: 6, color: '#aaa' }}>{msg.ai_response}</div>
             </div>
           )}
         </div>
       ))}
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 }}>
-        {data.page > 1 && <button onClick={() => load(data.page - 1)} style={S.btnGhost}>← 上一頁</button>}
-        <span style={{ color: '#444', padding: '8px 0', fontSize: 12, ...S.mono }}>P{data.page}</span>
-        {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={S.btnGhost}>下一頁 →</button>}
+        {data.page > 1 && <button onClick={() => load(data.page - 1)} style={S.btnGhost}>← prev</button>}
+        <span style={{ color: '#333', padding: '8px 0', fontSize: 12, ...S.mono }}>P{data.page}</span>
+        {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={S.btnGhost}>next →</button>}
       </div>
     </div>
   );
@@ -194,17 +202,19 @@ function Promotions() {
 
   return (
     <div>
-      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy promo --manage</div>
+      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>
+        <span style={{ color: '#10b981' }}>$</span> quickbuy promo --manage
+      </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ fontSize: 11, color: '#555', ...S.mono }}>共 {promos.length} 個活動</div>
+        <div style={{ fontSize: 11, color: '#444', ...S.mono }}>共 {promos.length} 個活動</div>
         <button onClick={() => setShowForm(!showForm)} style={S.btnPrimary}>
           {showForm ? '取消' : '+ 新增活動'}
         </button>
       </div>
 
       {showForm && (
-        <div style={{ ...S.card, borderColor: '#EAB30830', marginBottom: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#EAB308', marginBottom: 18 }}>NEW_PROMOTION</div>
+        <div style={{ ...S.card, borderColor: '#10b98125', marginBottom: 24 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', marginBottom: 18, ...S.mono }}>NEW_PROMOTION</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
             <div>
               <label style={S.label}>活動名稱</label>
@@ -230,7 +240,7 @@ function Promotions() {
               onChange={e => setForm({ ...form, items: e.target.value })}
               placeholder={`ATECH3FR250B → 28000\nTPGDL2000 → 8500（買一送充氣嘴組）\nCTM3000 → 120000`}
               rows={5}
-              style={{ ...S.input, resize: 'vertical', ...S.mono, fontSize: 12, lineHeight: 1.6 }}
+              style={{ ...S.input, resize: 'vertical', fontSize: 12, lineHeight: 1.6 }}
             />
           </div>
           <button onClick={submit} style={S.btnPrimary}>建立活動</button>
@@ -238,23 +248,23 @@ function Promotions() {
       )}
 
       {loading ? <Loading /> : promos.map(p => (
-        <div key={p.id} style={{ ...S.card, borderColor: p.is_active ? '#EAB30825' : '#1f1f1f' }}>
+        <div key={p.id} style={{ ...S.card, borderColor: p.is_active ? '#10b98120' : '#1a1a1a' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#e5e5e5' }}>{p.name}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#d4d4d4' }}>{p.name}</span>
               <span style={S.tag(p.is_active ? 'green' : 'red')}>{p.is_active ? 'ACTIVE' : 'CLOSED'}</span>
             </div>
-            <button onClick={() => toggle(p.id, p.is_active)} style={{ ...S.btnGhost, color: p.is_active ? '#f87171' : '#4ade80', borderColor: p.is_active ? '#ef444425' : '#22c55e25', fontSize: 12 }}>
+            <button onClick={() => toggle(p.id, p.is_active)} style={{ ...S.btnGhost, color: p.is_active ? '#ef4444' : '#10b981', borderColor: p.is_active ? '#ef444420' : '#10b98120', fontSize: 12 }}>
               {p.is_active ? '關閉' : '啟用'}
             </button>
           </div>
-          <div style={{ color: '#555', fontSize: 12, marginTop: 6, ...S.mono }}>{p.start_date} → {p.end_date}{p.note ? ` · ${p.note}` : ''}</div>
+          <div style={{ color: '#444', fontSize: 12, marginTop: 6, ...S.mono }}>{p.start_date} → {p.end_date}{p.note ? ` · ${p.note}` : ''}</div>
           {p.quickbuy_promotion_items?.length > 0 && (
-            <div style={{ marginTop: 12, borderTop: '1px solid #1a1a1a', paddingTop: 10 }}>
+            <div style={{ marginTop: 12, borderTop: '1px solid #141414', paddingTop: 10 }}>
               {p.quickbuy_promotion_items.map(item => (
                 <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '5px 0', fontSize: 12 }}>
-                  <span style={{ color: '#EAB308', ...S.mono, width: 140 }}>{item.item_number}</span>
-                  <span style={{ color: '#4ade80', ...S.mono }}>NT${fmt(item.promo_price)}</span>
+                  <span style={{ color: '#10b981', ...S.mono, width: 140 }}>{item.item_number}</span>
+                  <span style={{ color: '#34d399', ...S.mono }}>NT${fmt(item.promo_price)}</span>
                   {item.promo_note && <span style={{ color: '#555' }}>({item.promo_note})</span>}
                 </div>
               ))}
@@ -290,22 +300,24 @@ function PricingRules() {
 
   return (
     <div style={{ maxWidth: 560 }}>
-      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy config --pricing</div>
+      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>
+        <span style={{ color: '#10b981' }}>$</span> quickbuy config --pricing
+      </div>
 
       <div style={S.card}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#EAB308', marginBottom: 20, ...S.mono }}>PRICING_CONFIG</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', marginBottom: 20, ...S.mono }}>PRICING_CONFIG</div>
 
         <div style={{ marginBottom: 18 }}>
           <label style={S.label}>預設折扣比例</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input type="number" step="0.01" min="0" max="1" value={rules.default_discount} onChange={e => setRules({ ...rules, default_discount: parseFloat(e.target.value) })} style={{ ...S.input, width: 120, textAlign: 'center', ...S.mono }} />
+            <input type="number" step="0.01" min="0" max="1" value={rules.default_discount} onChange={e => setRules({ ...rules, default_discount: parseFloat(e.target.value) })} style={{ ...S.input, width: 120, textAlign: 'center' }} />
             <span style={{ color: '#555', fontSize: 12 }}>= {Math.round(rules.default_discount * 100)} 折（內部參考，不對外顯示）</span>
           </div>
         </div>
 
         <div style={{ marginBottom: 18 }}>
           <label style={S.label}>免運門檻 (NT$)</label>
-          <input type="number" step="100" value={rules.free_shipping_threshold} onChange={e => setRules({ ...rules, free_shipping_threshold: parseInt(e.target.value) })} style={{ ...S.input, width: 160, ...S.mono }} />
+          <input type="number" step="100" value={rules.free_shipping_threshold} onChange={e => setRules({ ...rules, free_shipping_threshold: parseInt(e.target.value) })} style={{ ...S.input, width: 160 }} />
         </div>
 
         <div style={{ marginBottom: 18 }}>
@@ -315,27 +327,27 @@ function PricingRules() {
 
         <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
           <label style={{ color: '#888', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <input type="checkbox" checked={rules.show_retail_price} onChange={e => setRules({ ...rules, show_retail_price: e.target.checked })} style={{ accentColor: '#EAB308' }} />
+            <input type="checkbox" checked={rules.show_retail_price} onChange={e => setRules({ ...rules, show_retail_price: e.target.checked })} style={{ accentColor: '#10b981' }} />
             顯示建議售價
           </label>
           <label style={{ color: '#888', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <input type="checkbox" checked={rules.show_promo_hint} onChange={e => setRules({ ...rules, show_promo_hint: e.target.checked })} style={{ accentColor: '#EAB308' }} />
+            <input type="checkbox" checked={rules.show_promo_hint} onChange={e => setRules({ ...rules, show_promo_hint: e.target.checked })} style={{ accentColor: '#10b981' }} />
             顯示優惠提示
           </label>
         </div>
 
-        <button onClick={save} style={{ ...S.btnPrimary, background: saved ? '#22c55e' : '#EAB308', transition: 'background 0.3s', width: '100%', padding: '11px 0', fontSize: 14 }}>
+        <button onClick={save} style={{ ...S.btnPrimary, background: saved ? '#34d399' : '#10b981', transition: 'background 0.3s', width: '100%', padding: '11px 0', fontSize: 14 }}>
           {saved ? '✓ SAVED' : '儲存設定'}
         </button>
       </div>
 
-      <div style={{ ...S.card, borderColor: '#1a1a1a' }}>
-        <div style={{ color: '#444', fontSize: 11, lineHeight: 1.9, ...S.mono }}>
-          <span style={{ color: '#555' }}>// 說明</span><br/>
-          // 折扣比例僅供內部參考，AI 不會對外報出<br/>
-          // AI 回覆時顯示「建議售價」+「優惠提示」<br/>
-          // 免運門檻：查詢金額超過時自動提醒客戶<br/>
-          // 修改後立即生效，無需重新部署
+      <div style={{ ...S.card, borderColor: '#141414' }}>
+        <div style={{ color: '#333', fontSize: 11, lineHeight: 1.9, ...S.mono }}>
+          <span style={{ color: '#10b981' }}>//</span> 說明<br/>
+          <span style={{ color: '#10b981' }}>//</span> 折扣比例僅供內部參考，AI 不會對外報出<br/>
+          <span style={{ color: '#10b981' }}>//</span> AI 回覆時顯示「建議售價」+「優惠提示」<br/>
+          <span style={{ color: '#10b981' }}>//</span> 免運門檻：查詢金額超過時自動提醒客戶<br/>
+          <span style={{ color: '#10b981' }}>//</span> 修改後立即生效，無需重新部署
         </div>
       </div>
     </div>
@@ -350,10 +362,10 @@ function ProductSearch() {
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnhpYXVmYndybG1pZnJiZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjYzODYsImV4cCI6MjA4OTIwMjM4Nn0.3CirmkvYgGUfPIwRbYUdVJ0vcSfbJID2DCugJL2m7YM';
 
   const CATS = {
-    all: '全部', wrench: '扳手', socket: '套筒', ratchet: '棘輪', screwdriver: '螺絲起子',
-    plier: '鉗子', power_tool: '電動工具', torque_wrench: '扭力扳手', storage: '工具車/收納',
-    light: '照明', diagnostic: '診斷', battery: '電池', tester: '測試儀', borescope: '內視鏡',
-    jack_lift: '千斤頂', torque_multiplier: '扭力倍增器', tire_inflator: '打氣機', other: '其他',
+    all: '全部', wrench: '扳手', socket: '套筒', ratchet: '棘輪', screwdriver: '起子',
+    plier: '鉗子', power_tool: '電動', torque_wrench: '扭力', storage: '收納',
+    light: '照明', diagnostic: '診斷', battery: '電池', tester: '測試', borescope: '內視鏡',
+    jack_lift: '千斤頂', torque_multiplier: '倍增器', tire_inflator: '打氣機', other: '其他',
   };
 
   const [search, setSearch] = useState('');
@@ -398,38 +410,37 @@ function ProductSearch() {
   }, [search, category, doSearch]);
 
   const goPage = (pg) => { setPage(pg); doSearch(search, category, pg); };
-
   const fmtP = n => n ? `NT$${Number(n).toLocaleString()}` : '-';
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div>
-      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy products --search</div>
+      <div style={{ color: '#333', fontSize: 11, marginBottom: 16, ...S.mono }}>
+        <span style={{ color: '#10b981' }}>$</span> quickbuy products --search
+      </div>
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+      <div style={{ marginBottom: 14 }}>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="搜尋料號或關鍵字... (例: FDX71, wrench, socket)"
-          style={{ ...S.input, flex: 1, ...S.mono }}
-          onFocus={e => e.target.style.borderColor = '#EAB308'}
-          onBlur={e => e.target.style.borderColor = '#2a2a2a'}
+          style={S.input}
+          onFocus={e => e.target.style.borderColor = '#10b981'}
+          onBlur={e => e.target.style.borderColor = '#1f1f1f'}
         />
       </div>
 
-      {/* Category filter */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 18 }}>
         {Object.entries(CATS).map(([key, label]) => (
           <button
             key={key}
             onClick={() => setCategory(key)}
             style={{
-              ...S.btnGhost,
-              padding: '5px 12px',
-              fontSize: 11,
-              color: category === key ? '#EAB308' : '#666',
-              borderColor: category === key ? '#EAB30860' : '#2a2a2a',
-              background: category === key ? '#EAB30810' : 'transparent',
+              background: category === key ? '#10b98118' : 'transparent',
+              color: category === key ? '#10b981' : '#555',
+              border: `1px solid ${category === key ? '#10b98140' : '#1a1a1a'}`,
+              borderRadius: 3, padding: '4px 10px', fontSize: 11, cursor: 'pointer',
+              fontFamily: "'SF Mono', monospace", transition: 'all 0.15s',
             }}
           >
             {label}
@@ -437,26 +448,21 @@ function ProductSearch() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div style={{ fontSize: 11, color: '#555', ...S.mono }}>共 {fmt(total)} 筆產品</div>
-        {totalPages > 1 && (
-          <div style={{ fontSize: 11, color: '#444', ...S.mono }}>
-            P{page + 1}/{totalPages}
-          </div>
-        )}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, color: '#444', ...S.mono }}>共 {fmt(total)} 筆</div>
+        {totalPages > 1 && <div style={{ fontSize: 11, color: '#333', ...S.mono }}>P{page + 1}/{totalPages}</div>}
       </div>
 
       {loading ? <Loading /> : products.length === 0 ? (
         <EmptyState text={search ? '找不到符合的產品' : '輸入料號或關鍵字開始搜尋'} />
       ) : (
         <>
-          {/* Table header */}
-          <div style={{ display: 'flex', padding: '8px 16px', fontSize: 10, color: '#555', ...S.mono, borderBottom: '1px solid #1f1f1f', marginBottom: 4 }}>
-            <div style={{ width: 150 }}>ITEM_NO</div>
+          <div style={{ display: 'flex', padding: '6px 14px', fontSize: 9, color: '#444', ...S.mono, borderBottom: '1px solid #141414', marginBottom: 2, letterSpacing: 1 }}>
+            <div style={{ width: 140 }}>ITEM_NO</div>
             <div style={{ flex: 1 }}>DESCRIPTION</div>
-            <div style={{ width: 90, textAlign: 'right' }}>CATEGORY</div>
-            <div style={{ width: 100, textAlign: 'right' }}>牌價</div>
-            <div style={{ width: 100, textAlign: 'right' }}>經銷價</div>
+            <div style={{ width: 70, textAlign: 'right' }}>CAT</div>
+            <div style={{ width: 95, textAlign: 'right' }}>牌價</div>
+            <div style={{ width: 95, textAlign: 'right' }}>經銷價</div>
           </div>
 
           {products.map(p => (
@@ -464,51 +470,47 @@ function ProductSearch() {
               <div
                 onClick={() => setExpanded(expanded === p.item_number ? null : p.item_number)}
                 style={{
-                  ...S.card,
-                  cursor: 'pointer',
-                  padding: '10px 16px',
-                  marginBottom: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  borderColor: expanded === p.item_number ? '#EAB30830' : '#1f1f1f',
-                  transition: 'border-color 0.15s',
+                  background: expanded === p.item_number ? '#0f0f0f' : '#0a0a0a',
+                  border: `1px solid ${expanded === p.item_number ? '#10b98120' : '#111'}`,
+                  borderRadius: 4, padding: '9px 14px', marginBottom: 1, display: 'flex', alignItems: 'center',
+                  cursor: 'pointer', transition: 'all 0.12s',
                 }}
               >
-                <div style={{ width: 150, fontWeight: 600, color: '#EAB308', fontSize: 13, ...S.mono }}>{p.item_number}</div>
-                <div style={{ flex: 1, fontSize: 12, color: '#999', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</div>
-                <div style={{ width: 90, textAlign: 'right' }}>
-                  {p.category && p.category !== 'other' && <span style={{ ...S.tag(''), fontSize: 10 }}>{CATS[p.category] || p.category}</span>}
+                <div style={{ width: 140, fontWeight: 700, color: '#10b981', fontSize: 12, ...S.mono }}>{p.item_number}</div>
+                <div style={{ flex: 1, fontSize: 12, color: '#777', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</div>
+                <div style={{ width: 70, textAlign: 'right' }}>
+                  {p.category && p.category !== 'other' && <span style={{ fontSize: 9, color: '#444', ...S.mono }}>{CATS[p.category] || p.category}</span>}
                 </div>
-                <div style={{ width: 100, textAlign: 'right', fontSize: 13, color: '#ccc', ...S.mono }}>{fmtP(p.tw_retail_price)}</div>
-                <div style={{ width: 100, textAlign: 'right', fontSize: 13, color: '#4ade80', fontWeight: 600, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div>
+                <div style={{ width: 95, textAlign: 'right', fontSize: 12, color: '#888', ...S.mono }}>{fmtP(p.tw_retail_price)}</div>
+                <div style={{ width: 95, textAlign: 'right', fontSize: 12, color: '#34d399', fontWeight: 700, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div>
               </div>
 
               {expanded === p.item_number && (
-                <div style={{ background: '#0c0c0c', border: '1px solid #1a1a1a', borderRadius: 6, padding: '14px 20px', marginBottom: 8, marginTop: -2 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+                <div style={{ background: '#080808', border: '1px solid #141414', borderRadius: 4, padding: '14px 18px', marginBottom: 6, marginTop: 2 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
                     <div>
-                      <div style={{ ...S.label, marginBottom: 3 }}>US PRICE</div>
-                      <div style={{ color: '#888', fontSize: 13, ...S.mono }}>{p.us_price ? `$${Number(p.us_price).toFixed(2)}` : '-'}</div>
+                      <div style={S.label}>US PRICE</div>
+                      <div style={{ color: '#666', fontSize: 13, ...S.mono }}>{p.us_price ? `$${Number(p.us_price).toFixed(2)}` : '-'}</div>
                     </div>
                     <div>
-                      <div style={{ ...S.label, marginBottom: 3 }}>牌價 (RETAIL)</div>
-                      <div style={{ color: '#ccc', fontSize: 13, ...S.mono }}>{fmtP(p.tw_retail_price)}</div>
+                      <div style={S.label}>牌價</div>
+                      <div style={{ color: '#999', fontSize: 13, ...S.mono }}>{fmtP(p.tw_retail_price)}</div>
                     </div>
                     <div>
-                      <div style={{ ...S.label, marginBottom: 3 }}>經銷價 (RESELLER)</div>
-                      <div style={{ color: '#4ade80', fontSize: 13, fontWeight: 600, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div>
+                      <div style={S.label}>經銷價</div>
+                      <div style={{ color: '#34d399', fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div>
                     </div>
                     <div>
-                      <div style={{ ...S.label, marginBottom: 3 }}>重量</div>
-                      <div style={{ color: '#888', fontSize: 13, ...S.mono }}>{p.weight_kg ? `${p.weight_kg} kg` : '-'}</div>
+                      <div style={S.label}>重量</div>
+                      <div style={{ color: '#666', fontSize: 13, ...S.mono }}>{p.weight_kg ? `${p.weight_kg} kg` : '-'}</div>
                     </div>
                     <div>
-                      <div style={{ ...S.label, marginBottom: 3 }}>產地</div>
-                      <div style={{ color: '#888', fontSize: 13, ...S.mono }}>{p.origin_country || '-'}</div>
+                      <div style={S.label}>產地</div>
+                      <div style={{ color: '#666', fontSize: 13, ...S.mono }}>{p.origin_country || '-'}</div>
                     </div>
                     <div>
-                      <div style={{ ...S.label, marginBottom: 3 }}>替代型號</div>
-                      <div style={{ color: p.replacement_model ? '#EAB308' : '#888', fontSize: 13, ...S.mono }}>{p.replacement_model || '-'}</div>
+                      <div style={S.label}>替代型號</div>
+                      <div style={{ color: p.replacement_model ? '#10b981' : '#666', fontSize: 13, ...S.mono }}>{p.replacement_model || '-'}</div>
                     </div>
                   </div>
                 </div>
@@ -516,11 +518,10 @@ function ProductSearch() {
             </div>
           ))}
 
-          {/* Pagination */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 16 }}>
-            {page > 0 && <button onClick={() => goPage(page - 1)} style={S.btnGhost}>← 上一頁</button>}
-            <span style={{ color: '#444', padding: '8px 0', fontSize: 12, ...S.mono }}>P{page + 1}/{totalPages}</span>
-            {page < totalPages - 1 && <button onClick={() => goPage(page + 1)} style={S.btnGhost}>下一頁 →</button>}
+            {page > 0 && <button onClick={() => goPage(page - 1)} style={S.btnGhost}>← prev</button>}
+            <span style={{ color: '#333', padding: '8px 0', fontSize: 12, ...S.mono }}>P{page + 1}/{totalPages}</span>
+            {page < totalPages - 1 && <button onClick={() => goPage(page + 1)} style={S.btnGhost}>next →</button>}
           </div>
         </>
       )}
@@ -535,7 +536,7 @@ function Loading() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
       <div style={{ color: '#333', fontSize: 12, ...S.mono }}>
-        <span style={{ color: '#EAB308' }}>●</span> loading...
+        <span style={{ color: '#10b981' }}>●</span> loading...
       </div>
     </div>
   );
@@ -570,49 +571,50 @@ export default function AdminPage() {
     <div style={S.page}>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
       
-      {/* Header - 48px */}
+      {/* Header */}
       <div style={S.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ color: '#EAB308', fontWeight: 700, fontSize: 15, letterSpacing: 1.5, ...S.mono }}>QB</span>
-          <span style={{ color: '#333', fontSize: 12 }}>|</span>
-          <span style={{ color: '#555', fontSize: 12 }}>Quick Buy 管理後台</span>
+          <span style={{ color: '#10b981', fontWeight: 700, fontSize: 15, letterSpacing: 1.5, ...S.mono }}>QB</span>
+          <span style={{ color: '#1f1f1f', fontSize: 12 }}>│</span>
+          <span style={{ color: '#444', fontSize: 12 }}>Quick Buy 管理後台</span>
         </div>
-        <div style={{ fontSize: 11, color: '#333', ...S.mono }}>v1.0.0</div>
+        <div style={{ fontSize: 10, color: '#1f1f1f', ...S.mono }}>v1.1.0</div>
       </div>
 
       <div style={{ display: 'flex' }}>
-        {/* Sidebar - 160px */}
+        {/* Sidebar */}
         <div style={S.sidebar}>
-          <div style={{ padding: '12px 16px 16px', borderBottom: '1px solid #1a1a1a' }}>
-            <div style={{ fontSize: 10, color: '#333', ...S.mono, marginBottom: 8 }}>NAVIGATION</div>
+          <div style={{ padding: '12px 16px 14px', borderBottom: '1px solid #111' }}>
+            <div style={{ fontSize: 9, color: '#333', ...S.mono, letterSpacing: 1.5 }}>NAVIGATION</div>
           </div>
           {TABS.map(t => (
             <div
               key={t.id}
               onClick={() => setTab(t.id)}
               style={{
-                padding: '11px 16px',
+                padding: '10px 16px',
                 cursor: 'pointer',
-                fontSize: 13,
+                fontSize: 12,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                color: tab === t.id ? '#EAB308' : '#666',
-                background: tab === t.id ? '#EAB30808' : 'transparent',
-                borderLeft: `2px solid ${tab === t.id ? '#EAB308' : 'transparent'}`,
-                transition: 'all 0.15s',
+                color: tab === t.id ? '#10b981' : '#555',
+                background: tab === t.id ? '#10b98108' : 'transparent',
+                borderLeft: `2px solid ${tab === t.id ? '#10b981' : 'transparent'}`,
+                transition: 'all 0.12s',
               }}
             >
-              <span style={{ fontSize: 10, color: tab === t.id ? '#EAB30880' : '#333', ...S.mono, width: 40 }}>{t.code}</span>
+              <span style={{ fontSize: 9, color: tab === t.id ? '#10b98160' : '#222', ...S.mono, width: 44 }}>{t.code}</span>
               {t.label}
             </div>
           ))}
           
-          <div style={{ padding: '16px 16px', borderTop: '1px solid #1a1a1a', marginTop: 16 }}>
-            <div style={{ fontSize: 10, color: '#333', ...S.mono, marginBottom: 6 }}>SYSTEM</div>
-            <div style={{ fontSize: 11, color: '#444' }}>
-              <div style={{ padding: '4px 0' }}>產品：120,018</div>
-              <div style={{ padding: '4px 0' }}>Webhook：<span style={{ color: '#4ade80' }}>ON</span></div>
+          <div style={{ padding: '14px 16px', borderTop: '1px solid #111', marginTop: 16 }}>
+            <div style={{ fontSize: 9, color: '#222', ...S.mono, marginBottom: 6, letterSpacing: 1.5 }}>SYSTEM</div>
+            <div style={{ fontSize: 11, color: '#333', ...S.mono }}>
+              <div style={{ padding: '3px 0' }}>產品：120,956</div>
+              <div style={{ padding: '3px 0' }}>Webhook：<span style={{ color: '#10b981' }}>ON</span></div>
+              <div style={{ padding: '3px 0' }}>LIFF：<span style={{ color: '#10b981' }}>ON</span></div>
             </div>
           </div>
         </div>
