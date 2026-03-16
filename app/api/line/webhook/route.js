@@ -101,10 +101,10 @@ export async function POST(request) {
       // 不等 DB 寫入，先處理 AI 回覆
       upsertCustomer(userId, displayName).catch(console.error);
 
-      const { reply, matchedProducts, toolCalls, responseTimeMs } =
+      const { reply, matchedProducts, toolCalls, responseTimeMs, fromCache } =
         await handleCustomerMessage(userMessage, displayName);
 
-      console.log(`🤖 (${responseTimeMs}ms, ${toolCalls} searches): ${reply.slice(0, 80)}...`);
+      console.log(`🤖 (${responseTimeMs}ms${fromCache ? ' ⚡CACHE' : ''}): ${reply.slice(0, 80)}...`);
 
       await replyMessage(replyToken, reply);
 
