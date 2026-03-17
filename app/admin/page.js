@@ -453,6 +453,75 @@ function Messages() {
   );
 }
 
+/* ========================================= CUSTOMERS ========================================= */
+function Customers() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState({ customers: [], total: 0, page: 1, limit: 20 });
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback((page = 1, q = search) => {
+    setLoading(true);
+    apiGet({ action: 'customers', page: String(page), search: q }).then(setData).finally(() => setLoading(false));
+  }, [search]);
+
+  useEffect(() => { load(); }, []);
+
+  return (
+    <div>
+      <PageLead eyebrow="Customers" title="客戶主檔" description="先以既有 LINE 客戶資料為主建立 ERP 客戶入口，方便之後往報價、訂單與銷貨模組延伸。" />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && load(1, search)}
+          placeholder="搜尋客戶名稱或 LINE ID..."
+          style={{ ...S.input, flex: 1 }}
+          onFocus={(e) => e.target.style.borderColor = '#1976f3'}
+          onBlur={(e) => e.target.style.borderColor = '#ccd6e3'}
+        />
+        <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>共 {data.total} 位客戶</div>
+      {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的客戶資料" /> : data.customers.map((customer) => (
+        <div key={customer.id || customer.line_user_id} style={{ ...S.card, padding: '14px 18px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
+                <span style={{ fontSize: 15, color: '#1c2740', fontWeight: 700 }}>{customer.display_name || '未命名客戶'}</span>
+                <span style={S.tag('green')}>LINE</span>
+                {(customer.message_count || 0) > 1 && <span style={S.tag('')}>回購 / 舊客</span>}
+              </div>
+              <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8 }}>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>LINE_ID</span> {customer.line_user_id || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>LAST_CONTACT</span> {fmtDate(customer.last_contact_at || customer.created_at)}</div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(2, minmax(120px, 1fr))', gap: 12, width: isMobile ? '100%' : 'auto' }}>
+              <div style={S.panelMuted}>
+                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>MESSAGE_COUNT</div>
+                <div style={{ fontSize: 22, color: '#1976f3', fontWeight: 700, ...S.mono }}>{fmt(customer.message_count)}</div>
+              </div>
+              <div style={S.panelMuted}>
+                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>CUSTOMER_STATUS</div>
+                <div style={{ fontSize: 14, color: (customer.message_count || 0) > 1 ? '#129c59' : '#f59e0b', fontWeight: 700 }}>
+                  {(customer.message_count || 0) > 1 ? '既有客戶' : '新客戶'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 }}>
+        {data.page > 1 && <button onClick={() => load(data.page - 1)} style={S.btnGhost}>← 上一頁</button>}
+        <span style={{ color: '#666', padding: '8px 0', fontSize: 12, ...S.mono }}>P{data.page}</span>
+        {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={S.btnGhost}>下一頁 →</button>}
+      </div>
+    </div>
+  );
+}
+
 /* ========================================= PRODUCT SEARCH ========================================= */
 function ProductSearch() {
   const width = useViewportWidth();
@@ -791,6 +860,7 @@ const SECTIONS = [
     title: 'QUICK BUY',
     tabs: [
       { id: 'dashboard', label: '儀表板', code: 'DASH' },
+      { id: 'customers', label: '客戶主檔', code: 'CUST' },
       { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
       { id: 'products', label: '產品查價', code: 'SRCH' },
       { id: 'promotions', label: '活動管理', code: 'PRMO' },
@@ -809,6 +879,7 @@ const SECTIONS = [
 
 const TAB_COMPONENTS = {
   dashboard: Dashboard,
+  customers: Customers,
   messages: Messages,
   products: ProductSearch,
   promotions: Promotions,

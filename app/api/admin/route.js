@@ -181,6 +181,33 @@ export async function GET(request) {
         return Response.json({ messages: data || [], total: count || 0, page, limit });
       }
 
+      case 'customers': {
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+        const offset = (page - 1) * limit;
+        const search = (searchParams.get('search') || '').trim();
+
+        let query = supabase
+          .from('quickbuy_line_customers')
+          .select('*', { count: 'exact' })
+          .order('last_contact_at', { ascending: false, nullsFirst: false })
+          .range(offset, offset + limit - 1);
+
+        if (search) {
+          query = query.or(`display_name.ilike.%${search}%,line_user_id.ilike.%${search}%`);
+        }
+
+        const { data, count, error } = await query;
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+
+        return Response.json({
+          customers: data || [],
+          total: count || 0,
+          page,
+          limit,
+        });
+      }
+
       case 'promotions': {
         const { data } = await supabase
           .from('quickbuy_promotions')
