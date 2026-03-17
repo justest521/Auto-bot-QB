@@ -2,6 +2,14 @@ import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
+function formatMonthLabel(date) {
+  return date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+}
+
+function formatDayLabel(date) {
+  return date.toLocaleString('en-US', { month: '2-digit', day: '2-digit' });
+}
+
 function isAuthorized(request) {
   const adminToken = process.env.ADMIN_TOKEN;
 
@@ -32,14 +40,20 @@ export async function GET(request) {
       case 'stats': {
         const today = new Date().toISOString().split('T')[0];
         const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+        const recentMessageSince = new Date(Date.now() - 180 * 86400000).toISOString();
 
-        const [msgTotal, msgToday, msgWeek, customers, avgTime, topProducts] = await Promise.all([
+        const [msgTotal, msgToday, msgWeek, customers, avgTime, topProducts, recentMessages] = await Promise.all([
           supabase.from('quickbuy_line_messages').select('*', { count: 'exact', head: true }),
           supabase.from('quickbuy_line_messages').select('*', { count: 'exact', head: true }).gte('created_at', today),
           supabase.from('quickbuy_line_messages').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo),
           supabase.from('quickbuy_line_customers').select('*', { count: 'exact', head: true }),
           supabase.from('quickbuy_line_messages').select('response_time_ms').not('response_time_ms', 'is', null).limit(100).order('created_at', { ascending: false }),
           supabase.from('quickbuy_line_messages').select('matched_products').not('matched_products', 'is', null).limit(50).order('created_at', { ascending: false }),
+          supabase
+            .from('quickbuy_line_messages')
+            .select('created_at,line_user_id,matched_products,response_time_ms')
+            .gte('created_at', recentMessageSince)
+            .order('created_at', { ascending: true }),
         ]);
 
         const times = avgTime.data?.map(r => r.response_time_ms).filter(Boolean) || [];
@@ -59,6 +73,81 @@ export async function GET(request) {
           .slice(0, 10)
           .map(([item, count]) => ({ item_number: item, count }));
 
+        const messageRows = recentMessages.data || [];
+        const monthBuckets = Array.from({ length: 7 }, (_, index) => {
+          const bucketDate = new Date();
+          bucketDate.setMonth(bucketDate.getMonth() - (6 - index));
+          return {
+            key: `${bucketDate.getFullYear()}-${bucketDate.getMonth()}`,
+            label: formatMonthLabel(bucketDate),
+            count: 0,
+            customers: new Set(),
+          };
+        });
+
+        const dayBuckets = Array.from({ length: 10 }, (_, index) => {
+          const bucketDate = new Date();
+          bucketDate.setDate(bucketDate.getDate() - (9 - index));
+          return {
+            key: bucketDate.toISOString().split('T')[0],
+            label: formatDayLabel(bucketDate),
+            count: 0,
+          };
+        });
+
+        let matchedCount = 0;
+        let fastReplyCount = 0;
+        const customerMessageCount = {};
+
+        messageRows.forEach((row) => {
+          if (!row.created_at) return;
+
+          const createdAt = new Date(row.created_at);
+          const monthKey = `${createdAt.getFullYear()}-${createdAt.getMonth()}`;
+          const dayKey = createdAt.toISOString().split('T')[0];
+
+          const monthBucket = monthBuckets.find((bucket) => bucket.key === monthKey);
+          if (monthBucket) {
+            monthBucket.count += 1;
+            if (row.line_user_id) monthBucket.customers.add(row.line_user_id);
+          }
+
+          const dayBucket = dayBuckets.find((bucket) => bucket.key === dayKey);
+          if (dayBucket) dayBucket.count += 1;
+
+          if (Array.isArray(row.matched_products) && row.matched_products.length > 0) {
+            matchedCount += 1;
+          }
+
+          if ((row.response_time_ms || 0) > 0 && row.response_time_ms <= 3000) {
+            fastReplyCount += 1;
+          }
+
+          if (row.line_user_id) {
+            customerMessageCount[row.line_user_id] = (customerMessageCount[row.line_user_id] || 0) + 1;
+          }
+        });
+
+        const repeatCustomerCount = Object.values(customerMessageCount).filter((count) => count > 1).length;
+        const knownCustomerCount = Object.keys(customerMessageCount).length;
+
+        const trendMonthly = monthBuckets.map((bucket) => ({
+          label: bucket.label,
+          count: bucket.count,
+          customers: bucket.customers.size,
+        }));
+
+        const trendDaily = dayBuckets.map((bucket) => ({
+          label: bucket.label,
+          count: bucket.count,
+        }));
+
+        const interactionBreakdown = {
+          matched_rate: messageRows.length ? Math.round((matchedCount / messageRows.length) * 100) : 0,
+          repeat_customer_rate: knownCustomerCount ? Math.round((repeatCustomerCount / knownCustomerCount) * 100) : 0,
+          fast_reply_rate: messageRows.length ? Math.round((fastReplyCount / messageRows.length) * 100) : 0,
+        };
+
         return Response.json({
           total_messages: msgTotal.count || 0,
           today_messages: msgToday.count || 0,
@@ -66,6 +155,9 @@ export async function GET(request) {
           total_customers: customers.count || 0,
           avg_response_ms: avgMs,
           top_products: topItems,
+          trend_monthly: trendMonthly,
+          trend_daily: trendDaily,
+          interaction_breakdown: interactionBreakdown,
         });
       }
 

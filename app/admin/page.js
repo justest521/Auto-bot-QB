@@ -9,6 +9,19 @@ const fmtMs = ms => !ms ? '-' : ms < 1000 ? `${ms}ms` : `${(ms/1000).toFixed(1)}
 const fmtDate = d => d ? new Date(d).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
 const fmtP = n => n ? `NT$${Number(n).toLocaleString()}` : '-';
 
+function useViewportWidth() {
+  const [width, setWidth] = useState(1400);
+
+  useEffect(() => {
+    const update = () => setWidth(window.innerWidth);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  return width;
+}
+
 async function authFetch(url, options = {}) {
   const token =
     typeof window !== 'undefined' ? window.localStorage.getItem(ADMIN_TOKEN_KEY) : '';
@@ -140,7 +153,28 @@ function MiniDonut({ value, color }) {
     </div>
   );
 }
-function TrendChart() {
+function buildLinePath(values, width, height) {
+  const safeValues = values.length ? values : [0];
+  const max = Math.max(...safeValues, 1);
+  const step = safeValues.length > 1 ? width / (safeValues.length - 1) : width;
+
+  return safeValues
+    .map((value, index) => {
+      const x = index * step;
+      const y = height - (value / max) * (height - 10) - 5;
+      return `${index === 0 ? 'M' : 'L'}${x} ${y}`;
+    })
+    .join(' ');
+}
+
+function TrendChart({ monthly }) {
+  const messageSeries = monthly?.map((item) => item.count) || [];
+  const customerSeries = monthly?.map((item) => item.customers) || [];
+  const messagePath = buildLinePath(messageSeries, 640, 180);
+  const customerPath = buildLinePath(customerSeries, 640, 180);
+  const messageArea = `${messagePath} L640 220 L0 220 Z`;
+  const customerArea = `${customerPath} L640 220 L0 220 Z`;
+
   return (
     <div style={{ height: 240, borderRadius: 14, background: 'linear-gradient(180deg, #f9fbff 0%, #f0f5fb 100%)', border: '1px solid #dbe6f3', padding: 16, overflow: 'hidden', position: 'relative' }}>
       <div style={{ position: 'absolute', inset: '16px 16px 38px', backgroundImage: 'linear-gradient(#edf2f8 1px, transparent 1px), linear-gradient(90deg, #edf2f8 1px, transparent 1px)', backgroundSize: '100% 46px, 72px 100%', borderRadius: 10 }} />
@@ -155,35 +189,39 @@ function TrendChart() {
             <stop offset="100%" stopColor="#93a4bb" stopOpacity="0.04" />
           </linearGradient>
         </defs>
-        <path d="M0 154 C48 130, 90 108, 145 116 S248 166, 292 154 S384 48, 430 74 S520 192, 640 60 L640 220 L0 220 Z" fill="url(#areaBlue)" />
-        <path d="M0 68 C64 84, 114 98, 166 84 S272 34, 324 52 S424 136, 482 122 S576 92, 640 138 L640 220 L0 220 Z" fill="url(#areaGray)" />
-        <path d="M0 154 C48 130, 90 108, 145 116 S248 166, 292 154 S384 48, 430 74 S520 192, 640 60" fill="none" stroke="#1696f3" strokeWidth="4" strokeLinecap="round" />
-        <path d="M0 68 C64 84, 114 98, 166 84 S272 34, 324 52 S424 136, 482 122 S576 92, 640 138" fill="none" stroke="#c2ccd8" strokeWidth="4" strokeLinecap="round" />
+        <path d={messageArea} fill="url(#areaBlue)" />
+        <path d={customerArea} fill="url(#areaGray)" />
+        <path d={messagePath} fill="none" stroke="#1696f3" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={customerPath} fill="none" stroke="#c2ccd8" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <div style={{ position: 'absolute', left: 22, right: 20, bottom: 12, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', color: '#8090a5', fontSize: 11, ...S.mono }}>
-        {['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL'].map((month) => (
-          <div key={month}>{month}</div>
+        {(monthly || []).map((item) => (
+          <div key={item.label}>{item.label}</div>
         ))}
       </div>
     </div>
   );
 }
-function TrendLineChart() {
+function TrendLineChart({ daily }) {
+  const counts = daily?.map((item) => item.count) || [];
+  const path = buildLinePath(counts, 560, 150);
+  const max = Math.max(...(counts.length ? counts : [0]), 1);
+  const step = counts.length > 1 ? 560 / (counts.length - 1) : 560;
+
   return (
     <div style={{ height: 240, borderRadius: 14, background: 'linear-gradient(180deg, #1db5d9 0%, #1798cf 100%)', padding: 18, position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 18, borderRadius: 12, backgroundImage: 'linear-gradient(rgba(255,255,255,0.16) 1px, transparent 1px)', backgroundSize: '100% 44px' }} />
       <svg viewBox="0 0 560 180" style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <path d="M0 132 L62 130 L124 110 L186 120 L248 92 L310 104 L372 102 L434 46 L496 78 L560 94" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        {[
-          [0, 132], [62, 130], [124, 110], [186, 120], [248, 92],
-          [310, 104], [372, 102], [434, 46], [496, 78], [560, 94],
-        ].map(([x, y], idx) => (
-          <circle key={idx} cx={x} cy={y} r="4.5" fill="#fff" />
-        ))}
+        <path d={path} fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        {counts.map((value, idx) => {
+          const x = idx * step;
+          const y = 150 - (value / max) * 140 - 5;
+          return <circle key={idx} cx={x} cy={y} r="4.5" fill="#fff" />;
+        })}
       </svg>
-      <div style={{ position: 'absolute', left: 18, right: 18, bottom: 12, display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', color: 'rgba(255,255,255,0.78)', fontSize: 10, ...S.mono }}>
-        {['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2'].map((label, idx) => (
-          <div key={`${label}-${idx}`}>{label}</div>
+      <div style={{ position: 'absolute', left: 18, right: 18, bottom: 12, display: 'grid', gridTemplateColumns: `repeat(${Math.max((daily || []).length, 1)}, 1fr)`, color: 'rgba(255,255,255,0.78)', fontSize: 10, ...S.mono }}>
+        {(daily || []).map((item) => (
+          <div key={item.label}>{item.label}</div>
         ))}
       </div>
     </div>
@@ -211,10 +249,52 @@ function StatCard({ code, label, value, sub, accent, tone = 'blue' }) {
 
 /* ========================================= DASHBOARD ========================================= */
 function Dashboard() {
+  const width = useViewportWidth();
+  const isTablet = width < 1180;
+  const isMobile = width < 820;
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => { apiGet({ action: 'stats' }).then(setStats).finally(() => setLoading(false)); }, []);
   if (loading) return <Loading />;
+  const interaction = stats?.interaction_breakdown || {};
+  const summaryItems = [
+    [
+      'AI 回覆效率',
+      `最近樣本平均回覆時間約 ${fmtMs(stats?.avg_response_ms)}，${(interaction.fast_reply_rate || 0) >= 70 ? '整體反應偏快' : '仍有再優化空間'}`,
+    ],
+    [
+      '產品命中情況',
+      `近期查詢中有 ${interaction.matched_rate || 0}% 能直接命中產品資料，熱門料號集中在前十名排行。`,
+    ],
+    [
+      '客戶回流比例',
+      `最近互動客戶中約 ${interaction.repeat_customer_rate || 0}% 有重複詢價，適合追蹤高意圖名單。`,
+    ],
+  ];
+  const actionItems = [
+    {
+      title: '確認今日查詢流量',
+      desc: `今日累積 ${fmt(stats?.today_messages)} 筆查詢，檢查是否與預期流量一致。`,
+      color: '#1976f3',
+    },
+    {
+      title: '追蹤本週互動節奏',
+      desc: `本週已有 ${fmt(stats?.week_messages)} 筆訊息，留意是否出現異常尖峰或回落。`,
+      color: '#25c66f',
+    },
+    {
+      title: '檢視熱門詢價產品',
+      desc: stats?.top_products?.[0]
+        ? `目前查詢最多的是 ${stats.top_products[0].item_number}，可優先準備對應銷售話術。`
+        : '目前尚未累積足夠熱門產品資料，可待更多互動後再觀察。',
+      color: '#ef4764',
+    },
+    {
+      title: '確認後台與 webhook 狀態',
+      desc: '部署後建議持續抽查 admin 登入與 LINE webhook 是否皆可正常使用。',
+      color: '#f1be19',
+    },
+  ];
   return (
     <div>
       <PageLead
@@ -222,13 +302,13 @@ function Dashboard() {
         title="營運儀表板"
         description="集中查看 Quick Buy Bot 的查詢量、客戶互動與熱門產品，整體結構參考經典 admin dashboard 的高資訊密度佈局。"
       />
-      <div style={S.statGrid}>
+      <div style={{ ...S.statGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, minmax(0, 1fr))' : S.statGrid.gridTemplateColumns }}>
         <StatCard code="MSG_TD" label="今日查詢" value={fmt(stats?.today_messages)} sub="New orders" tone="blue" />
         <StatCard code="MSG_WK" label="本週查詢" value={fmt(stats?.week_messages)} sub="7-day volume" tone="green" />
         <StatCard code="USR" label="客戶數" value={fmt(stats?.total_customers)} sub="Unique contacts" tone="yellow" />
         <StatCard code="PERF" label="平均回覆" value={fmtMs(stats?.avg_response_ms)} sub="Response time" tone="red" />
       </div>
-      <div style={S.twoCol}>
+      <div style={{ ...S.twoCol, gridTemplateColumns: isTablet ? '1fr' : S.twoCol.gridTemplateColumns }}>
         <div style={S.card}>
           <PanelHeader title="熱門查詢產品" meta="最近互動中最常被詢問的產品料號" badge={<div style={{ ...S.tag('green') }}>TOP 10</div>} />
           {stats?.top_products?.length > 0 ? stats.top_products.map((p, i) => (
@@ -259,26 +339,26 @@ function Dashboard() {
           </div>
         </div>
       </div>
-      <div style={{ ...S.twoCol, marginTop: 18 }}>
+      <div style={{ ...S.twoCol, marginTop: 18, gridTemplateColumns: isTablet ? '1fr' : S.twoCol.gridTemplateColumns }}>
         <div style={S.card}>
           <PanelHeader title="查詢趨勢" meta="模擬營運視圖，呈現近期查詢量與客戶互動波動" badge={<div style={{ ...S.tag('') }}>TREND</div>} />
-          <TrendChart />
+          <TrendChart monthly={stats?.trend_monthly} />
         </div>
         <div style={S.card}>
           <PanelHeader title="互動概況" meta="以 dashboard 模組方式呈現主要互動指標" badge={<div style={{ ...S.tag('green') }}>LIVE</div>} />
           <div style={{ display: 'grid', gap: 14 }}>
-            <div style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, textAlign: 'center' }}>
+            <div style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12, textAlign: 'center' }}>
               <div>
-                <MiniDonut value={53} color="#25c66f" />
-                <div style={{ marginTop: 8, fontSize: 11, color: '#7b889b', ...S.mono }}>ENGAGE</div>
+                <MiniDonut value={interaction.matched_rate} color="#25c66f" />
+                <div style={{ marginTop: 8, fontSize: 11, color: '#7b889b', ...S.mono }}>MATCHED</div>
               </div>
               <div>
-                <MiniDonut value={44} color="#f1be19" />
-                <div style={{ marginTop: 8, fontSize: 11, color: '#7b889b', ...S.mono }}>SIGNUPS</div>
+                <MiniDonut value={interaction.repeat_customer_rate} color="#f1be19" />
+                <div style={{ marginTop: 8, fontSize: 11, color: '#7b889b', ...S.mono }}>REPEAT</div>
               </div>
               <div>
-                <MiniDonut value={65} color="#ef4764" />
-                <div style={{ marginTop: 8, fontSize: 11, color: '#7b889b', ...S.mono }}>VISITS</div>
+                <MiniDonut value={interaction.fast_reply_rate} color="#ef4764" />
+                <div style={{ marginTop: 8, fontSize: 11, color: '#7b889b', ...S.mono }}>FAST</div>
               </div>
             </div>
             <div style={{ ...S.panelMuted, padding: 0, overflow: 'hidden' }}>
@@ -290,11 +370,7 @@ function Dashboard() {
                 <div style={{ ...S.tag('line') }}>STATUS</div>
               </div>
               <div style={{ padding: '8px 16px' }}>
-                {[
-                  ['AI 回覆穩定', 'Claude 回覆流程正常，具備 fallback'],
-                  ['Webhook 已受保護', '簽章驗證與失敗重試機制已啟用'],
-                  ['Admin 已加鎖', '後台需經過 token 驗證才可讀寫資料'],
-                ].map(([title, desc], idx) => (
+                {summaryItems.map(([title, desc], idx) => (
                   <div key={title} style={{ padding: '10px 0', borderTop: idx > 0 ? '1px solid #e6edf5' : 'none' }}>
                     <div style={{ fontSize: 13, color: '#1f2b41', fontWeight: 700 }}>{title}</div>
                     <div style={{ marginTop: 4, fontSize: 12, color: '#7b889b', lineHeight: 1.7 }}>{desc}</div>
@@ -305,20 +381,15 @@ function Dashboard() {
           </div>
         </div>
       </div>
-      <div style={{ ...S.twoCol, marginTop: 18 }}>
+      <div style={{ ...S.twoCol, marginTop: 18, gridTemplateColumns: isTablet ? '1fr' : S.twoCol.gridTemplateColumns }}>
         <div style={S.card}>
           <PanelHeader title="成長曲線" meta="以高密度圖表模塊補齊參考圖的 dashboard 視覺語言" badge={<div style={{ ...S.tag('') }}>REPORT</div>} />
-          <TrendLineChart />
+          <TrendLineChart daily={stats?.trend_daily} />
         </div>
         <div style={S.card}>
           <PanelHeader title="待辦與提醒" meta="用於追蹤上線後的營運維護工作" badge={<div style={{ ...S.tag('red') }}>ACTION</div>} />
           <div style={{ display: 'grid', gap: 10 }}>
-            {[
-              ['檢查 LINE webhook', '確認新訊息可正常進入 `/api/line/webhook`', '#1976f3'],
-              ['核對熱門產品', '觀察 dashboard 產品排行是否符合近期查詢', '#25c66f'],
-              ['驗證後台存取', '確保 ADMIN_TOKEN 僅提供內部人員使用', '#ef4764'],
-              ['安排 LIFF 修復', '目前 `/liff` 路由需要在 Vercel 端再確認一次', '#f1be19'],
-            ].map(([title, desc, color]) => (
+            {actionItems.map(({ title, desc, color }) => (
               <div key={title} style={{ ...S.panelMuted, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <div style={{ width: 10, height: 10, borderRadius: 999, background: color, marginTop: 5, flexShrink: 0 }} />
                 <div>
@@ -336,6 +407,8 @@ function Dashboard() {
 
 /* ========================================= MESSAGES (AI Bot) ========================================= */
 function Messages() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
   const [data, setData] = useState({ messages: [], total: 0, page: 1, limit: 20 });
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -348,7 +421,7 @@ function Messages() {
   return (
     <div>
       <PageLead eyebrow="Messages" title="AI 對話紀錄" description="集中檢視客戶提問、AI 回覆內容與回覆速度，適合追蹤 bot 的實際對話表現。" />
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search)} placeholder="搜尋訊息內容、客戶名稱..." style={{ ...S.input, flex: 1 }} onFocus={e => e.target.style.borderColor = '#1976f3'} onBlur={e => e.target.style.borderColor = '#ccd6e3'} />
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
       </div>
@@ -382,6 +455,9 @@ function Messages() {
 
 /* ========================================= PRODUCT SEARCH ========================================= */
 function ProductSearch() {
+  const width = useViewportWidth();
+  const isTablet = width < 1180;
+  const isMobile = width < 820;
   const CATS = { all: '全部', wrench: '扳手', socket: '套筒', ratchet: '棘輪', screwdriver: '螺絲起子', plier: '鉗子', power_tool: '電動工具', torque_wrench: '扭力扳手', storage: '工具車/收納', light: '照明', diagnostic: '診斷', battery: '電池', tester: '測試儀', borescope: '內視鏡', jack_lift: '千斤頂', torque_multiplier: '扭力倍增器', tire_inflator: '打氣機', other: '其他' };
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
@@ -424,20 +500,20 @@ function ProductSearch() {
       <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>共 {fmt(total)} 筆產品 {totalPages > 1 && `· P${page + 1}/${totalPages}`}</div>
       {loading ? <Loading /> : products.length === 0 ? <EmptyState text={search ? '找不到符合的產品' : '輸入料號或關鍵字開始搜尋'} /> : (
         <>
-          <div style={{ display: 'flex', padding: '8px 16px', fontSize: 10, color: '#7b889b', ...S.mono, borderBottom: '1px solid #dbe3ee', marginBottom: 4 }}>
+          {!isMobile && <div style={{ display: 'flex', padding: '8px 16px', fontSize: 10, color: '#7b889b', ...S.mono, borderBottom: '1px solid #dbe3ee', marginBottom: 4 }}>
             <div style={{ width: 150 }}>ITEM_NO</div><div style={{ flex: 1 }}>DESCRIPTION</div><div style={{ width: 90, textAlign: 'right' }}>分類</div><div style={{ width: 100, textAlign: 'right' }}>牌價</div><div style={{ width: 100, textAlign: 'right' }}>經銷價</div>
-          </div>
+          </div>}
           {products.map(p => (
             <div key={p.item_number}>
-              <div onClick={() => setExpanded(expanded === p.item_number ? null : p.item_number)} style={{ ...S.card, cursor: 'pointer', padding: '10px 16px', marginBottom: 2, display: 'flex', alignItems: 'center', borderColor: expanded === p.item_number ? '#94c3ff' : '#dbe3ee' }}>
-                <div style={{ width: 150, fontWeight: 700, color: '#1976f3', fontSize: 13, ...S.mono }}>{p.item_number}</div>
-                <div style={{ flex: 1, fontSize: 12, color: '#5f6f83', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</div>
-                <div style={{ width: 90, textAlign: 'right' }}>{p.category && p.category !== 'other' && <span style={{ ...S.tag(''), fontSize: 10 }}>{CATS[p.category] || p.category}</span>}</div>
-                <div style={{ width: 100, textAlign: 'right', fontSize: 13, color: '#273346', ...S.mono }}>{fmtP(p.tw_retail_price)}</div>
-                <div style={{ width: 100, textAlign: 'right', fontSize: 13, color: '#129c59', fontWeight: 700, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div>
+              <div onClick={() => setExpanded(expanded === p.item_number ? null : p.item_number)} style={{ ...S.card, cursor: 'pointer', padding: '10px 16px', marginBottom: 2, display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 0, borderColor: expanded === p.item_number ? '#94c3ff' : '#dbe3ee' }}>
+                <div style={{ width: isMobile ? '100%' : 150, fontWeight: 700, color: '#1976f3', fontSize: 13, ...S.mono }}>{p.item_number}</div>
+                <div style={{ flex: 1, width: isMobile ? '100%' : 'auto', fontSize: 12, color: '#5f6f83', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isMobile ? 'normal' : 'nowrap' }}>{p.description}</div>
+                <div style={{ width: isMobile ? '100%' : 90, textAlign: isMobile ? 'left' : 'right' }}>{p.category && p.category !== 'other' && <span style={{ ...S.tag(''), fontSize: 10 }}>{CATS[p.category] || p.category}</span>}</div>
+                <div style={{ width: isMobile ? '100%' : 100, textAlign: isMobile ? 'left' : 'right', fontSize: 13, color: '#273346', ...S.mono }}>{isMobile ? `牌價 ${fmtP(p.tw_retail_price)}` : fmtP(p.tw_retail_price)}</div>
+                <div style={{ width: isMobile ? '100%' : 100, textAlign: isMobile ? 'left' : 'right', fontSize: 13, color: '#129c59', fontWeight: 700, ...S.mono }}>{isMobile ? `經銷價 ${fmtP(p.tw_reseller_price)}` : fmtP(p.tw_reseller_price)}</div>
               </div>
               {expanded === p.item_number && (
-                <div style={{ background: '#f8fbff', border: '1px solid #dbe6f3', borderRadius: 10, padding: '14px 20px', marginBottom: 8, marginTop: -2, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+                <div style={{ background: '#f8fbff', border: '1px solid #dbe6f3', borderRadius: 10, padding: '14px 20px', marginBottom: 8, marginTop: -2, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
                   <div><div style={S.label}>US PRICE</div><div style={{ color: '#5f6f83', fontSize: 13, ...S.mono }}>{p.us_price ? `$${Number(p.us_price).toFixed(2)}` : '-'}</div></div>
                   <div><div style={S.label}>牌價</div><div style={{ color: '#273346', fontSize: 13, ...S.mono }}>{fmtP(p.tw_retail_price)}</div></div>
                   <div><div style={S.label}>經銷價</div><div style={{ color: '#129c59', fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div></div>
@@ -461,6 +537,8 @@ function ProductSearch() {
 
 /* ========================================= PROMOTIONS ========================================= */
 function Promotions() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
   const [promos, setPromos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -486,7 +564,7 @@ function Promotions() {
       {showForm && (
         <div style={{ ...S.card, borderColor: '#10b98130', marginBottom: 24 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#1976f3', marginBottom: 18 }}>NEW_PROMOTION</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14, marginBottom: 14 }}>
             <div><label style={S.label}>活動名稱</label><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="四月工具月" style={S.input} /></div>
             <div><label style={S.label}>備註</label><input value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="滿 10,000 免運" style={S.input} /></div>
             <div><label style={S.label}>開始日期</label><input type="date" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} style={S.input} /></div>
@@ -501,8 +579,8 @@ function Promotions() {
       )}
       {loading ? <Loading /> : promos.map(p => (
         <div key={p.id} style={{ ...S.card, borderColor: p.is_active ? '#bdeccb' : '#dbe3ee' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#1c2740' }}>{p.name}</span>
               <span style={S.tag(p.is_active ? 'green' : 'red')}>{p.is_active ? 'ACTIVE' : 'CLOSED'}</span>
             </div>
@@ -529,6 +607,8 @@ function Promotions() {
 
 /* ========================================= PRICING RULES ========================================= */
 function PricingRules() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
   const [rules, setRules] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -536,14 +616,14 @@ function PricingRules() {
   const save = async () => { await apiPost({ action: 'update_pricing', rules }); setSaved(true); setTimeout(() => setSaved(false), 2000); };
   if (loading || !rules) return <Loading />;
   return (
-    <div style={{ maxWidth: 560 }}>
+    <div style={{ maxWidth: 560, width: '100%' }}>
       <PageLead eyebrow="Pricing" title="報價規則" description="維護後台內部報價參數，快速調整折扣、免運門檻與提示文字。" />
       <div style={S.card}>
         <div style={{ fontSize: 13, fontWeight: 700, color: '#1976f3', marginBottom: 20, ...S.mono }}>PRICING_CONFIG</div>
-        <div style={{ marginBottom: 18 }}><label style={S.label}>預設折扣比例</label><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><input type="number" step="0.01" min="0" max="1" value={rules.default_discount} onChange={e => setRules({ ...rules, default_discount: parseFloat(e.target.value) })} style={{ ...S.input, width: 120, textAlign: 'center', ...S.mono }} /><span style={{ color: '#6f7d90', fontSize: 12 }}>= {Math.round(rules.default_discount * 100)} 折（內部參考）</span></div></div>
+        <div style={{ marginBottom: 18 }}><label style={S.label}>預設折扣比例</label><div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}><input type="number" step="0.01" min="0" max="1" value={rules.default_discount} onChange={e => setRules({ ...rules, default_discount: parseFloat(e.target.value) })} style={{ ...S.input, width: isMobile ? '100%' : 120, textAlign: 'center', ...S.mono }} /><span style={{ color: '#6f7d90', fontSize: 12 }}>= {Math.round(rules.default_discount * 100)} 折（內部參考）</span></div></div>
         <div style={{ marginBottom: 18 }}><label style={S.label}>免運門檻 (NT$)</label><input type="number" step="100" value={rules.free_shipping_threshold} onChange={e => setRules({ ...rules, free_shipping_threshold: parseInt(e.target.value) })} style={{ ...S.input, width: 160, ...S.mono }} /></div>
         <div style={{ marginBottom: 18 }}><label style={S.label}>優惠提示文字</label><input value={rules.promo_hint_text || '✨ 私訊享優惠價'} onChange={e => setRules({ ...rules, promo_hint_text: e.target.value })} style={S.input} /></div>
-        <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
           <label style={{ color: '#617084', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><input type="checkbox" checked={rules.show_retail_price} onChange={e => setRules({ ...rules, show_retail_price: e.target.checked })} style={{ accentColor: '#1976f3' }} />顯示建議售價</label>
           <label style={{ color: '#617084', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><input type="checkbox" checked={rules.show_promo_hint} onChange={e => setRules({ ...rules, show_promo_hint: e.target.checked })} style={{ accentColor: '#1976f3' }} />顯示優惠提示</label>
         </div>
@@ -555,6 +635,8 @@ function PricingRules() {
 
 /* ========================================= AI PROMPT 設定 ========================================= */
 function AIPrompt() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -586,7 +668,7 @@ function AIPrompt() {
       <PageLead eyebrow="Prompt" title="AI Prompt 設定" description="調整 Bot 的回覆風格與客服 SOP，這裡的內容會直接影響下一次對話生成。" />
 
       {stats && (
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 24 }}>
           <StatCard code="HIST" label="歷史對話" value={fmt(stats.chatHistory)} sub="匯入的 Line 對話" accent="#06c755" />
           <StatCard code="AI" label="AI 回覆" value={fmt(stats.aiMessages)} sub="Bot 自動回覆" accent="#10b981" />
         </div>
@@ -607,7 +689,7 @@ function AIPrompt() {
             placeholder="輸入 AI 的 system prompt..."
           />
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           <button onClick={save} style={{ ...S.btnPrimary, flex: 1, background: saved ? '#22c55e' : '#10b981', transition: 'background 0.3s', padding: '11px 0', fontSize: 14 }}>{saved ? '✓ SAVED' : '儲存 Prompt'}</button>
           <div style={{ fontSize: 11, color: '#6f7d90', ...S.mono }}>{prompt.length} 字</div>
         </div>
@@ -628,6 +710,8 @@ function AIPrompt() {
 
 /* ========================================= LINE 歷史對話 ========================================= */
 function ChatHistory() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
   const [messages, setMessages] = useState([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
@@ -662,14 +746,14 @@ function ChatHistory() {
       <PageLead eyebrow="LINE Archive" title="歷史對話" description="檢視匯入的 LINE 對話資料，方便回顧真人客服風格與客戶常見需求。" />
 
       {stats && (
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 24 }}>
           <StatCard code="TOTAL" label="總訊息數" value={fmt(stats.total)} sub="all messages" accent="#06c755" />
           <StatCard code="USER" label="客戶訊息" value={fmt(stats.user)} sub="from customers" accent="#06c755" />
           <StatCard code="ACCT" label="官方回覆" value={fmt(stats.account)} sub="from staff" accent="#06c755" />
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { setPage(0); load(search, 0); } }} placeholder="搜尋對話內容、客戶名稱、客服名稱..." style={{ ...S.input, flex: 1 }} onFocus={e => e.target.style.borderColor = '#06c755'} onBlur={e => e.target.style.borderColor = '#ccd6e3'} />
         <button onClick={() => { setPage(0); load(search, 0); }} style={S.btnLine}>搜尋</button>
       </div>
@@ -678,8 +762,8 @@ function ChatHistory() {
 
       {loading ? <Loading /> : messages.length === 0 ? <EmptyState text="沒有找到對話記錄" /> : messages.map(msg => (
         <div key={msg.id} style={{ ...S.card, padding: '12px 18px', marginBottom: 6, borderLeftColor: msg.sender_type === 'User' ? '#3b82f6' : '#06c755', borderLeftWidth: 3 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: 6, flexDirection: isMobile ? 'column' : 'row', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={S.tag(msg.sender_type === 'User' ? '' : 'line')}>{msg.sender_type === 'User' ? '客戶' : '客服'}</span>
               <span style={{ fontSize: 12, color: '#2b3750' }}>{msg.display_name}</span>
               {msg.sender_name && msg.sender_type === 'Account' && <span style={{ fontSize: 11, color: '#7c899b' }}>({msg.sender_name})</span>}
@@ -734,6 +818,9 @@ const TAB_COMPONENTS = {
 };
 
 export default function AdminPage() {
+  const width = useViewportWidth();
+  const isTablet = width < 1180;
+  const isMobile = width < 820;
   const [token, setToken] = useState('');
   const [isAuthed, setIsAuthed] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
@@ -787,7 +874,7 @@ export default function AdminPage() {
   if (!isAuthed) {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f1729 0%, #18253a 52%, #243b5a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div style={{ width: '100%', maxWidth: 460, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 18, padding: '26px 28px', color: '#fff', boxShadow: '0 28px 60px rgba(4,10,20,0.34)' }}>
+        <div style={{ width: '100%', maxWidth: 460, background: 'rgba(255,255,255,0.06)', borderRadius: 18, padding: '26px 28px', color: '#fff', boxShadow: '0 28px 60px rgba(4,10,20,0.34)' }}>
           <div style={{ color: '#27d3a2', fontWeight: 700, fontSize: 15, letterSpacing: 1.5, ...S.mono, marginBottom: 10 }}>QB ADMIN</div>
           <div style={{ color: '#fff', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>管理後台登入</div>
           <div style={{ color: 'rgba(255,255,255,0.72)', fontSize: 14, marginBottom: 18, lineHeight: 1.7 }}>請輸入管理後台 Token，進入查價、活動管理與對話監控介面。</div>
@@ -816,8 +903,8 @@ export default function AdminPage() {
       `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-      <div style={S.shell}>
-        <div style={S.sidebar}>
+      <div style={{ ...S.shell, flexDirection: isTablet ? 'column' : 'row' }}>
+        <div style={{ ...S.sidebar, width: isTablet ? '100%' : S.sidebar.width, height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position }}>
           <div style={{ padding: '0 20px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #2da5ff 0%, #1f7cff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, ...S.mono }}>QB</div>
@@ -832,6 +919,7 @@ export default function AdminPage() {
               <div style={{ padding: '14px 20px 8px', borderTop: si > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none', marginTop: si > 0 ? 8 : 0 }}>
                 <div style={{ fontSize: 10, color: section.accent || '#70829c', ...S.mono, letterSpacing: 1.2 }}>{section.title}</div>
               </div>
+              <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))' }}>
               {section.tabs.map(t => (
                 <div
                   key={t.id}
@@ -853,6 +941,7 @@ export default function AdminPage() {
                   {t.label}
                 </div>
               ))}
+              </div>
             </div>
           ))}
 
@@ -869,20 +958,20 @@ export default function AdminPage() {
 
         <div style={S.main}>
           <div style={S.header}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
               <div style={{ width: 12, height: 12, borderRadius: 999, background: '#2d8cff' }} />
               <div>
                 <div style={{ color: '#172337', fontWeight: 700, fontSize: 15 }}>Quick Buy 管理後台</div>
-                <div style={{ color: '#7b889b', fontSize: 11 }}>Sales, inquiry monitoring and knowledge operations</div>
+                {!isMobile && <div style={{ color: '#7b889b', fontSize: 11 }}>Sales, inquiry monitoring and knowledge operations</div>}
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>main / {tab}</div>
+              {!isMobile && <div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>main / {tab}</div>}
               <button onClick={logout} style={{ ...S.btnGhost, padding: '7px 12px', fontSize: 11 }}>登出</button>
             </div>
           </div>
 
-          <div style={S.content}>
+          <div style={{ ...S.content, padding: isMobile ? '18px 14px 30px' : isTablet ? '22px 18px 34px' : S.content.padding }}>
             <ActiveTab />
           </div>
         </div>
