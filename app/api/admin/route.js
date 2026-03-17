@@ -252,6 +252,91 @@ export async function GET(request) {
         }
       }
 
+      case 'customer_detail': {
+        const lineUserId = (searchParams.get('line_user_id') || '').trim();
+        if (!lineUserId) {
+          return Response.json({ error: 'line_user_id is required' }, { status: 400 });
+        }
+
+        const { data: customer, error: customerError } = await supabase
+          .from('quickbuy_line_customers')
+          .select('*')
+          .eq('line_user_id', lineUserId)
+          .maybeSingle();
+
+        if (customerError) return Response.json({ error: customerError.message }, { status: 500 });
+        if (!customer) return Response.json({ error: 'Customer not found' }, { status: 404 });
+
+        let linkedCustomer = null;
+        let erpReady = true;
+        let quoteCount = 0;
+        let orderCount = 0;
+        let saleCount = 0;
+        let salesTotal = 0;
+
+        try {
+          const { data: linkedRow, error: linkedError } = await supabase
+            .from('erp_customers')
+            .select('id,name,company_name,phone,email,tax_id,address,line_user_id,source,status')
+            .eq('line_user_id', lineUserId)
+            .maybeSingle();
+
+          if (linkedError) throw linkedError;
+          linkedCustomer = linkedRow || null;
+
+          if (linkedCustomer?.id) {
+            const [quotes, orders, sales] = await Promise.all([
+              supabase.from('erp_quotes').select('*', { count: 'exact', head: true }).eq('customer_id', linkedCustomer.id),
+              supabase.from('erp_orders').select('*', { count: 'exact', head: true }).eq('customer_id', linkedCustomer.id),
+              supabase.from('erp_sales').select('total_amount').eq('customer_id', linkedCustomer.id),
+            ]);
+
+            quoteCount = quotes.count || 0;
+            orderCount = orders.count || 0;
+            saleCount = sales.data?.length || 0;
+            salesTotal = (sales.data || []).reduce((sum, row) => sum + Number(row.total_amount || 0), 0);
+          }
+        } catch {
+          erpReady = false;
+        }
+
+        const { data: recentMessages, error: recentMessagesError } = await supabase
+          .from('quickbuy_line_messages')
+          .select('id,user_message,ai_response,created_at')
+          .eq('line_user_id', lineUserId)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (recentMessagesError) return Response.json({ error: recentMessagesError.message }, { status: 500 });
+
+        const formalProfileComplete = Boolean(
+          linkedCustomer && (
+            linkedCustomer.company_name ||
+            linkedCustomer.phone ||
+            linkedCustomer.email ||
+            linkedCustomer.tax_id ||
+            (linkedCustomer.source && linkedCustomer.source !== 'line')
+          )
+        );
+
+        return Response.json({
+          customer: {
+            ...customer,
+            linked_customer: linkedCustomer,
+          },
+          summary: {
+            message_count: customer.message_count || 0,
+            quote_count: quoteCount,
+            order_count: orderCount,
+            sale_count: saleCount,
+            sales_total: salesTotal,
+          },
+          recent_messages: recentMessages || [],
+          erp_ready: erpReady,
+          formal_profile_complete: formalProfileComplete,
+        });
+      }
+
       case 'promotions': {
         const { data } = await supabase
           .from('quickbuy_promotions')
