@@ -472,6 +472,16 @@ function Customers() {
   const [bindLoadingId, setBindLoadingId] = useState('');
   const [bindMessage, setBindMessage] = useState('');
   const [stageSaving, setStageSaving] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    company_name: '',
+    phone: '',
+    email: '',
+    tax_id: '',
+    address: '',
+    notes: '',
+  });
 
   const load = useCallback(async (page = 1, q = search) => {
     setLoading(true);
@@ -510,6 +520,20 @@ function Customers() {
       loadDetail(selectedLineId);
     }
   }, [selectedLineId, loadDetail]);
+
+  useEffect(() => {
+    const linked = detail?.customer?.linked_customer;
+    setProfileForm({
+      name: linked?.name || '',
+      company_name: linked?.company_name || '',
+      phone: linked?.phone || '',
+      email: linked?.email || '',
+      tax_id: linked?.tax_id || '',
+      address: linked?.address || '',
+      notes: linked?.notes || '',
+    });
+    setEditingProfile(false);
+  }, [detail]);
 
   const openBinder = (customer) => {
     setBindingLineId(customer.line_user_id || '');
@@ -628,6 +652,28 @@ function Customers() {
     }
   };
 
+  const saveCustomerProfile = async () => {
+    const erpCustomerId = detailCustomer?.linked_customer?.id;
+    if (!erpCustomerId) return;
+
+    setStageSaving(true);
+    try {
+      await apiPost({
+        action: 'update_customer_profile',
+        erp_customer_id: erpCustomerId,
+        profile: profileForm,
+      });
+      await load(data.page, search);
+      await loadDetail(detailCustomer.line_user_id);
+      setBindMessage('已更新正式客戶資料');
+      setEditingProfile(false);
+    } catch (error) {
+      setLookupError(error.message || '更新客戶資料失敗');
+    } finally {
+      setStageSaving(false);
+    }
+  };
+
   const selectedCustomer = data.customers.find((customer) => customer.line_user_id === selectedLineId) || data.customers[0] || null;
   const detailCustomer = detail?.customer || selectedCustomer;
   const detailSummary = detail?.summary || { message_count: 0, quote_count: 0, order_count: 0, sale_count: 0, sales_total: 0 };
@@ -649,9 +695,7 @@ function Customers() {
               {detailCustomer.linked_customer && (
                 <>
                   <span style={S.tag(stageMeta[currentStage]?.color || '')}>{stageMeta[currentStage]?.label || '詢問名單'}</span>
-                  {formalProfileComplete
-                    ? <span style={S.tag('green')}>已完成正式客戶綁定</span>
-                    : <span style={S.tag('red')}>待補正式資料</span>}
+                  {!formalProfileComplete && <span style={S.tag('red')}>待補正式資料</span>}
                 </>
               )}
             </div>
@@ -689,7 +733,6 @@ function Customers() {
             <div style={{ ...S.panelMuted, display: 'grid', gap: 8 }}>
               <div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>CUSTOMER_PROFILE</div>
               <div style={{ fontSize: 12, color: '#4f6178', lineHeight: 1.8 }}>
-                <div><span style={{ color: '#7b889b', ...S.mono }}>LINE_ID</span> {detailCustomer.line_user_id || '-'}</div>
                 <div><span style={{ color: '#7b889b', ...S.mono }}>LAST_CONTACT</span> {fmtDate(detailCustomer.last_contact_at || detailCustomer.created_at)}</div>
                 <div><span style={{ color: '#7b889b', ...S.mono }}>STATUS</span> {(detailCustomer.message_count || 0) > 1 ? '既有客戶' : '新客戶'}</div>
               </div>
@@ -697,17 +740,48 @@ function Customers() {
 
             {detailCustomer.linked_customer ? (
               <div style={{ ...S.panelMuted, background: '#f2fbf6', borderColor: '#c9edd7' }}>
-                <div style={{ fontSize: 11, color: '#129c59', marginBottom: 8, ...S.mono }}>ERP_PROFILE</div>
-                <div style={{ fontSize: 15, color: '#1c2740', fontWeight: 700, marginBottom: 8 }}>
-                  {detailCustomer.linked_customer.company_name || detailCustomer.linked_customer.name || '未命名客戶'}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10, marginBottom: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#129c59', marginBottom: 8, ...S.mono }}>ERP_PROFILE</div>
+                    <div style={{ fontSize: 15, color: '#1c2740', fontWeight: 700 }}>
+                      {detailCustomer.linked_customer.company_name || detailCustomer.linked_customer.name || '未命名客戶'}
+                    </div>
+                  </div>
+                  <button onClick={() => setEditingProfile(!editingProfile)} style={S.btnGhost}>
+                    {editingProfile ? '取消編輯' : '編輯客戶資料'}
+                  </button>
                 </div>
-                <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8 }}>
-                  <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {detailCustomer.linked_customer.name || '-'}</div>
-                  <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {detailCustomer.linked_customer.phone || '-'}</div>
-                  <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL</span> {detailCustomer.linked_customer.email || '-'}</div>
-                  <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {detailCustomer.linked_customer.tax_id || '-'}</div>
-                  <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS</span> {detailCustomer.linked_customer.address || '-'}</div>
-                </div>
+                {editingProfile ? (
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+                      <input value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="聯絡人姓名" style={S.input} />
+                      <input value={profileForm.company_name} onChange={(e) => setProfileForm({ ...profileForm, company_name: e.target.value })} placeholder="公司名稱" style={S.input} />
+                      <input value={profileForm.phone} onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="電話" style={S.input} />
+                      <input value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="Email" style={S.input} />
+                      <input value={profileForm.tax_id} onChange={(e) => setProfileForm({ ...profileForm, tax_id: e.target.value })} placeholder="統編" style={S.input} />
+                      <input value={profileForm.address} onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })} placeholder="地址" style={S.input} />
+                    </div>
+                    <textarea
+                      value={profileForm.notes}
+                      onChange={(e) => setProfileForm({ ...profileForm, notes: e.target.value })}
+                      placeholder="備註"
+                      rows={3}
+                      style={{ ...S.input, resize: 'vertical', lineHeight: 1.6 }}
+                    />
+                    <button onClick={saveCustomerProfile} style={S.btnPrimary} disabled={stageSaving}>
+                      {stageSaving ? '儲存中...' : '儲存客戶資料'}
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8 }}>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {detailCustomer.linked_customer.name || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {detailCustomer.linked_customer.phone || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL</span> {detailCustomer.linked_customer.email || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {detailCustomer.linked_customer.tax_id || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS</span> {detailCustomer.linked_customer.address || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>NOTES</span> {detailCustomer.linked_customer.notes || '-'}</div>
+                  </div>
+                )}
                 {detail?.customer_stage_ready ? (
                   <div style={{ marginTop: 10 }}>
                     <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 8, ...S.mono }}>CUSTOMER_STAGE</div>

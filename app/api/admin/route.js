@@ -632,6 +632,32 @@ export async function POST(request) {
         return Response.json({ success: true });
       }
 
+      case 'update_customer_profile': {
+        const { erp_customer_id, profile } = body;
+
+        if (!erp_customer_id || !profile) {
+          return Response.json({ error: 'erp_customer_id and profile are required' }, { status: 400 });
+        }
+
+        const payload = {
+          name: profile.name || null,
+          company_name: profile.company_name || null,
+          phone: profile.phone || null,
+          email: profile.email || null,
+          tax_id: profile.tax_id || null,
+          address: profile.address || null,
+          notes: profile.notes || null,
+        };
+
+        const { error } = await supabase
+          .from('erp_customers')
+          .update(payload)
+          .eq('id', erp_customer_id);
+
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+        return Response.json({ success: true });
+      }
+
       default:
         return Response.json({ error: 'Unknown action' }, { status: 400 });
     }
