@@ -457,9 +457,16 @@ function Messages() {
 function Customers() {
   const width = useViewportWidth();
   const isMobile = width < 820;
-  const [data, setData] = useState({ customers: [], total: 0, page: 1, limit: 20 });
+  const [data, setData] = useState({ customers: [], total: 0, page: 1, limit: 20, erp_ready: true });
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [bindingLineId, setBindingLineId] = useState('');
+  const [lookupKeyword, setLookupKeyword] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupResults, setLookupResults] = useState([]);
+  const [lookupError, setLookupError] = useState('');
+  const [bindLoadingId, setBindLoadingId] = useState('');
+  const [bindMessage, setBindMessage] = useState('');
 
   const load = useCallback((page = 1, q = search) => {
     setLoading(true);
@@ -467,6 +474,75 @@ function Customers() {
   }, [search]);
 
   useEffect(() => { load(); }, []);
+
+  const openBinder = (customer) => {
+    setBindingLineId(customer.line_user_id || '');
+    setLookupKeyword(customer.display_name || '');
+    setLookupResults([]);
+    setLookupError('');
+    setBindMessage('');
+  };
+
+  const closeBinder = () => {
+    setBindingLineId('');
+    setLookupKeyword('');
+    setLookupResults([]);
+    setLookupError('');
+  };
+
+  const lookupErpCustomers = async () => {
+    const keyword = lookupKeyword.trim();
+    if (!keyword) {
+      setLookupError('請先輸入正式客戶姓名、公司或電話');
+      setLookupResults([]);
+      return;
+    }
+
+    setLookupLoading(true);
+    setLookupError('');
+    setBindMessage('');
+
+    try {
+      const result = await apiGet({ action: 'erp_customer_lookup', search: keyword });
+      if (!result.erp_ready) {
+        setLookupResults([]);
+        setLookupError('尚未建立 erp_customers 資料表，請先執行 ERP schema。');
+        return;
+      }
+
+      setLookupResults(result.customers || []);
+      if (!result.customers?.length) {
+        setLookupError('找不到符合的正式客戶，請換姓名、公司名或電話再試一次。');
+      }
+    } catch (error) {
+      setLookupResults([]);
+      setLookupError(error.message || '正式客戶查詢失敗');
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
+  const bindCustomer = async (customer, erpCustomer) => {
+    setBindLoadingId(customer.line_user_id || '');
+    setLookupError('');
+    setBindMessage('');
+
+    try {
+      await apiPost({
+        action: 'link_line_customer',
+        line_user_id: customer.line_user_id,
+        display_name: customer.display_name,
+        erp_customer_id: erpCustomer.id,
+      });
+      setBindMessage(`已綁定到正式客戶：${erpCustomer.company_name || erpCustomer.name || '未命名客戶'}`);
+      closeBinder();
+      load(data.page, search);
+    } catch (error) {
+      setLookupError(error.message || '綁定失敗');
+    } finally {
+      setBindLoadingId('');
+    }
+  };
 
   return (
     <div>
@@ -483,6 +559,16 @@ function Customers() {
         />
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
       </div>
+      {!data.erp_ready && (
+        <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', padding: '14px 16px' }}>
+          目前還找不到 erp_customers 資料表，人工綁定功能需要先把 docs/erp-schema-v1.sql 跑進 Supabase。
+        </div>
+      )}
+      {bindMessage && (
+        <div style={{ ...S.card, background: '#edf9f2', borderColor: '#bdeccb', color: '#127248', padding: '14px 16px' }}>
+          {bindMessage}
+        </div>
+      )}
       <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>共 {data.total} 位客戶</div>
       {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的客戶資料" /> : data.customers.map((customer) => (
         <div key={customer.id || customer.line_user_id} style={{ ...S.card, padding: '14px 18px' }}>
@@ -510,6 +596,86 @@ function Customers() {
                 </div>
               </div>
             </div>
+          </div>
+          <div style={{ marginTop: 14, borderTop: '1px solid #e6edf5', paddingTop: 14 }}>
+            {customer.linked_customer ? (
+              <div style={{ ...S.panelMuted, background: '#f2fbf6', borderColor: '#c9edd7' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#129c59', marginBottom: 6, ...S.mono }}>ERP_LINKED</div>
+                    <div style={{ fontSize: 15, color: '#1c2740', fontWeight: 700 }}>
+                      {customer.linked_customer.company_name || customer.linked_customer.name || '未命名客戶'}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8, marginTop: 6 }}>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {customer.linked_customer.name || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {customer.linked_customer.phone || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL</span> {customer.linked_customer.email || '-'}</div>
+                    </div>
+                  </div>
+                  <div style={S.tag('green')}>已連通正式客戶</div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>ERP_BINDING</div>
+                    <div style={{ fontSize: 13, color: '#4f6178', lineHeight: 1.7 }}>
+                      目前尚未綁定正式客戶。綁定後，這位 LINE 客戶就能連到 ERP 客戶主檔、訂單與銷貨資料。
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => bindingLineId === customer.line_user_id ? closeBinder() : openBinder(customer)}
+                    style={S.btnPrimary}
+                    disabled={!data.erp_ready}
+                  >
+                    {bindingLineId === customer.line_user_id ? '收起綁定面板' : '綁定正式客戶'}
+                  </button>
+                </div>
+                {bindingLineId === customer.line_user_id && (
+                  <div style={{ ...S.panelMuted, display: 'grid', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
+                      <input
+                        value={lookupKeyword}
+                        onChange={(e) => setLookupKeyword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && lookupErpCustomers()}
+                        placeholder="輸入正式客戶姓名、公司或電話..."
+                        style={{ ...S.input, flex: 1 }}
+                      />
+                      <button onClick={lookupErpCustomers} style={S.btnGhost} disabled={lookupLoading}>
+                        {lookupLoading ? '查詢中...' : '查 ERP 客戶'}
+                      </button>
+                    </div>
+                    {lookupError && <div style={{ fontSize: 12, color: '#d1435b', lineHeight: 1.7 }}>{lookupError}</div>}
+                    {lookupResults.length > 0 && (
+                      <div style={{ display: 'grid', gap: 10 }}>
+                        {lookupResults.map((erpCustomer) => (
+                          <div key={erpCustomer.id} style={{ background: '#fff', border: '1px solid #dbe3ee', borderRadius: 10, padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
+                            <div>
+                              <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700 }}>
+                                {erpCustomer.company_name || erpCustomer.name || '未命名客戶'}
+                              </div>
+                              <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8, marginTop: 4 }}>
+                                <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {erpCustomer.name || '-'}</div>
+                                <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {erpCustomer.phone || '-'}</div>
+                                <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {erpCustomer.tax_id || '-'}</div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => bindCustomer(customer, erpCustomer)}
+                              style={S.btnPrimary}
+                              disabled={bindLoadingId === customer.line_user_id}
+                            >
+                              {bindLoadingId === customer.line_user_id ? '綁定中...' : '綁定這位客戶'}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       ))}

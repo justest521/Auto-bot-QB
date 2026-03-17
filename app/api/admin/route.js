@@ -200,12 +200,56 @@ export async function GET(request) {
         const { data, count, error } = await query;
         if (error) return Response.json({ error: error.message }, { status: 500 });
 
+        let linkedCustomersByLineId = {};
+        let erpReady = true;
+
+        try {
+          const lineUserIds = (data || []).map((row) => row.line_user_id).filter(Boolean);
+          if (lineUserIds.length > 0) {
+            const { data: linkedRows, error: linkedError } = await supabase
+              .from('erp_customers')
+              .select('id,name,company_name,phone,email,tax_id,line_user_id')
+              .in('line_user_id', lineUserIds);
+
+            if (linkedError) throw linkedError;
+
+            linkedCustomersByLineId = Object.fromEntries(
+              (linkedRows || []).map((row) => [row.line_user_id, row])
+            );
+          }
+        } catch {
+          erpReady = false;
+        }
+
         return Response.json({
-          customers: data || [],
+          customers: (data || []).map((row) => ({
+            ...row,
+            linked_customer: row.line_user_id ? linkedCustomersByLineId[row.line_user_id] || null : null,
+          })),
           total: count || 0,
           page,
           limit,
+          erp_ready: erpReady,
         });
+      }
+
+      case 'erp_customer_lookup': {
+        const search = (searchParams.get('search') || '').trim();
+        if (!search) return Response.json({ customers: [], erp_ready: true });
+
+        try {
+          const { data, error } = await supabase
+            .from('erp_customers')
+            .select('id,name,company_name,phone,email,tax_id,line_user_id')
+            .or(`name.ilike.%${search}%,company_name.ilike.%${search}%,phone.ilike.%${search}%`)
+            .limit(10);
+
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          return Response.json({ customers: data || [], erp_ready: true });
+        } catch {
+          return Response.json({ customers: [], erp_ready: false });
+        }
       }
 
       case 'promotions': {
@@ -421,6 +465,34 @@ export async function POST(request) {
           },
           { onConflict: 'config_key' }
         );
+
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+        return Response.json({ success: true });
+      }
+
+      case 'link_line_customer': {
+        const { line_user_id, display_name, erp_customer_id } = body;
+
+        if (!line_user_id || !erp_customer_id) {
+          return Response.json({ error: 'line_user_id and erp_customer_id are required' }, { status: 400 });
+        }
+
+        const { error: clearError } = await supabase
+          .from('erp_customers')
+          .update({ line_user_id: null })
+          .eq('line_user_id', line_user_id)
+          .neq('id', erp_customer_id);
+
+        if (clearError) return Response.json({ error: clearError.message }, { status: 500 });
+
+        const { error } = await supabase
+          .from('erp_customers')
+          .update({
+            line_user_id,
+            display_name,
+            source: 'line',
+          })
+          .eq('id', erp_customer_id);
 
         if (error) return Response.json({ error: error.message }, { status: 500 });
         return Response.json({ success: true });
