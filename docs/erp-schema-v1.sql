@@ -36,17 +36,20 @@ create table if not exists erp_customers (
   source text default 'manual',
   line_user_id text unique,
   display_name text,
+  customer_stage text not null default 'lead',
   tags jsonb not null default '[]'::jsonb,
   status text not null default 'active',
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint erp_customers_status_check check (status in ('active', 'inactive', 'lead', 'blocked'))
+  constraint erp_customers_status_check check (status in ('active', 'inactive', 'lead', 'blocked')),
+  constraint erp_customers_customer_stage_check check (customer_stage in ('lead', 'prospect', 'customer', 'vip'))
 );
 
 create index if not exists idx_erp_customers_name on erp_customers(name);
 create index if not exists idx_erp_customers_company_name on erp_customers(company_name);
 create index if not exists idx_erp_customers_phone on erp_customers(phone);
+create index if not exists idx_erp_customers_customer_stage on erp_customers(customer_stage);
 
 create table if not exists erp_products (
   id uuid primary key default gen_random_uuid(),
@@ -332,4 +335,3 @@ for each row execute function set_updated_at();
 -- insert into erp_customers (name, company_name, line_user_id, display_name, source)
 -- select coalesce(display_name, '未命名客戶'), null, line_user_id, display_name, 'line'
 -- from quickbuy_line_customers;
-

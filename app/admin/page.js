@@ -458,7 +458,7 @@ function Customers() {
   const width = useViewportWidth();
   const isTablet = width < 1180;
   const isMobile = width < 820;
-  const [data, setData] = useState({ customers: [], total: 0, page: 1, limit: 20, erp_ready: true });
+  const [data, setData] = useState({ customers: [], total: 0, page: 1, limit: 20, erp_ready: true, customer_stage_ready: false });
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedLineId, setSelectedLineId] = useState('');
@@ -471,6 +471,7 @@ function Customers() {
   const [lookupError, setLookupError] = useState('');
   const [bindLoadingId, setBindLoadingId] = useState('');
   const [bindMessage, setBindMessage] = useState('');
+  const [stageSaving, setStageSaving] = useState(false);
 
   const load = useCallback(async (page = 1, q = search) => {
     setLoading(true);
@@ -581,9 +582,20 @@ function Customers() {
   };
 
   const hasErpProfile = (customer) => Boolean(customer?.linked_customer);
+  const getCustomerStage = (customer) => customer?.linked_customer?.customer_stage || 'lead';
+  const stageMeta = {
+    lead: { label: '詢問名單', color: 'red' },
+    prospect: { label: '潛在客戶', color: '' },
+    customer: { label: '正式客戶', color: 'green' },
+    vip: { label: 'VIP 客戶', color: 'line' },
+  };
   const isFormalCustomerBound = (customer) => {
     const linked = customer?.linked_customer;
     if (!linked) return false;
+
+    if (linked.customer_stage) {
+      return linked.customer_stage === 'customer' || linked.customer_stage === 'vip';
+    }
 
     const hasBusinessData = Boolean(
       linked.company_name ||
@@ -595,10 +607,32 @@ function Customers() {
     return hasBusinessData || (linked.source && linked.source !== 'line');
   };
 
+  const updateCustomerStage = async (customerStage) => {
+    const erpCustomerId = detailCustomer?.linked_customer?.id;
+    if (!erpCustomerId) return;
+
+    setStageSaving(true);
+    try {
+      await apiPost({
+        action: 'update_customer_stage',
+        erp_customer_id: erpCustomerId,
+        customer_stage: customerStage,
+      });
+      await load(data.page, search);
+      await loadDetail(detailCustomer.line_user_id);
+      setBindMessage(`已更新客戶階段：${stageMeta[customerStage]?.label || customerStage}`);
+    } catch (error) {
+      setLookupError(error.message || '更新客戶階段失敗');
+    } finally {
+      setStageSaving(false);
+    }
+  };
+
   const selectedCustomer = data.customers.find((customer) => customer.line_user_id === selectedLineId) || data.customers[0] || null;
   const detailCustomer = detail?.customer || selectedCustomer;
   const detailSummary = detail?.summary || { message_count: 0, quote_count: 0, order_count: 0, sale_count: 0, sales_total: 0 };
   const formalProfileComplete = detail?.formal_profile_complete ?? (detailCustomer ? isFormalCustomerBound(detailCustomer) : false);
+  const currentStage = getCustomerStage(detailCustomer);
   const detailPanel = (
     <div style={{ ...S.card, padding: '16px 18px', position: isTablet ? 'relative' : 'sticky', top: isTablet ? 'auto' : 84 }}>
       {!detailCustomer ? (
@@ -613,9 +647,12 @@ function Customers() {
               <span style={S.tag('green')}>LINE</span>
               {detailCustomer.linked_customer && <span style={S.tag('')}>已建立 ERP 主檔</span>}
               {detailCustomer.linked_customer && (
-                formalProfileComplete
-                  ? <span style={S.tag('green')}>已完成正式客戶綁定</span>
-                  : <span style={S.tag('red')}>待補正式資料</span>
+                <>
+                  <span style={S.tag(stageMeta[currentStage]?.color || '')}>{stageMeta[currentStage]?.label || '詢問名單'}</span>
+                  {formalProfileComplete
+                    ? <span style={S.tag('green')}>已完成正式客戶綁定</span>
+                    : <span style={S.tag('red')}>待補正式資料</span>}
+                </>
               )}
             </div>
             <div style={{ fontSize: 13, color: '#617084', lineHeight: 1.7 }}>
@@ -671,9 +708,37 @@ function Customers() {
                   <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {detailCustomer.linked_customer.tax_id || '-'}</div>
                   <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS</span> {detailCustomer.linked_customer.address || '-'}</div>
                 </div>
+                {detail?.customer_stage_ready ? (
+                  <div style={{ marginTop: 10 }}>
+                    <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 8, ...S.mono }}>CUSTOMER_STAGE</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {Object.entries(stageMeta).map(([value, meta]) => (
+                        <button
+                          key={value}
+                          onClick={() => updateCustomerStage(value)}
+                          disabled={stageSaving}
+                          style={{
+                            ...S.btnGhost,
+                            padding: '7px 12px',
+                            fontSize: 12,
+                            background: currentStage === value ? '#edf5ff' : '#fff',
+                            borderColor: currentStage === value ? '#94c3ff' : '#dbe3ee',
+                            color: currentStage === value ? '#1976f3' : '#5b6779',
+                          }}
+                        >
+                          {meta.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 10, fontSize: 12, color: '#617084', lineHeight: 1.7 }}>
+                    目前資料庫還沒有 customer_stage 欄位，若要改用明確階段判定，請先補欄位 migration。
+                  </div>
+                )}
                 {!formalProfileComplete && (
                   <div style={{ marginTop: 8, fontSize: 12, color: '#617084', lineHeight: 1.7 }}>
-                    目前這筆只是已建立 ERP 主檔，若要視為正式客戶，建議補齊公司、電話、Email 或統編。
+                    目前這筆還不是正式客戶。若要視為正式客戶，可把階段改成「正式客戶 / VIP」，並補齊公司、電話、Email 或統編。
                   </div>
                 )}
               </div>
@@ -713,13 +778,14 @@ function Customers() {
                               <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700 }}>
                                 {erpCustomer.company_name || erpCustomer.name || '未命名客戶'}
                               </div>
-                              <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8, marginTop: 4 }}>
-                                <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {erpCustomer.name || '-'}</div>
-                                <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {erpCustomer.phone || '-'}</div>
-                                <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {erpCustomer.tax_id || '-'}</div>
-                              </div>
-                            </div>
-                            <button onClick={() => bindCustomer(detailCustomer, erpCustomer)} style={S.btnPrimary} disabled={bindLoadingId === detailCustomer.line_user_id}>
+                      <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8, marginTop: 4 }}>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {erpCustomer.name || '-'}</div>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {erpCustomer.phone || '-'}</div>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {erpCustomer.tax_id || '-'}</div>
+                        {erpCustomer.customer_stage && <div><span style={{ color: '#7b889b', ...S.mono }}>STAGE</span> {stageMeta[erpCustomer.customer_stage]?.label || erpCustomer.customer_stage}</div>}
+                      </div>
+                    </div>
+                    <button onClick={() => bindCustomer(detailCustomer, erpCustomer)} style={S.btnPrimary} disabled={bindLoadingId === detailCustomer.line_user_id}>
                               {bindLoadingId === detailCustomer.line_user_id ? '綁定中...' : '綁定這位客戶'}
                             </button>
                           </div>
@@ -808,7 +874,7 @@ function Customers() {
                           </span>
                           <span style={S.tag('green')}>LINE</span>
                         </div>
-                        <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.6 }}>
+                      <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.6 }}>
                           {customer.linked_customer
                             ? `${customer.linked_customer.company_name || customer.linked_customer.name || '已建立 ERP 客戶'}`
                             : '尚未綁定正式客戶'}
@@ -820,9 +886,14 @@ function Customers() {
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                         {hasErpProfile(customer) ? <span style={S.tag('')}>已建檔</span> : <span style={S.tag('red')}>未建檔</span>}
                         {hasErpProfile(customer) && (
-                          isFormalCustomerBound(customer)
-                            ? <span style={S.tag('green')}>正式客戶</span>
-                            : <span style={S.tag('red')}>待補資料</span>
+                          <>
+                            <span style={S.tag(stageMeta[getCustomerStage(customer)]?.color || '')}>
+                              {stageMeta[getCustomerStage(customer)]?.label || '詢問名單'}
+                            </span>
+                            {isFormalCustomerBound(customer)
+                              ? <span style={S.tag('green')}>正式客戶</span>
+                              : <span style={S.tag('red')}>待補資料</span>}
+                          </>
                         )}
                       </div>
                       <div style={{ textAlign: isMobile ? 'left' : 'right', fontSize: 16, color: '#1976f3', fontWeight: 700, ...S.mono }}>

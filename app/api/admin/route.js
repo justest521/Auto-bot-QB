@@ -10,6 +10,21 @@ function formatDayLabel(date) {
   return date.toLocaleString('en-US', { month: '2-digit', day: '2-digit' });
 }
 
+const ERP_CUSTOMER_BASE_COLUMNS = 'id,name,company_name,phone,email,tax_id,address,line_user_id,source,status,display_name';
+const ERP_CUSTOMER_COLUMNS_WITH_STAGE = `${ERP_CUSTOMER_BASE_COLUMNS},customer_stage`;
+
+async function runErpCustomerQuery(buildQuery) {
+  let stageReady = true;
+  let result = await buildQuery(ERP_CUSTOMER_COLUMNS_WITH_STAGE);
+
+  if (result.error && /customer_stage/i.test(result.error.message || '')) {
+    stageReady = false;
+    result = await buildQuery(ERP_CUSTOMER_BASE_COLUMNS);
+  }
+
+  return { ...result, stageReady };
+}
+
 function isAuthorized(request) {
   const adminToken = process.env.ADMIN_TOKEN;
 
@@ -202,16 +217,20 @@ export async function GET(request) {
 
         let linkedCustomersByLineId = {};
         let erpReady = true;
+        let customerStageReady = true;
 
         try {
           const lineUserIds = (data || []).map((row) => row.line_user_id).filter(Boolean);
           if (lineUserIds.length > 0) {
-            const { data: linkedRows, error: linkedError } = await supabase
-              .from('erp_customers')
-              .select('id,name,company_name,phone,email,tax_id,line_user_id,source,status')
-              .in('line_user_id', lineUserIds);
+            const { data: linkedRows, error: linkedError, stageReady } = await runErpCustomerQuery((columns) =>
+              supabase
+                .from('erp_customers')
+                .select(columns)
+                .in('line_user_id', lineUserIds)
+            );
 
             if (linkedError) throw linkedError;
+            customerStageReady = stageReady;
 
             linkedCustomersByLineId = Object.fromEntries(
               (linkedRows || []).map((row) => [row.line_user_id, row])
@@ -230,6 +249,7 @@ export async function GET(request) {
           page,
           limit,
           erp_ready: erpReady,
+          customer_stage_ready: customerStageReady,
         });
       }
 
@@ -238,17 +258,19 @@ export async function GET(request) {
         if (!search) return Response.json({ customers: [], erp_ready: true });
 
         try {
-          const { data, error } = await supabase
-            .from('erp_customers')
-            .select('id,name,company_name,phone,email,tax_id,line_user_id,source,status')
-            .or(`name.ilike.%${search}%,company_name.ilike.%${search}%,phone.ilike.%${search}%`)
-            .limit(10);
+          const { data, error, stageReady } = await runErpCustomerQuery((columns) =>
+            supabase
+              .from('erp_customers')
+              .select(columns)
+              .or(`name.ilike.%${search}%,company_name.ilike.%${search}%,phone.ilike.%${search}%`)
+              .limit(10)
+          );
 
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
-          return Response.json({ customers: data || [], erp_ready: true });
+          return Response.json({ customers: data || [], erp_ready: true, customer_stage_ready: stageReady });
         } catch {
-          return Response.json({ customers: [], erp_ready: false });
+          return Response.json({ customers: [], erp_ready: false, customer_stage_ready: false });
         }
       }
 
@@ -269,20 +291,24 @@ export async function GET(request) {
 
         let linkedCustomer = null;
         let erpReady = true;
+        let customerStageReady = true;
         let quoteCount = 0;
         let orderCount = 0;
         let saleCount = 0;
         let salesTotal = 0;
 
         try {
-          const { data: linkedRow, error: linkedError } = await supabase
-            .from('erp_customers')
-            .select('id,name,company_name,phone,email,tax_id,address,line_user_id,source,status')
-            .eq('line_user_id', lineUserId)
-            .maybeSingle();
+          const { data: linkedRow, error: linkedError, stageReady } = await runErpCustomerQuery((columns) =>
+            supabase
+              .from('erp_customers')
+              .select(columns)
+              .eq('line_user_id', lineUserId)
+              .maybeSingle()
+          );
 
           if (linkedError) throw linkedError;
           linkedCustomer = linkedRow || null;
+          customerStageReady = stageReady;
 
           if (linkedCustomer?.id) {
             const [quotes, orders, sales] = await Promise.all([
@@ -311,6 +337,8 @@ export async function GET(request) {
 
         const formalProfileComplete = Boolean(
           linkedCustomer && (
+            linkedCustomer.customer_stage === 'customer' ||
+            linkedCustomer.customer_stage === 'vip' ||
             linkedCustomer.company_name ||
             linkedCustomer.phone ||
             linkedCustomer.email ||
@@ -333,6 +361,7 @@ export async function GET(request) {
           },
           recent_messages: recentMessages || [],
           erp_ready: erpReady,
+          customer_stage_ready: customerStageReady,
           formal_profile_complete: formalProfileComplete,
         });
       }
@@ -577,6 +606,26 @@ export async function POST(request) {
             display_name,
             source: 'line',
           })
+          .eq('id', erp_customer_id);
+
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+        return Response.json({ success: true });
+      }
+
+      case 'update_customer_stage': {
+        const { erp_customer_id, customer_stage } = body;
+
+        if (!erp_customer_id || !customer_stage) {
+          return Response.json({ error: 'erp_customer_id and customer_stage are required' }, { status: 400 });
+        }
+
+        if (!['lead', 'prospect', 'customer', 'vip'].includes(customer_stage)) {
+          return Response.json({ error: 'Invalid customer_stage' }, { status: 400 });
+        }
+
+        const { error } = await supabase
+          .from('erp_customers')
+          .update({ customer_stage })
           .eq('id', erp_customer_id);
 
         if (error) return Response.json({ error: error.message }, { status: 500 });
