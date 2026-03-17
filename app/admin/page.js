@@ -898,7 +898,8 @@ export default function AdminPage() {
   return (
     <div style={S.page}>
       <style>{`
-        html,body{background:#f5f7fb!important;margin:0;padding:0}
+        html,body{background:#0f1729!important;margin:0;padding:0}
+        body > div:first-child{min-height:100vh;background:#0f1729}
         *{box-sizing:border-box}
       `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
