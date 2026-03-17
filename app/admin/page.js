@@ -874,7 +874,7 @@ export default function AdminPage() {
   if (!isAuthed) {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f1729 0%, #18253a 52%, #243b5a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div style={{ width: '100%', maxWidth: 460, background: 'rgba(255,255,255,0.06)', borderRadius: 18, padding: '26px 28px', color: '#fff', boxShadow: '0 28px 60px rgba(4,10,20,0.34)' }}>
+        <div style={{ width: '100%', maxWidth: 460, background: 'rgba(9,14,24,0.82)', borderRadius: 18, padding: '26px 28px', color: '#fff', boxShadow: '0 28px 60px rgba(4,10,20,0.42), inset 0 1px 0 rgba(255,255,255,0.03)' }}>
           <div style={{ color: '#27d3a2', fontWeight: 700, fontSize: 15, letterSpacing: 1.5, ...S.mono, marginBottom: 10 }}>QB ADMIN</div>
           <div style={{ color: '#fff', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>管理後台登入</div>
           <div style={{ color: 'rgba(255,255,255,0.72)', fontSize: 14, marginBottom: 18, lineHeight: 1.7 }}>請輸入管理後台 Token，進入查價、活動管理與對話監控介面。</div>
@@ -884,7 +884,7 @@ export default function AdminPage() {
             onChange={(e) => setToken(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && login()}
             placeholder="ADMIN_TOKEN"
-            style={{ ...S.input, background: 'rgba(9,15,26,0.45)', borderColor: 'rgba(255,255,255,0.12)', color: '#fff' }}
+            style={{ ...S.input, background: 'rgba(5,10,18,0.78)', borderColor: 'rgba(255,255,255,0.08)', color: '#fff' }}
           />
           {authError && <div style={{ color: '#f87171', fontSize: 12, marginTop: 10, lineHeight: 1.6 }}>{authError}</div>}
           <button onClick={login} disabled={authLoading} style={{ ...S.btnPrimary, width: '100%', marginTop: 14, opacity: authLoading ? 0.7 : 1, cursor: authLoading ? 'wait' : 'pointer' }}>
