@@ -2,6 +2,8 @@ import crypto from 'crypto';
 import { supabase } from '@/lib/supabase';
 import { handleCustomerMessage } from '@/lib/ai-handler';
 
+export const dynamic = 'force-dynamic';
+
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
@@ -101,32 +103,19 @@ export async function POST(request) {
       // 不等 DB 寫入，先處理 AI 回覆
       upsertCustomer(userId, displayName).catch(console.error);
 
-      const { reply, matchedProducts, toolCalls, responseTimeMs, fromCache } =
-        await handleCustomerMessage(userMessage, displayName);
+      const { reply, responseTimeMs, fromCache } =
+        await handleCustomerMessage(userMessage, displayName, userId);
 
       console.log(`🤖 (${responseTimeMs}ms${fromCache ? ' ⚡CACHE' : ''}): ${reply.slice(0, 80)}...`);
 
       await replyMessage(replyToken, reply);
 
-      // 背景記錄訊息
-      supabase
-        .from('quickbuy_line_messages')
-        .insert({
-          line_user_id: userId,
-          display_name: displayName,
-          user_message: userMessage,
-          ai_response: reply,
-          matched_products: matchedProducts.length > 0 ? matchedProducts : null,
-          response_time_ms: responseTimeMs,
-        })
-        .then(() => {})
-        .catch(console.error);
     }
 
     return new Response('OK', { status: 200 });
   } catch (error) {
     console.error('Webhook error:', error);
-    return new Response('OK', { status: 200 });
+    return new Response('Webhook error', { status: 500 });
   }
 }
 

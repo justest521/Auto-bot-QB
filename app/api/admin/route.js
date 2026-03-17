@@ -1,6 +1,29 @@
 import { supabase } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
+function isAuthorized(request) {
+  const adminToken = process.env.ADMIN_TOKEN;
+
+  if (!adminToken) {
+    console.error('ADMIN_TOKEN is not configured');
+    return { ok: false, status: 503, error: 'Admin auth is not configured' };
+  }
+
+  const headerToken = request.headers.get('x-admin-token');
+  if (headerToken !== adminToken) {
+    return { ok: false, status: 401, error: 'Unauthorized' };
+  }
+
+  return { ok: true };
+}
+
 export async function GET(request) {
+  const auth = isAuthorized(request);
+  if (!auth.ok) {
+    return Response.json({ error: auth.error }, { status: auth.status });
+  }
+
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action');
 
@@ -91,6 +114,115 @@ export async function GET(request) {
         });
       }
 
+      case 'products': {
+        const search = searchParams.get('q') || '';
+        const category = searchParams.get('category') || 'all';
+        const page = parseInt(searchParams.get('page') || '0', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '25', 10), 50);
+        const offset = page * limit;
+
+        let query = supabase
+          .from('quickbuy_products')
+          .select(
+            'item_number,description,us_price,tw_retail_price,tw_reseller_price,product_status,category,replacement_model,weight_kg,origin_country',
+            { count: 'exact' }
+          )
+          .eq('product_status', 'Current')
+          .order('item_number', { ascending: true })
+          .range(offset, offset + limit - 1);
+
+        if (category && category !== 'all') {
+          query = query.eq('category', category);
+        }
+
+        const trimmed = search.trim();
+        if (trimmed) {
+          const escaped = trimmed.replace(/['"]/g, '');
+          query = query.or(
+            `item_number.ilike.%${escaped}%,search_text.fts.${escaped
+              .split(/\s+/)
+              .filter(Boolean)
+              .join(' & ')}`
+          );
+        }
+
+        const { data, count, error } = await query;
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+
+        return Response.json({
+          products: data || [],
+          total: count || 0,
+          page,
+          limit,
+        });
+      }
+
+      case 'chat_history': {
+        const search = searchParams.get('search') || '';
+        const page = parseInt(searchParams.get('page') || '0', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '30', 10), 100);
+        const offset = page * limit;
+
+        let query = supabase
+          .from('quickbuy_chat_history')
+          .select(
+            'id,sender_type,sender_name,display_name,content,message_date,message_time',
+            { count: 'exact' }
+          )
+          .order('message_timestamp', { ascending: false, nullsFirst: false })
+          .range(offset, offset + limit - 1);
+
+        if (search.trim()) {
+          const escaped = search.trim().replace(/,/g, ' ');
+          query = query.or(
+            `content.ilike.%${escaped}%,display_name.ilike.%${escaped}%,sender_name.ilike.%${escaped}%`
+          );
+        }
+
+        const { data, count, error } = await query;
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+
+        return Response.json({
+          messages: data || [],
+          total: count || 0,
+          page,
+          limit,
+        });
+      }
+
+      case 'chat_history_stats': {
+        const [user, account, all] = await Promise.all([
+          supabase
+            .from('quickbuy_chat_history')
+            .select('*', { count: 'exact', head: true })
+            .eq('sender_type', 'User'),
+          supabase
+            .from('quickbuy_chat_history')
+            .select('*', { count: 'exact', head: true })
+            .eq('sender_type', 'Account'),
+          supabase.from('quickbuy_chat_history').select('*', { count: 'exact', head: true }),
+        ]);
+
+        return Response.json({
+          user: user.count || 0,
+          account: account.count || 0,
+          total: all.count || 0,
+        });
+      }
+
+      case 'ai_prompt': {
+        const { data, error } = await supabase
+          .from('quickbuy_config')
+          .select('config_value')
+          .eq('config_key', 'ai_system_prompt')
+          .limit(1)
+          .maybeSingle();
+
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+
+        return Response.json({ prompt: data?.config_value || '' });
+      }
+
       default:
         return Response.json({ error: 'Unknown action' }, { status: 400 });
     }
@@ -101,6 +233,11 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const auth = isAuthorized(request);
+  if (!auth.ok) {
+    return Response.json({ error: auth.error }, { status: auth.status });
+  }
+
   try {
     const body = await request.json();
     const { action } = body;
@@ -151,6 +288,20 @@ export async function POST(request) {
         const { error } = await supabase
           .from('quickbuy_config')
           .upsert({ key: 'pricing_rules', value: rules }, { onConflict: 'key' });
+
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+        return Response.json({ success: true });
+      }
+
+      case 'update_ai_prompt': {
+        const { prompt } = body;
+        const { error } = await supabase.from('quickbuy_config').upsert(
+          {
+            config_key: 'ai_system_prompt',
+            config_value: prompt,
+          },
+          { onConflict: 'config_key' }
+        );
 
         if (error) return Response.json({ error: error.message }, { status: 500 });
         return Response.json({ success: true });

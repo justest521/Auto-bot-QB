@@ -2,10 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-// ── Supabase config (anon key, public read via RLS) ──
-const SUPABASE_URL = 'https://izfxiaufbwrlmifrbdiv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnhpYXVmYndybG1pZnJiZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjYzODYsImV4cCI6MjA4OTIwMjM4Nn0.3CirmkvYgGUfPIwRbYUdVJ0vcSfbJID2DCugJL2m7YM';
-
 // ── Category labels ──
 const CATEGORIES = {
   all: '全部',
@@ -28,45 +24,26 @@ const CATEGORIES = {
   other: '其他',
 };
 
-// ── Supabase REST query helper ──
+// ── Product query helper ──
 async function queryProducts({ search, category, offset = 0, limit = 20 }) {
-  const params = new URLSearchParams();
-  params.set('select', 'item_number,description,tw_retail_price,product_status,category,replacement_model');
-  params.set('product_status', 'eq.Current');
-  params.set('order', 'item_number.asc');
-  params.set('offset', String(offset));
-  params.set('limit', String(limit));
+  const page = Math.floor(offset / limit);
+  const params = new URLSearchParams({
+    q: search || '',
+    category: category || 'all',
+    page: String(page),
+    limit: String(limit),
+  });
 
-  if (category && category !== 'all') {
-    params.set('category', `eq.${category}`);
+  const res = await fetch(`/api/products?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error('Product query failed');
   }
 
-  // Build URL - use different strategies for item_number vs text search
-  let url;
-  const trimmed = (search || '').trim();
-
-  if (!trimmed) {
-    url = `${SUPABASE_URL}/rest/v1/quickbuy_products?${params}`;
-  } else {
-    // Try exact item_number match first, then fallback to text search
-    // Use `or` filter: exact item match OR full-text search
-    const escaped = trimmed.replace(/['"]/g, '');
-    const tsQuery = escaped.split(/\s+/).filter(Boolean).join(' & ');
-    params.set('or', `(item_number.ilike.*${escaped}*,search_text.fts.${tsQuery})`);
-    url = `${SUPABASE_URL}/rest/v1/quickbuy_products?${params}`;
-  }
-
-  const headers = {
-    apikey: SUPABASE_ANON_KEY,
-    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    'Content-Type': 'application/json',
-    Prefer: 'count=exact',
-  };
-
-  const res = await fetch(url, { headers });
-  const total = parseInt(res.headers.get('content-range')?.split('/')[1] || '0', 10);
   const data = await res.json();
-  return { data: Array.isArray(data) ? data : [], total };
+  return {
+    data: Array.isArray(data.products) ? data.products : [],
+    total: data.total || 0,
+  };
 }
 
 // ── Format price ──

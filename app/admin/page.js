@@ -2,23 +2,65 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 const API = '/api/admin';
-const SUPABASE_URL = 'https://izfxiaufbwrlmifrbdiv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnhpYXVmYndybG1pZnJiZGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjYzODYsImV4cCI6MjA4OTIwMjM4Nn0.3CirmkvYgGUfPIwRbYUdVJ0vcSfbJID2DCugJL2m7YM';
+const ADMIN_TOKEN_KEY = 'qb_admin_token';
 
 const fmt = n => n?.toLocaleString('zh-TW') || '0';
 const fmtMs = ms => !ms ? '-' : ms < 1000 ? `${ms}ms` : `${(ms/1000).toFixed(1)}s`;
 const fmtDate = d => d ? new Date(d).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
 const fmtP = n => n ? `NT$${Number(n).toLocaleString()}` : '-';
 
-// Supabase REST helper
-async function sbQuery(table, params = {}) {
-  const p = new URLSearchParams(params);
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${p}`, {
-    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, Prefer: 'count=exact' },
+async function authFetch(url, options = {}) {
+  const token =
+    typeof window !== 'undefined' ? window.localStorage.getItem(ADMIN_TOKEN_KEY) : '';
+
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-token': token || '',
+      ...(options.headers || {}),
+    },
   });
-  const total = parseInt(res.headers.get('content-range')?.split('/')[1] || '0', 10);
-  const data = await res.json();
-  return { data: Array.isArray(data) ? data : [], total };
+
+  if (res.status === 401) {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+    }
+    throw new Error('Token 錯誤或已失效，請重新登入');
+  }
+
+  if (!res.ok) {
+    let message = `Request failed (${res.status})`;
+
+    try {
+      const data = await res.json();
+      message = data?.error || message;
+    } catch {
+      try {
+        message = await res.text();
+      } catch {
+        // Ignore response parse errors and use fallback message.
+      }
+    }
+
+    throw new Error(message);
+  }
+
+  return res;
+}
+
+async function apiGet(params = {}) {
+  const p = new URLSearchParams(params);
+  const res = await authFetch(`${API}?${p.toString()}`);
+  return res.json();
+}
+
+async function apiPost(body) {
+  const res = await authFetch(API, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return res.json();
 }
 
 /* ========================================= STYLES ========================================= */
@@ -59,7 +101,7 @@ function StatCard({ code, label, value, sub, accent }) {
 function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  useEffect(() => { fetch(`${API}?action=stats`).then(r => r.json()).then(setStats).finally(() => setLoading(false)); }, []);
+  useEffect(() => { apiGet({ action: 'stats' }).then(setStats).finally(() => setLoading(false)); }, []);
   if (loading) return <Loading />;
   return (
     <div>
@@ -96,7 +138,7 @@ function Messages() {
   const [expanded, setExpanded] = useState(null);
   const load = useCallback((page = 1, q = search) => {
     setLoading(true);
-    fetch(`${API}?action=messages&page=${page}&search=${encodeURIComponent(q)}`).then(r => r.json()).then(setData).finally(() => setLoading(false));
+    apiGet({ action: 'messages', page: String(page), search: q }).then(setData).finally(() => setLoading(false));
   }, [search]);
   useEffect(() => { load(); }, []);
   return (
@@ -148,12 +190,16 @@ function ProductSearch() {
 
   const doSearch = useCallback(async (q, cat, pg = 0) => {
     setLoading(true);
-    const params = { select: 'item_number,description,us_price,tw_retail_price,tw_reseller_price,product_status,category,replacement_model,weight_kg,origin_country', product_status: 'eq.Current', order: 'item_number.asc', offset: String(pg * PAGE_SIZE), limit: String(PAGE_SIZE) };
-    if (cat && cat !== 'all') params.category = `eq.${cat}`;
-    const trimmed = (q || '').trim();
-    if (trimmed) { const escaped = trimmed.replace(/['"]/g, ''); const tsQ = escaped.split(/\s+/).filter(Boolean).join(' & '); params.or = `(item_number.ilike.*${escaped}*,search_text.fts.${tsQ})`; }
-    const { data, total: t } = await sbQuery('quickbuy_products', params);
-    setProducts(data); setTotal(t); setLoading(false);
+    const data = await apiGet({
+      action: 'products',
+      q: q || '',
+      category: cat || 'all',
+      page: String(pg),
+      limit: String(PAGE_SIZE),
+    });
+    setProducts(data.products || []);
+    setTotal(data.total || 0);
+    setLoading(false);
   }, []);
 
   useEffect(() => { const timer = setTimeout(() => { setPage(0); doSearch(search, category, 0); }, 300); return () => clearTimeout(timer); }, [search, category, doSearch]);
@@ -215,7 +261,7 @@ function Promotions() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', start_date: '', end_date: '', note: '', items: '' });
-  const load = () => { fetch(`${API}?action=promotions`).then(r => r.json()).then(d => setPromos(d.promotions || [])).finally(() => setLoading(false)); };
+  const load = () => { apiGet({ action: 'promotions' }).then(d => setPromos(d.promotions || [])).finally(() => setLoading(false)); };
   useEffect(() => { load(); }, []);
   const submit = async () => {
     const items = form.items.split('\n').filter(Boolean).map(line => {
@@ -223,10 +269,10 @@ function Promotions() {
       if (!match) return null;
       return { item_number: match[1].toUpperCase(), promo_price: parseInt(match[2].replace(/,/g, '')), promo_note: match[3] || null };
     }).filter(Boolean);
-    const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'create_promotion', ...form, items }) });
-    if (res.ok) { setShowForm(false); setForm({ name: '', start_date: '', end_date: '', note: '', items: '' }); load(); }
+    const res = await apiPost({ action: 'create_promotion', ...form, items });
+    if (!res.error) { setShowForm(false); setForm({ name: '', start_date: '', end_date: '', note: '', items: '' }); load(); }
   };
-  const toggle = async (id, active) => { await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'toggle_promotion', id, is_active: !active }) }); load(); };
+  const toggle = async (id, active) => { await apiPost({ action: 'toggle_promotion', id, is_active: !active }); load(); };
   return (
     <div>
       <div style={{ color: '#555', fontSize: 11, marginBottom: 16, ...S.mono }}>$ quickbuy promo --manage</div>
@@ -283,8 +329,8 @@ function PricingRules() {
   const [rules, setRules] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
-  useEffect(() => { fetch(`${API}?action=pricing`).then(r => r.json()).then(d => setRules(d.rules)).finally(() => setLoading(false)); }, []);
-  const save = async () => { await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update_pricing', rules }) }); setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  useEffect(() => { apiGet({ action: 'pricing' }).then(d => setRules(d.rules)).finally(() => setLoading(false)); }, []);
+  const save = async () => { await apiPost({ action: 'update_pricing', rules }); setSaved(true); setTimeout(() => setSaved(false), 2000); };
   if (loading || !rules) return <Loading />;
   return (
     <div style={{ maxWidth: 560 }}>
@@ -312,21 +358,22 @@ function AIPrompt() {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    // 從 quickbuy_config 讀取 AI prompt
-    sbQuery('quickbuy_config', { select: 'config_value', config_key: 'eq.ai_system_prompt', limit: '1' })
-      .then(({ data }) => { if (data[0]) setPrompt(data[0].config_value || ''); })
+    apiGet({ action: 'ai_prompt' })
+      .then((data) => { setPrompt(data.prompt || ''); })
       .finally(() => setLoading(false));
-    // 讀取歷史對話統計
-    sbQuery('quickbuy_chat_history', { select: 'id', limit: '1' }).then(({ total }) => setStats(prev => ({ ...prev, chatHistory: total })));
-    sbQuery('quickbuy_line_messages', { select: 'id', limit: '1' }).then(({ total }) => setStats(prev => ({ ...prev, aiMessages: total })));
+    Promise.all([
+      apiGet({ action: 'chat_history_stats' }),
+      apiGet({ action: 'stats' }),
+    ]).then(([history, dashboard]) => {
+      setStats({
+        chatHistory: history.total || 0,
+        aiMessages: dashboard.total_messages || 0,
+      });
+    });
   }, []);
 
   const save = async () => {
-    await fetch(`${SUPABASE_URL}/rest/v1/quickbuy_config`, {
-      method: 'POST',
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
-      body: JSON.stringify({ config_key: 'ai_system_prompt', config_value: prompt }),
-    });
+    await apiPost({ action: 'update_ai_prompt', prompt });
     setSaved(true); setTimeout(() => setSaved(false), 2000);
   };
 
@@ -388,20 +435,20 @@ function ChatHistory() {
 
   const load = useCallback(async (q = search, pg = 0) => {
     setLoading(true);
-    const params = { select: 'id,sender_type,sender_name,display_name,content,message_date,message_time', order: 'message_timestamp.desc.nullslast', offset: String(pg * PAGE_SIZE), limit: String(PAGE_SIZE) };
-    if (q.trim()) params.or = `(content.ilike.*${q.trim()}*,display_name.ilike.*${q.trim()}*,sender_name.ilike.*${q.trim()}*)`;
-    const { data, total: t } = await sbQuery('quickbuy_chat_history', params);
-    setMessages(data); setTotal(t); setLoading(false);
+    const data = await apiGet({
+      action: 'chat_history',
+      search: q,
+      page: String(pg),
+      limit: String(PAGE_SIZE),
+    });
+    setMessages(data.messages || []);
+    setTotal(data.total || 0);
+    setLoading(false);
   }, [search]);
 
   useEffect(() => {
     load();
-    // 統計
-    Promise.all([
-      sbQuery('quickbuy_chat_history', { select: 'id', sender_type: 'eq.User', limit: '1' }),
-      sbQuery('quickbuy_chat_history', { select: 'id', sender_type: 'eq.Account', limit: '1' }),
-      sbQuery('quickbuy_chat_history', { select: 'display_name', limit: '1' }),
-    ]).then(([u, a, all]) => setStats({ user: u.total, account: a.total, total: all.total }));
+    apiGet({ action: 'chat_history_stats' }).then(setStats);
   }, []);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -484,8 +531,78 @@ const TAB_COMPONENTS = {
 };
 
 export default function AdminPage() {
+  const [token, setToken] = useState('');
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [tab, setTab] = useState('dashboard');
   const ActiveTab = TAB_COMPONENTS[tab] || Dashboard;
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (saved) {
+      setToken(saved);
+      setAuthLoading(true);
+      apiGet({ action: 'stats' })
+        .then(() => {
+          setIsAuthed(true);
+          setAuthError('');
+        })
+        .catch((error) => {
+          window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+          setAuthError(error.message || '登入失敗，請重新輸入 Token');
+        })
+        .finally(() => setAuthLoading(false));
+    }
+  }, []);
+
+  const login = async () => {
+    const trimmed = token.trim();
+    if (!trimmed) return;
+    setAuthLoading(true);
+    setAuthError('');
+    window.localStorage.setItem(ADMIN_TOKEN_KEY, trimmed);
+    try {
+      await apiGet({ action: 'stats' });
+      setIsAuthed(true);
+    } catch (error) {
+      window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+      setAuthError(error.message || '登入失敗，請確認 Token');
+      setIsAuthed(false);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const logout = () => {
+    window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+    setIsAuthed(false);
+    setToken('');
+    setAuthError('');
+  };
+
+  if (!isAuthed) {
+    return (
+      <div style={{ ...S.page, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ ...S.card, width: '100%', maxWidth: 420 }}>
+          <div style={{ color: '#10b981', fontWeight: 700, fontSize: 15, letterSpacing: 1.5, ...S.mono, marginBottom: 10 }}>QB ADMIN</div>
+          <div style={{ color: '#bbb', fontSize: 14, marginBottom: 18 }}>請輸入管理後台 Token</div>
+          <input
+            type="password"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && login()}
+            placeholder="ADMIN_TOKEN"
+            style={S.input}
+          />
+          {authError && <div style={{ color: '#f87171', fontSize: 12, marginTop: 10, lineHeight: 1.6 }}>{authError}</div>}
+          <button onClick={login} disabled={authLoading} style={{ ...S.btnPrimary, width: '100%', marginTop: 14, opacity: authLoading ? 0.7 : 1, cursor: authLoading ? 'wait' : 'pointer' }}>
+            {authLoading ? '驗證中...' : '進入後台'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={S.page}>
@@ -499,7 +616,10 @@ export default function AdminPage() {
           <span style={{ color: '#555', fontSize: 12 }}>|</span>
           <span style={{ color: '#777', fontSize: 12 }}>Quick Buy 管理後台</span>
         </div>
-        <div style={{ fontSize: 11, color: '#555', ...S.mono }}>v2.0.0</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ fontSize: 11, color: '#555', ...S.mono }}>v2.0.0</div>
+          <button onClick={logout} style={{ ...S.btnGhost, padding: '6px 10px', fontSize: 11 }}>登出</button>
+        </div>
       </div>
 
       <div style={{ display: 'flex' }}>
