@@ -467,6 +467,7 @@ function Customers() {
   const [lookupError, setLookupError] = useState('');
   const [bindLoadingId, setBindLoadingId] = useState('');
   const [bindMessage, setBindMessage] = useState('');
+  const [expandedCustomerId, setExpandedCustomerId] = useState('');
 
   const load = useCallback((page = 1, q = search) => {
     setLoading(true);
@@ -544,6 +545,21 @@ function Customers() {
     }
   };
 
+  const hasErpProfile = (customer) => Boolean(customer?.linked_customer);
+  const isFormalCustomerBound = (customer) => {
+    const linked = customer?.linked_customer;
+    if (!linked) return false;
+
+    const hasBusinessData = Boolean(
+      linked.company_name ||
+      linked.phone ||
+      linked.email ||
+      linked.tax_id
+    );
+
+    return hasBusinessData || (linked.source && linked.source !== 'line');
+  };
+
   return (
     <div>
       <PageLead eyebrow="Customers" title="客戶主檔" description="先以既有 LINE 客戶資料為主建立 ERP 客戶入口，方便之後往報價、訂單與銷貨模組延伸。" />
@@ -571,23 +587,30 @@ function Customers() {
       )}
       <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>共 {data.total} 位客戶</div>
       {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的客戶資料" /> : data.customers.map((customer) => (
-        <div key={customer.id || customer.line_user_id} style={{ ...S.card, padding: '14px 18px' }}>
+        <div key={customer.id || customer.line_user_id} style={{ ...S.card, padding: '12px 16px', marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
                 <span style={{ fontSize: 15, color: '#1c2740', fontWeight: 700 }}>{customer.display_name || '未命名客戶'}</span>
                 <span style={S.tag('green')}>LINE</span>
                 {(customer.message_count || 0) > 1 && <span style={S.tag('')}>回購 / 舊客</span>}
+                {hasErpProfile(customer) && <span style={S.tag('')}>已建立 ERP 主檔</span>}
+                {hasErpProfile(customer) && (
+                  isFormalCustomerBound(customer)
+                    ? <span style={S.tag('green')}>已完成正式客戶綁定</span>
+                    : <span style={S.tag('red')}>待補正式資料</span>
+                )}
               </div>
-              <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8 }}>
-                <div><span style={{ color: '#7b889b', ...S.mono }}>LINE_ID</span> {customer.line_user_id || '-'}</div>
-                <div><span style={{ color: '#7b889b', ...S.mono }}>LAST_CONTACT</span> {fmtDate(customer.last_contact_at || customer.created_at)}</div>
+              <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.7 }}>
+                {customer.linked_customer
+                  ? `${customer.linked_customer.company_name || customer.linked_customer.name || '已連通客戶'}`
+                  : '尚未綁定正式客戶'}
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(2, minmax(120px, 1fr))', gap: 12, width: isMobile ? '100%' : 'auto' }}>
+            <div style={{ display: 'flex', gap: 10, width: isMobile ? '100%' : 'auto', alignItems: 'stretch', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
               <div style={S.panelMuted}>
                 <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>MESSAGE_COUNT</div>
-                <div style={{ fontSize: 22, color: '#1976f3', fontWeight: 700, ...S.mono }}>{fmt(customer.message_count)}</div>
+                <div style={{ fontSize: 18, color: '#1976f3', fontWeight: 700, ...S.mono }}>{fmt(customer.message_count)}</div>
               </div>
               <div style={S.panelMuted}>
                 <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>CUSTOMER_STATUS</div>
@@ -595,9 +618,26 @@ function Customers() {
                   {(customer.message_count || 0) > 1 ? '既有客戶' : '新客戶'}
                 </div>
               </div>
+              <button
+                onClick={() => setExpandedCustomerId(expandedCustomerId === customer.line_user_id ? '' : (customer.line_user_id || ''))}
+                style={{ ...S.btnGhost, minWidth: isMobile ? '100%' : 112 }}
+              >
+                {expandedCustomerId === customer.line_user_id ? '收合資訊' : '查看資訊'}
+              </button>
             </div>
           </div>
-          <div style={{ marginTop: 14, borderTop: '1px solid #e6edf5', paddingTop: 14 }}>
+          {expandedCustomerId === customer.line_user_id && (
+          <div style={{ marginTop: 12, borderTop: '1px solid #e6edf5', paddingTop: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 12 }}>
+              <div style={S.panelMuted}>
+                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>LINE_ID</div>
+                <div style={{ fontSize: 12, color: '#4f6178', wordBreak: 'break-all', ...S.mono }}>{customer.line_user_id || '-'}</div>
+              </div>
+              <div style={S.panelMuted}>
+                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>LAST_CONTACT</div>
+                <div style={{ fontSize: 12, color: '#4f6178', ...S.mono }}>{fmtDate(customer.last_contact_at || customer.created_at)}</div>
+              </div>
+            </div>
             {customer.linked_customer ? (
               <div style={{ ...S.panelMuted, background: '#f2fbf6', borderColor: '#c9edd7' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
@@ -611,8 +651,18 @@ function Customers() {
                       <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {customer.linked_customer.phone || '-'}</div>
                       <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL</span> {customer.linked_customer.email || '-'}</div>
                     </div>
+                    {!isFormalCustomerBound(customer) && (
+                      <div style={{ marginTop: 8, fontSize: 12, color: '#617084', lineHeight: 1.7 }}>
+                        目前這筆只是已建立 ERP 主檔，可能仍是詢問名單；若要視為正式客戶，建議補齊公司、電話、Email 或統編資料。
+                      </div>
+                    )}
                   </div>
-                  <div style={S.tag('green')}>已連通正式客戶</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: isMobile ? 'flex-start' : 'flex-end' }}>
+                    <span style={S.tag('')}>LINE 已連通</span>
+                    {isFormalCustomerBound(customer)
+                      ? <span style={S.tag('green')}>正式客戶</span>
+                      : <span style={S.tag('red')}>待補正式資料</span>}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -677,6 +727,7 @@ function Customers() {
               </div>
             )}
           </div>
+          )}
         </div>
       ))}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 }}>

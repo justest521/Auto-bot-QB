@@ -208,7 +208,7 @@ export async function GET(request) {
           if (lineUserIds.length > 0) {
             const { data: linkedRows, error: linkedError } = await supabase
               .from('erp_customers')
-              .select('id,name,company_name,phone,email,tax_id,line_user_id')
+              .select('id,name,company_name,phone,email,tax_id,line_user_id,source,status')
               .in('line_user_id', lineUserIds);
 
             if (linkedError) throw linkedError;
@@ -240,7 +240,7 @@ export async function GET(request) {
         try {
           const { data, error } = await supabase
             .from('erp_customers')
-            .select('id,name,company_name,phone,email,tax_id,line_user_id')
+            .select('id,name,company_name,phone,email,tax_id,line_user_id,source,status')
             .or(`name.ilike.%${search}%,company_name.ilike.%${search}%,phone.ilike.%${search}%`)
             .limit(10);
 
