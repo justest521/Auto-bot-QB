@@ -472,6 +472,7 @@ function Customers() {
   const [bindLoadingId, setBindLoadingId] = useState('');
   const [bindMessage, setBindMessage] = useState('');
   const [stageSaving, setStageSaving] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
     name: '',
@@ -534,6 +535,12 @@ function Customers() {
     });
     setEditingProfile(false);
   }, [detail]);
+
+  useEffect(() => {
+    if (!bindMessage) return undefined;
+    const timer = setTimeout(() => setBindMessage(''), 2400);
+    return () => clearTimeout(timer);
+  }, [bindMessage]);
 
   const openBinder = (customer) => {
     setBindingLineId(customer.line_user_id || '');
@@ -656,7 +663,19 @@ function Customers() {
     const erpCustomerId = detailCustomer?.linked_customer?.id;
     if (!erpCustomerId) return;
 
-    setStageSaving(true);
+    setProfileSaving(true);
+    setEditingProfile(false);
+    setBindMessage('已更新正式客戶資料');
+    setDetail((prev) => prev ? {
+      ...prev,
+      customer: {
+        ...prev.customer,
+        linked_customer: {
+          ...prev.customer.linked_customer,
+          ...profileForm,
+        },
+      },
+    } : prev);
     try {
       await apiPost({
         action: 'update_customer_profile',
@@ -665,12 +684,11 @@ function Customers() {
       });
       await load(data.page, search);
       await loadDetail(detailCustomer.line_user_id);
-      setBindMessage('已更新正式客戶資料');
-      setEditingProfile(false);
     } catch (error) {
       setLookupError(error.message || '更新客戶資料失敗');
+      setEditingProfile(true);
     } finally {
-      setStageSaving(false);
+      setProfileSaving(false);
     }
   };
 
@@ -691,13 +709,9 @@ function Customers() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
               <div style={{ fontSize: 22, fontWeight: 700, color: '#1c2740' }}>{detailCustomer.display_name || '未命名客戶'}</div>
               <span style={S.tag('green')}>LINE</span>
-              {detailCustomer.linked_customer && <span style={S.tag('')}>已建立 ERP 主檔</span>}
-              {detailCustomer.linked_customer && (
-                <>
-                  <span style={S.tag(stageMeta[currentStage]?.color || '')}>{stageMeta[currentStage]?.label || '詢問名單'}</span>
-                  {!formalProfileComplete && <span style={S.tag('red')}>待補正式資料</span>}
-                </>
-              )}
+              {detailCustomer.linked_customer
+                ? <span style={S.tag(stageMeta[currentStage]?.color || '')}>{stageMeta[currentStage]?.label || '詢問名單'}</span>
+                : <span style={S.tag('red')}>未綁定</span>}
             </div>
             <div style={{ fontSize: 13, color: '#617084', lineHeight: 1.7 }}>
               {detailCustomer.linked_customer
@@ -768,8 +782,8 @@ function Customers() {
                       rows={3}
                       style={{ ...S.input, resize: 'vertical', lineHeight: 1.6 }}
                     />
-                    <button onClick={saveCustomerProfile} style={S.btnPrimary} disabled={stageSaving}>
-                      {stageSaving ? '儲存中...' : '儲存客戶資料'}
+                    <button onClick={saveCustomerProfile} style={S.btnPrimary} disabled={profileSaving}>
+                      {profileSaving ? '儲存中...' : '儲存客戶資料'}
                     </button>
                   </div>
                 ) : (
@@ -958,17 +972,11 @@ function Customers() {
                         {(customer.message_count || 0) > 1 ? '既有客戶' : '新客戶'}
                       </div>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        {hasErpProfile(customer) ? <span style={S.tag('')}>已建檔</span> : <span style={S.tag('red')}>未建檔</span>}
-                        {hasErpProfile(customer) && (
-                          <>
-                            <span style={S.tag(stageMeta[getCustomerStage(customer)]?.color || '')}>
+                        {hasErpProfile(customer)
+                          ? <span style={S.tag(stageMeta[getCustomerStage(customer)]?.color || '')}>
                               {stageMeta[getCustomerStage(customer)]?.label || '詢問名單'}
                             </span>
-                            {isFormalCustomerBound(customer)
-                              ? <span style={S.tag('green')}>正式客戶</span>
-                              : <span style={S.tag('red')}>待補資料</span>}
-                          </>
-                        )}
+                          : <span style={S.tag('red')}>未綁定</span>}
                       </div>
                       <div style={{ textAlign: isMobile ? 'left' : 'right', fontSize: 16, color: '#1976f3', fontWeight: 700, ...S.mono }}>
                         {fmt(customer.message_count)}
