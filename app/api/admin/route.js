@@ -75,32 +75,77 @@ function parseBatchNumber(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-async function getImportHistory() {
+let cachedQuickbuyConfigState = null;
+
+async function getQuickbuyConfigState() {
+  if (cachedQuickbuyConfigState) return cachedQuickbuyConfigState;
+
+  const { data, error } = await supabase
+    .schema('information_schema')
+    .from('columns')
+    .select('column_name')
+    .eq('table_schema', 'public')
+    .eq('table_name', 'quickbuy_config');
+
+  if (error) throw error;
+
+  const available = new Set((data || []).map((row) => row.column_name));
+  const keyColumn = available.has('config_key') ? 'config_key' : available.has('key') ? 'key' : null;
+  const valueColumn = available.has('config_value') ? 'config_value' : available.has('value') ? 'value' : null;
+
+  cachedQuickbuyConfigState = {
+    keyColumn,
+    valueColumn,
+    available,
+  };
+
+  return cachedQuickbuyConfigState;
+}
+
+async function getQuickbuyConfigEntry(configKey) {
+  const state = await getQuickbuyConfigState();
+  if (!state.keyColumn || !state.valueColumn) {
+    throw new Error('quickbuy_config 缺少 key/value 欄位');
+  }
+
   const { data, error } = await supabase
     .from('quickbuy_config')
-    .select('config_value')
-    .eq('config_key', 'admin_import_history')
+    .select(state.valueColumn)
+    .eq(state.keyColumn, configKey)
     .maybeSingle();
 
   if (error) throw error;
-  return Array.isArray(data?.config_value) ? data.config_value : [];
+  return data?.[state.valueColumn];
 }
 
-async function appendImportHistory(entry) {
-  const history = await getImportHistory();
-  const nextHistory = [entry, ...history].slice(0, 30);
+async function upsertQuickbuyConfigEntry(configKey, configValue) {
+  const state = await getQuickbuyConfigState();
+  if (!state.keyColumn || !state.valueColumn) {
+    throw new Error('quickbuy_config 缺少 key/value 欄位');
+  }
 
   const { error } = await supabase
     .from('quickbuy_config')
     .upsert(
       {
-        config_key: 'admin_import_history',
-        config_value: nextHistory,
+        [state.keyColumn]: configKey,
+        [state.valueColumn]: configValue,
       },
-      { onConflict: 'config_key' }
+      { onConflict: state.keyColumn }
     );
 
   if (error) throw error;
+}
+
+async function getImportHistory() {
+  const value = await getQuickbuyConfigEntry('admin_import_history');
+  return Array.isArray(value) ? value : [];
+}
+
+async function appendImportHistory(entry) {
+  const history = await getImportHistory();
+  const nextHistory = [entry, ...history].slice(0, 30);
+  await upsertQuickbuyConfigEntry('admin_import_history', nextHistory);
 }
 
 const ERP_CUSTOMER_DESIRED_COLUMNS = [
@@ -1090,16 +1135,8 @@ export async function GET(request) {
       }
 
       case 'ai_prompt': {
-        const { data, error } = await supabase
-          .from('quickbuy_config')
-          .select('config_value')
-          .eq('config_key', 'ai_system_prompt')
-          .limit(1)
-          .maybeSingle();
-
-        if (error) return Response.json({ error: error.message }, { status: 500 });
-
-        return Response.json({ prompt: data?.config_value || '' });
+        const prompt = await getQuickbuyConfigEntry('ai_system_prompt');
+        return Response.json({ prompt: prompt || '' });
       }
 
       default:
@@ -1496,25 +1533,13 @@ export async function POST(request) {
 
       case 'update_pricing': {
         const { rules } = body;
-        const { error } = await supabase
-          .from('quickbuy_config')
-          .upsert({ key: 'pricing_rules', value: rules }, { onConflict: 'key' });
-
-        if (error) return Response.json({ error: error.message }, { status: 500 });
+        await upsertQuickbuyConfigEntry('pricing_rules', rules);
         return Response.json({ success: true });
       }
 
       case 'update_ai_prompt': {
         const { prompt } = body;
-        const { error } = await supabase.from('quickbuy_config').upsert(
-          {
-            config_key: 'ai_system_prompt',
-            config_value: prompt,
-          },
-          { onConflict: 'config_key' }
-        );
-
-        if (error) return Response.json({ error: error.message }, { status: 500 });
+        await upsertQuickbuyConfigEntry('ai_system_prompt', prompt);
         return Response.json({ success: true });
       }
 
