@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import * as XLSX from 'xlsx';
 
 const API = '/api/admin';
 const ADMIN_TOKEN_KEY = 'qb_admin_token';
@@ -156,6 +157,143 @@ function parseCsvText(text) {
   });
 }
 
+function normalizeSpreadsheetRows(rows) {
+  return rows.filter((row) => Object.values(row || {}).some((value) => String(value ?? '').trim() !== ''));
+}
+
+function mapCustomerStage(customerType) {
+  const text = String(customerType || '').trim();
+  if (text.includes('正式')) return 'customer';
+  if (['潛在', '詢價', '準客'].some((keyword) => text.includes(keyword))) return 'prospect';
+  return 'lead';
+}
+
+function buildCustomerNotes(row) {
+  const pairs = [
+    ['電話', row['電話']],
+    ['傳真', row['傳真']],
+    ['職稱', row['職稱']],
+    ['請款客戶', row['請款客戶']],
+    ['客戶類型', row['客戶類型']],
+    ['負責人', row['負責人']],
+    ['客戶等級', row['客戶等級']],
+    ['首次交易日', row['首次交易日']],
+    ['合約起始日', row['合約起始日']],
+    ['合約截止日', row['合約截止日']],
+  ];
+  return pairs.filter(([, value]) => value).map(([label, value]) => `${label}:${value}`).join(' | ');
+}
+
+function buildProductDescription(row) {
+  return [row['品名'], row['規格一'], row['規格二']].filter(Boolean).join(' ').trim();
+}
+
+function buildProductSearchText(row) {
+  return [row['品號'], row['品名'], row['規格一'], row['規格二'], row['商品分類'], row['主供應商']].filter(Boolean).join(' ').trim();
+}
+
+function mapRowsForDataset(datasetId, rows) {
+  if (!rows.length) return [];
+
+  if (datasetId === 'erp_customers') {
+    return rows.map((row) => ({
+      customer_code: row.customer_code ?? row['客戶代號'] ?? '',
+      name: row.name ?? row['主聯絡人'] ?? row['客戶簡稱'] ?? '',
+      company_name: row.company_name ?? row['客戶簡稱'] ?? '',
+      phone: row.phone ?? row['手機'] ?? row['電話'] ?? '',
+      email: row.email ?? '',
+      tax_id: row.tax_id ?? row['統一編號'] ?? '',
+      address: row.address ?? row['送貨地址'] ?? '',
+      source: row.source ?? 'import',
+      display_name: row.display_name ?? row['客戶簡稱'] ?? '',
+      customer_stage: row.customer_stage ?? mapCustomerStage(row['客戶類型']),
+      status: row.status ?? 'active',
+      notes: row.notes ?? buildCustomerNotes(row),
+    }));
+  }
+
+  if (datasetId === 'erp_vendors') {
+    return rows.map((row) => ({
+      vendor_code: row.vendor_code ?? row['廠商代號'] ?? '',
+      vendor_name: row.vendor_name ?? row['廠商簡稱'] ?? '',
+      phone: row.phone ?? row['電話'] ?? '',
+      fax: row.fax ?? row['傳真'] ?? '',
+      contact_name: row.contact_name ?? row['聯絡人'] ?? '',
+      contact_title: row.contact_title ?? row['職稱'] ?? '',
+      mobile: row.mobile ?? row['手機'] ?? '',
+      address: row.address ?? row['營業地址'] ?? '',
+      tax_id: row.tax_id ?? row['統一編號'] ?? '',
+    }));
+  }
+
+  if (datasetId === 'quickbuy_products') {
+    return rows.map((row) => ({
+      item_number: row.item_number ?? row['品號'] ?? '',
+      description: row.description ?? buildProductDescription(row),
+      tw_retail_price: row.tw_retail_price ?? row['零售價'] ?? 0,
+      tw_reseller_price: row.tw_reseller_price ?? row['優惠價'] ?? 0,
+      product_status: row.product_status ?? 'Current',
+      category: row.category ?? row['商品分類'] ?? 'other',
+      replacement_model: row.replacement_model ?? '',
+      weight_kg: row.weight_kg ?? row['單位淨重'] ?? 0,
+      origin_country: row.origin_country ?? '',
+      search_text: row.search_text ?? buildProductSearchText(row),
+    }));
+  }
+
+  if (datasetId === 'erp_sales_return_summary') {
+    return rows.map((row) => {
+      const docNo = String(row.doc_no ?? row['單號'] ?? '');
+      return {
+        doc_date: row.doc_date ?? row['日期'] ?? '',
+        doc_no: docNo,
+        doc_type: row.doc_type ?? (docNo.startsWith('退') ? 'return' : 'sale'),
+        invoice_no: row.invoice_no ?? row['發票號碼'] ?? '',
+        customer_name: row.customer_name ?? row['客戶簡稱'] ?? '',
+        sales_name: row.sales_name ?? row['業務姓名'] ?? '',
+        amount: row.amount ?? row['合計金額'] ?? 0,
+        tax_amount: row.tax_amount ?? row['稅額'] ?? 0,
+        total_amount: row.total_amount ?? row['總金額'] ?? 0,
+      };
+    });
+  }
+
+  if (datasetId === 'erp_profit_analysis') {
+    return rows.map((row) => ({
+      customer_name: row.customer_name ?? row['客戶簡稱'] ?? '',
+      doc_date: row.doc_date ?? row['日期'] ?? '',
+      doc_no: row.doc_no ?? row['單號'] ?? '',
+      sales_name: row.sales_name ?? row['業務'] ?? '',
+      amount: row.amount ?? row['金額'] ?? 0,
+      cost: row.cost ?? row['成本'] ?? 0,
+      gross_profit: row.gross_profit ?? row['毛利'] ?? 0,
+      gross_margin: row.gross_margin ?? row['毛利率'] ?? '',
+    }));
+  }
+
+  return rows;
+}
+
+async function parseImportFile(file, datasetId) {
+  const lowerName = file.name.toLowerCase();
+
+  if (lowerName.endsWith('.csv')) {
+    const text = await file.text();
+    return mapRowsForDataset(datasetId, parseCsvText(text));
+  }
+
+  if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls')) {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+    return mapRowsForDataset(datasetId, normalizeSpreadsheetRows(rawRows));
+  }
+
+  throw new Error('目前只支援 CSV / XLSX / XLS 檔案');
+}
+
 const IMPORT_DATASETS = {
   quickbuy_products: {
     title: '商品資料',
@@ -194,16 +332,15 @@ function useCsvImport(datasetId, onImported) {
     if (!file) return;
 
     try {
-      const text = await file.text();
-      const rows = parseCsvText(text);
-      if (!rows.length) throw new Error('CSV 沒有可匯入的資料列');
+      const rows = await parseImportFile(file, datasetId);
+      if (!rows.length) throw new Error('檔案沒有可匯入的資料列');
       setSelectedFile(file);
       setPreviewCount(rows.length);
       setStatus('');
     } catch (error) {
       setSelectedFile(null);
       setPreviewCount(0);
-      setStatus(error.message || 'CSV 解析失敗');
+      setStatus(error.message || '檔案解析失敗');
     }
   }, []);
 
@@ -214,9 +351,8 @@ function useCsvImport(datasetId, onImported) {
     setStatus('');
 
     try {
-      const text = await selectedFile.text();
-      const rows = parseCsvText(text);
-      if (!rows.length) throw new Error('CSV 沒有可匯入的資料列');
+      const rows = await parseImportFile(selectedFile, datasetId);
+      if (!rows.length) throw new Error('檔案沒有可匯入的資料列');
 
       const result = await apiPost({
         action: 'import_csv_dataset',
@@ -307,7 +443,7 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
       <div style={{ display: 'grid', gap: 8, justifyItems: compact ? 'end' : 'start' }}>
         {selectedFile ? (
           <div style={{ ...S.panelMuted, minWidth: compact ? 260 : 320, textAlign: 'left' }}>
-            <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>CSV_PREVIEW</div>
+            <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>FILE_PREVIEW</div>
             <div style={{ fontSize: 12, color: '#1c2740', fontWeight: 700 }}>{selectedFile.name}</div>
             <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>預計匯入 {fmt(previewCount)} 筆</div>
             <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: compact ? 'flex-end' : 'flex-start' }}>
@@ -317,10 +453,10 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
           </div>
         ) : (
           <label style={{ ...(compact ? S.btnGhost : S.btnPrimary), display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            選擇 CSV
+            選擇檔案
             <input
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xls,application/vnd.ms-excel"
               style={{ display: 'none' }}
               disabled={busy}
               onChange={(event) => {
@@ -1985,7 +2121,7 @@ function ImportCenter() {
 
   return (
     <div>
-      <PageLead eyebrow="Import" title="資料匯入" description="直接從後台匯入 CSV，不用再進 Supabase Table Editor。建議沿用我們整理好的 import-ready CSV 格式。" />
+      <PageLead eyebrow="Import" title="資料匯入" description="直接從後台匯入 CSV 或 Excel，不用再進 Supabase Table Editor。支援我們整理好的 import-ready CSV，也支援原始 .xlsx 檔案。" />
       <div style={{ display: 'grid', gap: 14 }}>
         {Object.entries(IMPORT_DATASETS).map(([datasetId, dataset]) => (
           <div key={datasetId} style={S.card}>
