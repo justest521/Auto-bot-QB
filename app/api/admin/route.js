@@ -98,19 +98,60 @@ async function appendImportHistory(entry) {
   if (error) throw error;
 }
 
-const ERP_CUSTOMER_BASE_COLUMNS = 'id,name,company_name,phone,email,tax_id,address,line_user_id,source,status,display_name';
-const ERP_CUSTOMER_COLUMNS_WITH_STAGE = `${ERP_CUSTOMER_BASE_COLUMNS},customer_stage`;
+const ERP_CUSTOMER_DESIRED_COLUMNS = [
+  'id',
+  'customer_code',
+  'name',
+  'company_name',
+  'phone',
+  'email',
+  'tax_id',
+  'address',
+  'line_user_id',
+  'source',
+  'status',
+  'display_name',
+  'customer_stage',
+  'notes',
+];
+
+let cachedErpCustomerColumnState = null;
+
+async function getErpCustomerColumnState() {
+  if (cachedErpCustomerColumnState) return cachedErpCustomerColumnState;
+
+  const { data, error } = await supabase
+    .schema('information_schema')
+    .from('columns')
+    .select('column_name')
+    .eq('table_schema', 'public')
+    .eq('table_name', 'erp_customers');
+
+  if (error) throw error;
+
+  const available = new Set((data || []).map((row) => row.column_name));
+  const columns = ERP_CUSTOMER_DESIRED_COLUMNS.filter((column) => available.has(column));
+
+  cachedErpCustomerColumnState = {
+    columns: columns.length ? columns.join(',') : 'id',
+    stageReady: available.has('customer_stage'),
+    lineReady: available.has('line_user_id'),
+    displayReady: available.has('display_name'),
+    available,
+  };
+
+  return cachedErpCustomerColumnState;
+}
 
 async function runErpCustomerQuery(buildQuery) {
-  let stageReady = true;
-  let result = await buildQuery(ERP_CUSTOMER_COLUMNS_WITH_STAGE);
-
-  if (result.error && /customer_stage/i.test(result.error.message || '')) {
-    stageReady = false;
-    result = await buildQuery(ERP_CUSTOMER_BASE_COLUMNS);
-  }
-
-  return { ...result, stageReady };
+  const columnState = await getErpCustomerColumnState();
+  const result = await buildQuery(columnState.columns);
+  return {
+    ...result,
+    stageReady: columnState.stageReady,
+    lineReady: columnState.lineReady,
+    displayReady: columnState.displayReady,
+  };
 }
 
 function isAuthorized(request) {
