@@ -151,40 +151,62 @@ const IMPORT_DATASETS = {
 function useCsvImport(datasetId, onImported) {
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewCount, setPreviewCount] = useState(0);
 
-  const importFile = useCallback(async (file) => {
+  const chooseFile = useCallback(async (file) => {
     if (!file) return;
+
+    try {
+      const text = await file.text();
+      const rows = parseCsvText(text);
+      if (!rows.length) throw new Error('CSV 沒有可匯入的資料列');
+      setSelectedFile(file);
+      setPreviewCount(rows.length);
+      setStatus('');
+    } catch (error) {
+      setSelectedFile(null);
+      setPreviewCount(0);
+      setStatus(error.message || 'CSV 解析失敗');
+    }
+  }, []);
+
+  const importSelected = useCallback(async () => {
+    if (!selectedFile) return;
 
     setBusy(true);
     setStatus('');
 
     try {
-      const text = await file.text();
+      const text = await selectedFile.text();
       const rows = parseCsvText(text);
       if (!rows.length) throw new Error('CSV 沒有可匯入的資料列');
 
       const result = await apiPost({
         action: 'import_csv_dataset',
         dataset: datasetId,
+        file_name: selectedFile.name,
         rows,
       });
 
-      setStatus(`${IMPORT_DATASETS[datasetId]?.title || datasetId} 匯入完成，共 ${result.count || rows.length} 筆`);
+      setStatus(`${IMPORT_DATASETS[datasetId]?.title || datasetId} 匯入完成，檔案 ${selectedFile.name}，共 ${result.count || rows.length} 筆`);
+      setSelectedFile(null);
+      setPreviewCount(0);
       if (onImported) await onImported();
     } catch (error) {
       setStatus(error.message || '匯入失敗');
     } finally {
       setBusy(false);
     }
-  }, [datasetId, onImported]);
+  }, [datasetId, onImported, selectedFile]);
 
   useEffect(() => {
     if (!status) return undefined;
-    const timer = setTimeout(() => setStatus(''), 2600);
+    const timer = setTimeout(() => setStatus(''), 3200);
     return () => clearTimeout(timer);
   }, [status]);
 
-  return { status, busy, importFile };
+  return { status, busy, selectedFile, previewCount, chooseFile, importSelected, clearSelection: () => { setSelectedFile(null); setPreviewCount(0); } };
 }
 
 /* ========================================= STYLES ========================================= */
@@ -241,25 +263,39 @@ function ImportStatus({ status }) {
   );
 }
 function CsvImportButton({ datasetId, onImported, compact = false }) {
-  const { status, busy, importFile } = useCsvImport(datasetId, onImported);
+  const { status, busy, selectedFile, previewCount, chooseFile, importSelected, clearSelection } = useCsvImport(datasetId, onImported);
 
   return (
     <>
       <ImportStatus status={status} />
-      <label style={{ ...(compact ? S.btnGhost : S.btnPrimary), display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-        {busy ? '匯入中...' : '上傳 CSV'}
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          style={{ display: 'none' }}
-          disabled={busy}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            importFile(file);
-            event.target.value = '';
-          }}
-        />
-      </label>
+      <div style={{ display: 'grid', gap: 8, justifyItems: compact ? 'end' : 'start' }}>
+        {selectedFile ? (
+          <div style={{ ...S.panelMuted, minWidth: compact ? 260 : 320, textAlign: 'left' }}>
+            <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>CSV_PREVIEW</div>
+            <div style={{ fontSize: 12, color: '#1c2740', fontWeight: 700 }}>{selectedFile.name}</div>
+            <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>預計匯入 {fmt(previewCount)} 筆</div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: compact ? 'flex-end' : 'flex-start' }}>
+              <button onClick={importSelected} disabled={busy} style={S.btnPrimary}>{busy ? '匯入中...' : '確認匯入'}</button>
+              <button onClick={clearSelection} disabled={busy} style={S.btnGhost}>取消</button>
+            </div>
+          </div>
+        ) : (
+          <label style={{ ...(compact ? S.btnGhost : S.btnPrimary), display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            選擇 CSV
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              style={{ display: 'none' }}
+              disabled={busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                chooseFile(file);
+                event.target.value = '';
+              }}
+            />
+          </label>
+        )}
+      </div>
     </>
   );
 }
@@ -1399,16 +1435,24 @@ function SalesReturns() {
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, tax: 0, total: 0 } });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
-  const load = useCallback(async (page = 1, q = search) => {
+  const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo) => {
     setLoading(true);
     try {
-      const result = await apiGet({ action: 'sales_returns', page: String(page), search: q });
+      const result = await apiGet({
+        action: 'sales_returns',
+        page: String(page),
+        search: q,
+        date_from: from,
+        date_to: to,
+      });
       setData(result);
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, dateFrom, dateTo]);
 
   useEffect(() => { load(); }, []);
 
@@ -1418,13 +1462,24 @@ function SalesReturns() {
         eyebrow="Returns"
         title="銷退貨彙總"
         description="查看銷貨與退貨單據彙總，快速掌握單號、客戶與發票資訊。"
-        action={<CsvImportButton datasetId="erp_sales_return_summary" onImported={() => load(1, search)} compact />}
+        action={<CsvImportButton datasetId="erp_sales_return_summary" onImported={() => load(1, search, dateFrom, dateTo)} compact />}
       />
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
-        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, flex: 1 }} />
-        <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
+      <div style={{ display: 'grid', gap: 10, marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, dateFrom, dateTo)} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, flex: 1 }} />
+          <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnPrimary}>搜尋</button>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
+          <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnGhost}>套用區間</button>
+          <button onClick={() => { setDateFrom(''); setDateTo(''); load(1, search, '', ''); }} style={S.btnGhost}>清除區間</button>
+        </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_sales_return_summary` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入銷退貨 CSV。</div>}
+      <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>
+        共 {fmt(data.total)} 筆單據{dateFrom || dateTo ? ` · ${dateFrom || '...'} → ${dateTo || '...'}` : ''}
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
         <StatCard code="AMT" label="未稅金額" value={fmtP(data.summary?.amount)} tone="blue" />
         <StatCard code="TAX" label="稅額" value={fmtP(data.summary?.tax)} tone="yellow" />
@@ -1467,16 +1522,24 @@ function ProfitAnalysis() {
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, cost: 0, gross_profit: 0 } });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
-  const load = useCallback(async (page = 1, q = search) => {
+  const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo) => {
     setLoading(true);
     try {
-      const result = await apiGet({ action: 'profit_analysis', page: String(page), search: q });
+      const result = await apiGet({
+        action: 'profit_analysis',
+        page: String(page),
+        search: q,
+        date_from: from,
+        date_to: to,
+      });
       setData(result);
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, dateFrom, dateTo]);
 
   useEffect(() => { load(); }, []);
 
@@ -1488,13 +1551,24 @@ function ProfitAnalysis() {
         eyebrow="Profit"
         title="利潤分析"
         description="查看銷貨利潤彙總、成本與毛利，方便先做營運分析與排行基礎。"
-        action={<CsvImportButton datasetId="erp_profit_analysis" onImported={() => load(1, search)} compact />}
+        action={<CsvImportButton datasetId="erp_profit_analysis" onImported={() => load(1, search, dateFrom, dateTo)} compact />}
       />
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
-        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋客戶、單號或業務..." style={{ ...S.input, flex: 1 }} />
-        <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
+      <div style={{ display: 'grid', gap: 10, marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, dateFrom, dateTo)} placeholder="搜尋客戶、單號或業務..." style={{ ...S.input, flex: 1 }} />
+          <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnPrimary}>搜尋</button>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
+          <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnGhost}>套用區間</button>
+          <button onClick={() => { setDateFrom(''); setDateTo(''); load(1, search, '', ''); }} style={S.btnGhost}>清除區間</button>
+        </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_profit_analysis` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入利潤分析 CSV。</div>}
+      <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>
+        共 {fmt(data.total)} 筆分析資料{dateFrom || dateTo ? ` · ${dateFrom || '...'} → ${dateTo || '...'}` : ''}
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
         <StatCard code="SALES" label="銷貨金額" value={fmtP(data.summary?.amount)} tone="blue" />
         <StatCard code="COST" label="成本" value={fmtP(data.summary?.cost)} tone="yellow" />
@@ -1533,6 +1607,23 @@ function ProfitAnalysis() {
 
 /* ========================================= IMPORT CENTER ========================================= */
 function ImportCenter() {
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadHistory = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await apiGet({ action: 'import_history' });
+      setHistory(result.history || []);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
   return (
     <div>
       <PageLead eyebrow="Import" title="資料匯入" description="直接從後台匯入 CSV，不用再進 Supabase Table Editor。建議沿用我們整理好的 import-ready CSV 格式。" />
@@ -1546,11 +1637,39 @@ function ImportCenter() {
                 <div style={{ fontSize: 11, color: '#7b889b', marginTop: 8, ...S.mono }}>{dataset.fields}</div>
               </div>
               <div style={{ minWidth: 150, textAlign: 'right' }}>
-                <CsvImportButton datasetId={datasetId} />
+                <CsvImportButton datasetId={datasetId} onImported={loadHistory} />
               </div>
             </div>
           </div>
         ))}
+      </div>
+      <div style={{ ...S.card, marginTop: 18 }}>
+        <PanelHeader title="匯入歷史" meta="保留最近的資料更換紀錄，方便回查誰在什麼時候換過哪一包資料。" badge={<div style={{ ...S.tag('') }}>{fmt(history.length)} 筆</div>} />
+        {loading ? <Loading /> : history.length === 0 ? <EmptyState text="目前還沒有匯入紀錄" /> : (
+          <div style={{ display: 'grid', gap: 10 }}>
+            {history.map((entry, index) => {
+              const dataset = IMPORT_DATASETS[entry.dataset];
+              return (
+                <div key={`${entry.imported_at || 'history'}-${index}`} style={{ ...S.panelMuted, display: 'grid', gap: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: 13, color: '#1c2740', fontWeight: 700 }}>
+                      {dataset?.title || entry.dataset || '未知資料集'}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>{fmtDate(entry.imported_at)}</div>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.7 }}>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>FILE</span> {entry.file_name || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>ROWS</span> {fmt(entry.count || 0)} 筆</div>
+                    {'inserted' in entry || 'updated' in entry ? (
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>DETAIL</span> 新增 {fmt(entry.inserted || 0)} / 更新 {fmt(entry.updated || 0)}</div>
+                    ) : null}
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>BY</span> {entry.imported_by || 'admin'}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

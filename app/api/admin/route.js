@@ -70,6 +70,34 @@ function normalizeRows(rows) {
   return Array.isArray(rows) ? rows.filter(Boolean) : [];
 }
 
+async function getImportHistory() {
+  const { data, error } = await supabase
+    .from('quickbuy_config')
+    .select('config_value')
+    .eq('config_key', 'admin_import_history')
+    .maybeSingle();
+
+  if (error) throw error;
+  return Array.isArray(data?.config_value) ? data.config_value : [];
+}
+
+async function appendImportHistory(entry) {
+  const history = await getImportHistory();
+  const nextHistory = [entry, ...history].slice(0, 30);
+
+  const { error } = await supabase
+    .from('quickbuy_config')
+    .upsert(
+      {
+        config_key: 'admin_import_history',
+        config_value: nextHistory,
+      },
+      { onConflict: 'config_key' }
+    );
+
+  if (error) throw error;
+}
+
 const ERP_CUSTOMER_BASE_COLUMNS = 'id,name,company_name,phone,email,tax_id,address,line_user_id,source,status,display_name';
 const ERP_CUSTOMER_COLUMNS_WITH_STAGE = `${ERP_CUSTOMER_BASE_COLUMNS},customer_stage`;
 
@@ -520,6 +548,8 @@ export async function GET(request) {
         const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
         const offset = (page - 1) * limit;
         const search = (searchParams.get('search') || '').trim();
+        const dateFrom = (searchParams.get('date_from') || '').trim();
+        const dateTo = (searchParams.get('date_to') || '').trim();
 
         try {
           let query = supabase
@@ -532,6 +562,9 @@ export async function GET(request) {
             query = query.or(`doc_no.ilike.%${search}%,customer_name.ilike.%${search}%,sales_name.ilike.%${search}%,invoice_no.ilike.%${search}%`);
           }
 
+          if (dateFrom) query = query.gte('doc_date', dateFrom);
+          if (dateTo) query = query.lte('doc_date', dateTo);
+
           const { data, count, error } = await query;
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
@@ -542,9 +575,9 @@ export async function GET(request) {
             return acc;
           }, { amount: 0, tax: 0, total: 0 });
 
-          return Response.json({ rows: data || [], total: count || 0, page, limit, summary: totals, table_ready: true });
+          return Response.json({ rows: data || [], total: count || 0, page, limit, summary: totals, table_ready: true, date_from: dateFrom, date_to: dateTo });
         } catch {
-          return Response.json({ rows: [], total: 0, page, limit, summary: { amount: 0, tax: 0, total: 0 }, table_ready: false });
+          return Response.json({ rows: [], total: 0, page, limit, summary: { amount: 0, tax: 0, total: 0 }, table_ready: false, date_from: dateFrom, date_to: dateTo });
         }
       }
 
@@ -553,6 +586,8 @@ export async function GET(request) {
         const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
         const offset = (page - 1) * limit;
         const search = (searchParams.get('search') || '').trim();
+        const dateFrom = (searchParams.get('date_from') || '').trim();
+        const dateTo = (searchParams.get('date_to') || '').trim();
 
         try {
           let query = supabase
@@ -565,6 +600,9 @@ export async function GET(request) {
             query = query.or(`customer_name.ilike.%${search}%,doc_no.ilike.%${search}%,sales_name.ilike.%${search}%`);
           }
 
+          if (dateFrom) query = query.gte('doc_date', dateFrom);
+          if (dateTo) query = query.lte('doc_date', dateTo);
+
           const { data, count, error } = await query;
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
@@ -575,9 +613,18 @@ export async function GET(request) {
             return acc;
           }, { amount: 0, cost: 0, gross_profit: 0 });
 
-          return Response.json({ rows: data || [], total: count || 0, page, limit, summary, table_ready: true });
+          return Response.json({ rows: data || [], total: count || 0, page, limit, summary, table_ready: true, date_from: dateFrom, date_to: dateTo });
         } catch {
-          return Response.json({ rows: [], total: 0, page, limit, summary: { amount: 0, cost: 0, gross_profit: 0 }, table_ready: false });
+          return Response.json({ rows: [], total: 0, page, limit, summary: { amount: 0, cost: 0, gross_profit: 0 }, table_ready: false, date_from: dateFrom, date_to: dateTo });
+        }
+      }
+
+      case 'import_history': {
+        try {
+          const history = await getImportHistory();
+          return Response.json({ history });
+        } catch (error) {
+          return Response.json({ history: [], error: error.message }, { status: 500 });
         }
       }
 
@@ -728,7 +775,7 @@ export async function POST(request) {
 
     switch (action) {
       case 'import_csv_dataset': {
-        const { dataset, rows } = body;
+        const { dataset, rows, file_name } = body;
         const safeRows = normalizeRows(rows);
 
         if (!dataset || safeRows.length === 0) {
@@ -754,6 +801,14 @@ export async function POST(request) {
 
           const { error } = await supabase.from('quickbuy_products').insert(payload);
           if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          await appendImportHistory({
+            dataset,
+            file_name: file_name || null,
+            count: payload.length,
+            imported_at: new Date().toISOString(),
+            imported_by: 'admin',
+          });
 
           return Response.json({ success: true, count: payload.length });
         }
@@ -814,6 +869,16 @@ export async function POST(request) {
             inserted += 1;
           }
 
+          await appendImportHistory({
+            dataset,
+            file_name: file_name || null,
+            count: safeRows.length,
+            inserted,
+            updated,
+            imported_at: new Date().toISOString(),
+            imported_by: 'admin',
+          });
+
           return Response.json({ success: true, count: safeRows.length, inserted, updated });
         }
 
@@ -835,6 +900,14 @@ export async function POST(request) {
 
           const { error } = await supabase.from('erp_vendors').insert(payload);
           if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          await appendImportHistory({
+            dataset,
+            file_name: file_name || null,
+            count: payload.length,
+            imported_at: new Date().toISOString(),
+            imported_by: 'admin',
+          });
 
           return Response.json({ success: true, count: payload.length });
         }
@@ -858,6 +931,14 @@ export async function POST(request) {
           const { error } = await supabase.from('erp_sales_return_summary').insert(payload);
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
+          await appendImportHistory({
+            dataset,
+            file_name: file_name || null,
+            count: payload.length,
+            imported_at: new Date().toISOString(),
+            imported_by: 'admin',
+          });
+
           return Response.json({ success: true, count: payload.length });
         }
 
@@ -878,6 +959,14 @@ export async function POST(request) {
 
           const { error } = await supabase.from('erp_profit_analysis').insert(payload);
           if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          await appendImportHistory({
+            dataset,
+            file_name: file_name || null,
+            count: payload.length,
+            imported_at: new Date().toISOString(),
+            imported_by: 'admin',
+          });
 
           return Response.json({ success: true, count: payload.length });
         }
