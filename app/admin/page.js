@@ -346,6 +346,27 @@ function PanelHeader({ title, meta, badge }) {
     </div>
   );
 }
+function Pager({ page, limit, total, onPageChange, onLimitChange }) {
+  const totalPages = Math.max(1, Math.ceil((total || 0) / (limit || 20)));
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>每頁</span>
+        <select value={limit} onChange={(e) => onLimitChange(Number(e.target.value))} style={{ ...S.input, width: 90, padding: '8px 10px' }}>
+          {[20, 50, 100, 200].map((size) => (
+            <option key={size} value={size}>{size}</option>
+          ))}
+        </select>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button onClick={() => onPageChange(page - 1)} disabled={page <= 1} style={S.btnGhost}>← 上一頁</button>
+        <span style={{ color: '#666', fontSize: 12, ...S.mono }}>P{page} / {totalPages}</span>
+        <button onClick={() => onPageChange(page + 1)} disabled={page >= totalPages} style={S.btnGhost}>下一頁 →</button>
+      </div>
+    </div>
+  );
+}
 function MiniDonut({ value, color }) {
   const safeValue = Math.max(0, Math.min(100, value || 0));
   const degrees = Math.round((safeValue / 100) * 360);
@@ -1468,6 +1489,7 @@ function Vendors() {
 function SalesReturns() {
   const width = useViewportWidth();
   const isMobile = width < 820;
+  const isTablet = width < 1180;
   const initialRange = getPresetDateRange('today');
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, tax: 0, total: 0 } });
   const [loading, setLoading] = useState(true);
@@ -1475,13 +1497,15 @@ function SalesReturns() {
   const [dateFrom, setDateFrom] = useState(initialRange.from);
   const [dateTo, setDateTo] = useState(initialRange.to);
   const [rangePreset, setRangePreset] = useState('today');
+  const [pageSize, setPageSize] = useState(50);
 
-  const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo) => {
+  const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo, limit = pageSize) => {
     setLoading(true);
     try {
       const result = await apiGet({
         action: 'sales_returns',
         page: String(page),
+        limit: String(limit),
         search: q,
         date_from: from,
         date_to: to,
@@ -1490,7 +1514,7 @@ function SalesReturns() {
     } finally {
       setLoading(false);
     }
-  }, [search, dateFrom, dateTo]);
+  }, [search, dateFrom, dateTo, pageSize]);
 
   useEffect(() => { load(); }, []);
 
@@ -1503,7 +1527,7 @@ function SalesReturns() {
     setRangePreset(preset);
     setDateFrom(range.from);
     setDateTo(range.to);
-    load(1, search, range.from, range.to);
+    load(1, search, range.from, range.to, pageSize);
   };
 
   return (
@@ -1512,12 +1536,12 @@ function SalesReturns() {
         eyebrow="Returns"
         title="銷退貨彙總"
         description="查看銷貨與退貨單據彙總，快速掌握單號、客戶與發票資訊。"
-        action={<CsvImportButton datasetId="erp_sales_return_summary" onImported={() => load(1, search, dateFrom, dateTo)} compact />}
+        action={<CsvImportButton datasetId="erp_sales_return_summary" onImported={() => load(1, search, dateFrom, dateTo, pageSize)} compact />}
       />
       <div style={{ display: 'grid', gap: 10, marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, dateFrom, dateTo)} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, flex: 1 }} />
-          <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnPrimary}>搜尋</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, dateFrom, dateTo, pageSize)} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, flex: 1 }} />
+          <button onClick={() => load(1, search, dateFrom, dateTo, pageSize)} style={S.btnPrimary}>搜尋</button>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {[
@@ -1547,7 +1571,7 @@ function SalesReturns() {
         <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
           <input type="date" value={dateFrom} onChange={(e) => { setRangePreset('custom'); setDateFrom(e.target.value); }} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
           <input type="date" value={dateTo} onChange={(e) => { setRangePreset('custom'); setDateTo(e.target.value); }} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
-          <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnGhost}>套用區間</button>
+          <button onClick={() => load(1, search, dateFrom, dateTo, pageSize)} style={S.btnGhost}>套用區間</button>
           <button onClick={() => applyPreset('today')} style={S.btnGhost}>回到今日</button>
         </div>
       </div>
@@ -1560,9 +1584,9 @@ function SalesReturns() {
         <StatCard code="TAX" label="稅額" value={fmtP(data.summary?.tax)} tone="yellow" />
         <StatCard code="TOTAL" label="總金額" value={fmtP(data.summary?.total)} tone="green" />
       </div>
-      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷退貨資料" /> : data.rows.map((row) => (
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷退貨資料" /> : isMobile ? data.rows.map((row) => (
         <div key={row.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '160px minmax(0, 1fr) 120px 120px', gap: 12, alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
               <div style={{ marginTop: 6 }}>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
@@ -1575,17 +1599,57 @@ function SalesReturns() {
                 <div><span style={{ color: '#7b889b', ...S.mono }}>INVOICE</span> {row.invoice_no || '-'}</div>
               </div>
             </div>
-            <div style={S.panelMuted}>
-              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>AMOUNT</div>
-              <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{fmtP(row.amount)}</div>
-            </div>
-            <div style={S.panelMuted}>
-              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>TOTAL</div>
-              <div style={{ fontSize: 14, color: '#129c59', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={S.panelMuted}>
+                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>AMOUNT</div>
+                <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{fmtP(row.amount)}</div>
+              </div>
+              <div style={S.panelMuted}>
+                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>TOTAL</div>
+                <div style={{ fontSize: 14, color: '#129c59', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+              </div>
             </div>
           </div>
         </div>
-      ))}
+      )) : (
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '96px 150px minmax(0,1fr) 110px 120px' : '96px 160px minmax(0,1.2fr) 110px 150px 130px 130px', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e6edf5', color: '#7b889b', fontSize: 10, ...S.mono }}>
+            <div>單別</div>
+            <div>單號</div>
+            <div>客戶 / 發票</div>
+            <div>日期</div>
+            <div>業務</div>
+            {!isTablet && <div style={{ textAlign: 'right' }}>未稅金額</div>}
+            {!isTablet && <div style={{ textAlign: 'right' }}>總金額</div>}
+          </div>
+          {data.rows.map((row) => (
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '96px 150px minmax(0,1fr) 110px 120px' : '96px 160px minmax(0,1.2fr) 110px 150px 130px 130px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
+              <div>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
+              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
+                <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.6 }}>
+                  <span style={{ color: '#7b889b', ...S.mono }}>INVOICE</span> {row.invoice_no || '-'}
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{row.doc_date || '-'}</div>
+              <div style={{ fontSize: 12, color: '#617084' }}>{row.sales_name || '-'}</div>
+              {!isTablet && <div style={{ fontSize: 13, color: '#1c2740', textAlign: 'right', ...S.mono }}>{fmtP(row.amount)}</div>}
+              {!isTablet && <div style={{ fontSize: 13, color: '#129c59', fontWeight: 700, textAlign: 'right', ...S.mono }}>{fmtP(row.total_amount)}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+      <Pager
+        page={data.page || 1}
+        limit={data.limit || pageSize}
+        total={data.total || 0}
+        onPageChange={(nextPage) => load(nextPage, search, dateFrom, dateTo, pageSize)}
+        onLimitChange={(nextLimit) => {
+          setPageSize(nextLimit);
+          load(1, search, dateFrom, dateTo, nextLimit);
+        }}
+      />
     </div>
   );
 }
@@ -1594,6 +1658,7 @@ function SalesReturns() {
 function ProfitAnalysis() {
   const width = useViewportWidth();
   const isMobile = width < 820;
+  const isTablet = width < 1180;
   const initialRange = getPresetDateRange('today');
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, cost: 0, gross_profit: 0 } });
   const [loading, setLoading] = useState(true);
@@ -1601,13 +1666,15 @@ function ProfitAnalysis() {
   const [dateFrom, setDateFrom] = useState(initialRange.from);
   const [dateTo, setDateTo] = useState(initialRange.to);
   const [rangePreset, setRangePreset] = useState('today');
+  const [pageSize, setPageSize] = useState(50);
 
-  const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo) => {
+  const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo, limit = pageSize) => {
     setLoading(true);
     try {
       const result = await apiGet({
         action: 'profit_analysis',
         page: String(page),
+        limit: String(limit),
         search: q,
         date_from: from,
         date_to: to,
@@ -1616,7 +1683,7 @@ function ProfitAnalysis() {
     } finally {
       setLoading(false);
     }
-  }, [search, dateFrom, dateTo]);
+  }, [search, dateFrom, dateTo, pageSize]);
 
   useEffect(() => { load(); }, []);
   const applyPreset = (preset) => {
@@ -1628,7 +1695,7 @@ function ProfitAnalysis() {
     setRangePreset(preset);
     setDateFrom(range.from);
     setDateTo(range.to);
-    load(1, search, range.from, range.to);
+    load(1, search, range.from, range.to, pageSize);
   };
 
   const marginPct = data.summary?.amount ? `${((data.summary.gross_profit / data.summary.amount) * 100).toFixed(1)}%` : '-';
@@ -1639,12 +1706,12 @@ function ProfitAnalysis() {
         eyebrow="Profit"
         title="利潤分析"
         description="查看銷貨利潤彙總、成本與毛利，方便先做營運分析與排行基礎。"
-        action={<CsvImportButton datasetId="erp_profit_analysis" onImported={() => load(1, search, dateFrom, dateTo)} compact />}
+        action={<CsvImportButton datasetId="erp_profit_analysis" onImported={() => load(1, search, dateFrom, dateTo, pageSize)} compact />}
       />
       <div style={{ display: 'grid', gap: 10, marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, dateFrom, dateTo)} placeholder="搜尋客戶、單號或業務..." style={{ ...S.input, flex: 1 }} />
-          <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnPrimary}>搜尋</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, dateFrom, dateTo, pageSize)} placeholder="搜尋客戶、單號或業務..." style={{ ...S.input, flex: 1 }} />
+          <button onClick={() => load(1, search, dateFrom, dateTo, pageSize)} style={S.btnPrimary}>搜尋</button>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {[
@@ -1674,7 +1741,7 @@ function ProfitAnalysis() {
         <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
           <input type="date" value={dateFrom} onChange={(e) => { setRangePreset('custom'); setDateFrom(e.target.value); }} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
           <input type="date" value={dateTo} onChange={(e) => { setRangePreset('custom'); setDateTo(e.target.value); }} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
-          <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnGhost}>套用區間</button>
+          <button onClick={() => load(1, search, dateFrom, dateTo, pageSize)} style={S.btnGhost}>套用區間</button>
           <button onClick={() => applyPreset('today')} style={S.btnGhost}>回到今日</button>
         </div>
       </div>
@@ -1688,9 +1755,9 @@ function ProfitAnalysis() {
         <StatCard code="GP" label="毛利" value={fmtP(data.summary?.gross_profit)} tone="green" />
         <StatCard code="GM" label="毛利率" value={marginPct} tone="red" />
       </div>
-      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有利潤分析資料" /> : data.rows.map((row) => (
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有利潤分析資料" /> : isMobile ? data.rows.map((row) => (
         <div key={row.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.4fr) 140px 140px 140px', gap: 12, alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700 }}>{row.customer_name || '未命名客戶'}</div>
               <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.7 }}>
@@ -1699,21 +1766,62 @@ function ProfitAnalysis() {
                 <div><span style={{ color: '#7b889b', ...S.mono }}>SALES</span> {row.sales_name || '-'}</div>
               </div>
             </div>
-            <div style={S.panelMuted}>
-              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>AMOUNT</div>
-              <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{fmtP(row.amount)}</div>
-            </div>
-            <div style={S.panelMuted}>
-              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>COST</div>
-              <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{fmtP(row.cost)}</div>
-            </div>
-            <div style={S.panelMuted}>
-              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>GROSS</div>
-              <div style={{ fontSize: 14, color: '#129c59', fontWeight: 700, ...S.mono }}>{fmtP(row.gross_profit)} {row.gross_margin ? `· ${row.gross_margin}` : ''}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div style={S.panelMuted}>
+                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>AMOUNT</div>
+                <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{fmtP(row.amount)}</div>
+              </div>
+              <div style={S.panelMuted}>
+                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>COST</div>
+                <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{fmtP(row.cost)}</div>
+              </div>
+              <div style={S.panelMuted}>
+                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>GROSS</div>
+                <div style={{ fontSize: 14, color: '#129c59', fontWeight: 700, ...S.mono }}>{fmtP(row.gross_profit)}</div>
+              </div>
             </div>
           </div>
         </div>
-      ))}
+      )) : (
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.2fr) 120px 120px 120px' : 'minmax(0,1.4fr) 110px 140px 140px 140px 120px', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e6edf5', color: '#7b889b', fontSize: 10, ...S.mono }}>
+            <div>客戶 / 單號</div>
+            {!isTablet && <div>日期</div>}
+            {!isTablet && <div>業務</div>}
+            <div style={{ textAlign: 'right' }}>銷貨金額</div>
+            <div style={{ textAlign: 'right' }}>成本</div>
+            <div style={{ textAlign: 'right' }}>毛利</div>
+            {!isTablet && <div style={{ textAlign: 'right' }}>毛利率</div>}
+          </div>
+          {data.rows.map((row) => (
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.2fr) 120px 120px 120px' : 'minmax(0,1.4fr) 110px 140px 140px 140px 120px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
+                <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.6 }}>
+                  <span style={{ color: '#7b889b', ...S.mono }}>DOC</span> {row.doc_no || '-'}
+                  {isTablet ? ` · ${row.doc_date || '-'}` : ''}
+                </div>
+              </div>
+              {!isTablet && <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{row.doc_date || '-'}</div>}
+              {!isTablet && <div style={{ fontSize: 12, color: '#617084' }}>{row.sales_name || '-'}</div>}
+              <div style={{ fontSize: 13, color: '#1c2740', textAlign: 'right', ...S.mono }}>{fmtP(row.amount)}</div>
+              <div style={{ fontSize: 13, color: '#1c2740', textAlign: 'right', ...S.mono }}>{fmtP(row.cost)}</div>
+              <div style={{ fontSize: 13, color: '#129c59', fontWeight: 700, textAlign: 'right', ...S.mono }}>{fmtP(row.gross_profit)}</div>
+              {!isTablet && <div style={{ fontSize: 12, color: '#617084', textAlign: 'right', ...S.mono }}>{row.gross_margin || '-'}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+      <Pager
+        page={data.page || 1}
+        limit={data.limit || pageSize}
+        total={data.total || 0}
+        onPageChange={(nextPage) => load(nextPage, search, dateFrom, dateTo, pageSize)}
+        onLimitChange={(nextLimit) => {
+          setPageSize(nextLimit);
+          load(1, search, dateFrom, dateTo, nextLimit);
+        }}
+      />
     </div>
   );
 }
