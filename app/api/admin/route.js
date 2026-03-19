@@ -1336,6 +1336,92 @@ export async function POST(request) {
         return Response.json({ success: true });
       }
 
+      case 'create_quote': {
+        const {
+          customer_id,
+          quote_date,
+          valid_until,
+          status,
+          remark,
+          discount_amount,
+          shipping_fee,
+          items,
+        } = body;
+
+        const safeItems = normalizeRows(items)
+          .map((item) => {
+            const qty = Math.max(1, Number(item.qty || 1));
+            const unitPrice = toNumber(item.unit_price);
+            const lineTotal = qty * unitPrice;
+            return {
+              product_id: cleanCsvValue(item.product_id),
+              item_number_snapshot: cleanCsvValue(item.item_number_snapshot || item.item_number),
+              description_snapshot: cleanCsvValue(item.description_snapshot || item.description),
+              qty,
+              unit_price: unitPrice,
+              discount_rate: toNumber(item.discount_rate),
+              line_total: lineTotal,
+              cost_price_snapshot: item.cost_price_snapshot !== undefined && item.cost_price_snapshot !== null && item.cost_price_snapshot !== ''
+                ? toNumber(item.cost_price_snapshot)
+                : null,
+            };
+          })
+          .filter((item) => item.item_number_snapshot || item.description_snapshot);
+
+        if (!customer_id || !quote_date || !valid_until || safeItems.length === 0) {
+          return Response.json({ error: 'customer_id, quote_date, valid_until and items are required' }, { status: 400 });
+        }
+
+        const subtotal = safeItems.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
+        const safeDiscount = toNumber(discount_amount);
+        const safeShipping = toNumber(shipping_fee);
+        const taxableBase = Math.max(0, subtotal - safeDiscount + safeShipping);
+        const taxAmount = Math.round(taxableBase * 0.05);
+        const totalAmount = taxableBase + taxAmount;
+        const quoteNo = `QT${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
+
+        const { data: quote, error: quoteError } = await supabase
+          .from('erp_quotes')
+          .insert({
+            quote_no: quoteNo,
+            customer_id,
+            quote_date,
+            valid_until,
+            status: cleanCsvValue(status) || 'draft',
+            subtotal,
+            discount_amount: safeDiscount,
+            shipping_fee: safeShipping,
+            tax_amount: taxAmount,
+            total_amount: totalAmount,
+            remark: cleanCsvValue(remark),
+            created_by: 'admin',
+          })
+          .select('*')
+          .single();
+
+        if (quoteError) return Response.json({ error: quoteError.message }, { status: 500 });
+
+        const itemPayload = safeItems.map((item) => ({
+          quote_id: quote.id,
+          ...item,
+        }));
+
+        const { error: itemError } = await supabase
+          .from('erp_quote_items')
+          .insert(itemPayload);
+
+        if (itemError) {
+          await supabase.from('erp_quotes').delete().eq('id', quote.id);
+          return Response.json({ error: itemError.message }, { status: 500 });
+        }
+
+        return Response.json({
+          success: true,
+          quote,
+          count: itemPayload.length,
+        });
+      }
+
       default:
         return Response.json({ error: 'Unknown action' }, { status: 400 });
     }

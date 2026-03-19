@@ -1688,6 +1688,228 @@ function ProductSearch() {
 }
 
 /* ========================================= QUOTES ========================================= */
+function QuoteCreateModal({ open, onClose, onCreated }) {
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerResults, setCustomerResults] = useState([]);
+  const [customerLoading, setCustomerLoading] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [productSearch, setProductSearch] = useState('');
+  const [productResults, setProductResults] = useState([]);
+  const [productLoading, setProductLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [form, setForm] = useState(() => {
+    const today = getPresetDateRange('today').from;
+    const validUntil = toDateInputValue(new Date(todayInTaipei().getTime() + 7 * 86400000));
+    return {
+      quote_date: today,
+      valid_until: validUntil,
+      status: 'draft',
+      remark: '',
+      discount_amount: 0,
+      shipping_fee: 0,
+      items: [],
+    };
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    setError('');
+  }, [open]);
+
+  const searchCustomers = async () => {
+    if (!customerSearch.trim()) return;
+    setCustomerLoading(true);
+    try {
+      const result = await apiGet({ action: 'formal_customers', page: '1', limit: '10', search: customerSearch.trim() });
+      setCustomerResults(result.customers || []);
+    } finally {
+      setCustomerLoading(false);
+    }
+  };
+
+  const searchProducts = async () => {
+    if (!productSearch.trim()) return;
+    setProductLoading(true);
+    try {
+      const result = await apiGet({ action: 'products', q: productSearch.trim(), category: 'all', page: '0', limit: '10' });
+      setProductResults(result.products || []);
+    } finally {
+      setProductLoading(false);
+    }
+  };
+
+  const addProduct = (product) => {
+    setForm((current) => ({
+      ...current,
+      items: [
+        ...current.items,
+        {
+          product_id: null,
+          item_number_snapshot: product.item_number || '',
+          description_snapshot: product.description || '',
+          qty: 1,
+          unit_price: Number(product.tw_reseller_price || product.tw_retail_price || 0),
+        },
+      ],
+    }));
+    setProductSearch('');
+    setProductResults([]);
+  };
+
+  const updateItem = (index, key, value) => {
+    setForm((current) => ({
+      ...current,
+      items: current.items.map((item, itemIndex) => itemIndex === index ? { ...item, [key]: value } : item),
+    }));
+  };
+
+  const removeItem = (index) => {
+    setForm((current) => ({
+      ...current,
+      items: current.items.filter((_, itemIndex) => itemIndex !== index),
+    }));
+  };
+
+  const subtotal = form.items.reduce((sum, item) => sum + (Number(item.qty || 0) * Number(item.unit_price || 0)), 0);
+  const taxableBase = Math.max(0, subtotal - Number(form.discount_amount || 0) + Number(form.shipping_fee || 0));
+  const taxAmount = Math.round(taxableBase * 0.05);
+  const totalAmount = taxableBase + taxAmount;
+
+  const submit = async () => {
+    if (!selectedCustomer?.id) {
+      setError('請先選擇正式客戶');
+      return;
+    }
+    if (!form.items.length) {
+      setError('請至少加入一筆商品');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await apiPost({
+        action: 'create_quote',
+        customer_id: selectedCustomer.id,
+        quote_date: form.quote_date,
+        valid_until: form.valid_until,
+        status: form.status,
+        remark: form.remark,
+        discount_amount: Number(form.discount_amount || 0),
+        shipping_fee: Number(form.shipping_fee || 0),
+        items: form.items,
+      });
+      onCreated?.();
+      onClose?.();
+    } catch (err) {
+      setError(err.message || '建立報價單失敗');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={onClose}>
+      <div style={{ width: 'min(1100px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 18, padding: '24px 22px 28px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 18 }}>
+          <div>
+            <div style={S.eyebrow}>Create Quote</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#1c2740' }}>建立報價單</div>
+            <div style={{ fontSize: 12, color: '#7b889b', marginTop: 6 }}>先建立基本報價單，之後就能往訂單與銷貨流程接。</div>
+          </div>
+          <button onClick={onClose} style={S.btnGhost}>關閉</button>
+        </div>
+        {error ? <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 14 }}>{error}</div> : null}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 16 }}>
+          <div style={{ display: 'grid', gap: 14 }}>
+            <div style={S.card}>
+              <PanelHeader title="選擇客戶" meta="先綁正式客戶，再建立報價。" badge={selectedCustomer ? <div style={S.tag('green')}>已選客戶</div> : null} />
+              <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                <input value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchCustomers()} placeholder="搜尋公司、聯絡人或電話..." style={{ ...S.input, flex: 1 }} />
+                <button onClick={searchCustomers} style={S.btnPrimary}>搜尋</button>
+              </div>
+              {customerLoading ? <Loading /> : customerResults.length > 0 ? (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {customerResults.map((customer) => (
+                    <button key={customer.id} onClick={() => setSelectedCustomer(customer)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer', border: `1px solid ${selectedCustomer?.id === customer.id ? '#94c3ff' : '#dbe3ee'}`, background: selectedCustomer?.id === customer.id ? '#edf5ff' : '#fff' }}>
+                      <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                      <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>{customer.customer_code || '-'} · {customer.phone || '-'}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : <div style={{ fontSize: 12, color: '#7b889b' }}>{selectedCustomer ? `已選：${selectedCustomer.company_name || selectedCustomer.name}` : '輸入關鍵字後搜尋正式客戶'}</div>}
+            </div>
+
+            <div style={S.card}>
+              <PanelHeader title="報價明細" meta="用商品搜尋快速加入明細，或直接調整數量與單價。" badge={<div style={S.tag('')}>{fmt(form.items.length)} 項</div>} />
+              <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchProducts()} placeholder="搜尋料號或品名..." style={{ ...S.input, flex: 1, ...S.mono }} />
+                <button onClick={searchProducts} style={S.btnPrimary}>找商品</button>
+              </div>
+              {productLoading ? <Loading /> : productResults.length > 0 ? (
+                <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+                  {productResults.map((product) => (
+                    <button key={product.item_number} onClick={() => addProduct(product)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer' }}>
+                      <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{product.item_number}</div>
+                      <div style={{ fontSize: 13, color: '#1c2740', marginTop: 4 }}>{product.description || '-'}</div>
+                      <div style={{ fontSize: 12, color: '#129c59', marginTop: 4, ...S.mono }}>{fmtP(product.tw_reseller_price || product.tw_retail_price)}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              {form.items.length ? (
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {form.items.map((item, index) => (
+                    <div key={`${item.item_number_snapshot}-${index}`} style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 90px 120px 100px', gap: 10, alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{item.item_number_snapshot || '-'}</div>
+                        <div style={{ fontSize: 13, color: '#1c2740', marginTop: 4 }}>{item.description_snapshot || '-'}</div>
+                      </div>
+                      <input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', Number(e.target.value || 1))} style={{ ...S.input, textAlign: 'center', ...S.mono }} />
+                      <input type="number" min="0" value={item.unit_price} onChange={(e) => updateItem(index, 'unit_price', Number(e.target.value || 0))} style={{ ...S.input, textAlign: 'right', ...S.mono }} />
+                      <div style={{ display: 'grid', gap: 6 }}>
+                        <div style={{ fontSize: 13, color: '#129c59', fontWeight: 700, textAlign: 'right', ...S.mono }}>{fmtP(Number(item.qty || 0) * Number(item.unit_price || 0))}</div>
+                        <button onClick={() => removeItem(index)} style={{ ...S.btnGhost, color: '#e24d4d', borderColor: '#ffd5d5', padding: '6px 10px', fontSize: 12 }}>移除</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : <EmptyState text="目前還沒有商品明細，先搜尋商品加入。" />}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gap: 14 }}>
+            <div style={S.card}>
+              <PanelHeader title="報價抬頭" meta="設定日期、狀態與補充備註。" />
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div><label style={S.label}>報價日期</label><input type="date" value={form.quote_date} onChange={(e) => setForm((current) => ({ ...current, quote_date: e.target.value }))} style={S.input} /></div>
+                <div><label style={S.label}>有效期限</label><input type="date" value={form.valid_until} onChange={(e) => setForm((current) => ({ ...current, valid_until: e.target.value }))} style={S.input} /></div>
+                <div><label style={S.label}>狀態</label><select value={form.status} onChange={(e) => setForm((current) => ({ ...current, status: e.target.value }))} style={S.input}><option value="draft">draft</option><option value="sent">sent</option><option value="approved">approved</option></select></div>
+                <div><label style={S.label}>備註</label><textarea value={form.remark} onChange={(e) => setForm((current) => ({ ...current, remark: e.target.value }))} rows={4} style={{ ...S.input, resize: 'vertical' }} /></div>
+              </div>
+            </div>
+            <div style={S.card}>
+              <PanelHeader title="金額摘要" meta="系統會自動算小計、稅額與總額。" />
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div><label style={S.label}>折扣金額</label><input type="number" min="0" value={form.discount_amount} onChange={(e) => setForm((current) => ({ ...current, discount_amount: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mono }} /></div>
+                <div><label style={S.label}>運費</label><input type="number" min="0" value={form.shipping_fee} onChange={(e) => setForm((current) => ({ ...current, shipping_fee: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mono }} /></div>
+                <div style={{ ...S.panelMuted, display: 'grid', gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>小計</span><strong style={S.mono}>{fmtP(subtotal)}</strong></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>稅額 (5%)</span><strong style={S.mono}>{fmtP(taxAmount)}</strong></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#129c59', fontWeight: 700 }}><span>總額</span><strong style={S.mono}>{fmtP(totalAmount)}</strong></div>
+                </div>
+                <button onClick={submit} disabled={saving} style={{ ...S.btnPrimary, width: '100%', opacity: saving ? 0.7 : 1 }}>{saving ? '建立中...' : '建立報價單'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Quotes() {
   const width = useViewportWidth();
   const isMobile = width < 820;
@@ -1696,6 +1918,7 @@ function Quotes() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState(50);
+  const [showCreate, setShowCreate] = useState(false);
 
   const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
     setLoading(true);
@@ -1711,7 +1934,7 @@ function Quotes() {
 
   return (
     <div>
-      <PageLead eyebrow="Quotes" title="報價單" description="查看 ERP 報價單、客戶、有效期限與總金額，作為詢價轉單前的作業入口。" />
+      <PageLead eyebrow="Quotes" title="報價單" description="查看 ERP 報價單、客戶、有效期限與總金額，作為詢價轉單前的作業入口。" action={<button onClick={() => setShowCreate(true)} style={S.btnPrimary}>+ 建立報價單</button>} />
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, pageSize)} placeholder="搜尋報價單號、狀態或備註..." style={{ ...S.input, flex: 1 }} />
         <button onClick={() => load(1, search, pageSize)} style={S.btnPrimary}>搜尋</button>
@@ -1754,6 +1977,7 @@ function Quotes() {
         onPageChange={(nextPage) => load(nextPage, search, pageSize)}
         onLimitChange={(nextLimit) => { setPageSize(nextLimit); load(1, search, nextLimit); }}
       />
+      <QuoteCreateModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={() => load(1, search, pageSize)} />
     </div>
   );
 }
