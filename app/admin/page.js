@@ -76,6 +76,117 @@ async function apiPost(body) {
   return res.json();
 }
 
+function parseCsvLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    const next = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  result.push(current);
+  return result.map((value) => value.trim());
+}
+
+function parseCsvText(text) {
+  const normalized = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = normalized.split('\n').filter((line) => line.trim() !== '');
+  if (!lines.length) return [];
+
+  const headers = parseCsvLine(lines[0]);
+  return lines.slice(1).map((line) => {
+    const cells = parseCsvLine(line);
+    return Object.fromEntries(headers.map((header, index) => [header, cells[index] ?? '']));
+  });
+}
+
+const IMPORT_DATASETS = {
+  quickbuy_products: {
+    title: '商品資料',
+    desc: '直接更新後台查價與 LIFF 搜尋使用的商品資料。',
+    fields: 'item_number, description, tw_retail_price, tw_reseller_price...',
+  },
+  erp_customers: {
+    title: '客戶資料',
+    desc: 'merge 進正式客戶主檔，保留既有 LINE 綁定與客戶階段。',
+    fields: 'customer_code, name, company_name, phone...',
+  },
+  erp_vendors: {
+    title: '廠商資料',
+    desc: '更新廠商主檔與供應商聯絡資訊。',
+    fields: 'vendor_code, vendor_name, phone...',
+  },
+  erp_sales_return_summary: {
+    title: '銷退貨彙總',
+    desc: '更新銷貨/退貨摘要，供後台彙總與查詢使用。',
+    fields: 'doc_date, doc_no, doc_type, customer_name...',
+  },
+  erp_profit_analysis: {
+    title: '利潤分析',
+    desc: '更新毛利分析資料，做營運統計和客戶利潤追蹤。',
+    fields: 'customer_name, doc_date, doc_no, amount...',
+  },
+};
+
+function useCsvImport(datasetId, onImported) {
+  const [status, setStatus] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const importFile = useCallback(async (file) => {
+    if (!file) return;
+
+    setBusy(true);
+    setStatus('');
+
+    try {
+      const text = await file.text();
+      const rows = parseCsvText(text);
+      if (!rows.length) throw new Error('CSV 沒有可匯入的資料列');
+
+      const result = await apiPost({
+        action: 'import_csv_dataset',
+        dataset: datasetId,
+        rows,
+      });
+
+      setStatus(`${IMPORT_DATASETS[datasetId]?.title || datasetId} 匯入完成，共 ${result.count || rows.length} 筆`);
+      if (onImported) await onImported();
+    } catch (error) {
+      setStatus(error.message || '匯入失敗');
+    } finally {
+      setBusy(false);
+    }
+  }, [datasetId, onImported]);
+
+  useEffect(() => {
+    if (!status) return undefined;
+    const timer = setTimeout(() => setStatus(''), 2600);
+    return () => clearTimeout(timer);
+  }, [status]);
+
+  return { status, busy, importFile };
+}
+
 /* ========================================= STYLES ========================================= */
 const S = {
   page: { minHeight: '100vh', background: 'linear-gradient(180deg, #e9eef5 0%, #f5f7fb 220px)', color: '#192434', fontFamily: "'Noto Sans TC', 'SF Mono', monospace, sans-serif" },
@@ -118,6 +229,38 @@ function PageLead({ eyebrow, title, description, action }) {
       </div>
       {action ? <div>{action}</div> : null}
     </div>
+  );
+}
+function ImportStatus({ status }) {
+  if (!status) return null;
+  const success = status.includes('完成');
+  return (
+    <div style={{ ...S.panelMuted, marginBottom: 12, background: success ? '#edf9f2' : '#fff4f4', borderColor: success ? '#bdeccb' : '#ffc7cf', color: success ? '#127248' : '#d1435b' }}>
+      {status}
+    </div>
+  );
+}
+function CsvImportButton({ datasetId, onImported, compact = false }) {
+  const { status, busy, importFile } = useCsvImport(datasetId, onImported);
+
+  return (
+    <>
+      <ImportStatus status={status} />
+      <label style={{ ...(compact ? S.btnGhost : S.btnPrimary), display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        {busy ? '匯入中...' : '上傳 CSV'}
+        <input
+          type="file"
+          accept=".csv,text/csv"
+          style={{ display: 'none' }}
+          disabled={busy}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            importFile(file);
+            event.target.value = '';
+          }}
+        />
+      </label>
+    </>
   );
 }
 function PanelHeader({ title, meta, badge }) {
@@ -902,7 +1045,12 @@ function Customers() {
 
   return (
     <div>
-      <PageLead eyebrow="Customers" title="客戶主檔" description="先以既有 LINE 客戶資料為主建立 ERP 客戶入口，方便之後往報價、訂單與銷貨模組延伸。" />
+      <PageLead
+        eyebrow="Customers"
+        title="客戶主檔"
+        description="先以既有 LINE 客戶資料為主建立 ERP 客戶入口，方便之後往報價、訂單與銷貨模組延伸。"
+        action={<CsvImportButton datasetId="erp_customers" onImported={() => load(1, search)} compact />}
+      />
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input
           value={search}
@@ -1034,7 +1182,12 @@ function ProductSearch() {
 
   return (
     <div>
-      <PageLead eyebrow="Catalog" title="產品查價" description="快速搜尋 Snap-on / Blue Point 產品資料，支援分類瀏覽與展開查看更多欄位。" />
+      <PageLead
+        eyebrow="Catalog"
+        title="產品查價"
+        description="快速搜尋 Snap-on / Blue Point 產品資料，支援分類瀏覽與展開查看更多欄位。"
+        action={<CsvImportButton datasetId="quickbuy_products" onImported={() => doSearch(search, category, page)} compact />}
+      />
       <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜尋料號或關鍵字... (例: FDX71, wrench)" style={{ ...S.input, flex: 1, ...S.mono }} onFocus={e => e.target.style.borderColor = '#1976f3'} onBlur={e => e.target.style.borderColor = '#ccd6e3'} />
       </div>
@@ -1201,7 +1354,12 @@ function Vendors() {
 
   return (
     <div>
-      <PageLead eyebrow="Vendors" title="廠商主檔" description="查看供應商主檔、聯絡窗口與統編資訊，後續可接採購與補貨流程。" />
+      <PageLead
+        eyebrow="Vendors"
+        title="廠商主檔"
+        description="查看供應商主檔、聯絡窗口與統編資訊，後續可接採購與補貨流程。"
+        action={<CsvImportButton datasetId="erp_vendors" onImported={() => load(1, search)} compact />}
+      />
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋廠商名稱、代號或聯絡人..." style={{ ...S.input, flex: 1 }} />
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
@@ -1256,7 +1414,12 @@ function SalesReturns() {
 
   return (
     <div>
-      <PageLead eyebrow="Returns" title="銷退貨彙總" description="查看銷貨與退貨單據彙總，快速掌握單號、客戶與發票資訊。" />
+      <PageLead
+        eyebrow="Returns"
+        title="銷退貨彙總"
+        description="查看銷貨與退貨單據彙總，快速掌握單號、客戶與發票資訊。"
+        action={<CsvImportButton datasetId="erp_sales_return_summary" onImported={() => load(1, search)} compact />}
+      />
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, flex: 1 }} />
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
@@ -1321,7 +1484,12 @@ function ProfitAnalysis() {
 
   return (
     <div>
-      <PageLead eyebrow="Profit" title="利潤分析" description="查看銷貨利潤彙總、成本與毛利，方便先做營運分析與排行基礎。" />
+      <PageLead
+        eyebrow="Profit"
+        title="利潤分析"
+        description="查看銷貨利潤彙總、成本與毛利，方便先做營運分析與排行基礎。"
+        action={<CsvImportButton datasetId="erp_profit_analysis" onImported={() => load(1, search)} compact />}
+      />
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋客戶、單號或業務..." style={{ ...S.input, flex: 1 }} />
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
@@ -1359,6 +1527,31 @@ function ProfitAnalysis() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ========================================= IMPORT CENTER ========================================= */
+function ImportCenter() {
+  return (
+    <div>
+      <PageLead eyebrow="Import" title="資料匯入" description="直接從後台匯入 CSV，不用再進 Supabase Table Editor。建議沿用我們整理好的 import-ready CSV 格式。" />
+      <div style={{ display: 'grid', gap: 14 }}>
+        {Object.entries(IMPORT_DATASETS).map(([datasetId, dataset]) => (
+          <div key={datasetId} style={S.card}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontSize: 16, color: '#1c2740', fontWeight: 700 }}>{dataset.title}</div>
+                <div style={{ fontSize: 12, color: '#617084', marginTop: 6, lineHeight: 1.7 }}>{dataset.desc}</div>
+                <div style={{ fontSize: 11, color: '#7b889b', marginTop: 8, ...S.mono }}>{dataset.fields}</div>
+              </div>
+              <div style={{ minWidth: 150, textAlign: 'right' }}>
+                <CsvImportButton datasetId={datasetId} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1524,6 +1717,7 @@ const SECTIONS = [
       { id: 'customers', label: '客戶主檔', code: 'CUST' },
       { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
       { id: 'products', label: '產品查價', code: 'SRCH' },
+      { id: 'imports', label: '資料匯入', code: 'IMPT' },
       { id: 'vendors', label: '廠商主檔', code: 'VNDR' },
       { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
       { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
@@ -1546,6 +1740,7 @@ const TAB_COMPONENTS = {
   customers: Customers,
   messages: Messages,
   products: ProductSearch,
+  imports: ImportCenter,
   vendors: Vendors,
   sales_returns: SalesReturns,
   profit_analysis: ProfitAnalysis,

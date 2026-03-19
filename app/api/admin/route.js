@@ -46,6 +46,30 @@ function choosePreferredErpCustomer(candidates, displayName) {
   return [...source].sort((a, b) => scoreErpCustomer(b) - scoreErpCustomer(a))[0] || null;
 }
 
+function cleanCsvValue(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+  }
+  return value;
+}
+
+function toNumber(value) {
+  if (value === null || value === undefined || value === '') return 0;
+  const parsed = Number(String(value).replace(/,/g, ''));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function toDateValue(value) {
+  const cleaned = cleanCsvValue(value);
+  return cleaned || null;
+}
+
+function normalizeRows(rows) {
+  return Array.isArray(rows) ? rows.filter(Boolean) : [];
+}
+
 const ERP_CUSTOMER_BASE_COLUMNS = 'id,name,company_name,phone,email,tax_id,address,line_user_id,source,status,display_name';
 const ERP_CUSTOMER_COLUMNS_WITH_STAGE = `${ERP_CUSTOMER_BASE_COLUMNS},customer_stage`;
 
@@ -703,6 +727,164 @@ export async function POST(request) {
     const { action } = body;
 
     switch (action) {
+      case 'import_csv_dataset': {
+        const { dataset, rows } = body;
+        const safeRows = normalizeRows(rows);
+
+        if (!dataset || safeRows.length === 0) {
+          return Response.json({ error: 'dataset and rows are required' }, { status: 400 });
+        }
+
+        if (dataset === 'quickbuy_products') {
+          const payload = safeRows.map((row) => ({
+            item_number: cleanCsvValue(row.item_number),
+            description: cleanCsvValue(row.description),
+            tw_retail_price: toNumber(row.tw_retail_price),
+            tw_reseller_price: toNumber(row.tw_reseller_price),
+            product_status: cleanCsvValue(row.product_status) || 'Current',
+            category: cleanCsvValue(row.category) || 'other',
+            replacement_model: cleanCsvValue(row.replacement_model),
+            weight_kg: toNumber(row.weight_kg),
+            origin_country: cleanCsvValue(row.origin_country),
+            search_text: cleanCsvValue(row.search_text),
+          })).filter((row) => row.item_number);
+
+          const { error: deleteError } = await supabase.from('quickbuy_products').delete().neq('item_number', '');
+          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+
+          const { error } = await supabase.from('quickbuy_products').insert(payload);
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          return Response.json({ success: true, count: payload.length });
+        }
+
+        if (dataset === 'erp_customers') {
+          let updated = 0;
+          let inserted = 0;
+
+          for (const row of safeRows) {
+            const customerCode = cleanCsvValue(row.customer_code);
+            const payload = {
+              customer_code: customerCode,
+              name: cleanCsvValue(row.name) || cleanCsvValue(row.company_name) || '未命名客戶',
+              company_name: cleanCsvValue(row.company_name),
+              phone: cleanCsvValue(row.phone),
+              email: cleanCsvValue(row.email),
+              tax_id: cleanCsvValue(row.tax_id),
+              address: cleanCsvValue(row.address),
+              source: cleanCsvValue(row.source) || 'import',
+              display_name: cleanCsvValue(row.display_name),
+              customer_stage: cleanCsvValue(row.customer_stage) || 'lead',
+              status: cleanCsvValue(row.status) || 'active',
+              notes: cleanCsvValue(row.notes),
+            };
+
+            if (customerCode) {
+              const { data: existing, error: existingError } = await supabase
+                .from('erp_customers')
+                .select('id,display_name,source,customer_stage,status,notes')
+                .eq('customer_code', customerCode)
+                .maybeSingle();
+
+              if (existingError) return Response.json({ error: existingError.message }, { status: 500 });
+
+              if (existing?.id) {
+                const updatePayload = {
+                  ...payload,
+                  source: existing.source || payload.source,
+                  display_name: existing.display_name || payload.display_name,
+                  customer_stage: existing.customer_stage || payload.customer_stage,
+                  status: existing.status || payload.status,
+                  notes: existing.notes && payload.notes ? `${existing.notes} | ${payload.notes}` : existing.notes || payload.notes,
+                };
+
+                const { error } = await supabase
+                  .from('erp_customers')
+                  .update(updatePayload)
+                  .eq('id', existing.id);
+
+                if (error) return Response.json({ error: error.message }, { status: 500 });
+                updated += 1;
+                continue;
+              }
+            }
+
+            const { error } = await supabase.from('erp_customers').insert(payload);
+            if (error) return Response.json({ error: error.message }, { status: 500 });
+            inserted += 1;
+          }
+
+          return Response.json({ success: true, count: safeRows.length, inserted, updated });
+        }
+
+        if (dataset === 'erp_vendors') {
+          const payload = safeRows.map((row) => ({
+            vendor_code: cleanCsvValue(row.vendor_code),
+            vendor_name: cleanCsvValue(row.vendor_name) || '未命名廠商',
+            phone: cleanCsvValue(row.phone),
+            fax: cleanCsvValue(row.fax),
+            contact_name: cleanCsvValue(row.contact_name),
+            contact_title: cleanCsvValue(row.contact_title),
+            mobile: cleanCsvValue(row.mobile),
+            address: cleanCsvValue(row.address),
+            tax_id: cleanCsvValue(row.tax_id),
+          }));
+
+          const { error: deleteError } = await supabase.from('erp_vendors').delete().neq('vendor_name', '');
+          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+
+          const { error } = await supabase.from('erp_vendors').insert(payload);
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          return Response.json({ success: true, count: payload.length });
+        }
+
+        if (dataset === 'erp_sales_return_summary') {
+          const payload = safeRows.map((row) => ({
+            doc_date: toDateValue(row.doc_date),
+            doc_no: cleanCsvValue(row.doc_no),
+            doc_type: cleanCsvValue(row.doc_type) || 'sale',
+            invoice_no: cleanCsvValue(row.invoice_no),
+            customer_name: cleanCsvValue(row.customer_name),
+            sales_name: cleanCsvValue(row.sales_name),
+            amount: toNumber(row.amount),
+            tax_amount: toNumber(row.tax_amount),
+            total_amount: toNumber(row.total_amount),
+          })).filter((row) => row.doc_no);
+
+          const { error: deleteError } = await supabase.from('erp_sales_return_summary').delete().neq('doc_no', '');
+          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+
+          const { error } = await supabase.from('erp_sales_return_summary').insert(payload);
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          return Response.json({ success: true, count: payload.length });
+        }
+
+        if (dataset === 'erp_profit_analysis') {
+          const payload = safeRows.map((row) => ({
+            customer_name: cleanCsvValue(row.customer_name),
+            doc_date: toDateValue(row.doc_date),
+            doc_no: cleanCsvValue(row.doc_no),
+            sales_name: cleanCsvValue(row.sales_name),
+            amount: toNumber(row.amount),
+            cost: toNumber(row.cost),
+            gross_profit: toNumber(row.gross_profit),
+            gross_margin: cleanCsvValue(row.gross_margin),
+          })).filter((row) => row.doc_no || row.customer_name);
+
+          const { error: deleteError } = await supabase.from('erp_profit_analysis').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+
+          const { error } = await supabase.from('erp_profit_analysis').insert(payload);
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          return Response.json({ success: true, count: payload.length });
+        }
+
+        return Response.json({ error: 'Unsupported dataset' }, { status: 400 });
+      }
+
       case 'create_promotion': {
         const { name, description, start_date, end_date, free_shipping_threshold, note, items } = body;
 
