@@ -386,7 +386,17 @@ const IMPORT_DATASETS = {
   },
 };
 
-const IMPORT_BATCH_SIZE = 400;
+const IMPORT_BATCH_SIZE = {
+  default: 400,
+  quickbuy_products: 800,
+  erp_sales_return_summary: 800,
+  erp_profit_analysis: 800,
+  qb_sales_history: 600,
+  erp_quotes: 500,
+  erp_orders: 500,
+  erp_vendors: 400,
+  erp_customers: 300,
+};
 
 function useCsvImport(datasetId, onImported) {
   const [status, setStatus] = useState('');
@@ -456,21 +466,25 @@ function useCsvImport(datasetId, onImported) {
 
     try {
       const rows = preparedRows;
-      const batchTotal = Math.max(1, Math.ceil(rows.length / IMPORT_BATCH_SIZE));
+      const batchSize = IMPORT_BATCH_SIZE[datasetId] || IMPORT_BATCH_SIZE.default;
+      const batchTotal = Math.max(1, Math.ceil(rows.length / batchSize));
       let totalCount = 0;
       let totalInserted = 0;
       let totalUpdated = 0;
 
       for (let batchIndex = 0; batchIndex < batchTotal; batchIndex += 1) {
-        const start = batchIndex * IMPORT_BATCH_SIZE;
-        const end = start + IMPORT_BATCH_SIZE;
+        const start = batchIndex * batchSize;
+        const end = start + batchSize;
         const chunk = rows.slice(start, end);
+        const processed = Math.min(end, rows.length);
+        const percent = Math.min(100, Math.round((processed / rows.length) * 100));
 
         setBatchProgress({
           current: batchIndex + 1,
           total: batchTotal,
-          processed: Math.min(end, rows.length),
+          processed,
           all: rows.length,
+          percent,
         });
         setStatus(`${IMPORT_DATASETS[datasetId]?.title || datasetId} 匯入中，第 ${batchIndex + 1}/${batchTotal} 批...`);
 
@@ -579,8 +593,15 @@ function PageLead({ eyebrow, title, description, action }) {
 function ImportStatus({ status }) {
   if (!status) return null;
   const success = status.includes('完成');
+  const pending = status.includes('匯入中');
   return (
-    <div style={{ ...S.panelMuted, marginBottom: 12, background: success ? '#edf9f2' : '#fff4f4', borderColor: success ? '#bdeccb' : '#ffc7cf', color: success ? '#127248' : '#d1435b' }}>
+    <div style={{
+      ...S.panelMuted,
+      marginBottom: 12,
+      background: success ? '#edf9f2' : pending ? '#edf5ff' : '#fff4f4',
+      borderColor: success ? '#bdeccb' : pending ? '#94c3ff' : '#ffc7cf',
+      color: success ? '#127248' : pending ? '#1976f3' : '#d1435b',
+    }}>
       {status}
     </div>
   );
@@ -603,9 +624,14 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
               </div>
             ) : null}
             {batchProgress ? (
-              <div style={{ fontSize: 12, color: '#1976f3', marginTop: 4 }}>
-                匯入進度 {batchProgress.current}/{batchProgress.total} 批 · {fmt(batchProgress.processed)}/{fmt(batchProgress.all)} 筆
-              </div>
+              <>
+                <div style={{ fontSize: 12, color: '#1976f3', marginTop: 4 }}>
+                  匯入進度 {batchProgress.current}/{batchProgress.total} 批 · {fmt(batchProgress.processed)}/{fmt(batchProgress.all)} 筆 · {batchProgress.percent}%
+                </div>
+                <div style={{ marginTop: 8, height: 8, borderRadius: 999, background: '#dbe7f7', overflow: 'hidden' }}>
+                  <div style={{ width: `${batchProgress.percent}%`, height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #2d8cff 0%, #19c767 100%)', transition: 'width 0.2s ease' }} />
+                </div>
+              </>
             ) : null}
             <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: compact ? 'flex-end' : 'flex-start' }}>
               <button onClick={importSelected} disabled={busy} style={S.btnPrimary}>

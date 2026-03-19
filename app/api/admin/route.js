@@ -1245,6 +1245,21 @@ export async function POST(request) {
         if (dataset === 'erp_customers') {
           let updated = 0;
           let inserted = 0;
+          const customerCodes = [...new Set(safeRows.map((row) => cleanCsvValue(row.customer_code)).filter(Boolean))];
+          let existingMap = {};
+
+          if (customerCodes.length > 0) {
+            const { data: existingRows, error: existingError } = await supabase
+              .from('erp_customers')
+              .select('id,customer_code,display_name,source,customer_stage,status,notes')
+              .in('customer_code', customerCodes);
+
+            if (existingError) return Response.json({ error: existingError.message }, { status: 500 });
+            existingMap = Object.fromEntries((existingRows || []).map((row) => [row.customer_code, row]));
+          }
+
+          const upsertPayload = [];
+          const insertWithoutCodePayload = [];
 
           for (const row of safeRows) {
             const customerCode = cleanCsvValue(row.customer_code);
@@ -1264,38 +1279,38 @@ export async function POST(request) {
             };
 
             if (customerCode) {
-              const { data: existing, error: existingError } = await supabase
-                .from('erp_customers')
-                .select('id,display_name,source,customer_stage,status,notes')
-                .eq('customer_code', customerCode)
-                .maybeSingle();
-
-              if (existingError) return Response.json({ error: existingError.message }, { status: 500 });
-
+              const existing = existingMap[customerCode];
               if (existing?.id) {
-                const updatePayload = {
+                updated += 1;
+                upsertPayload.push({
                   ...payload,
                   source: existing.source || payload.source,
                   display_name: existing.display_name || payload.display_name,
                   customer_stage: existing.customer_stage || payload.customer_stage,
                   status: existing.status || payload.status,
                   notes: existing.notes && payload.notes ? `${existing.notes} | ${payload.notes}` : existing.notes || payload.notes,
-                };
-
-                const { error } = await supabase
-                  .from('erp_customers')
-                  .update(updatePayload)
-                  .eq('id', existing.id);
-
-                if (error) return Response.json({ error: error.message }, { status: 500 });
-                updated += 1;
-                continue;
+                });
+              } else {
+                inserted += 1;
+                upsertPayload.push(payload);
               }
+              continue;
             }
 
-            const { error } = await supabase.from('erp_customers').insert(payload);
-            if (error) return Response.json({ error: error.message }, { status: 500 });
             inserted += 1;
+            insertWithoutCodePayload.push(payload);
+          }
+
+          if (upsertPayload.length > 0) {
+            const { error } = await supabase
+              .from('erp_customers')
+              .upsert(upsertPayload, { onConflict: 'customer_code' });
+            if (error) return Response.json({ error: error.message }, { status: 500 });
+          }
+
+          if (insertWithoutCodePayload.length > 0) {
+            const { error } = await supabase.from('erp_customers').insert(insertWithoutCodePayload);
+            if (error) return Response.json({ error: error.message }, { status: 500 });
           }
 
           if (isLastBatch) {
