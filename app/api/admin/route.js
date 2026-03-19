@@ -465,6 +465,98 @@ export async function GET(request) {
         return Response.json({ promotions: data || [] });
       }
 
+      case 'vendors': {
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+        const offset = (page - 1) * limit;
+        const search = (searchParams.get('search') || '').trim();
+
+        try {
+          let query = supabase
+            .from('erp_vendors')
+            .select('*', { count: 'exact' })
+            .order('vendor_code', { ascending: true, nullsFirst: false })
+            .range(offset, offset + limit - 1);
+
+          if (search) {
+            query = query.or(`vendor_name.ilike.%${search}%,vendor_code.ilike.%${search}%,contact_name.ilike.%${search}%`);
+          }
+
+          const { data, count, error } = await query;
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          return Response.json({ vendors: data || [], total: count || 0, page, limit, table_ready: true });
+        } catch {
+          return Response.json({ vendors: [], total: 0, page, limit, table_ready: false });
+        }
+      }
+
+      case 'sales_returns': {
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+        const offset = (page - 1) * limit;
+        const search = (searchParams.get('search') || '').trim();
+
+        try {
+          let query = supabase
+            .from('erp_sales_return_summary')
+            .select('*', { count: 'exact' })
+            .order('doc_date', { ascending: false, nullsFirst: false })
+            .range(offset, offset + limit - 1);
+
+          if (search) {
+            query = query.or(`doc_no.ilike.%${search}%,customer_name.ilike.%${search}%,sales_name.ilike.%${search}%,invoice_no.ilike.%${search}%`);
+          }
+
+          const { data, count, error } = await query;
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          const totals = (data || []).reduce((acc, row) => {
+            acc.amount += Number(row.amount || 0);
+            acc.tax += Number(row.tax_amount || 0);
+            acc.total += Number(row.total_amount || 0);
+            return acc;
+          }, { amount: 0, tax: 0, total: 0 });
+
+          return Response.json({ rows: data || [], total: count || 0, page, limit, summary: totals, table_ready: true });
+        } catch {
+          return Response.json({ rows: [], total: 0, page, limit, summary: { amount: 0, tax: 0, total: 0 }, table_ready: false });
+        }
+      }
+
+      case 'profit_analysis': {
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+        const offset = (page - 1) * limit;
+        const search = (searchParams.get('search') || '').trim();
+
+        try {
+          let query = supabase
+            .from('erp_profit_analysis')
+            .select('*', { count: 'exact' })
+            .order('doc_date', { ascending: false, nullsFirst: false })
+            .range(offset, offset + limit - 1);
+
+          if (search) {
+            query = query.or(`customer_name.ilike.%${search}%,doc_no.ilike.%${search}%,sales_name.ilike.%${search}%`);
+          }
+
+          const { data, count, error } = await query;
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          const summary = (data || []).reduce((acc, row) => {
+            acc.amount += Number(row.amount || 0);
+            acc.cost += Number(row.cost || 0);
+            acc.gross_profit += Number(row.gross_profit || 0);
+            return acc;
+          }, { amount: 0, cost: 0, gross_profit: 0 });
+
+          return Response.json({ rows: data || [], total: count || 0, page, limit, summary, table_ready: true });
+        } catch {
+          return Response.json({ rows: [], total: 0, page, limit, summary: { amount: 0, cost: 0, gross_profit: 0 }, table_ready: false });
+        }
+      }
+
       case 'pricing': {
         // Return current pricing rules (stored as a simple config row)
         const { data } = await supabase

@@ -1179,6 +1179,190 @@ function PricingRules() {
   );
 }
 
+/* ========================================= VENDORS ========================================= */
+function Vendors() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState({ vendors: [], total: 0, page: 1, limit: 20, table_ready: true });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  const load = useCallback(async (page = 1, q = search) => {
+    setLoading(true);
+    try {
+      const result = await apiGet({ action: 'vendors', page: String(page), search: q });
+      setData(result);
+    } finally {
+      setLoading(false);
+    }
+  }, [search]);
+
+  useEffect(() => { load(); }, []);
+
+  return (
+    <div>
+      <PageLead eyebrow="Vendors" title="廠商主檔" description="查看供應商主檔、聯絡窗口與統編資訊，後續可接採購與補貨流程。" />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋廠商名稱、代號或聯絡人..." style={{ ...S.input, flex: 1 }} />
+        <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_vendors` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 後再匯入廠商資料。</div>}
+      <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>共 {fmt(data.total)} 筆廠商</div>
+      {loading ? <Loading /> : data.vendors.length === 0 ? <EmptyState text="目前沒有廠商資料" /> : data.vendors.map((vendor) => (
+        <div key={vendor.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '160px minmax(0, 1fr) 160px', gap: 12, alignItems: 'start' }}>
+            <div>
+              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>VENDOR_CODE</div>
+              <div style={{ fontSize: 14, color: '#1976f3', fontWeight: 700, ...S.mono }}>{vendor.vendor_code || '-'}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 15, color: '#1c2740', fontWeight: 700 }}>{vendor.vendor_name || '未命名廠商'}</div>
+              <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8, marginTop: 6 }}>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {vendor.contact_name || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {vendor.phone || vendor.mobile || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS</span> {vendor.address || '-'}</div>
+              </div>
+            </div>
+            <div style={S.panelMuted}>
+              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>TAX_ID</div>
+              <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{vendor.tax_id || '-'}</div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ========================================= SALES RETURNS ========================================= */
+function SalesReturns() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, tax: 0, total: 0 } });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  const load = useCallback(async (page = 1, q = search) => {
+    setLoading(true);
+    try {
+      const result = await apiGet({ action: 'sales_returns', page: String(page), search: q });
+      setData(result);
+    } finally {
+      setLoading(false);
+    }
+  }, [search]);
+
+  useEffect(() => { load(); }, []);
+
+  return (
+    <div>
+      <PageLead eyebrow="Returns" title="銷退貨彙總" description="查看銷貨與退貨單據彙總，快速掌握單號、客戶與發票資訊。" />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, flex: 1 }} />
+        <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_sales_return_summary` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入銷退貨 CSV。</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+        <StatCard code="AMT" label="未稅金額" value={fmtP(data.summary?.amount)} tone="blue" />
+        <StatCard code="TAX" label="稅額" value={fmtP(data.summary?.tax)} tone="yellow" />
+        <StatCard code="TOTAL" label="總金額" value={fmtP(data.summary?.total)} tone="green" />
+      </div>
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷退貨資料" /> : data.rows.map((row) => (
+        <div key={row.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '160px minmax(0, 1fr) 120px 120px', gap: 12, alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
+              <div style={{ marginTop: 6 }}>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700 }}>{row.customer_name || '未命名客戶'}</div>
+              <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.7 }}>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>DATE</span> {row.doc_date || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>SALES</span> {row.sales_name || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>INVOICE</span> {row.invoice_no || '-'}</div>
+              </div>
+            </div>
+            <div style={S.panelMuted}>
+              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>AMOUNT</div>
+              <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{fmtP(row.amount)}</div>
+            </div>
+            <div style={S.panelMuted}>
+              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>TOTAL</div>
+              <div style={{ fontSize: 14, color: '#129c59', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ========================================= PROFIT ANALYSIS ========================================= */
+function ProfitAnalysis() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, cost: 0, gross_profit: 0 } });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  const load = useCallback(async (page = 1, q = search) => {
+    setLoading(true);
+    try {
+      const result = await apiGet({ action: 'profit_analysis', page: String(page), search: q });
+      setData(result);
+    } finally {
+      setLoading(false);
+    }
+  }, [search]);
+
+  useEffect(() => { load(); }, []);
+
+  const marginPct = data.summary?.amount ? `${((data.summary.gross_profit / data.summary.amount) * 100).toFixed(1)}%` : '-';
+
+  return (
+    <div>
+      <PageLead eyebrow="Profit" title="利潤分析" description="查看銷貨利潤彙總、成本與毛利，方便先做營運分析與排行基礎。" />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋客戶、單號或業務..." style={{ ...S.input, flex: 1 }} />
+        <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_profit_analysis` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入利潤分析 CSV。</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+        <StatCard code="SALES" label="銷貨金額" value={fmtP(data.summary?.amount)} tone="blue" />
+        <StatCard code="COST" label="成本" value={fmtP(data.summary?.cost)} tone="yellow" />
+        <StatCard code="GP" label="毛利" value={fmtP(data.summary?.gross_profit)} tone="green" />
+        <StatCard code="GM" label="毛利率" value={marginPct} tone="red" />
+      </div>
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有利潤分析資料" /> : data.rows.map((row) => (
+        <div key={row.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.4fr) 140px 140px 140px', gap: 12, alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700 }}>{row.customer_name || '未命名客戶'}</div>
+              <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.7 }}>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>DOC</span> {row.doc_no || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>DATE</span> {row.doc_date || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>SALES</span> {row.sales_name || '-'}</div>
+              </div>
+            </div>
+            <div style={S.panelMuted}>
+              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>AMOUNT</div>
+              <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{fmtP(row.amount)}</div>
+            </div>
+            <div style={S.panelMuted}>
+              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>COST</div>
+              <div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{fmtP(row.cost)}</div>
+            </div>
+            <div style={S.panelMuted}>
+              <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>GROSS</div>
+              <div style={{ fontSize: 14, color: '#129c59', fontWeight: 700, ...S.mono }}>{fmtP(row.gross_profit)} {row.gross_margin ? `· ${row.gross_margin}` : ''}</div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ========================================= AI PROMPT 設定 ========================================= */
 function AIPrompt() {
   const width = useViewportWidth();
@@ -1340,6 +1524,9 @@ const SECTIONS = [
       { id: 'customers', label: '客戶主檔', code: 'CUST' },
       { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
       { id: 'products', label: '產品查價', code: 'SRCH' },
+      { id: 'vendors', label: '廠商主檔', code: 'VNDR' },
+      { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
+      { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
       { id: 'promotions', label: '活動管理', code: 'PRMO' },
       { id: 'pricing', label: '報價規則', code: 'PRCE' },
     ],
@@ -1359,6 +1546,9 @@ const TAB_COMPONENTS = {
   customers: Customers,
   messages: Messages,
   products: ProductSearch,
+  vendors: Vendors,
+  sales_returns: SalesReturns,
+  profit_analysis: ProfitAnalysis,
   promotions: Promotions,
   pricing: PricingRules,
   ai_prompt: AIPrompt,
