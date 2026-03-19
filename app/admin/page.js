@@ -9,6 +9,42 @@ const fmtMs = ms => !ms ? '-' : ms < 1000 ? `${ms}ms` : `${(ms/1000).toFixed(1)}
 const fmtDate = d => d ? new Date(d).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
 const fmtP = n => n ? `NT$${Number(n).toLocaleString()}` : '-';
 
+function todayInTaipei() {
+  const now = new Date();
+  const taipei = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  return new Date(taipei.getFullYear(), taipei.getMonth(), taipei.getDate());
+}
+
+function toDateInputValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getPresetDateRange(preset) {
+  const today = todayInTaipei();
+  const start = new Date(today);
+  const end = new Date(today);
+
+  if (preset === 'week') {
+    const day = start.getDay() || 7;
+    start.setDate(start.getDate() - day + 1);
+  } else if (preset === 'month') {
+    start.setDate(1);
+  } else if (preset === 'quarter') {
+    const quarterStartMonth = Math.floor(start.getMonth() / 3) * 3;
+    start.setMonth(quarterStartMonth, 1);
+  } else if (preset === 'year') {
+    start.setMonth(0, 1);
+  }
+
+  return {
+    from: toDateInputValue(start),
+    to: toDateInputValue(end),
+  };
+}
+
 function useViewportWidth() {
   const [width, setWidth] = useState(1400);
 
@@ -1432,11 +1468,13 @@ function Vendors() {
 function SalesReturns() {
   const width = useViewportWidth();
   const isMobile = width < 820;
+  const initialRange = getPresetDateRange('today');
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, tax: 0, total: 0 } });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState(initialRange.from);
+  const [dateTo, setDateTo] = useState(initialRange.to);
+  const [rangePreset, setRangePreset] = useState('today');
 
   const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo) => {
     setLoading(true);
@@ -1456,6 +1494,18 @@ function SalesReturns() {
 
   useEffect(() => { load(); }, []);
 
+  const applyPreset = (preset) => {
+    if (preset === 'custom') {
+      setRangePreset('custom');
+      return;
+    }
+    const range = getPresetDateRange(preset);
+    setRangePreset(preset);
+    setDateFrom(range.from);
+    setDateTo(range.to);
+    load(1, search, range.from, range.to);
+  };
+
   return (
     <div>
       <PageLead
@@ -1469,11 +1519,36 @@ function SalesReturns() {
           <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, dateFrom, dateTo)} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, flex: 1 }} />
           <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnPrimary}>搜尋</button>
         </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {[
+            ['today', '今日'],
+            ['week', '週'],
+            ['month', '月'],
+            ['quarter', '季'],
+            ['year', '年'],
+            ['custom', '自選'],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => applyPreset(value)}
+              style={{
+                ...S.btnGhost,
+                padding: '6px 12px',
+                fontSize: 12,
+                background: rangePreset === value ? '#edf5ff' : '#fff',
+                borderColor: rangePreset === value ? '#94c3ff' : '#dbe3ee',
+                color: rangePreset === value ? '#1976f3' : '#5b6779',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
+          <input type="date" value={dateFrom} onChange={(e) => { setRangePreset('custom'); setDateFrom(e.target.value); }} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
+          <input type="date" value={dateTo} onChange={(e) => { setRangePreset('custom'); setDateTo(e.target.value); }} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
           <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnGhost}>套用區間</button>
-          <button onClick={() => { setDateFrom(''); setDateTo(''); load(1, search, '', ''); }} style={S.btnGhost}>清除區間</button>
+          <button onClick={() => applyPreset('today')} style={S.btnGhost}>回到今日</button>
         </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_sales_return_summary` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入銷退貨 CSV。</div>}
@@ -1519,11 +1594,13 @@ function SalesReturns() {
 function ProfitAnalysis() {
   const width = useViewportWidth();
   const isMobile = width < 820;
+  const initialRange = getPresetDateRange('today');
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, cost: 0, gross_profit: 0 } });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState(initialRange.from);
+  const [dateTo, setDateTo] = useState(initialRange.to);
+  const [rangePreset, setRangePreset] = useState('today');
 
   const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo) => {
     setLoading(true);
@@ -1542,6 +1619,17 @@ function ProfitAnalysis() {
   }, [search, dateFrom, dateTo]);
 
   useEffect(() => { load(); }, []);
+  const applyPreset = (preset) => {
+    if (preset === 'custom') {
+      setRangePreset('custom');
+      return;
+    }
+    const range = getPresetDateRange(preset);
+    setRangePreset(preset);
+    setDateFrom(range.from);
+    setDateTo(range.to);
+    load(1, search, range.from, range.to);
+  };
 
   const marginPct = data.summary?.amount ? `${((data.summary.gross_profit / data.summary.amount) * 100).toFixed(1)}%` : '-';
 
@@ -1558,11 +1646,36 @@ function ProfitAnalysis() {
           <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, dateFrom, dateTo)} placeholder="搜尋客戶、單號或業務..." style={{ ...S.input, flex: 1 }} />
           <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnPrimary}>搜尋</button>
         </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {[
+            ['today', '今日'],
+            ['week', '週'],
+            ['month', '月'],
+            ['quarter', '季'],
+            ['year', '年'],
+            ['custom', '自選'],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => applyPreset(value)}
+              style={{
+                ...S.btnGhost,
+                padding: '6px 12px',
+                fontSize: 12,
+                background: rangePreset === value ? '#edf5ff' : '#fff',
+                borderColor: rangePreset === value ? '#94c3ff' : '#dbe3ee',
+                color: rangePreset === value ? '#1976f3' : '#5b6779',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
+          <input type="date" value={dateFrom} onChange={(e) => { setRangePreset('custom'); setDateFrom(e.target.value); }} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
+          <input type="date" value={dateTo} onChange={(e) => { setRangePreset('custom'); setDateTo(e.target.value); }} style={{ ...S.input, maxWidth: isMobile ? '100%' : 180 }} />
           <button onClick={() => load(1, search, dateFrom, dateTo)} style={S.btnGhost}>套用區間</button>
-          <button onClick={() => { setDateFrom(''); setDateTo(''); load(1, search, '', ''); }} style={S.btnGhost}>清除區間</button>
+          <button onClick={() => applyPreset('today')} style={S.btnGhost}>回到今日</button>
         </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_profit_analysis` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入利潤分析 CSV。</div>}
