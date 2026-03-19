@@ -690,6 +690,122 @@ function Messages() {
 }
 
 /* ========================================= CUSTOMERS ========================================= */
+function FormalCustomers() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const isTablet = width < 1180;
+  const [data, setData] = useState({ customers: [], total: 0, page: 1, limit: 50, erp_ready: true, customer_stage_ready: false });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [pageSize, setPageSize] = useState(50);
+
+  const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
+    setLoading(true);
+    try {
+      const result = await apiGet({ action: 'formal_customers', page: String(page), search: q, limit: String(limit) });
+      setData(result);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, pageSize]);
+
+  useEffect(() => { load(); }, []);
+
+  const stageMeta = {
+    lead: { label: '詢問名單', color: '' },
+    prospect: { label: '潛在客戶', color: 'yellow' },
+    customer: { label: '正式客戶', color: 'green' },
+    vip: { label: 'VIP', color: 'red' },
+  };
+
+  return (
+    <div>
+      <PageLead
+        eyebrow="Customers"
+        title="客戶主檔"
+        description="這裡顯示全部正式 ERP 客戶，不限是否來自 LINE。適合查看你匯入的一千多筆正式客戶資料。"
+        action={<CsvImportButton datasetId="erp_customers" onImported={() => load(1, search, pageSize)} compact />}
+      />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && load(1, search, pageSize)}
+          placeholder="搜尋客戶代號、姓名、公司、電話或 Email..."
+          style={{ ...S.input, flex: 1 }}
+        />
+        <button onClick={() => load(1, search, pageSize)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {!data.erp_ready && (
+        <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>
+          目前還找不到 `erp_customers` 資料表，請先建立 ERP 客戶主檔。
+        </div>
+      )}
+      <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>共 {fmt(data.total)} 位正式客戶</div>
+      {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的正式客戶資料" /> : (
+        isMobile ? (
+          <div style={{ display: 'grid', gap: 8 }}>
+            {data.customers.map((customer) => (
+              <div key={customer.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 15, color: '#1c2740', fontWeight: 700 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                    <div style={{ marginTop: 6, fontSize: 12, color: '#617084', lineHeight: 1.7 }}>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>CODE</span> {customer.customer_code || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {customer.name || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {customer.phone || '-'}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gap: 6, justifyItems: 'end' }}>
+                    <span style={S.tag(stageMeta[customer.customer_stage]?.color || '')}>{stageMeta[customer.customer_stage]?.label || '詢問名單'}</span>
+                    {customer.line_user_id ? <span style={S.tag('line')}>LINE 已連通</span> : null}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '110px minmax(0,1.1fr) 120px 110px' : '130px minmax(0,1.3fr) 140px 180px 130px 120px', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e6edf5', color: '#7b889b', fontSize: 10, ...S.mono }}>
+              <div>客戶代號</div>
+              <div>客戶資料</div>
+              {!isTablet && <div>聯絡人</div>}
+              <div>電話</div>
+              <div>階段</div>
+              <div>渠道</div>
+            </div>
+            {data.customers.map((customer) => (
+              <div key={customer.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '110px minmax(0,1.1fr) 120px 110px' : '130px minmax(0,1.3fr) 140px 180px 130px 120px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
+                <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{customer.customer_code || '-'}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                  <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {customer.email || customer.tax_id || customer.address || '-'}
+                  </div>
+                </div>
+                {!isTablet && <div style={{ fontSize: 12, color: '#617084' }}>{customer.name || '-'}</div>}
+                <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{customer.phone || '-'}</div>
+                <div><span style={S.tag(stageMeta[customer.customer_stage]?.color || '')}>{stageMeta[customer.customer_stage]?.label || '詢問名單'}</span></div>
+                <div>{customer.line_user_id ? <span style={S.tag('line')}>LINE</span> : <span style={S.tag('')}>ERP</span>}</div>
+              </div>
+            ))}
+          </div>
+        )
+      )}
+      <Pager
+        page={data.page || 1}
+        limit={data.limit || pageSize}
+        total={data.total || 0}
+        onPageChange={(nextPage) => load(nextPage, search, pageSize)}
+        onLimitChange={(nextLimit) => {
+          setPageSize(nextLimit);
+          load(1, search, nextLimit);
+        }}
+      />
+    </div>
+  );
+}
+
 function Customers() {
   const width = useViewportWidth();
   const isTablet = width < 1180;
@@ -1139,10 +1255,9 @@ function Customers() {
   return (
     <div>
       <PageLead
-        eyebrow="Customers"
-        title="客戶主檔"
-        description="先以既有 LINE 客戶資料為主建立 ERP 客戶入口，方便之後往報價、訂單與銷貨模組延伸。"
-        action={<CsvImportButton datasetId="erp_customers" onImported={() => load(1, search)} compact />}
+        eyebrow="LINE"
+        title="LINE 客戶"
+        description="這裡專門看來自 LINE 官方帳號的客戶名單，方便做人工綁定、查訊息和對應正式客戶。"
       />
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input
@@ -2055,6 +2170,7 @@ const SECTIONS = [
     tabs: [
       { id: 'dashboard', label: '儀表板', code: 'DASH' },
       { id: 'customers', label: '客戶主檔', code: 'CUST' },
+      { id: 'line_customers', label: 'LINE 客戶', code: 'LINE' },
       { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
       { id: 'products', label: '產品查價', code: 'SRCH' },
       { id: 'imports', label: '資料匯入', code: 'IMPT' },
@@ -2077,7 +2193,8 @@ const SECTIONS = [
 
 const TAB_COMPONENTS = {
   dashboard: Dashboard,
-  customers: Customers,
+  customers: FormalCustomers,
+  line_customers: Customers,
   messages: Messages,
   products: ProductSearch,
   imports: ImportCenter,

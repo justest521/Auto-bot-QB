@@ -382,6 +382,52 @@ export async function GET(request) {
         });
       }
 
+      case 'formal_customers': {
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 200);
+        const offset = (page - 1) * limit;
+        const search = (searchParams.get('search') || '').trim();
+
+        try {
+          let customerStageReady = true;
+          let queryBuilder = (columns) => {
+            let query = supabase
+              .from('erp_customers')
+              .select(columns, { count: 'exact' })
+              .order('customer_code', { ascending: true, nullsFirst: false })
+              .range(offset, offset + limit - 1);
+
+            if (search) {
+              query = query.or(`customer_code.ilike.%${search}%,name.ilike.%${search}%,company_name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
+            }
+
+            return query;
+          };
+
+          const { data, count, error, stageReady } = await runErpCustomerQuery(queryBuilder);
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+          customerStageReady = stageReady;
+
+          return Response.json({
+            customers: data || [],
+            total: count || 0,
+            page,
+            limit,
+            customer_stage_ready: customerStageReady,
+            erp_ready: true,
+          });
+        } catch {
+          return Response.json({
+            customers: [],
+            total: 0,
+            page,
+            limit,
+            customer_stage_ready: false,
+            erp_ready: false,
+          });
+        }
+      }
+
       case 'erp_customer_lookup': {
         const search = (searchParams.get('search') || '').trim();
         if (!search) return Response.json({ customers: [], erp_ready: true });
