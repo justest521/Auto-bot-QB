@@ -271,6 +271,55 @@ function mapRowsForDataset(datasetId, rows) {
     }));
   }
 
+  if (datasetId === 'erp_quotes') {
+    return rows.map((row) => ({
+      quote_no: row.quote_no ?? row['報價單號'] ?? '',
+      customer_code: row.customer_code ?? row['客戶代號'] ?? '',
+      quote_date: row.quote_date ?? row['報價日期'] ?? row['日期'] ?? '',
+      valid_until: row.valid_until ?? row['有效期限'] ?? '',
+      status: row.status ?? row['狀態'] ?? 'draft',
+      subtotal: row.subtotal ?? row['小計'] ?? 0,
+      discount_amount: row.discount_amount ?? row['折扣金額'] ?? 0,
+      shipping_fee: row.shipping_fee ?? row['運費'] ?? 0,
+      tax_amount: row.tax_amount ?? row['稅額'] ?? 0,
+      total_amount: row.total_amount ?? row['總額'] ?? row['合計'] ?? 0,
+      remark: row.remark ?? row['備註'] ?? '',
+    }));
+  }
+
+  if (datasetId === 'erp_orders') {
+    return rows.map((row) => ({
+      order_no: row.order_no ?? row['訂單號'] ?? '',
+      customer_code: row.customer_code ?? row['客戶代號'] ?? '',
+      order_date: row.order_date ?? row['訂單日期'] ?? row['日期'] ?? '',
+      status: row.status ?? row['狀態'] ?? 'confirmed',
+      payment_status: row.payment_status ?? row['付款狀態'] ?? 'unpaid',
+      shipping_status: row.shipping_status ?? row['出貨狀態'] ?? 'pending',
+      subtotal: row.subtotal ?? row['小計'] ?? 0,
+      discount_amount: row.discount_amount ?? row['折扣金額'] ?? 0,
+      shipping_fee: row.shipping_fee ?? row['運費'] ?? 0,
+      tax_amount: row.tax_amount ?? row['稅額'] ?? 0,
+      total_amount: row.total_amount ?? row['總額'] ?? row['合計'] ?? 0,
+      remark: row.remark ?? row['備註'] ?? '',
+    }));
+  }
+
+  if (datasetId === 'qb_sales_history') {
+    return rows.map((row) => ({
+      sale_date: row.sale_date ?? row['銷貨日期'] ?? row['日期'] ?? '',
+      slip_number: row.slip_number ?? row['銷貨單號'] ?? row['單號'] ?? '',
+      invoice_number: row.invoice_number ?? row['發票號碼'] ?? '',
+      customer_name: row.customer_name ?? row['客戶簡稱'] ?? '',
+      sales_person: row.sales_person ?? row['業務'] ?? row['業務姓名'] ?? '',
+      subtotal: row.subtotal ?? row['未稅金額'] ?? row['小計'] ?? 0,
+      tax: row.tax ?? row['稅額'] ?? 0,
+      total: row.total ?? row['總額'] ?? row['合計'] ?? 0,
+      cost: row.cost ?? row['成本'] ?? 0,
+      gross_profit: row.gross_profit ?? row['毛利'] ?? 0,
+      profit_margin: row.profit_margin ?? row['毛利率'] ?? '',
+    }));
+  }
+
   return rows;
 }
 
@@ -319,6 +368,21 @@ const IMPORT_DATASETS = {
     title: '利潤分析',
     desc: '更新毛利分析資料，做營運統計和客戶利潤追蹤。',
     fields: 'customer_name, doc_date, doc_no, amount...',
+  },
+  erp_quotes: {
+    title: '報價單',
+    desc: '匯入 ERP 報價單抬頭資料，供報價查詢與轉單流程使用。',
+    fields: 'quote_no, customer_code, quote_date, valid_until...',
+  },
+  erp_orders: {
+    title: '訂單',
+    desc: '匯入 ERP 訂單抬頭資料，供訂單追蹤與出貨流程使用。',
+    fields: 'order_no, customer_code, order_date, status...',
+  },
+  qb_sales_history: {
+    title: '銷貨單',
+    desc: '匯入銷貨單抬頭資料，供銷貨單查詢與毛利檢視使用。',
+    fields: 'sale_date, slip_number, invoice_number, customer_name...',
   },
 };
 
@@ -1950,7 +2014,7 @@ function Quotes() {
 
   return (
     <div>
-      <PageLead eyebrow="Quotes" title="報價單" description="查看 ERP 報價單、客戶、有效期限與總金額，作為詢價轉單前的作業入口。" action={<button onClick={() => setShowCreate(true)} style={S.btnPrimary}>+ 建立報價單</button>} />
+      <PageLead eyebrow="Quotes" title="報價單" description="查看 ERP 報價單、客戶、有效期限與總金額，作為詢價轉單前的作業入口。" action={<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}><CsvImportButton datasetId="erp_quotes" onImported={() => load(1, search, pageSize)} compact /><button onClick={() => setShowCreate(true)} style={S.btnPrimary}>+ 建立報價單</button></div>} />
       {actionMessage ? (
         <div style={{ ...S.card, background: actionMessage.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: actionMessage.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: actionMessage.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 14 }}>
           {actionMessage}
@@ -2037,7 +2101,7 @@ function Orders() {
 
   return (
     <div>
-      <PageLead eyebrow="Orders" title="訂單" description="查看 ERP 訂單、付款與出貨狀態，作為報價轉單後的作業中心。" />
+      <PageLead eyebrow="Orders" title="訂單" description="查看 ERP 訂單、付款與出貨狀態，作為報價轉單後的作業中心。" action={<CsvImportButton datasetId="erp_orders" onImported={() => load(1, search, pageSize)} compact />} />
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, pageSize)} placeholder="搜尋訂單號、狀態、付款或出貨..." style={{ ...S.input, flex: 1 }} />
         <button onClick={() => load(1, search, pageSize)} style={S.btnPrimary}>搜尋</button>
@@ -2111,7 +2175,7 @@ function SalesDocuments() {
 
   return (
     <div>
-      <PageLead eyebrow="Sales" title="銷貨單" description="查看實際銷貨單、發票號碼與毛利，並可點單號查看完整銷貨單內容。" />
+      <PageLead eyebrow="Sales" title="銷貨單" description="查看實際銷貨單、發票號碼與毛利，並可點單號查看完整銷貨單內容。" action={<CsvImportButton datasetId="qb_sales_history" onImported={() => load(1, search, pageSize)} compact />} />
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, pageSize)} placeholder="搜尋銷貨單號、客戶、業務或發票..." style={{ ...S.input, flex: 1 }} />
         <button onClick={() => load(1, search, pageSize)} style={S.btnPrimary}>搜尋</button>
@@ -2929,28 +2993,38 @@ function ChatHistory() {
 /* ========================================= SIDEBAR & LAYOUT ========================================= */
 const SECTIONS = [
   {
-    title: 'QUICK BUY',
+    title: 'ERP 主檔資料',
     tabs: [
-      { id: 'dashboard', label: '儀表板', code: 'DASH' },
       { id: 'customers', label: '客戶主檔', code: 'CUST' },
+      { id: 'products', label: '產品查價', code: 'SRCH' },
+      { id: 'vendors', label: '廠商主檔', code: 'VNDR' },
       { id: 'line_customers', label: 'LINE 客戶', code: 'LINE' },
+    ],
+  },
+  {
+    title: 'ERP 交易作業',
+    tabs: [
       { id: 'quotes', label: '報價單', code: 'QUOT' },
       { id: 'orders', label: '訂單', code: 'ORDR' },
       { id: 'sales_documents', label: '銷貨單', code: 'SALE' },
-      { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
-      { id: 'products', label: '產品查價', code: 'SRCH' },
-      { id: 'imports', label: '資料匯入', code: 'IMPT' },
-      { id: 'vendors', label: '廠商主檔', code: 'VNDR' },
-      { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
-      { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
       { id: 'promotions', label: '活動管理', code: 'PRMO' },
       { id: 'pricing', label: '報價規則', code: 'PRCE' },
     ],
   },
   {
-    title: 'LINE 官方帳號',
+    title: 'ERP 分析報表',
+    tabs: [
+      { id: 'dashboard', label: '儀表板', code: 'DASH' },
+      { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
+      { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
+      { id: 'imports', label: '資料匯入', code: 'IMPT' },
+    ],
+  },
+  {
+    title: 'LINE 與系統',
     accent: '#06c755',
     tabs: [
+      { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
       { id: 'ai_prompt', label: 'AI Prompt 設定', code: 'AI' },
       { id: 'chat_history', label: '歷史對話', code: 'HIST' },
     ],

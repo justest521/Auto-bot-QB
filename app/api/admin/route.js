@@ -1195,6 +1195,105 @@ export async function POST(request) {
           return Response.json({ success: true, count: payload.length });
         }
 
+        if (dataset === 'erp_quotes') {
+          const customerCodes = [...new Set(safeRows.map((row) => cleanCsvValue(row.customer_code)).filter(Boolean))];
+          let customerMap = {};
+          if (customerCodes.length) {
+            const { data: customerRows, error: customerError } = await supabase
+              .from('erp_customers')
+              .select('id,customer_code')
+              .in('customer_code', customerCodes);
+            if (customerError) return Response.json({ error: customerError.message }, { status: 500 });
+            customerMap = Object.fromEntries((customerRows || []).map((row) => [row.customer_code, row.id]));
+          }
+
+          const payload = safeRows.map((row) => ({
+            quote_no: cleanCsvValue(row.quote_no),
+            customer_id: customerMap[cleanCsvValue(row.customer_code)] || null,
+            quote_date: toDateValue(row.quote_date),
+            valid_until: toDateValue(row.valid_until),
+            status: cleanCsvValue(row.status) || 'draft',
+            subtotal: toNumber(row.subtotal),
+            discount_amount: toNumber(row.discount_amount),
+            shipping_fee: toNumber(row.shipping_fee),
+            tax_amount: toNumber(row.tax_amount),
+            total_amount: toNumber(row.total_amount),
+            remark: cleanCsvValue(row.remark),
+            created_by: 'import',
+          })).filter((row) => row.quote_no);
+
+          const { error: deleteError } = await supabase.from('erp_quotes').delete().neq('quote_no', '');
+          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+
+          const { error } = await supabase.from('erp_quotes').insert(payload);
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          await appendImportHistory({ dataset, file_name: file_name || null, count: payload.length, imported_at: new Date().toISOString(), imported_by: 'admin' });
+          return Response.json({ success: true, count: payload.length });
+        }
+
+        if (dataset === 'erp_orders') {
+          const customerCodes = [...new Set(safeRows.map((row) => cleanCsvValue(row.customer_code)).filter(Boolean))];
+          let customerMap = {};
+          if (customerCodes.length) {
+            const { data: customerRows, error: customerError } = await supabase
+              .from('erp_customers')
+              .select('id,customer_code')
+              .in('customer_code', customerCodes);
+            if (customerError) return Response.json({ error: customerError.message }, { status: 500 });
+            customerMap = Object.fromEntries((customerRows || []).map((row) => [row.customer_code, row.id]));
+          }
+
+          const payload = safeRows.map((row) => ({
+            order_no: cleanCsvValue(row.order_no),
+            customer_id: customerMap[cleanCsvValue(row.customer_code)] || null,
+            order_date: toDateValue(row.order_date),
+            status: cleanCsvValue(row.status) || 'confirmed',
+            payment_status: cleanCsvValue(row.payment_status) || 'unpaid',
+            shipping_status: cleanCsvValue(row.shipping_status) || 'pending',
+            subtotal: toNumber(row.subtotal),
+            discount_amount: toNumber(row.discount_amount),
+            shipping_fee: toNumber(row.shipping_fee),
+            tax_amount: toNumber(row.tax_amount),
+            total_amount: toNumber(row.total_amount),
+            remark: cleanCsvValue(row.remark),
+          })).filter((row) => row.order_no);
+
+          const { error: deleteError } = await supabase.from('erp_orders').delete().neq('order_no', '');
+          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+
+          const { error } = await supabase.from('erp_orders').insert(payload);
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          await appendImportHistory({ dataset, file_name: file_name || null, count: payload.length, imported_at: new Date().toISOString(), imported_by: 'admin' });
+          return Response.json({ success: true, count: payload.length });
+        }
+
+        if (dataset === 'qb_sales_history') {
+          const payload = safeRows.map((row) => ({
+            sale_date: toDateValue(row.sale_date),
+            slip_number: cleanCsvValue(row.slip_number),
+            invoice_number: cleanCsvValue(row.invoice_number),
+            customer_name: cleanCsvValue(row.customer_name),
+            sales_person: cleanCsvValue(row.sales_person),
+            subtotal: toNumber(row.subtotal),
+            tax: toNumber(row.tax),
+            total: toNumber(row.total),
+            cost: toNumber(row.cost),
+            gross_profit: toNumber(row.gross_profit),
+            profit_margin: cleanCsvValue(row.profit_margin),
+          })).filter((row) => row.slip_number);
+
+          const { error: deleteError } = await supabase.from('qb_sales_history').delete().neq('slip_number', '');
+          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+
+          const { error } = await supabase.from('qb_sales_history').insert(payload);
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          await appendImportHistory({ dataset, file_name: file_name || null, count: payload.length, imported_at: new Date().toISOString(), imported_by: 'admin' });
+          return Response.json({ success: true, count: payload.length });
+        }
+
         return Response.json({ error: 'Unsupported dataset' }, { status: 400 });
       }
 
