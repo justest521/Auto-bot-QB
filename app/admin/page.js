@@ -694,7 +694,7 @@ function FormalCustomers() {
   const width = useViewportWidth();
   const isMobile = width < 820;
   const isTablet = width < 1180;
-  const [data, setData] = useState({ customers: [], total: 0, page: 1, limit: 50, erp_ready: true, customer_stage_ready: false });
+  const [data, setData] = useState({ customers: [], total: 0, page: 1, limit: 50, erp_ready: true, customer_stage_ready: false, latest_import: null });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState(50);
@@ -741,6 +741,29 @@ function FormalCustomers() {
           目前還找不到 `erp_customers` 資料表，請先建立 ERP 客戶主檔。
         </div>
       )}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 18 }}>
+        <div style={S.panelMuted}>
+          <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>DB_CUSTOMERS</div>
+          <div style={{ fontSize: 28, color: '#1c2740', fontWeight: 700, ...S.mono }}>{fmt(data.total)}</div>
+          <div style={{ marginTop: 6, fontSize: 12, color: '#617084' }}>目前 `erp_customers` 實際筆數</div>
+        </div>
+        <div style={S.panelMuted}>
+          <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>LATEST_IMPORT</div>
+          <div style={{ fontSize: 20, color: '#1976f3', fontWeight: 700, ...S.mono }}>{fmt(data.latest_import?.count || 0)}</div>
+          <div style={{ marginTop: 6, fontSize: 12, color: '#617084' }}>
+            {data.latest_import ? `最近匯入 ${fmtDate(data.latest_import.imported_at)} · ${data.latest_import.file_name || '-'}` : '目前還沒有客戶匯入紀錄'}
+          </div>
+        </div>
+        <div style={S.panelMuted}>
+          <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>CHECKPOINT</div>
+          <div style={{ fontSize: 14, color: data.latest_import?.count === data.total ? '#129c59' : '#f59e0b', fontWeight: 700 }}>
+            {data.latest_import?.count === data.total ? '匯入筆數與資料庫一致' : '匯入筆數與目前資料庫不同步'}
+          </div>
+          <div style={{ marginTop: 6, fontSize: 12, color: '#617084' }}>
+            {data.latest_import ? `匯入 ${fmt(data.latest_import.count)} 筆 / 目前 ${fmt(data.total)} 筆` : '可用來快速確認客戶是否完整匯入'}
+          </div>
+        </div>
+      </div>
       <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>共 {fmt(data.total)} 位正式客戶</div>
       {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的正式客戶資料" /> : (
         isMobile ? (

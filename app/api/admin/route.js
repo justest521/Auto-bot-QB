@@ -407,6 +407,8 @@ export async function GET(request) {
           const { data, count, error, stageReady } = await runErpCustomerQuery(queryBuilder);
           if (error) return Response.json({ error: error.message }, { status: 500 });
           customerStageReady = stageReady;
+          const importHistory = await getImportHistory();
+          const latestCustomerImport = importHistory.find((entry) => entry.dataset === 'erp_customers') || null;
 
           return Response.json({
             customers: data || [],
@@ -415,6 +417,7 @@ export async function GET(request) {
             limit,
             customer_stage_ready: customerStageReady,
             erp_ready: true,
+            latest_import: latestCustomerImport,
           });
         } catch {
           return Response.json({
@@ -424,6 +427,7 @@ export async function GET(request) {
             limit,
             customer_stage_ready: false,
             erp_ready: false,
+            latest_import: null,
           });
         }
       }
