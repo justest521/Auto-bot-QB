@@ -70,6 +70,11 @@ function normalizeRows(rows) {
   return Array.isArray(rows) ? rows.filter(Boolean) : [];
 }
 
+function parseBatchNumber(value, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 async function getImportHistory() {
   const { data, error } = await supabase
     .from('quickbuy_config')
@@ -1120,6 +1125,11 @@ export async function POST(request) {
       case 'import_csv_dataset': {
         const { dataset, rows, file_name } = body;
         const safeRows = normalizeRows(rows);
+        const batchIndex = Math.max(0, parseBatchNumber(body.batch_index, 0));
+        const batchTotal = Math.max(1, parseBatchNumber(body.batch_total, 1));
+        const totalCount = Math.max(safeRows.length, parseBatchNumber(body.total_count, safeRows.length));
+        const isFirstBatch = batchIndex === 0;
+        const isLastBatch = batchIndex >= batchTotal - 1;
 
         if (!dataset || safeRows.length === 0) {
           return Response.json({ error: 'dataset and rows are required' }, { status: 400 });
@@ -1139,21 +1149,25 @@ export async function POST(request) {
             search_text: cleanCsvValue(row.search_text),
           })).filter((row) => row.item_number);
 
-          const { error: deleteError } = await supabase.from('quickbuy_products').delete().neq('item_number', '');
-          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          if (isFirstBatch) {
+            const { error: deleteError } = await supabase.from('quickbuy_products').delete().neq('item_number', '');
+            if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          }
 
-          const { error } = await supabase.from('quickbuy_products').insert(payload);
+          const { error } = payload.length ? await supabase.from('quickbuy_products').insert(payload) : { error: null };
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
-          await appendImportHistory({
-            dataset,
-            file_name: file_name || null,
-            count: payload.length,
-            imported_at: new Date().toISOString(),
-            imported_by: 'admin',
-          });
+          if (isLastBatch) {
+            await appendImportHistory({
+              dataset,
+              file_name: file_name || null,
+              count: totalCount,
+              imported_at: new Date().toISOString(),
+              imported_by: 'admin',
+            });
+          }
 
-          return Response.json({ success: true, count: payload.length });
+          return Response.json({ success: true, count: payload.length, batch_index: batchIndex, batch_total: batchTotal });
         }
 
         if (dataset === 'erp_customers') {
@@ -1212,17 +1226,17 @@ export async function POST(request) {
             inserted += 1;
           }
 
-          await appendImportHistory({
-            dataset,
-            file_name: file_name || null,
-            count: safeRows.length,
-            inserted,
-            updated,
-            imported_at: new Date().toISOString(),
-            imported_by: 'admin',
-          });
+          if (isLastBatch) {
+            await appendImportHistory({
+              dataset,
+              file_name: file_name || null,
+              count: totalCount,
+              imported_at: new Date().toISOString(),
+              imported_by: 'admin',
+            });
+          }
 
-          return Response.json({ success: true, count: safeRows.length, inserted, updated });
+          return Response.json({ success: true, count: safeRows.length, inserted, updated, batch_index: batchIndex, batch_total: batchTotal });
         }
 
         if (dataset === 'erp_vendors') {
@@ -1238,21 +1252,25 @@ export async function POST(request) {
             tax_id: cleanCsvValue(row.tax_id),
           }));
 
-          const { error: deleteError } = await supabase.from('erp_vendors').delete().neq('vendor_name', '');
-          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          if (isFirstBatch) {
+            const { error: deleteError } = await supabase.from('erp_vendors').delete().neq('vendor_name', '');
+            if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          }
 
-          const { error } = await supabase.from('erp_vendors').insert(payload);
+          const { error } = payload.length ? await supabase.from('erp_vendors').insert(payload) : { error: null };
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
-          await appendImportHistory({
-            dataset,
-            file_name: file_name || null,
-            count: payload.length,
-            imported_at: new Date().toISOString(),
-            imported_by: 'admin',
-          });
+          if (isLastBatch) {
+            await appendImportHistory({
+              dataset,
+              file_name: file_name || null,
+              count: totalCount,
+              imported_at: new Date().toISOString(),
+              imported_by: 'admin',
+            });
+          }
 
-          return Response.json({ success: true, count: payload.length });
+          return Response.json({ success: true, count: payload.length, batch_index: batchIndex, batch_total: batchTotal });
         }
 
         if (dataset === 'erp_sales_return_summary') {
@@ -1268,21 +1286,25 @@ export async function POST(request) {
             total_amount: toNumber(row.total_amount),
           })).filter((row) => row.doc_no);
 
-          const { error: deleteError } = await supabase.from('erp_sales_return_summary').delete().neq('doc_no', '');
-          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          if (isFirstBatch) {
+            const { error: deleteError } = await supabase.from('erp_sales_return_summary').delete().neq('doc_no', '');
+            if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          }
 
-          const { error } = await supabase.from('erp_sales_return_summary').insert(payload);
+          const { error } = payload.length ? await supabase.from('erp_sales_return_summary').insert(payload) : { error: null };
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
-          await appendImportHistory({
-            dataset,
-            file_name: file_name || null,
-            count: payload.length,
-            imported_at: new Date().toISOString(),
-            imported_by: 'admin',
-          });
+          if (isLastBatch) {
+            await appendImportHistory({
+              dataset,
+              file_name: file_name || null,
+              count: totalCount,
+              imported_at: new Date().toISOString(),
+              imported_by: 'admin',
+            });
+          }
 
-          return Response.json({ success: true, count: payload.length });
+          return Response.json({ success: true, count: payload.length, batch_index: batchIndex, batch_total: batchTotal });
         }
 
         if (dataset === 'erp_profit_analysis') {
@@ -1297,21 +1319,25 @@ export async function POST(request) {
             gross_margin: cleanCsvValue(row.gross_margin),
           })).filter((row) => row.doc_no || row.customer_name);
 
-          const { error: deleteError } = await supabase.from('erp_profit_analysis').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          if (isFirstBatch) {
+            const { error: deleteError } = await supabase.from('erp_profit_analysis').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          }
 
-          const { error } = await supabase.from('erp_profit_analysis').insert(payload);
+          const { error } = payload.length ? await supabase.from('erp_profit_analysis').insert(payload) : { error: null };
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
-          await appendImportHistory({
-            dataset,
-            file_name: file_name || null,
-            count: payload.length,
-            imported_at: new Date().toISOString(),
-            imported_by: 'admin',
-          });
+          if (isLastBatch) {
+            await appendImportHistory({
+              dataset,
+              file_name: file_name || null,
+              count: totalCount,
+              imported_at: new Date().toISOString(),
+              imported_by: 'admin',
+            });
+          }
 
-          return Response.json({ success: true, count: payload.length });
+          return Response.json({ success: true, count: payload.length, batch_index: batchIndex, batch_total: batchTotal });
         }
 
         if (dataset === 'erp_quotes') {
@@ -1341,14 +1367,18 @@ export async function POST(request) {
             created_by: 'import',
           })).filter((row) => row.quote_no);
 
-          const { error: deleteError } = await supabase.from('erp_quotes').delete().neq('quote_no', '');
-          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          if (isFirstBatch) {
+            const { error: deleteError } = await supabase.from('erp_quotes').delete().neq('quote_no', '');
+            if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          }
 
-          const { error } = await supabase.from('erp_quotes').insert(payload);
+          const { error } = payload.length ? await supabase.from('erp_quotes').insert(payload) : { error: null };
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
-          await appendImportHistory({ dataset, file_name: file_name || null, count: payload.length, imported_at: new Date().toISOString(), imported_by: 'admin' });
-          return Response.json({ success: true, count: payload.length });
+          if (isLastBatch) {
+            await appendImportHistory({ dataset, file_name: file_name || null, count: totalCount, imported_at: new Date().toISOString(), imported_by: 'admin' });
+          }
+          return Response.json({ success: true, count: payload.length, batch_index: batchIndex, batch_total: batchTotal });
         }
 
         if (dataset === 'erp_orders') {
@@ -1378,14 +1408,18 @@ export async function POST(request) {
             remark: cleanCsvValue(row.remark),
           })).filter((row) => row.order_no);
 
-          const { error: deleteError } = await supabase.from('erp_orders').delete().neq('order_no', '');
-          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          if (isFirstBatch) {
+            const { error: deleteError } = await supabase.from('erp_orders').delete().neq('order_no', '');
+            if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          }
 
-          const { error } = await supabase.from('erp_orders').insert(payload);
+          const { error } = payload.length ? await supabase.from('erp_orders').insert(payload) : { error: null };
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
-          await appendImportHistory({ dataset, file_name: file_name || null, count: payload.length, imported_at: new Date().toISOString(), imported_by: 'admin' });
-          return Response.json({ success: true, count: payload.length });
+          if (isLastBatch) {
+            await appendImportHistory({ dataset, file_name: file_name || null, count: totalCount, imported_at: new Date().toISOString(), imported_by: 'admin' });
+          }
+          return Response.json({ success: true, count: payload.length, batch_index: batchIndex, batch_total: batchTotal });
         }
 
         if (dataset === 'qb_sales_history') {
@@ -1403,14 +1437,18 @@ export async function POST(request) {
             profit_margin: cleanCsvValue(row.profit_margin),
           })).filter((row) => row.slip_number);
 
-          const { error: deleteError } = await supabase.from('qb_sales_history').delete().neq('slip_number', '');
-          if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          if (isFirstBatch) {
+            const { error: deleteError } = await supabase.from('qb_sales_history').delete().neq('slip_number', '');
+            if (deleteError) return Response.json({ error: deleteError.message }, { status: 500 });
+          }
 
-          const { error } = await supabase.from('qb_sales_history').insert(payload);
+          const { error } = payload.length ? await supabase.from('qb_sales_history').insert(payload) : { error: null };
           if (error) return Response.json({ error: error.message }, { status: 500 });
 
-          await appendImportHistory({ dataset, file_name: file_name || null, count: payload.length, imported_at: new Date().toISOString(), imported_by: 'admin' });
-          return Response.json({ success: true, count: payload.length });
+          if (isLastBatch) {
+            await appendImportHistory({ dataset, file_name: file_name || null, count: totalCount, imported_at: new Date().toISOString(), imported_by: 'admin' });
+          }
+          return Response.json({ success: true, count: payload.length, batch_index: batchIndex, batch_total: batchTotal });
         }
 
         return Response.json({ error: 'Unsupported dataset' }, { status: 400 });

@@ -386,11 +386,14 @@ const IMPORT_DATASETS = {
   },
 };
 
+const IMPORT_BATCH_SIZE = 200;
+
 function useCsvImport(datasetId, onImported) {
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewCount, setPreviewCount] = useState(0);
+  const [batchProgress, setBatchProgress] = useState(null);
 
   const chooseFile = useCallback(async (file) => {
     if (!file) return;
@@ -400,10 +403,12 @@ function useCsvImport(datasetId, onImported) {
       if (!rows.length) throw new Error('檔案沒有可匯入的資料列');
       setSelectedFile(file);
       setPreviewCount(rows.length);
+      setBatchProgress(null);
       setStatus('');
     } catch (error) {
       setSelectedFile(null);
       setPreviewCount(0);
+      setBatchProgress(null);
       setStatus(error.message || '檔案解析失敗');
     }
   }, []);
@@ -417,19 +422,49 @@ function useCsvImport(datasetId, onImported) {
     try {
       const rows = await parseImportFile(selectedFile, datasetId);
       if (!rows.length) throw new Error('檔案沒有可匯入的資料列');
+      const batchTotal = Math.max(1, Math.ceil(rows.length / IMPORT_BATCH_SIZE));
+      let totalCount = 0;
+      let totalInserted = 0;
+      let totalUpdated = 0;
 
-      const result = await apiPost({
-        action: 'import_csv_dataset',
-        dataset: datasetId,
-        file_name: selectedFile.name,
-        rows,
-      });
+      for (let batchIndex = 0; batchIndex < batchTotal; batchIndex += 1) {
+        const start = batchIndex * IMPORT_BATCH_SIZE;
+        const end = start + IMPORT_BATCH_SIZE;
+        const chunk = rows.slice(start, end);
 
-      setStatus(`${IMPORT_DATASETS[datasetId]?.title || datasetId} 匯入完成，檔案 ${selectedFile.name}，共 ${result.count || rows.length} 筆`);
+        setBatchProgress({
+          current: batchIndex + 1,
+          total: batchTotal,
+          processed: Math.min(end, rows.length),
+          all: rows.length,
+        });
+        setStatus(`${IMPORT_DATASETS[datasetId]?.title || datasetId} 匯入中，第 ${batchIndex + 1}/${batchTotal} 批...`);
+
+        const result = await apiPost({
+          action: 'import_csv_dataset',
+          dataset: datasetId,
+          file_name: selectedFile.name,
+          rows: chunk,
+          batch_index: batchIndex,
+          batch_total: batchTotal,
+          total_count: rows.length,
+        });
+
+        totalCount += Number(result.count || chunk.length);
+        totalInserted += Number(result.inserted || 0);
+        totalUpdated += Number(result.updated || 0);
+      }
+
+      const detailText = totalInserted || totalUpdated
+        ? `，新增 ${fmt(totalInserted)} / 更新 ${fmt(totalUpdated)}`
+        : '';
+      setStatus(`${IMPORT_DATASETS[datasetId]?.title || datasetId} 匯入完成，檔案 ${selectedFile.name}，共 ${fmt(rows.length)} 筆${detailText}`);
       setSelectedFile(null);
       setPreviewCount(0);
+      setBatchProgress(null);
       if (onImported) await onImported();
     } catch (error) {
+      setBatchProgress(null);
       setStatus(error.message || '匯入失敗');
     } finally {
       setBusy(false);
@@ -438,11 +473,24 @@ function useCsvImport(datasetId, onImported) {
 
   useEffect(() => {
     if (!status) return undefined;
-    const timer = setTimeout(() => setStatus(''), 3200);
+    const timer = setTimeout(() => setStatus(''), 5200);
     return () => clearTimeout(timer);
   }, [status]);
 
-  return { status, busy, selectedFile, previewCount, chooseFile, importSelected, clearSelection: () => { setSelectedFile(null); setPreviewCount(0); } };
+  return {
+    status,
+    busy,
+    selectedFile,
+    previewCount,
+    batchProgress,
+    chooseFile,
+    importSelected,
+    clearSelection: () => {
+      setSelectedFile(null);
+      setPreviewCount(0);
+      setBatchProgress(null);
+    },
+  };
 }
 
 /* ========================================= STYLES ========================================= */
@@ -499,7 +547,7 @@ function ImportStatus({ status }) {
   );
 }
 function CsvImportButton({ datasetId, onImported, compact = false }) {
-  const { status, busy, selectedFile, previewCount, chooseFile, importSelected, clearSelection } = useCsvImport(datasetId, onImported);
+  const { status, busy, selectedFile, previewCount, batchProgress, chooseFile, importSelected, clearSelection } = useCsvImport(datasetId, onImported);
 
   return (
     <>
@@ -510,8 +558,15 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
             <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>FILE_PREVIEW</div>
             <div style={{ fontSize: 12, color: '#1c2740', fontWeight: 700 }}>{selectedFile.name}</div>
             <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>預計匯入 {fmt(previewCount)} 筆</div>
+            {batchProgress ? (
+              <div style={{ fontSize: 12, color: '#1976f3', marginTop: 4 }}>
+                匯入進度 {batchProgress.current}/{batchProgress.total} 批 · {fmt(batchProgress.processed)}/{fmt(batchProgress.all)} 筆
+              </div>
+            ) : null}
             <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: compact ? 'flex-end' : 'flex-start' }}>
-              <button onClick={importSelected} disabled={busy} style={S.btnPrimary}>{busy ? '匯入中...' : '確認匯入'}</button>
+              <button onClick={importSelected} disabled={busy} style={S.btnPrimary}>
+                {busy && batchProgress ? `匯入中 ${batchProgress.current}/${batchProgress.total}` : busy ? '匯入中...' : '確認匯入'}
+              </button>
               <button onClick={clearSelection} disabled={busy} style={S.btnGhost}>取消</button>
             </div>
           </div>
