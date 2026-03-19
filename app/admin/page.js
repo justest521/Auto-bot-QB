@@ -927,6 +927,127 @@ function Dashboard() {
   );
 }
 
+/* ========================================= ERP REPORT CENTER ========================================= */
+function RankingPanel({ title, rows, emptyText, valueLabel }) {
+  return (
+    <div style={S.card}>
+      <PanelHeader title={title} meta="鼎新 A1 對照分析" />
+      {rows?.length ? (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {rows.map((row, index) => (
+            <div key={`${title}-${row.name}-${index}`} style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: '34px minmax(0,1fr) 130px 120px', gap: 10, alignItems: 'center' }}>
+              <div style={{ width: 28, height: 28, borderRadius: 999, background: index < 3 ? '#edf5ff' : '#f4f7fb', color: index < 3 ? '#1976f3' : '#7b889b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, ...S.mono }}>
+                {index + 1}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.name}</div>
+                <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>毛利 {fmtP(row.gross_profit)}</div>
+              </div>
+              <div style={{ textAlign: 'right', fontSize: 13, color: '#129c59', fontWeight: 700, ...S.mono }}>{fmtP(row.total)}</div>
+              <div style={{ textAlign: 'right', fontSize: 11, color: '#7b889b', ...S.mono }}>{valueLabel}</div>
+            </div>
+          ))}
+        </div>
+      ) : <EmptyState text={emptyText} />}
+    </div>
+  );
+}
+
+function ReportShortcut({ code, title, desc, onClick, tone = 'blue' }) {
+  const tones = {
+    blue: ['#edf5ff', '#94c3ff', '#1976f3'],
+    green: ['#edfdf3', '#bbf7d0', '#16a34a'],
+    yellow: ['#fff8eb', '#f7d699', '#d97706'],
+    red: ['#fff1f2', '#fecdd3', '#e11d48'],
+  };
+  const [bg, border, color] = tones[tone] || tones.blue;
+  return (
+    <button onClick={onClick} style={{ ...S.card, width: '100%', textAlign: 'left', cursor: 'pointer', background: bg, borderColor: border, padding: '16px 18px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, color, ...S.mono }}>{code}</div>
+          <div style={{ fontSize: 18, color: '#1c2740', fontWeight: 700, marginTop: 8 }}>{title}</div>
+          <div style={{ fontSize: 12, color: '#617084', marginTop: 8, lineHeight: 1.7 }}>{desc}</div>
+        </div>
+        <div style={{ ...S.tag(''), color }}>{'前往'}</div>
+      </div>
+    </button>
+  );
+}
+
+function ReportCenter({ setTab }) {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiGet({ action: 'report_center' })
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <Loading />;
+
+  const counts = data?.counts || {};
+  const rankings = data?.rankings || {};
+  const returns = data?.returns || {};
+
+  return (
+    <div>
+      <PageLead
+        eyebrow="A1 Mapping"
+        title="進銷存報表中心"
+        description="用鼎新 A1 的邏輯整理我們現在的 ERP 模組，讓客戶、供應商、銷退貨、利潤與排行報表都能直接對應到現有系統。"
+      />
+
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+        <StatCard code="CUST" label="客戶主檔" value={fmt(counts.customers)} tone="blue" />
+        <StatCard code="VNDR" label="供應商主檔" value={fmt(counts.vendors)} tone="green" />
+        <StatCard code="RETN" label="銷退貨單" value={fmt(counts.sales_returns)} tone="yellow" />
+        <StatCard code="PFT" label="利潤資料" value={fmt(counts.profit_rows)} tone="red" />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 14, marginBottom: 18 }}>
+        <div style={S.card}>
+          <PanelHeader title="銷售報表" meta="鼎新 A1：銷售 / 銷退 / 利潤" />
+          <div style={{ display: 'grid', gap: 10 }}>
+            <ReportShortcut code="QUOT" title="報價明細表" desc={`目前 ${fmt(counts.quotes)} 筆報價，可查詢與轉單。`} onClick={() => setTab?.('quotes')} tone="blue" />
+            <ReportShortcut code="ORDR" title="訂單明細表" desc={`目前 ${fmt(counts.orders)} 筆訂單，可接續出貨與銷貨。`} onClick={() => setTab?.('orders')} tone="green" />
+            <ReportShortcut code="SALE" title="銷貨明細表" desc={`目前 ${fmt(counts.sales_documents)} 筆銷貨單，可點單號看內容。`} onClick={() => setTab?.('sales_documents')} tone="yellow" />
+            <ReportShortcut code="RETN" title="銷退貨彙總表" desc={`銷貨 ${fmt(returns.saleCount)} 筆 / 退貨 ${fmt(returns.returnCount)} 筆。`} onClick={() => setTab?.('sales_returns')} tone="red" />
+            <ReportShortcut code="PFT" title="銷售利潤分析表" desc="對應現有利潤分析頁，可看毛利與日期區間。" onClick={() => setTab?.('profit_analysis')} tone="blue" />
+          </div>
+        </div>
+
+        <div style={S.card}>
+          <PanelHeader title="基本資料" meta="鼎新 A1：客戶 / 供應商 / 商品" />
+          <div style={{ display: 'grid', gap: 10 }}>
+            <ReportShortcut code="CUST" title="客戶主檔" desc={`目前 ${fmt(counts.customers)} 位正式客戶。`} onClick={() => setTab?.('customers')} tone="blue" />
+            <ReportShortcut code="VNDR" title="供應商主檔" desc={`目前 ${fmt(counts.vendors)} 家供應商。`} onClick={() => setTab?.('vendors')} tone="green" />
+            <ReportShortcut code="ITEM" title="商品主檔 / 查價" desc="目前先對應產品查價頁，後續可升級成完整商品主檔。" onClick={() => setTab?.('products')} tone="yellow" />
+            <ReportShortcut code="LINE" title="LINE 客戶對照" desc="把 LINE 詢價名單綁到正式客戶，對應 CRM/客服入口。" onClick={() => setTab?.('line_customers')} tone="red" />
+          </div>
+        </div>
+
+        <div style={S.card}>
+          <PanelHeader title="分析圖表" meta="鼎新 A1：十大客戶 / 業務銷售 / 排行" />
+          <div style={{ display: 'grid', gap: 10 }}>
+            <ReportShortcut code="DASH" title="儀表板" desc="綜合 KPI、趨勢、互動概況。" onClick={() => setTab?.('dashboard')} tone="blue" />
+            <ReportShortcut code="IMPT" title="資料匯入中心" desc="CSV / XLSX 對應匯入客戶、供應商、報價、訂單、銷貨與報表資料。" onClick={() => setTab?.('imports')} tone="green" />
+            <ReportShortcut code="MSG" title="客服/AI 對話紀錄" desc="雖然不是鼎新 A1 原生模組，但可對應客服紀錄與詢價來源。" onClick={() => setTab?.('messages')} tone="yellow" />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
+        <RankingPanel title="十大客戶分析圖" rows={rankings.top_customers} emptyText="目前還沒有足夠的銷貨資料來排行客戶" valueLabel="銷售額" />
+        <RankingPanel title="業務銷售排名表" rows={rankings.top_sales_people} emptyText="目前還沒有足夠的業務銷貨資料" valueLabel="銷售額" />
+      </div>
+    </div>
+  );
+}
+
 /* ========================================= MESSAGES (AI Bot) ========================================= */
 function Messages() {
   const width = useViewportWidth();
@@ -2993,6 +3114,13 @@ function ChatHistory() {
 /* ========================================= SIDEBAR & LAYOUT ========================================= */
 const SECTIONS = [
   {
+    title: 'ERP 總覽',
+    tabs: [
+      { id: 'report_center', label: '進銷存報表', code: 'A1' },
+      { id: 'dashboard', label: '儀表板', code: 'DASH' },
+    ],
+  },
+  {
     title: 'ERP 主檔資料',
     tabs: [
       { id: 'customers', label: '客戶主檔', code: 'CUST' },
@@ -3014,7 +3142,6 @@ const SECTIONS = [
   {
     title: 'ERP 分析報表',
     tabs: [
-      { id: 'dashboard', label: '儀表板', code: 'DASH' },
       { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
       { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
       { id: 'imports', label: '資料匯入', code: 'IMPT' },
@@ -3032,6 +3159,7 @@ const SECTIONS = [
 ];
 
 const TAB_COMPONENTS = {
+  report_center: ReportCenter,
   dashboard: Dashboard,
   customers: FormalCustomers,
   line_customers: Customers,
@@ -3058,7 +3186,7 @@ export default function AdminPage() {
   const [isAuthed, setIsAuthed] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
-  const [tab, setTab] = useState('dashboard');
+  const [tab, setTab] = useState('report_center');
   const ActiveTab = TAB_COMPONENTS[tab] || Dashboard;
 
   useEffect(() => {
@@ -3206,7 +3334,7 @@ export default function AdminPage() {
           </div>
 
           <div style={{ ...S.content, padding: isMobile ? '18px 14px 30px' : isTablet ? '22px 18px 34px' : S.content.padding }}>
-            <ActiveTab />
+            <ActiveTab setTab={setTab} />
           </div>
         </div>
       </div>

@@ -305,6 +305,84 @@ export async function GET(request) {
         });
       }
 
+      case 'report_center': {
+        const [
+          customerCount,
+          vendorCount,
+          quoteCount,
+          orderCount,
+          salesDocCount,
+          returnRows,
+          profitCount,
+          salesRows,
+        ] = await Promise.all([
+          supabase.from('erp_customers').select('*', { count: 'exact', head: true }),
+          supabase.from('erp_vendors').select('*', { count: 'exact', head: true }),
+          supabase.from('erp_quotes').select('*', { count: 'exact', head: true }),
+          supabase.from('erp_orders').select('*', { count: 'exact', head: true }),
+          supabase.from('qb_sales_history').select('*', { count: 'exact', head: true }),
+          supabase.from('erp_sales_return_summary').select('customer_name,total_amount,doc_type').limit(5000),
+          supabase.from('erp_profit_analysis').select('*', { count: 'exact', head: true }),
+          supabase.from('qb_sales_history').select('customer_name,sales_person,total,gross_profit').limit(5000),
+        ]);
+
+        const customerSalesMap = {};
+        const salesPersonMap = {};
+
+        (salesRows.data || []).forEach((row) => {
+          const customerKey = row.customer_name || '未命名客戶';
+          const salesKey = row.sales_person || '未指派業務';
+
+          customerSalesMap[customerKey] = {
+            name: customerKey,
+            total: (customerSalesMap[customerKey]?.total || 0) + Number(row.total || 0),
+            gross_profit: (customerSalesMap[customerKey]?.gross_profit || 0) + Number(row.gross_profit || 0),
+          };
+
+          salesPersonMap[salesKey] = {
+            name: salesKey,
+            total: (salesPersonMap[salesKey]?.total || 0) + Number(row.total || 0),
+            gross_profit: (salesPersonMap[salesKey]?.gross_profit || 0) + Number(row.gross_profit || 0),
+          };
+        });
+
+        const topCustomers = Object.values(customerSalesMap)
+          .sort((a, b) => b.total - a.total)
+          .slice(0, 10);
+
+        const topSalesPeople = Object.values(salesPersonMap)
+          .sort((a, b) => b.total - a.total)
+          .slice(0, 10);
+
+        const returns = (returnRows.data || []).reduce((acc, row) => {
+          if (String(row.doc_type || '').toLowerCase() === 'return') {
+            acc.returnCount += 1;
+            acc.returnAmount += Number(row.total_amount || 0);
+          } else {
+            acc.saleCount += 1;
+            acc.saleAmount += Number(row.total_amount || 0);
+          }
+          return acc;
+        }, { saleCount: 0, saleAmount: 0, returnCount: 0, returnAmount: 0 });
+
+        return Response.json({
+          counts: {
+            customers: customerCount.count || 0,
+            vendors: vendorCount.count || 0,
+            quotes: quoteCount.count || 0,
+            orders: orderCount.count || 0,
+            sales_documents: salesDocCount.count || 0,
+            sales_returns: (returnRows.data || []).length,
+            profit_rows: profitCount.count || 0,
+          },
+          rankings: {
+            top_customers: topCustomers,
+            top_sales_people: topSalesPeople,
+          },
+          returns,
+        });
+      }
+
       case 'messages': {
         const page = parseInt(searchParams.get('page') || '1');
         const limit = 20;
