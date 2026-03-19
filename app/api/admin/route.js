@@ -1422,6 +1422,87 @@ export async function POST(request) {
         });
       }
 
+      case 'convert_quote_to_order': {
+        const { quote_id } = body;
+
+        if (!quote_id) {
+          return Response.json({ error: 'quote_id is required' }, { status: 400 });
+        }
+
+        const { data: quote, error: quoteError } = await supabase
+          .from('erp_quotes')
+          .select('*')
+          .eq('id', quote_id)
+          .maybeSingle();
+
+        if (quoteError) return Response.json({ error: quoteError.message }, { status: 500 });
+        if (!quote) return Response.json({ error: 'Quote not found' }, { status: 404 });
+
+        const { data: quoteItems, error: itemFetchError } = await supabase
+          .from('erp_quote_items')
+          .select('*')
+          .eq('quote_id', quote_id)
+          .order('id', { ascending: true });
+
+        if (itemFetchError) return Response.json({ error: itemFetchError.message }, { status: 500 });
+        if (!quoteItems?.length) return Response.json({ error: 'Quote items are missing' }, { status: 400 });
+
+        const orderNo = `SO${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
+
+        const { data: order, error: orderError } = await supabase
+          .from('erp_orders')
+          .insert({
+            order_no: orderNo,
+            customer_id: quote.customer_id,
+            quote_id: quote.id,
+            order_date: toDateValue(quote.quote_date) || new Date().toISOString().slice(0, 10),
+            status: 'confirmed',
+            payment_status: 'unpaid',
+            shipping_status: 'pending',
+            subtotal: toNumber(quote.subtotal),
+            discount_amount: toNumber(quote.discount_amount),
+            shipping_fee: toNumber(quote.shipping_fee),
+            tax_amount: toNumber(quote.tax_amount),
+            total_amount: toNumber(quote.total_amount),
+            remark: cleanCsvValue(quote.remark),
+          })
+          .select('*')
+          .single();
+
+        if (orderError) return Response.json({ error: orderError.message }, { status: 500 });
+
+        const orderItems = quoteItems.map((item) => ({
+          order_id: order.id,
+          product_id: item.product_id || null,
+          item_number_snapshot: item.item_number_snapshot,
+          description_snapshot: item.description_snapshot,
+          qty: item.qty,
+          unit_price: item.unit_price,
+          line_total: item.line_total,
+          cost_price_snapshot: item.cost_price_snapshot,
+        }));
+
+        const { error: orderItemsError } = await supabase
+          .from('erp_order_items')
+          .insert(orderItems);
+
+        if (orderItemsError) {
+          await supabase.from('erp_orders').delete().eq('id', order.id);
+          return Response.json({ error: orderItemsError.message }, { status: 500 });
+        }
+
+        await supabase
+          .from('erp_quotes')
+          .update({ status: 'converted' })
+          .eq('id', quote.id);
+
+        return Response.json({
+          success: true,
+          order,
+          count: orderItems.length,
+        });
+      }
+
       default:
         return Response.json({ error: 'Unknown action' }, { status: 400 });
     }
