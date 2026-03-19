@@ -10,6 +10,42 @@ function formatDayLabel(date) {
   return date.toLocaleString('en-US', { month: '2-digit', day: '2-digit' });
 }
 
+function normalizeCustomerText(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '');
+}
+
+function scoreErpCustomer(row) {
+  if (!row) return -1;
+
+  let score = 0;
+  if (row.customer_code) score += 50;
+  if (row.company_name) score += 20;
+  if (row.phone) score += 10;
+  if (row.email) score += 10;
+  if (row.tax_id) score += 10;
+  if (row.customer_stage === 'customer') score += 20;
+  if (row.customer_stage === 'vip') score += 25;
+  if (row.source && row.source !== 'line') score += 10;
+
+  return score;
+}
+
+function choosePreferredErpCustomer(candidates, displayName) {
+  if (!candidates?.length) return null;
+
+  const normalizedDisplayName = normalizeCustomerText(displayName);
+  const exactNamed = candidates.filter((row) => {
+    const names = [row.name, row.company_name, row.display_name].map(normalizeCustomerText);
+    return normalizedDisplayName && names.includes(normalizedDisplayName);
+  });
+
+  const source = exactNamed.length ? exactNamed : candidates;
+  return [...source].sort((a, b) => scoreErpCustomer(b) - scoreErpCustomer(a))[0] || null;
+}
+
 const ERP_CUSTOMER_BASE_COLUMNS = 'id,name,company_name,phone,email,tax_id,address,line_user_id,source,status,display_name';
 const ERP_CUSTOMER_COLUMNS_WITH_STAGE = `${ERP_CUSTOMER_BASE_COLUMNS},customer_stage`;
 
@@ -221,6 +257,7 @@ export async function GET(request) {
 
         try {
           const lineUserIds = (data || []).map((row) => row.line_user_id).filter(Boolean);
+          const displayNames = (data || []).map((row) => row.display_name).filter(Boolean);
           if (lineUserIds.length > 0) {
             const { data: linkedRows, error: linkedError, stageReady } = await runErpCustomerQuery((columns) =>
               supabase
@@ -232,8 +269,48 @@ export async function GET(request) {
             if (linkedError) throw linkedError;
             customerStageReady = stageReady;
 
-            linkedCustomersByLineId = Object.fromEntries(
+            const linkedByLineId = Object.fromEntries(
               (linkedRows || []).map((row) => [row.line_user_id, row])
+            );
+
+            let nameMatchedRows = [];
+            if (displayNames.length > 0) {
+              const uniqueDisplayNames = [...new Set(displayNames)];
+              const orFilter = uniqueDisplayNames
+                .flatMap((name) => [
+                  `name.ilike.%${name}%`,
+                  `company_name.ilike.%${name}%`,
+                  `display_name.ilike.%${name}%`,
+                ])
+                .join(',');
+
+              const { data: matchedRows, error: matchedError, stageReady: nameStageReady } = await runErpCustomerQuery((columns) =>
+                supabase
+                  .from('erp_customers')
+                  .select(columns)
+                  .or(orFilter)
+              );
+
+              if (!matchedError) {
+                nameMatchedRows = matchedRows || [];
+                customerStageReady = customerStageReady && nameStageReady;
+              }
+            }
+
+            linkedCustomersByLineId = Object.fromEntries(
+              (data || []).map((row) => {
+                const direct = row.line_user_id ? linkedByLineId[row.line_user_id] || null : null;
+                const nameMatches = nameMatchedRows.filter((candidate) => {
+                  const normalizedDisplayName = normalizeCustomerText(row.display_name);
+                  return normalizedDisplayName && [
+                    candidate.name,
+                    candidate.company_name,
+                    candidate.display_name,
+                  ].map(normalizeCustomerText).includes(normalizedDisplayName);
+                });
+
+                return [row.line_user_id, choosePreferredErpCustomer([direct, ...nameMatches].filter(Boolean), row.display_name)];
+              })
             );
           }
         } catch {
@@ -309,6 +386,20 @@ export async function GET(request) {
           if (linkedError) throw linkedError;
           linkedCustomer = linkedRow || null;
           customerStageReady = stageReady;
+
+          const displayName = customer.display_name || linkedCustomer?.display_name || '';
+          if (displayName) {
+            const { data: candidateRows, error: candidateError } = await runErpCustomerQuery((columns) =>
+              supabase
+                .from('erp_customers')
+                .select(columns)
+                .or(`name.ilike.%${displayName}%,company_name.ilike.%${displayName}%,display_name.ilike.%${displayName}%`)
+            );
+
+            if (!candidateError) {
+              linkedCustomer = choosePreferredErpCustomer([linkedCustomer, ...(candidateRows || [])].filter(Boolean), displayName);
+            }
+          }
 
           if (linkedCustomer?.id) {
             const [quotes, orders, sales] = await Promise.all([
