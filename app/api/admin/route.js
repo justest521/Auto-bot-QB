@@ -75,31 +75,43 @@ function parseBatchNumber(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function isMissingColumnError(error) {
+  return /column .* does not exist/i.test(error?.message || '');
+}
+
+function extractMissingColumn(error) {
+  const message = error?.message || '';
+  const match = message.match(/column\s+(?:[\w"]+\.)?"?([\w]+)"?\s+does not exist/i);
+  return match?.[1] || null;
+}
+
 let cachedQuickbuyConfigState = null;
 
 async function getQuickbuyConfigState() {
   if (cachedQuickbuyConfigState) return cachedQuickbuyConfigState;
 
-  const { data, error } = await supabase
-    .schema('information_schema')
-    .from('columns')
-    .select('column_name')
-    .eq('table_schema', 'public')
-    .eq('table_name', 'quickbuy_config');
+  const attempts = [
+    { keyColumn: 'config_key', valueColumn: 'config_value' },
+    { keyColumn: 'key', valueColumn: 'value' },
+  ];
 
-  if (error) throw error;
+  for (const attempt of attempts) {
+    const { error } = await supabase
+      .from('quickbuy_config')
+      .select(`${attempt.keyColumn},${attempt.valueColumn}`)
+      .limit(1);
 
-  const available = new Set((data || []).map((row) => row.column_name));
-  const keyColumn = available.has('config_key') ? 'config_key' : available.has('key') ? 'key' : null;
-  const valueColumn = available.has('config_value') ? 'config_value' : available.has('value') ? 'value' : null;
+    if (!error) {
+      cachedQuickbuyConfigState = attempt;
+      return cachedQuickbuyConfigState;
+    }
 
-  cachedQuickbuyConfigState = {
-    keyColumn,
-    valueColumn,
-    available,
-  };
+    if (!isMissingColumnError(error)) {
+      throw error;
+    }
+  }
 
-  return cachedQuickbuyConfigState;
+  throw new Error('quickbuy_config 缺少可用的 key/value 欄位');
 }
 
 async function getQuickbuyConfigEntry(configKey) {
@@ -170,26 +182,49 @@ let cachedErpCustomerColumnState = null;
 async function getErpCustomerColumnState() {
   if (cachedErpCustomerColumnState) return cachedErpCustomerColumnState;
 
-  const { data, error } = await supabase
-    .schema('information_schema')
-    .from('columns')
-    .select('column_name')
-    .eq('table_schema', 'public')
-    .eq('table_name', 'erp_customers');
+  const columns = [...ERP_CUSTOMER_DESIRED_COLUMNS];
 
-  if (error) throw error;
+  while (columns.length > 0) {
+    const { error } = await supabase
+      .from('erp_customers')
+      .select(columns.join(','))
+      .limit(1);
 
-  const available = new Set((data || []).map((row) => row.column_name));
-  const columns = ERP_CUSTOMER_DESIRED_COLUMNS.filter((column) => available.has(column));
+    if (!error) {
+      const available = new Set(columns);
+      cachedErpCustomerColumnState = {
+        columns: columns.join(','),
+        stageReady: available.has('customer_stage'),
+        lineReady: available.has('line_user_id'),
+        displayReady: available.has('display_name'),
+        available,
+      };
+      return cachedErpCustomerColumnState;
+    }
+
+    if (!isMissingColumnError(error)) {
+      throw error;
+    }
+
+    const missingColumn = extractMissingColumn(error);
+    if (!missingColumn) {
+      throw error;
+    }
+
+    const nextColumns = columns.filter((column) => column !== missingColumn);
+    if (nextColumns.length === columns.length) {
+      throw error;
+    }
+    columns.splice(0, columns.length, ...nextColumns);
+  }
 
   cachedErpCustomerColumnState = {
-    columns: columns.length ? columns.join(',') : 'id',
-    stageReady: available.has('customer_stage'),
-    lineReady: available.has('line_user_id'),
-    displayReady: available.has('display_name'),
-    available,
+    columns: 'id',
+    stageReady: false,
+    lineReady: false,
+    displayReady: false,
+    available: new Set(['id']),
   };
-
   return cachedErpCustomerColumnState;
 }
 
