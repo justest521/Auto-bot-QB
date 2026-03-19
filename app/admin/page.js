@@ -503,6 +503,92 @@ function Pager({ page, limit, total, onPageChange, onLimitChange }) {
     </div>
   );
 }
+function SaleDetailDrawer({ slipNumber, open, onClose }) {
+  const [loading, setLoading] = useState(false);
+  const [detail, setDetail] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!open || !slipNumber) return;
+    setLoading(true);
+    setError('');
+    apiGet({ action: 'sale_detail', slip_number: slipNumber })
+      .then(setDetail)
+      .catch((err) => setError(err.message || '讀取銷貨單失敗'))
+      .finally(() => setLoading(false));
+  }, [open, slipNumber]);
+
+  if (!open) return null;
+
+  const sale = detail?.sale;
+  const invoice = detail?.invoice;
+  const items = detail?.items || [];
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 200, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div style={{ width: 'min(720px, 100vw)', height: '100vh', background: '#f6f9fc', boxShadow: '-18px 0 50px rgba(18,26,42,0.2)', padding: '24px 22px 28px', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 18 }}>
+          <div>
+            <div style={S.eyebrow}>Sales Detail</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: '#1c2740' }}>{slipNumber}</div>
+            <div style={{ fontSize: 12, color: '#7b889b', marginTop: 6 }}>完整銷貨單檢視</div>
+          </div>
+          <button onClick={onClose} style={S.btnGhost}>關閉</button>
+        </div>
+        {loading ? <Loading /> : error ? <ImportStatus status={error} /> : sale ? (
+          <div style={{ display: 'grid', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+              <div style={S.panelMuted}><div style={S.label}>客戶</div><div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700 }}>{sale.customer_name || '-'}</div></div>
+              <div style={S.panelMuted}><div style={S.label}>銷貨日期</div><div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{sale.sale_date || '-'}</div></div>
+              <div style={S.panelMuted}><div style={S.label}>業務</div><div style={{ fontSize: 14, color: '#1c2740' }}>{sale.sales_person || '-'}</div></div>
+              <div style={S.panelMuted}><div style={S.label}>發票號碼</div><div style={{ fontSize: 14, color: '#1c2740', ...S.mono }}>{sale.invoice_number || '-'}</div></div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+              <div style={S.panelMuted}><div style={S.label}>未稅</div><div style={{ fontSize: 18, color: '#1c2740', fontWeight: 700, ...S.mono }}>{fmtP(sale.subtotal)}</div></div>
+              <div style={S.panelMuted}><div style={S.label}>稅額</div><div style={{ fontSize: 18, color: '#1c2740', fontWeight: 700, ...S.mono }}>{fmtP(sale.tax)}</div></div>
+              <div style={S.panelMuted}><div style={S.label}>總額</div><div style={{ fontSize: 18, color: '#129c59', fontWeight: 700, ...S.mono }}>{fmtP(sale.total)}</div></div>
+              <div style={S.panelMuted}><div style={S.label}>毛利</div><div style={{ fontSize: 18, color: '#1976f3', fontWeight: 700, ...S.mono }}>{fmtP(sale.gross_profit)}</div></div>
+            </div>
+            {invoice ? (
+              <div style={S.card}>
+                <PanelHeader title="發票資訊" meta="來自 qb_invoices" badge={<div style={S.tag('green')}>INVOICE</div>} />
+                <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8 }}>
+                  <div><span style={{ color: '#7b889b', ...S.mono }}>NUMBER</span> {invoice.invoice_number || '-'}</div>
+                  <div><span style={{ color: '#7b889b', ...S.mono }}>TYPE</span> {invoice.invoice_type || '-'}</div>
+                  <div><span style={{ color: '#7b889b', ...S.mono }}>COMPANY</span> {invoice.company_name || '-'}</div>
+                  <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {invoice.tax_id || '-'}</div>
+                  <div><span style={{ color: '#7b889b', ...S.mono }}>AMOUNT</span> {fmtP(invoice.amount)}</div>
+                  <div><span style={{ color: '#7b889b', ...S.mono }}>ISSUED</span> {fmtDate(invoice.issued_at)}</div>
+                </div>
+              </div>
+            ) : null}
+            <div style={S.card}>
+              <PanelHeader title="商品明細" meta="若訂單明細已進 qb_order_items，這裡會直接列出。" badge={<div style={S.tag(items.length ? 'green' : 'red')}>{items.length ? `${fmt(items.length)} 筆` : '目前無明細'}</div>} />
+              {items.length ? (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '140px minmax(0,1fr) 80px 100px 110px', gap: 12, color: '#7b889b', fontSize: 10, ...S.mono, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>
+                    <div>品號</div><div>品名</div><div style={{ textAlign: 'right' }}>數量</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'right' }}>小計</div>
+                  </div>
+                  {items.map((item) => (
+                    <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '140px minmax(0,1fr) 80px 100px 110px', gap: 12, alignItems: 'center', padding: '8px 0', borderTop: '1px solid #eef3f8' }}>
+                      <div style={{ color: '#1976f3', fontSize: 12, fontWeight: 700, ...S.mono }}>{item.item_number || '-'}</div>
+                      <div style={{ color: '#1c2740', fontSize: 13 }}>{item.description || '-'}</div>
+                      <div style={{ color: '#617084', textAlign: 'right', ...S.mono }}>{fmt(item.quantity)}</div>
+                      <div style={{ color: '#617084', textAlign: 'right', ...S.mono }}>{fmtP(item.unit_price)}</div>
+                      <div style={{ color: '#129c59', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(item.subtotal)}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState text="目前這張銷貨單還沒有對應的商品明細資料。若後續把 qb_order_items 補齊，這裡會直接顯示。" />
+              )}
+            </div>
+          </div>
+        ) : <EmptyState text="找不到這張銷貨單" />}
+      </div>
+    </div>
+  );
+}
 function MiniDonut({ value, color }) {
   const safeValue = Math.max(0, Math.min(100, value || 0));
   const degrees = Math.round((safeValue / 100) * 360);
@@ -1772,6 +1858,7 @@ function SalesReturns() {
   const [dateTo, setDateTo] = useState(initialRange.to);
   const [rangePreset, setRangePreset] = useState('today');
   const [pageSize, setPageSize] = useState(50);
+  const [selectedSlipNumber, setSelectedSlipNumber] = useState('');
 
   const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo, limit = pageSize) => {
     setLoading(true);
@@ -1862,7 +1949,16 @@ function SalesReturns() {
         <div key={row.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
+              {row.doc_type === 'return' ? (
+                <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
+              ) : (
+                <button
+                  onClick={() => setSelectedSlipNumber(row.doc_no)}
+                  style={{ background: 'none', border: 0, padding: 0, fontSize: 12, color: '#1976f3', fontWeight: 700, cursor: 'pointer', ...S.mono }}
+                >
+                  {row.doc_no}
+                </button>
+              )}
               <div style={{ marginTop: 6 }}>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
             </div>
             <div>
@@ -1899,7 +1995,16 @@ function SalesReturns() {
           {data.rows.map((row) => (
             <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '96px 150px minmax(0,1fr) 110px 120px' : '96px 160px minmax(0,1.2fr) 110px 150px 130px 130px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
               <div>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
-              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
+              {row.doc_type === 'return' ? (
+                <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
+              ) : (
+                <button
+                  onClick={() => setSelectedSlipNumber(row.doc_no)}
+                  style={{ background: 'none', border: 0, padding: 0, fontSize: 12, color: '#1976f3', fontWeight: 700, textAlign: 'left', cursor: 'pointer', ...S.mono }}
+                >
+                  {row.doc_no}
+                </button>
+              )}
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
                 <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.6 }}>
@@ -1924,6 +2029,7 @@ function SalesReturns() {
           load(1, search, dateFrom, dateTo, nextLimit);
         }}
       />
+      <SaleDetailDrawer slipNumber={selectedSlipNumber} open={Boolean(selectedSlipNumber)} onClose={() => setSelectedSlipNumber('')} />
     </div>
   );
 }
@@ -1941,6 +2047,7 @@ function ProfitAnalysis() {
   const [dateTo, setDateTo] = useState(initialRange.to);
   const [rangePreset, setRangePreset] = useState('today');
   const [pageSize, setPageSize] = useState(50);
+  const [selectedSlipNumber, setSelectedSlipNumber] = useState('');
 
   const load = useCallback(async (page = 1, q = search, from = dateFrom, to = dateTo, limit = pageSize) => {
     setLoading(true);
@@ -2035,7 +2142,17 @@ function ProfitAnalysis() {
             <div>
               <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700 }}>{row.customer_name || '未命名客戶'}</div>
               <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.7 }}>
-                <div><span style={{ color: '#7b889b', ...S.mono }}>DOC</span> {row.doc_no || '-'}</div>
+                <div>
+                  <span style={{ color: '#7b889b', ...S.mono }}>DOC</span>{' '}
+                  {row.doc_no ? (
+                    <button
+                      onClick={() => setSelectedSlipNumber(row.doc_no)}
+                      style={{ background: 'none', border: 0, padding: 0, color: '#1976f3', fontWeight: 700, cursor: 'pointer', ...S.mono }}
+                    >
+                      {row.doc_no}
+                    </button>
+                  ) : '-'}
+                </div>
                 <div><span style={{ color: '#7b889b', ...S.mono }}>DATE</span> {row.doc_date || '-'}</div>
                 <div><span style={{ color: '#7b889b', ...S.mono }}>SALES</span> {row.sales_name || '-'}</div>
               </div>
@@ -2072,7 +2189,15 @@ function ProfitAnalysis() {
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
                 <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.6 }}>
-                  <span style={{ color: '#7b889b', ...S.mono }}>DOC</span> {row.doc_no || '-'}
+                  <span style={{ color: '#7b889b', ...S.mono }}>DOC</span>{' '}
+                  {row.doc_no ? (
+                    <button
+                      onClick={() => setSelectedSlipNumber(row.doc_no)}
+                      style={{ background: 'none', border: 0, padding: 0, color: '#1976f3', fontWeight: 700, cursor: 'pointer', ...S.mono }}
+                    >
+                      {row.doc_no}
+                    </button>
+                  ) : '-'}
                   {isTablet ? ` · ${row.doc_date || '-'}` : ''}
                 </div>
               </div>
@@ -2096,6 +2221,7 @@ function ProfitAnalysis() {
           load(1, search, dateFrom, dateTo, nextLimit);
         }}
       />
+      <SaleDetailDrawer slipNumber={selectedSlipNumber} open={Boolean(selectedSlipNumber)} onClose={() => setSelectedSlipNumber('')} />
     </div>
   );
 }

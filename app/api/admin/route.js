@@ -631,6 +631,56 @@ export async function GET(request) {
         }
       }
 
+      case 'sale_detail': {
+        const slipNumber = (searchParams.get('slip_number') || '').trim();
+        if (!slipNumber) {
+          return Response.json({ error: 'slip_number is required' }, { status: 400 });
+        }
+
+        try {
+          const { data: sale, error: saleError } = await supabase
+            .from('qb_sales_history')
+            .select('*')
+            .eq('slip_number', slipNumber)
+            .maybeSingle();
+
+          if (saleError) return Response.json({ error: saleError.message }, { status: 500 });
+          if (!sale) return Response.json({ error: 'Sale not found' }, { status: 404 });
+
+          let invoice = null;
+          let items = [];
+
+          if (sale.invoice_number) {
+            const { data: invoiceRow } = await supabase
+              .from('qb_invoices')
+              .select('*')
+              .eq('invoice_number', sale.invoice_number)
+              .maybeSingle();
+
+            invoice = invoiceRow || null;
+
+            if (invoiceRow?.order_id) {
+              const { data: itemRows } = await supabase
+                .from('qb_order_items')
+                .select('*')
+                .eq('order_id', invoiceRow.order_id)
+                .order('id', { ascending: true });
+
+              items = itemRows || [];
+            }
+          }
+
+          return Response.json({
+            sale,
+            invoice,
+            items,
+            has_items: items.length > 0,
+          });
+        } catch (error) {
+          return Response.json({ error: error.message }, { status: 500 });
+        }
+      }
+
       case 'profit_analysis': {
         const page = parseInt(searchParams.get('page') || '1', 10);
         const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
