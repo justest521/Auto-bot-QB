@@ -1687,6 +1687,229 @@ function ProductSearch() {
   );
 }
 
+/* ========================================= QUOTES ========================================= */
+function Quotes() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const isTablet = width < 1180;
+  const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { total_amount: 0, open_count: 0 } });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [pageSize, setPageSize] = useState(50);
+
+  const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
+    setLoading(true);
+    try {
+      const result = await apiGet({ action: 'quotes', page: String(page), limit: String(limit), search: q });
+      setData(result);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, pageSize]);
+
+  useEffect(() => { load(); }, []);
+
+  return (
+    <div>
+      <PageLead eyebrow="Quotes" title="報價單" description="查看 ERP 報價單、客戶、有效期限與總金額，作為詢價轉單前的作業入口。" />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, pageSize)} placeholder="搜尋報價單號、狀態或備註..." style={{ ...S.input, flex: 1 }} />
+        <button onClick={() => load(1, search, pageSize)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_quotes` 資料表，請先跑 [`docs/erp-schema-v1.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-schema-v1.sql)。</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+        <StatCard code="QTOT" label="報價總數" value={fmt(data.total)} tone="blue" />
+        <StatCard code="OPEN" label="待處理" value={fmt(data.summary?.open_count)} tone="yellow" />
+        <StatCard code="AMT" label="本頁總額" value={fmtP(data.summary?.total_amount)} tone="green" />
+      </div>
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有報價單資料" /> : (
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '140px minmax(0,1.2fr) 110px 130px' : '160px minmax(0,1.3fr) 110px 130px 120px 140px', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e6edf5', color: '#7b889b', fontSize: 10, ...S.mono }}>
+            <div>報價單號</div>
+            <div>客戶</div>
+            <div>日期</div>
+            <div>狀態</div>
+            {!isTablet && <div>有效期限</div>}
+            {!isTablet && <div style={{ textAlign: 'right' }}>總額</div>}
+          </div>
+          {data.rows.map((row) => (
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '140px minmax(0,1.2fr) 110px 130px' : '160px minmax(0,1.3fr) 110px 130px 120px 140px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
+              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.quote_no || '-'}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</div>
+                <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>{row.remark || row.customer?.phone || '-'}</div>
+              </div>
+              <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{row.quote_date || '-'}</div>
+              <div><span style={S.tag(String(row.status || '').toLowerCase().includes('approved') ? 'green' : '')}>{row.status || 'draft'}</span></div>
+              {!isTablet && <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{row.valid_until || '-'}</div>}
+              {!isTablet && <div style={{ fontSize: 13, color: '#129c59', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+      <Pager
+        page={data.page || 1}
+        limit={data.limit || pageSize}
+        total={data.total || 0}
+        onPageChange={(nextPage) => load(nextPage, search, pageSize)}
+        onLimitChange={(nextLimit) => { setPageSize(nextLimit); load(1, search, nextLimit); }}
+      />
+    </div>
+  );
+}
+
+/* ========================================= ORDERS ========================================= */
+function Orders() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const isTablet = width < 1180;
+  const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { total_amount: 0, pending_count: 0 } });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [pageSize, setPageSize] = useState(50);
+
+  const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
+    setLoading(true);
+    try {
+      const result = await apiGet({ action: 'orders', page: String(page), limit: String(limit), search: q });
+      setData(result);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, pageSize]);
+
+  useEffect(() => { load(); }, []);
+
+  return (
+    <div>
+      <PageLead eyebrow="Orders" title="訂單" description="查看 ERP 訂單、付款與出貨狀態，作為報價轉單後的作業中心。" />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, pageSize)} placeholder="搜尋訂單號、狀態、付款或出貨..." style={{ ...S.input, flex: 1 }} />
+        <button onClick={() => load(1, search, pageSize)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_orders` 資料表，請先跑 [`docs/erp-schema-v1.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-schema-v1.sql)。</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+        <StatCard code="OTOT" label="訂單總數" value={fmt(data.total)} tone="blue" />
+        <StatCard code="PEND" label="未完成" value={fmt(data.summary?.pending_count)} tone="yellow" />
+        <StatCard code="AMT" label="本頁總額" value={fmtP(data.summary?.total_amount)} tone="green" />
+      </div>
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有訂單資料" /> : (
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '140px minmax(0,1.2fr) 110px 130px' : '160px minmax(0,1.3fr) 110px 120px 120px 140px 140px', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e6edf5', color: '#7b889b', fontSize: 10, ...S.mono }}>
+            <div>訂單號</div>
+            <div>客戶</div>
+            <div>日期</div>
+            <div>訂單狀態</div>
+            {!isTablet && <div>付款</div>}
+            {!isTablet && <div>出貨</div>}
+            {!isTablet && <div style={{ textAlign: 'right' }}>總額</div>}
+          </div>
+          {data.rows.map((row) => (
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '140px minmax(0,1.2fr) 110px 130px' : '160px minmax(0,1.3fr) 110px 120px 120px 140px 140px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
+              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</div>
+                <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>{row.remark || '-'}</div>
+              </div>
+              <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{row.order_date || '-'}</div>
+              <div><span style={S.tag('')}>{row.status || 'draft'}</span></div>
+              {!isTablet && <div><span style={S.tag(String(row.payment_status || '').toLowerCase().includes('paid') ? 'green' : '')}>{row.payment_status || '-'}</span></div>}
+              {!isTablet && <div><span style={S.tag(String(row.shipping_status || '').toLowerCase().includes('shipped') ? 'green' : '')}>{row.shipping_status || '-'}</span></div>}
+              {!isTablet && <div style={{ fontSize: 13, color: '#129c59', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+      <Pager
+        page={data.page || 1}
+        limit={data.limit || pageSize}
+        total={data.total || 0}
+        onPageChange={(nextPage) => load(nextPage, search, pageSize)}
+        onLimitChange={(nextLimit) => { setPageSize(nextLimit); load(1, search, nextLimit); }}
+      />
+    </div>
+  );
+}
+
+/* ========================================= SALES DOCUMENTS ========================================= */
+function SalesDocuments() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const isTablet = width < 1180;
+  const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { total: 0, gross_profit: 0 } });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [pageSize, setPageSize] = useState(50);
+  const [selectedSlipNumber, setSelectedSlipNumber] = useState('');
+
+  const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
+    setLoading(true);
+    try {
+      const result = await apiGet({ action: 'sales_documents', page: String(page), limit: String(limit), search: q });
+      setData(result);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, pageSize]);
+
+  useEffect(() => { load(); }, []);
+
+  return (
+    <div>
+      <PageLead eyebrow="Sales" title="銷貨單" description="查看實際銷貨單、發票號碼與毛利，並可點單號查看完整銷貨單內容。" />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, pageSize)} placeholder="搜尋銷貨單號、客戶、業務或發票..." style={{ ...S.input, flex: 1 }} />
+        <button onClick={() => load(1, search, pageSize)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `qb_sales_history` 或目前資料不可讀。</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+        <StatCard code="STOT" label="銷貨筆數" value={fmt(data.total)} tone="blue" />
+        <StatCard code="REV" label="本頁營收" value={fmtP(data.summary?.total)} tone="green" />
+        <StatCard code="GP" label="本頁毛利" value={fmtP(data.summary?.gross_profit)} tone="yellow" />
+      </div>
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷貨單資料" /> : (
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '160px minmax(0,1.2fr) 110px 110px' : '170px minmax(0,1.3fr) 120px 120px 120px 120px 120px', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e6edf5', color: '#7b889b', fontSize: 10, ...S.mono }}>
+            <div>銷貨單號</div>
+            <div>客戶 / 發票</div>
+            <div>日期</div>
+            <div>業務</div>
+            {!isTablet && <div style={{ textAlign: 'right' }}>未稅</div>}
+            {!isTablet && <div style={{ textAlign: 'right' }}>總額</div>}
+            {!isTablet && <div style={{ textAlign: 'right' }}>毛利</div>}
+          </div>
+          {data.rows.map((row) => (
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '160px minmax(0,1.2fr) 110px 110px' : '170px minmax(0,1.3fr) 120px 120px 120px 120px 120px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
+              <button onClick={() => setSelectedSlipNumber(row.slip_number)} style={{ background: 'none', border: 0, padding: 0, textAlign: 'left', fontSize: 12, color: '#1976f3', fontWeight: 700, cursor: 'pointer', ...S.mono }}>
+                {row.slip_number || '-'}
+              </button>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
+                <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.6 }}>
+                  <span style={{ color: '#7b889b', ...S.mono }}>INV</span> {row.invoice_number || '-'}
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{row.sale_date || '-'}</div>
+              <div style={{ fontSize: 12, color: '#617084' }}>{row.sales_person || '-'}</div>
+              {!isTablet && <div style={{ fontSize: 13, color: '#1c2740', textAlign: 'right', ...S.mono }}>{fmtP(row.subtotal)}</div>}
+              {!isTablet && <div style={{ fontSize: 13, color: '#129c59', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total)}</div>}
+              {!isTablet && <div style={{ fontSize: 13, color: '#1976f3', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.gross_profit)}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+      <Pager
+        page={data.page || 1}
+        limit={data.limit || pageSize}
+        total={data.total || 0}
+        onPageChange={(nextPage) => load(nextPage, search, pageSize)}
+        onLimitChange={(nextLimit) => { setPageSize(nextLimit); load(1, search, nextLimit); }}
+      />
+      <SaleDetailDrawer slipNumber={selectedSlipNumber} open={Boolean(selectedSlipNumber)} onClose={() => setSelectedSlipNumber('')} />
+    </div>
+  );
+}
+
 /* ========================================= PROMOTIONS ========================================= */
 function Promotions() {
   const width = useViewportWidth();
@@ -2456,6 +2679,9 @@ const SECTIONS = [
       { id: 'dashboard', label: '儀表板', code: 'DASH' },
       { id: 'customers', label: '客戶主檔', code: 'CUST' },
       { id: 'line_customers', label: 'LINE 客戶', code: 'LINE' },
+      { id: 'quotes', label: '報價單', code: 'QUOT' },
+      { id: 'orders', label: '訂單', code: 'ORDR' },
+      { id: 'sales_documents', label: '銷貨單', code: 'SALE' },
       { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
       { id: 'products', label: '產品查價', code: 'SRCH' },
       { id: 'imports', label: '資料匯入', code: 'IMPT' },
@@ -2480,6 +2706,9 @@ const TAB_COMPONENTS = {
   dashboard: Dashboard,
   customers: FormalCustomers,
   line_customers: Customers,
+  quotes: Quotes,
+  orders: Orders,
+  sales_documents: SalesDocuments,
   messages: Messages,
   products: ProductSearch,
   imports: ImportCenter,

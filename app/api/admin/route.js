@@ -593,6 +593,130 @@ export async function GET(request) {
         }
       }
 
+      case 'quotes': {
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+        const offset = (page - 1) * limit;
+        const search = (searchParams.get('search') || '').trim();
+
+        try {
+          let query = supabase
+            .from('erp_quotes')
+            .select('*', { count: 'exact' })
+            .order('quote_date', { ascending: false, nullsFirst: false })
+            .range(offset, offset + limit - 1);
+
+          if (search) {
+            query = query.or(`quote_no.ilike.%${search}%,status.ilike.%${search}%,remark.ilike.%${search}%`);
+          }
+
+          const { data, count, error } = await query;
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          const customerIds = [...new Set((data || []).map((row) => row.customer_id).filter(Boolean))];
+          let customerMap = {};
+          if (customerIds.length) {
+            const { data: customerRows } = await runErpCustomerQuery((columns) =>
+              supabase.from('erp_customers').select(columns).in('id', customerIds)
+            );
+            customerMap = Object.fromEntries((customerRows || []).map((row) => [row.id, row]));
+          }
+
+          const rows = (data || []).map((row) => ({
+            ...row,
+            customer: customerMap[row.customer_id] || null,
+          }));
+
+          const summary = rows.reduce((acc, row) => {
+            acc.total_amount += Number(row.total_amount || 0);
+            acc.open_count += row.status && !['approved', 'converted', 'closed'].includes(String(row.status).toLowerCase()) ? 1 : 0;
+            return acc;
+          }, { total_amount: 0, open_count: 0 });
+
+          return Response.json({ rows, total: count || 0, page, limit, summary, table_ready: true });
+        } catch {
+          return Response.json({ rows: [], total: 0, page, limit, summary: { total_amount: 0, open_count: 0 }, table_ready: false });
+        }
+      }
+
+      case 'orders': {
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+        const offset = (page - 1) * limit;
+        const search = (searchParams.get('search') || '').trim();
+
+        try {
+          let query = supabase
+            .from('erp_orders')
+            .select('*', { count: 'exact' })
+            .order('order_date', { ascending: false, nullsFirst: false })
+            .range(offset, offset + limit - 1);
+
+          if (search) {
+            query = query.or(`order_no.ilike.%${search}%,status.ilike.%${search}%,payment_status.ilike.%${search}%,shipping_status.ilike.%${search}%,remark.ilike.%${search}%`);
+          }
+
+          const { data, count, error } = await query;
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          const customerIds = [...new Set((data || []).map((row) => row.customer_id).filter(Boolean))];
+          let customerMap = {};
+          if (customerIds.length) {
+            const { data: customerRows } = await runErpCustomerQuery((columns) =>
+              supabase.from('erp_customers').select(columns).in('id', customerIds)
+            );
+            customerMap = Object.fromEntries((customerRows || []).map((row) => [row.id, row]));
+          }
+
+          const rows = (data || []).map((row) => ({
+            ...row,
+            customer: customerMap[row.customer_id] || null,
+          }));
+
+          const summary = rows.reduce((acc, row) => {
+            acc.total_amount += Number(row.total_amount || 0);
+            acc.pending_count += String(row.status || '').toLowerCase() !== 'completed' ? 1 : 0;
+            return acc;
+          }, { total_amount: 0, pending_count: 0 });
+
+          return Response.json({ rows, total: count || 0, page, limit, summary, table_ready: true });
+        } catch {
+          return Response.json({ rows: [], total: 0, page, limit, summary: { total_amount: 0, pending_count: 0 }, table_ready: false });
+        }
+      }
+
+      case 'sales_documents': {
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+        const offset = (page - 1) * limit;
+        const search = (searchParams.get('search') || '').trim();
+
+        try {
+          let query = supabase
+            .from('qb_sales_history')
+            .select('*', { count: 'exact' })
+            .order('sale_date', { ascending: false, nullsFirst: false })
+            .range(offset, offset + limit - 1);
+
+          if (search) {
+            query = query.or(`slip_number.ilike.%${search}%,customer_name.ilike.%${search}%,sales_person.ilike.%${search}%,invoice_number.ilike.%${search}%`);
+          }
+
+          const { data, count, error } = await query;
+          if (error) return Response.json({ error: error.message }, { status: 500 });
+
+          const summary = (data || []).reduce((acc, row) => {
+            acc.total += Number(row.total || 0);
+            acc.gross_profit += Number(row.gross_profit || 0);
+            return acc;
+          }, { total: 0, gross_profit: 0 });
+
+          return Response.json({ rows: data || [], total: count || 0, page, limit, summary, table_ready: true });
+        } catch {
+          return Response.json({ rows: [], total: 0, page, limit, summary: { total: 0, gross_profit: 0 }, table_ready: false });
+        }
+      }
+
       case 'sales_returns': {
         const page = parseInt(searchParams.get('page') || '1', 10);
         const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
