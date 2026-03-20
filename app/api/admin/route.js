@@ -160,6 +160,17 @@ async function appendImportHistory(entry) {
   await upsertQuickbuyConfigEntry('admin_import_history', nextHistory);
 }
 
+async function deleteAllRows(table, notNullColumn) {
+  const { error } = await supabase
+    .from(table)
+    .delete()
+    .not(notNullColumn, 'is', null);
+
+  if (error && !/relation .* does not exist/i.test(error.message || '')) {
+    throw error;
+  }
+}
+
 const ERP_CUSTOMER_DESIRED_COLUMNS = [
   'id',
   'customer_code',
@@ -1665,6 +1676,54 @@ export async function POST(request) {
 
         if (error) return Response.json({ error: error.message }, { status: 500 });
         return Response.json({ success: true });
+      }
+
+      case 'reset_erp_business_data': {
+        const { confirmation } = body;
+
+        if (confirmation !== 'RESET ERP') {
+          return Response.json({ error: 'Confirmation phrase mismatch' }, { status: 400 });
+        }
+
+        await deleteAllRows('erp_quote_items', 'id');
+        await deleteAllRows('erp_quotes', 'id');
+        await deleteAllRows('erp_order_items', 'id');
+        await deleteAllRows('erp_orders', 'id');
+        await deleteAllRows('qb_order_items', 'id');
+        await deleteAllRows('qb_invoices', 'id');
+        await deleteAllRows('qb_sales_history', 'id');
+        await deleteAllRows('erp_profit_analysis', 'id');
+        await deleteAllRows('erp_sales_return_summary', 'id');
+        await deleteAllRows('erp_vendors', 'id');
+        await deleteAllRows('erp_customers', 'id');
+        await deleteAllRows('quickbuy_products', 'item_number');
+
+        await appendImportHistory({
+          dataset: 'system_reset',
+          file_name: null,
+          count: 0,
+          imported_at: new Date().toISOString(),
+          imported_by: 'admin',
+          notes: 'RESET ERP business data',
+        });
+
+        return Response.json({
+          success: true,
+          cleared_tables: [
+            'erp_quote_items',
+            'erp_quotes',
+            'erp_order_items',
+            'erp_orders',
+            'qb_order_items',
+            'qb_invoices',
+            'qb_sales_history',
+            'erp_profit_analysis',
+            'erp_sales_return_summary',
+            'erp_vendors',
+            'erp_customers',
+            'quickbuy_products',
+          ],
+        });
       }
 
       case 'create_quote': {
