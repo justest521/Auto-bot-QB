@@ -98,6 +98,89 @@ function missingRelationResponse(error, fallbackTable) {
   }, { status: 400 });
 }
 
+function isNonDefaultInsertError(error) {
+  return /cannot insert a non-DEFAULT value into column/i.test(error?.message || '');
+}
+
+function extractRestrictedInsertColumn(error) {
+  const message = error?.message || '';
+  const match = message.match(/column\s+"?([\w]+)"?\s+of relation/i);
+  return match?.[1] || null;
+}
+
+async function insertSingleWithColumnFallback(table, payload, selectClause = '*') {
+  let nextPayload = { ...payload };
+  let attempts = 0;
+
+  while (attempts < 10) {
+    attempts += 1;
+    const { data, error } = await supabase
+      .from(table)
+      .insert(nextPayload)
+      .select(selectClause)
+      .single();
+
+    if (!error) {
+      return { data, error: null, omittedColumns: Object.keys(payload).filter((key) => !(key in nextPayload)) };
+    }
+
+    if (!isNonDefaultInsertError(error)) {
+      return { data: null, error, omittedColumns: [] };
+    }
+
+    const blockedColumn = extractRestrictedInsertColumn(error);
+    if (!blockedColumn || !(blockedColumn in nextPayload)) {
+      return { data: null, error, omittedColumns: [] };
+    }
+
+    const { [blockedColumn]: _removed, ...rest } = nextPayload;
+    nextPayload = rest;
+  }
+
+  return {
+    data: null,
+    error: new Error(`Insert fallback exceeded for ${table}`),
+    omittedColumns: [],
+  };
+}
+
+async function insertManyWithColumnFallback(table, rows) {
+  if (!rows.length) return { error: null, omittedColumns: [] };
+
+  let nextRows = rows.map((row) => ({ ...row }));
+  let attempts = 0;
+
+  while (attempts < 10) {
+    attempts += 1;
+    const { error } = await supabase.from(table).insert(nextRows);
+    if (!error) {
+      return {
+        error: null,
+        omittedColumns: Object.keys(rows[0] || {}).filter((key) => !(key in (nextRows[0] || {}))),
+      };
+    }
+
+    if (!isNonDefaultInsertError(error)) {
+      return { error, omittedColumns: [] };
+    }
+
+    const blockedColumn = extractRestrictedInsertColumn(error);
+    if (!blockedColumn || !(blockedColumn in (nextRows[0] || {}))) {
+      return { error, omittedColumns: [] };
+    }
+
+    nextRows = nextRows.map((row) => {
+      const { [blockedColumn]: _removed, ...rest } = row;
+      return rest;
+    });
+  }
+
+  return {
+    error: new Error(`Insert fallback exceeded for ${table}`),
+    omittedColumns: [],
+  };
+}
+
 function extractMissingColumn(error) {
   const message = error?.message || '';
   const match = message.match(/column\s+(?:[\w"]+\.)?"?([\w]+)"?\s+does not exist/i);
@@ -2026,24 +2109,23 @@ export async function POST(request) {
         const totalAmount = taxableBase + taxAmount;
         const quoteNo = `QT${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
 
-        const { data: quote, error: quoteError } = await supabase
-          .from('erp_quotes')
-          .insert({
-            quote_no: quoteNo,
-            customer_id,
-            quote_date,
-            valid_until,
-            status: cleanCsvValue(status) || 'draft',
-            subtotal,
-            discount_amount: safeDiscount,
-            shipping_fee: safeShipping,
-            tax_amount: taxAmount,
-            total_amount: totalAmount,
-            remark: cleanCsvValue(remark),
-            created_by: 'admin',
-          })
-          .select('*')
-          .single();
+        const {
+          data: quote,
+          error: quoteError,
+        } = await insertSingleWithColumnFallback('erp_quotes', {
+          quote_no: quoteNo,
+          customer_id,
+          quote_date,
+          valid_until,
+          status: cleanCsvValue(status) || 'draft',
+          subtotal,
+          discount_amount: safeDiscount,
+          shipping_fee: safeShipping,
+          tax_amount: taxAmount,
+          total_amount: totalAmount,
+          remark: cleanCsvValue(remark),
+          created_by: 'admin',
+        });
 
         if (quoteError) {
           if (isMissingRelationError(quoteError)) return missingRelationResponse(quoteError, 'public.erp_quotes');
@@ -2055,9 +2137,7 @@ export async function POST(request) {
           ...item,
         }));
 
-        const { error: itemError } = await supabase
-          .from('erp_quote_items')
-          .insert(itemPayload);
+        const { error: itemError } = await insertManyWithColumnFallback('erp_quote_items', itemPayload);
 
         if (itemError) {
           await supabase.from('erp_quotes').delete().eq('id', quote.id);
@@ -2105,25 +2185,24 @@ export async function POST(request) {
 
         const orderNo = `SO${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
 
-        const { data: order, error: orderError } = await supabase
-          .from('erp_orders')
-          .insert({
-            order_no: orderNo,
-            customer_id: quote.customer_id,
-            quote_id: quote.id,
-            order_date: toDateValue(quote.quote_date) || new Date().toISOString().slice(0, 10),
-            status: 'confirmed',
-            payment_status: 'unpaid',
-            shipping_status: 'pending',
-            subtotal: toNumber(quote.subtotal),
-            discount_amount: toNumber(quote.discount_amount),
-            shipping_fee: toNumber(quote.shipping_fee),
-            tax_amount: toNumber(quote.tax_amount),
-            total_amount: toNumber(quote.total_amount),
-            remark: cleanCsvValue(quote.remark),
-          })
-          .select('*')
-          .single();
+        const {
+          data: order,
+          error: orderError,
+        } = await insertSingleWithColumnFallback('erp_orders', {
+          order_no: orderNo,
+          customer_id: quote.customer_id,
+          quote_id: quote.id,
+          order_date: toDateValue(quote.quote_date) || new Date().toISOString().slice(0, 10),
+          status: 'confirmed',
+          payment_status: 'unpaid',
+          shipping_status: 'pending',
+          subtotal: toNumber(quote.subtotal),
+          discount_amount: toNumber(quote.discount_amount),
+          shipping_fee: toNumber(quote.shipping_fee),
+          tax_amount: toNumber(quote.tax_amount),
+          total_amount: toNumber(quote.total_amount),
+          remark: cleanCsvValue(quote.remark),
+        });
 
         if (orderError) {
           if (isMissingRelationError(orderError)) return missingRelationResponse(orderError, 'public.erp_orders');
@@ -2141,9 +2220,7 @@ export async function POST(request) {
           cost_price_snapshot: item.cost_price_snapshot,
         }));
 
-        const { error: orderItemsError } = await supabase
-          .from('erp_order_items')
-          .insert(orderItems);
+        const { error: orderItemsError } = await insertManyWithColumnFallback('erp_order_items', orderItems);
 
         if (orderItemsError) {
           await supabase.from('erp_orders').delete().eq('id', order.id);
@@ -2221,25 +2298,24 @@ export async function POST(request) {
         const invoiceNumber = cleanCsvValue(order.order_no) ? `INV-${String(order.order_no).slice(-8)}` : null;
         const legacyOrderId = /^\d+$/.test(String(order.id || '')) ? Number(order.id) : null;
 
-        const { data: sale, error: saleError } = await supabase
-          .from('qb_sales_history')
-          .insert({
-            sale_date: saleDate,
-            slip_number: slipNumber,
-            invoice_number: invoiceNumber,
-            customer_name: cleanCsvValue(customer?.company_name) || cleanCsvValue(customer?.name) || '未命名客戶',
-            sales_person: 'admin',
-            subtotal: toNumber(order.subtotal),
-            tax: toNumber(order.tax_amount),
-            total: toNumber(order.total_amount),
-            cost: orderItems.reduce((sum, item) => sum + (Number(item.cost_price_snapshot || 0) * Number(item.qty || 0)), 0),
-            gross_profit: toNumber(order.total_amount) - orderItems.reduce((sum, item) => sum + (Number(item.cost_price_snapshot || 0) * Number(item.qty || 0)), 0),
-            profit_margin: toNumber(order.total_amount) > 0
-              ? `${(((toNumber(order.total_amount) - orderItems.reduce((sum, item) => sum + (Number(item.cost_price_snapshot || 0) * Number(item.qty || 0)), 0)) / toNumber(order.total_amount)) * 100).toFixed(2)}%`
-              : null,
-          })
-          .select('*')
-          .single();
+        const {
+          data: sale,
+          error: saleError,
+        } = await insertSingleWithColumnFallback('qb_sales_history', {
+          sale_date: saleDate,
+          slip_number: slipNumber,
+          invoice_number: invoiceNumber,
+          customer_name: cleanCsvValue(customer?.company_name) || cleanCsvValue(customer?.name) || '未命名客戶',
+          sales_person: 'admin',
+          subtotal: toNumber(order.subtotal),
+          tax: toNumber(order.tax_amount),
+          total: toNumber(order.total_amount),
+          cost: orderItems.reduce((sum, item) => sum + (Number(item.cost_price_snapshot || 0) * Number(item.qty || 0)), 0),
+          gross_profit: toNumber(order.total_amount) - orderItems.reduce((sum, item) => sum + (Number(item.cost_price_snapshot || 0) * Number(item.qty || 0)), 0),
+          profit_margin: toNumber(order.total_amount) > 0
+            ? `${(((toNumber(order.total_amount) - orderItems.reduce((sum, item) => sum + (Number(item.cost_price_snapshot || 0) * Number(item.qty || 0)), 0)) / toNumber(order.total_amount)) * 100).toFixed(2)}%`
+            : null,
+        });
 
         if (saleError) {
           if (isMissingRelationError(saleError)) return missingRelationResponse(saleError, 'public.qb_sales_history');
@@ -2263,7 +2339,7 @@ export async function POST(request) {
         }));
 
         const { error: salesItemsError } = salesItemsPayload.length
-          ? await supabase.from('qb_order_items').insert(salesItemsPayload)
+          ? await insertManyWithColumnFallback('qb_order_items', salesItemsPayload)
           : { error: null };
 
         if (salesItemsError) {
@@ -2273,20 +2349,18 @@ export async function POST(request) {
         }
 
         if (customer?.company_name || customer?.tax_id) {
-          const { error: invoiceError } = await supabase
-            .from('qb_invoices')
-            .insert({
-              invoice_number: invoiceNumber || slipNumber.replace(/\s+/g, ''),
-              order_id: salesLinkId,
-              customer_id: null,
-              invoice_type: customer?.tax_id ? 'triplicate' : 'duplicate',
-              tax_id: cleanCsvValue(customer?.tax_id),
-              company_name: cleanCsvValue(customer?.company_name),
-              amount: toNumber(order.subtotal),
-              tax_amount: toNumber(order.tax_amount),
-              issued_at: new Date().toISOString(),
-              notes: cleanCsvValue(order.remark),
-            });
+          const { error: invoiceError } = await insertSingleWithColumnFallback('qb_invoices', {
+            invoice_number: invoiceNumber || slipNumber.replace(/\s+/g, ''),
+            order_id: salesLinkId,
+            customer_id: null,
+            invoice_type: customer?.tax_id ? 'triplicate' : 'duplicate',
+            tax_id: cleanCsvValue(customer?.tax_id),
+            company_name: cleanCsvValue(customer?.company_name),
+            amount: toNumber(order.subtotal),
+            tax_amount: toNumber(order.tax_amount),
+            issued_at: new Date().toISOString(),
+            notes: cleanCsvValue(order.remark),
+          });
 
           if (invoiceError) {
             if (isMissingRelationError(invoiceError)) return missingRelationResponse(invoiceError, 'public.qb_invoices');
