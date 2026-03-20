@@ -2398,6 +2398,12 @@ function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }) {
     }
   };
 
+  const selectCustomer = (customer) => {
+    setSelectedCustomer(customer);
+    setCustomerSearch('');
+    setCustomerResults([]);
+  };
+
   const searchProducts = async () => {
     if (!productSearch.trim()) return;
     setProductLoading(true);
@@ -2510,15 +2516,28 @@ function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }) {
                 <button onClick={searchCustomers} style={S.btnPrimary}>搜尋</button>
               </div>
               {customerLoading ? <Loading /> : customerResults.length > 0 ? (
-                <div style={{ display: 'grid', gap: 8 }}>
+                <div style={{ display: 'grid', gap: 8, maxHeight: 230, overflowY: 'auto', paddingRight: 4 }}>
                   {customerResults.map((customer) => (
-                    <button key={customer.id} onClick={() => setSelectedCustomer(customer)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer', border: `1px solid ${selectedCustomer?.id === customer.id ? '#94c3ff' : '#dbe3ee'}`, background: selectedCustomer?.id === customer.id ? '#edf5ff' : '#fff' }}>
+                    <button key={customer.id} onClick={() => selectCustomer(customer)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer', border: `1px solid ${selectedCustomer?.id === customer.id ? '#94c3ff' : '#dbe3ee'}`, background: selectedCustomer?.id === customer.id ? '#edf5ff' : '#fff' }}>
                       <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                       <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>{customer.customer_code || '-'} · {customer.phone || '-'}</div>
                     </button>
                   ))}
                 </div>
-              ) : <div style={{ fontSize: 12, color: '#7b889b' }}>{selectedCustomer ? `已選：${selectedCustomer.company_name || selectedCustomer.name}` : '輸入關鍵字後搜尋正式客戶'}</div>}
+              ) : selectedCustomer ? (
+                <div style={{ ...S.panelMuted, borderColor: '#bde6c9', background: '#f4fbf6', display: 'grid', gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 12, color: '#129c59', fontWeight: 700, ...S.mono }}>SELECTED CUSTOMER</div>
+                      <div style={{ fontSize: 16, color: '#1c2740', fontWeight: 700, marginTop: 6 }}>{selectedCustomer.company_name || selectedCustomer.name || '未命名客戶'}</div>
+                    </div>
+                    <button onClick={() => setSelectedCustomer(null)} style={{ ...S.btnGhost, padding: '6px 10px', fontSize: 12 }}>更換客戶</button>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#617084' }}>
+                    {selectedCustomer.customer_code || '-'} · {selectedCustomer.phone || '-'}
+                  </div>
+                </div>
+              ) : <div style={{ fontSize: 12, color: '#7b889b' }}>輸入關鍵字後搜尋正式客戶</div>}
             </div>
 
             <div style={S.card}>
