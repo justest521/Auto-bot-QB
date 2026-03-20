@@ -1117,6 +1117,7 @@ export async function GET(request) {
           let query = supabase
             .from('qb_sales_history')
             .select('*', { count: 'exact' })
+            .order('created_at', { ascending: false, nullsFirst: false })
             .order('sale_date', { ascending: false, nullsFirst: false })
             .range(offset, offset + limit - 1);
 
