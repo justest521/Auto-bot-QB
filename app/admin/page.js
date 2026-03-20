@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 
 const API = '/api/admin';
 const ADMIN_TOKEN_KEY = 'qb_admin_token';
+const SALES_DOCUMENT_FOCUS_KEY = 'qb_sales_document_focus';
 
 const fmt = n => n?.toLocaleString('zh-TW') || '0';
 const fmtMs = ms => !ms ? '-' : ms < 1000 ? `${ms}ms` : `${(ms/1000).toFixed(1)}s`;
@@ -2712,7 +2713,7 @@ function Quotes() {
 }
 
 /* ========================================= ORDERS ========================================= */
-function Orders() {
+function Orders({ setTab }) {
   const width = useViewportWidth();
   const isMobile = width < 820;
   const isTablet = width < 1180;
@@ -2741,7 +2742,11 @@ function Orders() {
     try {
       const result = await apiPost({ action: 'convert_order_to_sale', order_id: order.id });
       setActionMessage(`已轉成銷貨單 ${result.sale?.slip_number || ''}`.trim());
+      if (typeof window !== 'undefined' && result.sale?.slip_number) {
+        window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, result.sale.slip_number);
+      }
       await load(1, search, pageSize);
+      setTab?.('sales_documents');
     } catch (error) {
       setActionMessage(error.message || '訂單轉銷貨失敗');
     } finally {
@@ -2837,6 +2842,15 @@ function SalesDocuments() {
   }, [search, pageSize]);
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const focusedSlip = window.localStorage.getItem(SALES_DOCUMENT_FOCUS_KEY);
+    if (!focusedSlip) return;
+    setSearch(focusedSlip);
+    load(1, focusedSlip, pageSize);
+    window.localStorage.removeItem(SALES_DOCUMENT_FOCUS_KEY);
+  }, [load, pageSize]);
 
   return (
     <div>

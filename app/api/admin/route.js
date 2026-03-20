@@ -2215,7 +2215,9 @@ export async function POST(request) {
         );
 
         const saleDate = toDateValue(order.order_date) || new Date().toISOString().slice(0, 10);
-        const slipNumber = `銷 ${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
+        const slipNumber = cleanCsvValue(order.order_no)
+          ? `銷 ${String(order.order_no).trim()}`
+          : `銷 ${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
         const invoiceNumber = cleanCsvValue(order.order_no) ? `INV-${String(order.order_no).slice(-8)}` : null;
 
         const { data: sale, error: saleError } = await supabase
