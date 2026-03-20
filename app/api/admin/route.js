@@ -296,6 +296,81 @@ export async function GET(request) {
 
   try {
     switch (action) {
+      case 'env_health': {
+        const groups = {
+          master: {
+            label: '主檔資料',
+            tables: [
+              { name: 'erp_customers', label: '客戶主檔' },
+              { name: 'quickbuy_products', label: '商品主檔' },
+              { name: 'erp_vendors', label: '廠商主檔' },
+            ],
+          },
+          transaction: {
+            label: '交易作業',
+            tables: [
+              { name: 'erp_quotes', label: '報價單' },
+              { name: 'erp_quote_items', label: '報價明細' },
+              { name: 'erp_orders', label: '訂單' },
+              { name: 'erp_order_items', label: '訂單明細' },
+              { name: 'qb_sales_history', label: '銷貨單' },
+              { name: 'qb_order_items', label: '銷貨明細' },
+              { name: 'qb_invoices', label: '發票資料' },
+            ],
+          },
+          reports: {
+            label: '分析報表',
+            tables: [
+              { name: 'erp_sales_return_summary', label: '銷退貨彙總' },
+              { name: 'erp_profit_analysis', label: '利潤分析' },
+            ],
+          },
+          system: {
+            label: 'LINE 與系統',
+            tables: [
+              { name: 'quickbuy_line_customers', label: 'LINE 客戶' },
+              { name: 'quickbuy_line_messages', label: 'LINE 訊息' },
+              { name: 'quickbuy_config', label: '系統設定' },
+            ],
+          },
+        };
+
+        const result = {};
+        let readyCount = 0;
+        let totalCount = 0;
+
+        for (const [key, group] of Object.entries(groups)) {
+          const checks = await Promise.all(
+            group.tables.map(async (table) => {
+              const { error, count } = await supabase.from(table.name).select('*', { count: 'exact', head: true }).limit(1);
+              const ready = !error;
+              if (ready) readyCount += 1;
+              totalCount += 1;
+              return {
+                ...table,
+                ready,
+                count: ready ? (count || 0) : 0,
+                error: ready ? null : (isMissingRelationError(error) ? '資料表未建立' : (error?.message || '無法讀取')),
+              };
+            })
+          );
+
+          result[key] = {
+            label: group.label,
+            ready: checks.every((item) => item.ready),
+            items: checks,
+          };
+        }
+
+        return Response.json({
+          groups: result,
+          summary: {
+            ready_count: readyCount,
+            total_count: totalCount,
+          },
+        });
+      }
+
       case 'stats': {
         const today = new Date().toISOString().split('T')[0];
         const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
