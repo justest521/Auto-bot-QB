@@ -2219,6 +2219,7 @@ export async function POST(request) {
           ? `銷 ${String(order.order_no).trim()}`
           : `銷 ${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
         const invoiceNumber = cleanCsvValue(order.order_no) ? `INV-${String(order.order_no).slice(-8)}` : null;
+        const legacyOrderId = /^\d+$/.test(String(order.id || '')) ? Number(order.id) : null;
 
         const { data: sale, error: saleError } = await supabase
           .from('qb_sales_history')
@@ -2246,7 +2247,7 @@ export async function POST(request) {
         }
 
         const salesItemsPayload = orderItems.map((item) => ({
-          order_id: Number(order.id),
+          order_id: legacyOrderId,
           item_number: item.item_number_snapshot || null,
           description: item.description_snapshot || null,
           quantity: Math.max(1, Number(item.qty || 1)),
@@ -2272,7 +2273,7 @@ export async function POST(request) {
             .from('qb_invoices')
             .insert({
               invoice_number: invoiceNumber || slipNumber.replace(/\s+/g, ''),
-              order_id: Number(order.id),
+              order_id: legacyOrderId,
               customer_id: null,
               invoice_type: customer?.tax_id ? 'triplicate' : 'duplicate',
               tax_id: cleanCsvValue(customer?.tax_id),
@@ -2284,7 +2285,11 @@ export async function POST(request) {
             });
 
           if (invoiceError) {
-            await supabase.from('qb_order_items').delete().eq('order_id', Number(order.id));
+            if (legacyOrderId !== null) {
+              await supabase.from('qb_order_items').delete().eq('order_id', legacyOrderId);
+            } else {
+              await supabase.from('qb_order_items').delete().eq('notes', slipNumber);
+            }
             await supabase.from('qb_sales_history').delete().eq('id', sale.id);
             if (isMissingRelationError(invoiceError)) return missingRelationResponse(invoiceError, 'public.qb_invoices');
             return Response.json({ error: invoiceError.message }, { status: 500 });
