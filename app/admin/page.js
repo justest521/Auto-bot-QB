@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { S, ADMIN_TOKEN_KEY, apiGet } from './shared/common';
 
 // ── Tab components (dynamic imports for code splitting) ──
