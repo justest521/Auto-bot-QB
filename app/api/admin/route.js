@@ -2246,8 +2246,12 @@ export async function POST(request) {
           return Response.json({ error: saleError.message }, { status: 500 });
         }
 
+        const salesLinkId = /^\d+$/.test(String(sale?.id || ''))
+          ? Number(sale.id)
+          : legacyOrderId;
+
         const salesItemsPayload = orderItems.map((item) => ({
-          order_id: legacyOrderId,
+          order_id: salesLinkId,
           item_number: item.item_number_snapshot || null,
           description: item.description_snapshot || null,
           quantity: Math.max(1, Number(item.qty || 1)),
@@ -2273,7 +2277,7 @@ export async function POST(request) {
             .from('qb_invoices')
             .insert({
               invoice_number: invoiceNumber || slipNumber.replace(/\s+/g, ''),
-              order_id: legacyOrderId,
+              order_id: salesLinkId,
               customer_id: null,
               invoice_type: customer?.tax_id ? 'triplicate' : 'duplicate',
               tax_id: cleanCsvValue(customer?.tax_id),
@@ -2285,14 +2289,13 @@ export async function POST(request) {
             });
 
           if (invoiceError) {
-            if (legacyOrderId !== null) {
-              await supabase.from('qb_order_items').delete().eq('order_id', legacyOrderId);
-            } else {
-              await supabase.from('qb_order_items').delete().eq('notes', slipNumber);
-            }
-            await supabase.from('qb_sales_history').delete().eq('id', sale.id);
             if (isMissingRelationError(invoiceError)) return missingRelationResponse(invoiceError, 'public.qb_invoices');
-            return Response.json({ error: invoiceError.message }, { status: 500 });
+            return Response.json({
+              success: true,
+              sale,
+              count: salesItemsPayload.length,
+              warning: `銷貨單已建立，但發票未建立：${invoiceError.message}`,
+            });
           }
         }
 
