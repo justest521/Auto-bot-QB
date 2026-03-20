@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 
 export const fmt = n => n?.toLocaleString('zh-TW') || '0';
 export const fmtMs = ms => !ms ? '-' : ms < 1000 ? `${ms}ms` : `${(ms/1000).toFixed(1)}s`;
@@ -39,4 +40,17 @@ export function getPresetDateRange(preset) {
     from: toDateInputValue(start),
     to: toDateInputValue(end),
   };
+}
+
+// ── Viewport width hook ──
+
+export function useViewportWidth() {
+  const [width, setWidth] = useState(1400);
+  useEffect(() => {
+    const update = () => setWidth(window.innerWidth);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return width;
 }
