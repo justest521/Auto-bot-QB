@@ -3791,6 +3791,7 @@ export default function AdminPage() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
   const [tab, setTab] = useState('report_center');
+  const [sidebarStats, setSidebarStats] = useState(null);
   const ActiveTab = TAB_COMPONENTS[tab] || Dashboard;
 
   useEffect(() => {
@@ -3799,9 +3800,23 @@ export default function AdminPage() {
       setToken(saved);
       setAuthLoading(true);
       apiGet({ action: 'stats' })
-        .then(() => {
+        .then((data) => {
           setIsAuthed(true);
           setAuthError('');
+          setSidebarStats({
+            products: data?.total_messages ?? '-',
+            chats: data?.total_messages ?? '-',
+          });
+          // 取得產品數和歷史對話數
+          Promise.all([
+            apiGet({ action: 'products', limit: '1' }).catch(() => null),
+            apiGet({ action: 'chat_history_stats' }).catch(() => null),
+          ]).then(([prodRes, chatRes]) => {
+            setSidebarStats({
+              products: prodRes?.total ?? '-',
+              chats: chatRes?.total ?? '-',
+            });
+          });
         })
         .catch((error) => {
           window.localStorage.removeItem(ADMIN_TOKEN_KEY);
@@ -3914,8 +3929,8 @@ export default function AdminPage() {
           <div style={{ padding: '18px 20px 0', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 14 }}>
             <div style={{ fontSize: 10, color: '#70829c', ...S.mono, marginBottom: 10 }}>SYSTEM</div>
             <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 14, fontSize: 11, color: '#b7c4d8' }}>
-              <div style={{ padding: '4px 0' }}>產品：120,956</div>
-              <div style={{ padding: '4px 0' }}>歷史對話：86,261</div>
+              <div style={{ padding: '4px 0' }}>產品：{sidebarStats?.products?.toLocaleString?.() ?? '載入中...'}</div>
+              <div style={{ padding: '4px 0' }}>歷史對話：{sidebarStats?.chats?.toLocaleString?.() ?? '載入中...'}</div>
               <div style={{ padding: '4px 0' }}>Webhook：<span style={{ color: '#62df97' }}>ON</span></div>
               <div style={{ padding: '4px 0' }}>LIFF：<span style={{ color: '#62df97' }}>ON</span></div>
             </div>

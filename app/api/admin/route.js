@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -360,8 +361,14 @@ function isAuthorized(request) {
     return { ok: false, status: 503, error: 'Admin auth is not configured' };
   }
 
-  const headerToken = request.headers.get('x-admin-token');
-  if (headerToken !== adminToken) {
+  const headerToken = request.headers.get('x-admin-token') || '';
+  try {
+    const a = Buffer.from(headerToken, 'utf8');
+    const b = Buffer.from(adminToken, 'utf8');
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+      return { ok: false, status: 401, error: 'Unauthorized' };
+    }
+  } catch {
     return { ok: false, status: 401, error: 'Unauthorized' };
   }
 

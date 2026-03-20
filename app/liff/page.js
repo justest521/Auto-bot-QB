@@ -173,9 +173,8 @@ export default function LiffSearchPage() {
 
   return (
     <>
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
           font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;

@@ -8,11 +8,18 @@ const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
 function verifySignature(body, signature) {
+  if (!signature || !LINE_CHANNEL_SECRET) return false;
   const hash = crypto
     .createHmac('SHA256', LINE_CHANNEL_SECRET)
     .update(body)
     .digest('base64');
-  return hash === signature;
+  try {
+    const a = Buffer.from(hash, 'utf8');
+    const b = Buffer.from(signature, 'utf8');
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }
 
 async function replyMessage(replyToken, text) {
@@ -80,37 +87,43 @@ export async function POST(request) {
 
     const { events } = JSON.parse(body);
 
-    for (const event of events) {
-      if (event.type !== 'message' || event.message.type !== 'text') {
-        if (event.replyToken && event.type === 'message') {
-          await replyMessage(
-            event.replyToken,
-            '目前僅支援文字查詢，請輸入想查詢的工具型號或名稱 🔧'
-          );
+    // 平行處理所有 events，避免 replyToken 30 秒超時
+    async function handleEvent(event) {
+      try {
+        if (event.type !== 'message' || event.message.type !== 'text') {
+          if (event.replyToken && event.type === 'message') {
+            await replyMessage(
+              event.replyToken,
+              '目前僅支援文字查詢，請輸入想查詢的工具型號或名稱 🔧'
+            );
+          }
+          return;
         }
-        continue;
+
+        const { replyToken, source, message } = event;
+        const userId = source.userId;
+        const userMessage = message.text;
+
+        console.log(`📩 [${userId}]: ${userMessage}`);
+
+        const profile = await getUserProfile(userId);
+        const displayName = profile?.displayName || '客戶';
+
+        // 不等 DB 寫入，先處理 AI 回覆
+        upsertCustomer(userId, displayName).catch(console.error);
+
+        const { reply, responseTimeMs, fromCache } =
+          await handleCustomerMessage(userMessage, displayName, userId);
+
+        console.log(`🤖 (${responseTimeMs}ms${fromCache ? ' ⚡CACHE' : ''}): ${reply.slice(0, 80)}...`);
+
+        await replyMessage(replyToken, reply);
+      } catch (e) {
+        console.error('Event handler error:', e);
       }
-
-      const { replyToken, source, message } = event;
-      const userId = source.userId;
-      const userMessage = message.text;
-
-      console.log(`📩 [${userId}]: ${userMessage}`);
-
-      const profile = await getUserProfile(userId);
-      const displayName = profile?.displayName || '客戶';
-
-      // 不等 DB 寫入，先處理 AI 回覆
-      upsertCustomer(userId, displayName).catch(console.error);
-
-      const { reply, responseTimeMs, fromCache } =
-        await handleCustomerMessage(userMessage, displayName, userId);
-
-      console.log(`🤖 (${responseTimeMs}ms${fromCache ? ' ⚡CACHE' : ''}): ${reply.slice(0, 80)}...`);
-
-      await replyMessage(replyToken, reply);
-
     }
+
+    await Promise.all(events.map(handleEvent));
 
     return new Response('OK', { status: 200 });
   } catch (error) {
