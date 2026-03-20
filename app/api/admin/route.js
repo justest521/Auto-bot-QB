@@ -79,6 +79,25 @@ function isMissingColumnError(error) {
   return /column .* does not exist/i.test(error?.message || '');
 }
 
+function isMissingRelationError(error) {
+  return /(relation|table).*does not exist|schema cache/i.test(error?.message || '');
+}
+
+function extractMissingRelation(error) {
+  const message = error?.message || '';
+  const match = message.match(/(?:relation|table)\s+'?("?[\w.]+"?)'?/i) || message.match(/table\s+'([^']+)'/i);
+  if (match?.[1]) return String(match[1]).replace(/"/g, '');
+  const cacheMatch = message.match(/table '([^']+)'/i);
+  return cacheMatch?.[1] || null;
+}
+
+function missingRelationResponse(error, fallbackTable) {
+  const relation = extractMissingRelation(error) || fallbackTable || 'ERP 資料表';
+  return Response.json({
+    error: `目前缺少資料表 ${relation}，請先執行 ERP schema 後再操作。`,
+  }, { status: 400 });
+}
+
 function extractMissingColumn(error) {
   const message = error?.message || '';
   const match = message.match(/column\s+(?:[\w"]+\.)?"?([\w]+)"?\s+does not exist/i);
@@ -1950,7 +1969,10 @@ export async function POST(request) {
           .select('*')
           .single();
 
-        if (quoteError) return Response.json({ error: quoteError.message }, { status: 500 });
+        if (quoteError) {
+          if (isMissingRelationError(quoteError)) return missingRelationResponse(quoteError, 'public.erp_quotes');
+          return Response.json({ error: quoteError.message }, { status: 500 });
+        }
 
         const itemPayload = safeItems.map((item) => ({
           quote_id: quote.id,
@@ -1963,6 +1985,7 @@ export async function POST(request) {
 
         if (itemError) {
           await supabase.from('erp_quotes').delete().eq('id', quote.id);
+          if (isMissingRelationError(itemError)) return missingRelationResponse(itemError, 'public.erp_quote_items');
           return Response.json({ error: itemError.message }, { status: 500 });
         }
 
@@ -1986,7 +2009,10 @@ export async function POST(request) {
           .eq('id', quote_id)
           .maybeSingle();
 
-        if (quoteError) return Response.json({ error: quoteError.message }, { status: 500 });
+        if (quoteError) {
+          if (isMissingRelationError(quoteError)) return missingRelationResponse(quoteError, 'public.erp_quotes');
+          return Response.json({ error: quoteError.message }, { status: 500 });
+        }
         if (!quote) return Response.json({ error: 'Quote not found' }, { status: 404 });
 
         const { data: quoteItems, error: itemFetchError } = await supabase
@@ -1995,7 +2021,10 @@ export async function POST(request) {
           .eq('quote_id', quote_id)
           .order('id', { ascending: true });
 
-        if (itemFetchError) return Response.json({ error: itemFetchError.message }, { status: 500 });
+        if (itemFetchError) {
+          if (isMissingRelationError(itemFetchError)) return missingRelationResponse(itemFetchError, 'public.erp_quote_items');
+          return Response.json({ error: itemFetchError.message }, { status: 500 });
+        }
         if (!quoteItems?.length) return Response.json({ error: 'Quote items are missing' }, { status: 400 });
 
         const orderNo = `SO${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
@@ -2020,7 +2049,10 @@ export async function POST(request) {
           .select('*')
           .single();
 
-        if (orderError) return Response.json({ error: orderError.message }, { status: 500 });
+        if (orderError) {
+          if (isMissingRelationError(orderError)) return missingRelationResponse(orderError, 'public.erp_orders');
+          return Response.json({ error: orderError.message }, { status: 500 });
+        }
 
         const orderItems = quoteItems.map((item) => ({
           order_id: order.id,
@@ -2039,6 +2071,7 @@ export async function POST(request) {
 
         if (orderItemsError) {
           await supabase.from('erp_orders').delete().eq('id', order.id);
+          if (isMissingRelationError(orderItemsError)) return missingRelationResponse(orderItemsError, 'public.erp_order_items');
           return Response.json({ error: orderItemsError.message }, { status: 500 });
         }
 
@@ -2067,7 +2100,10 @@ export async function POST(request) {
           .eq('id', order_id)
           .maybeSingle();
 
-        if (orderError) return Response.json({ error: orderError.message }, { status: 500 });
+        if (orderError) {
+          if (isMissingRelationError(orderError)) return missingRelationResponse(orderError, 'public.erp_orders');
+          return Response.json({ error: orderError.message }, { status: 500 });
+        }
         if (!order) return Response.json({ error: 'Order not found' }, { status: 404 });
 
         const existingSlipPrefix = cleanCsvValue(order.order_no) || '';
@@ -2088,7 +2124,10 @@ export async function POST(request) {
           .eq('order_id', order_id)
           .order('id', { ascending: true });
 
-        if (orderItemsError) return Response.json({ error: orderItemsError.message }, { status: 500 });
+        if (orderItemsError) {
+          if (isMissingRelationError(orderItemsError)) return missingRelationResponse(orderItemsError, 'public.erp_order_items');
+          return Response.json({ error: orderItemsError.message }, { status: 500 });
+        }
         if (!orderItems?.length) return Response.json({ error: 'Order items are missing' }, { status: 400 });
 
         const { data: customer } = await runErpCustomerQuery((columns) =>
@@ -2123,7 +2162,10 @@ export async function POST(request) {
           .select('*')
           .single();
 
-        if (saleError) return Response.json({ error: saleError.message }, { status: 500 });
+        if (saleError) {
+          if (isMissingRelationError(saleError)) return missingRelationResponse(saleError, 'public.qb_sales_history');
+          return Response.json({ error: saleError.message }, { status: 500 });
+        }
 
         const salesItemsPayload = orderItems.map((item) => ({
           order_id: Number(order.id),
@@ -2143,6 +2185,7 @@ export async function POST(request) {
 
         if (salesItemsError) {
           await supabase.from('qb_sales_history').delete().eq('id', sale.id);
+          if (isMissingRelationError(salesItemsError)) return missingRelationResponse(salesItemsError, 'public.qb_order_items');
           return Response.json({ error: salesItemsError.message }, { status: 500 });
         }
 
@@ -2165,6 +2208,7 @@ export async function POST(request) {
           if (invoiceError) {
             await supabase.from('qb_order_items').delete().eq('order_id', Number(order.id));
             await supabase.from('qb_sales_history').delete().eq('id', sale.id);
+            if (isMissingRelationError(invoiceError)) return missingRelationResponse(invoiceError, 'public.qb_invoices');
             return Response.json({ error: invoiceError.message }, { status: 500 });
           }
         }

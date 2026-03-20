@@ -2277,7 +2277,7 @@ function ProductSearch() {
 }
 
 /* ========================================= QUOTES ========================================= */
-function QuoteCreateModal({ open, onClose, onCreated }) {
+function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }) {
   const [customerSearch, setCustomerSearch] = useState('');
   const [customerResults, setCustomerResults] = useState([]);
   const [customerLoading, setCustomerLoading] = useState(false);
@@ -2366,6 +2366,10 @@ function QuoteCreateModal({ open, onClose, onCreated }) {
   const totalAmount = taxableBase + taxAmount;
 
   const submit = async () => {
+    if (!tableReady) {
+      setError('目前尚未建立 erp_quotes / erp_quote_items，請先執行 ERP schema。');
+      return;
+    }
     if (!selectedCustomer?.id) {
       setError('請先選擇正式客戶');
       return;
@@ -2411,6 +2415,11 @@ function QuoteCreateModal({ open, onClose, onCreated }) {
           <button onClick={onClose} style={S.btnGhost}>關閉</button>
         </div>
         {error ? <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 14 }}>{error}</div> : null}
+        {!tableReady ? (
+          <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', marginBottom: 14 }}>
+            目前尚未建立 `erp_quotes` / `erp_quote_items`，請先跑 [`/Users/tungyiwu/Desktop/AI/Auto QB/Auto-bot-QB/docs/erp-schema-v1.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-schema-v1.sql)。
+          </div>
+        ) : null}
         <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 16 }}>
           <div style={{ display: 'grid', gap: 14 }}>
             <div style={S.card}>
@@ -2489,7 +2498,7 @@ function QuoteCreateModal({ open, onClose, onCreated }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>稅額 (5%)</span><strong style={S.mono}>{fmtP(taxAmount)}</strong></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#129c59', fontWeight: 700 }}><span>總額</span><strong style={S.mono}>{fmtP(totalAmount)}</strong></div>
                 </div>
-                <button onClick={submit} disabled={saving} style={{ ...S.btnPrimary, width: '100%', opacity: saving ? 0.7 : 1 }}>{saving ? '建立中...' : '建立報價單'}</button>
+                <button onClick={submit} disabled={saving || !tableReady} style={{ ...S.btnPrimary, width: '100%', opacity: saving || !tableReady ? 0.7 : 1 }}>{saving ? '建立中...' : '建立報價單'}</button>
               </div>
             </div>
           </div>
@@ -2539,7 +2548,7 @@ function Quotes() {
 
   return (
     <div>
-      <PageLead eyebrow="Quotes" title="報價單" description="查看 ERP 報價單、客戶、有效期限與總金額，作為詢價轉單前的作業入口。" action={<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}><CsvImportButton datasetId="erp_quotes" onImported={() => load(1, search, pageSize)} compact /><button onClick={() => setShowCreate(true)} style={S.btnPrimary}>+ 建立報價單</button></div>} />
+      <PageLead eyebrow="Quotes" title="報價單" description="查看 ERP 報價單、客戶、有效期限與總金額，作為詢價轉單前的作業入口。" action={<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}><CsvImportButton datasetId="erp_quotes" onImported={() => load(1, search, pageSize)} compact /><button onClick={() => data.table_ready && setShowCreate(true)} disabled={!data.table_ready} style={{ ...S.btnPrimary, opacity: data.table_ready ? 1 : 0.6, cursor: data.table_ready ? 'pointer' : 'not-allowed' }}>+ 建立報價單</button></div>} />
       {actionMessage ? (
         <div style={{ ...S.card, background: actionMessage.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: actionMessage.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: actionMessage.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 14 }}>
           {actionMessage}
@@ -2597,7 +2606,7 @@ function Quotes() {
         onPageChange={(nextPage) => load(nextPage, search, pageSize)}
         onLimitChange={(nextLimit) => { setPageSize(nextLimit); load(1, search, nextLimit); }}
       />
-      <QuoteCreateModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={() => load(1, search, pageSize)} />
+      <QuoteCreateModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={() => load(1, search, pageSize)} tableReady={data.table_ready} />
     </div>
   );
 }
