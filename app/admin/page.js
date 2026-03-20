@@ -461,6 +461,28 @@ function useCsvImport(datasetId, onImported) {
   const importSelected = useCallback(async () => {
     if (!selectedFile || !preparedRows.length) return;
 
+    if (recentImportHint?.type === 'same_file') {
+      const confirmed = typeof window === 'undefined'
+        ? true
+        : window.confirm(`這個檔案之前已經匯入過。\n\n${recentImportHint.text}\n\n確定還要再次匯入嗎？`);
+
+      if (!confirmed) {
+        setStatus('已取消重複匯入');
+        return;
+      }
+    }
+
+    if (recentImportHint?.type === 'same_dataset') {
+      const confirmed = typeof window === 'undefined'
+        ? true
+        : window.confirm(`這個資料集最近已經匯入過。\n\n${recentImportHint.text}\n\n確定要覆蓋目前資料嗎？`);
+
+      if (!confirmed) {
+        setStatus('已取消重複匯入');
+        return;
+      }
+    }
+
     setBusy(true);
     setStatus('');
 
@@ -519,7 +541,7 @@ function useCsvImport(datasetId, onImported) {
     } finally {
       setBusy(false);
     }
-  }, [datasetId, onImported, preparedRows, selectedFile]);
+  }, [datasetId, onImported, preparedRows, recentImportHint, selectedFile]);
 
   useEffect(() => {
     if (!status) return undefined;
