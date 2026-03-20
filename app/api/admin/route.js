@@ -2290,6 +2290,10 @@ export async function POST(request) {
 
           if (invoiceError) {
             if (isMissingRelationError(invoiceError)) return missingRelationResponse(invoiceError, 'public.qb_invoices');
+            await supabase
+              .from('erp_orders')
+              .update({ status: 'completed', shipping_status: 'shipped' })
+              .eq('id', order.id);
             return Response.json({
               success: true,
               sale,
