@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { supabase } from '@/lib/supabase';
-import { handleCustomerMessage } from '@/lib/ai-handler';
+import { handleCustomerMessage, handleImageMessage } from '@/lib/ai-handler';
 
 export const dynamic = 'force-dynamic';
 
@@ -90,34 +90,38 @@ export async function POST(request) {
     // 平行處理所有 events，避免 replyToken 30 秒超時
     async function handleEvent(event) {
       try {
-        if (event.type !== 'message' || event.message.type !== 'text') {
-          if (event.replyToken && event.type === 'message') {
-            await replyMessage(
-              event.replyToken,
-              '目前僅支援文字查詢，請輸入想查詢的工具型號或名稱 🔧'
-            );
-          }
-          return;
-        }
+        if (event.type !== 'message') return;
 
         const { replyToken, source, message } = event;
         const userId = source.userId;
-        const userMessage = message.text;
-
-        console.log(`📩 [${userId}]: ${userMessage}`);
 
         const profile = await getUserProfile(userId);
         const displayName = profile?.displayName || '客戶';
-
-        // 不等 DB 寫入，先處理 AI 回覆
         upsertCustomer(userId, displayName).catch(console.error);
 
-        const { reply, responseTimeMs, fromCache } =
-          await handleCustomerMessage(userMessage, displayName, userId);
+        // ── 圖片訊息 → Claude Vision 辨識 ──
+        if (message.type === 'image') {
+          console.log(`📷 [${userId}]: [image]`);
+          const imageUrl = `https://api-data.line.me/v2/bot/message/${message.id}/content`;
+          const { response, responseTime } = await handleImageMessage(imageUrl, displayName, userId);
+          console.log(`🤖 (${responseTime}ms 📷): ${response.slice(0, 80)}...`);
+          await replyMessage(replyToken, response);
+          return;
+        }
 
-        console.log(`🤖 (${responseTimeMs}ms${fromCache ? ' ⚡CACHE' : ''}): ${reply.slice(0, 80)}...`);
+        // ── 文字訊息 ──
+        if (message.type === 'text') {
+          const userMessage = message.text;
+          console.log(`📩 [${userId}]: ${userMessage}`);
+          const { reply, responseTimeMs, fromCache } =
+            await handleCustomerMessage(userMessage, displayName, userId);
+          console.log(`🤖 (${responseTimeMs}ms${fromCache ? ' ⚡CACHE' : ''}): ${reply.slice(0, 80)}...`);
+          await replyMessage(replyToken, reply);
+          return;
+        }
 
-        await replyMessage(replyToken, reply);
+        // ── 其他（貼圖、影片等）──
+        await replyMessage(replyToken, '收到！如果要查工具，直接輸入料號或拍照給我就可以囉 🔧');
       } catch (e) {
         console.error('Event handler error:', e);
       }
