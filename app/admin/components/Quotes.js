@@ -1,10 +1,11 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { S } from '../shared/styles';
-import { useViewportWidth, fmt, fmtP, fmtDate, fmtMs, getPresetDateRange, toDateInputValue, todayInTaipei } from '../shared/formatters';
-import { apiGet, apiPost, SALES_DOCUMENT_FOCUS_KEY } from '../shared/api';
-import { Loading, EmptyState, StatusBanner, PageLead, Pager, PanelHeader, CsvImportButton, ProductEditModal } from '../shared/ui';
+import { fmt, fmtP, getPresetDateRange, toDateInputValue, todayInTaipei, useViewportWidth } from '../shared/formatters';
+import { apiGet, apiPost } from '../shared/api';
+import { Loading, EmptyState, PageLead, Pager, PanelHeader, CsvImportButton } from '../shared/ui';
 import { StatCard } from '../components/Dashboard';
+
 
 export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }) {
   const [customerSearch, setCustomerSearch] = useState('');

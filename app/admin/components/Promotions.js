@@ -1,9 +1,10 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { S } from '../shared/styles';
-import { useViewportWidth, fmt, fmtP, fmtDate, fmtMs, getPresetDateRange, toDateInputValue, todayInTaipei } from '../shared/formatters';
-import { apiGet, apiPost, SALES_DOCUMENT_FOCUS_KEY } from '../shared/api';
-import { Loading, EmptyState, StatusBanner, PageLead, Pager, PanelHeader, CsvImportButton, ProductEditModal } from '../shared/ui';
+import { fmt, useViewportWidth } from '../shared/formatters';
+import { apiGet, apiPost } from '../shared/api';
+import { Loading, EmptyState, PageLead } from '../shared/ui';
+
 
 export function Promotions() {
   const width = useViewportWidth();

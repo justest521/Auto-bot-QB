@@ -1,9 +1,10 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { S } from '../shared/styles';
-import { useViewportWidth, fmt, fmtP, fmtDate, fmtMs, getPresetDateRange, toDateInputValue, todayInTaipei } from '../shared/formatters';
-import { apiGet, apiPost, SALES_DOCUMENT_FOCUS_KEY } from '../shared/api';
-import { Loading, EmptyState, StatusBanner, PageLead, Pager, PanelHeader, CsvImportButton, ProductEditModal } from '../shared/ui';
+import { fmt, fmtP, fmtMs, useViewportWidth } from '../shared/formatters';
+import { apiGet } from '../shared/api';
+import { Loading, EmptyState, PageLead, PanelHeader } from '../shared/ui';
+
 
 export function MiniDonut({ value, color }) {
   const safeValue = Math.max(0, Math.min(100, value || 0));
