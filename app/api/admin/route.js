@@ -2054,6 +2054,133 @@ export async function POST(request) {
         });
       }
 
+      case 'convert_order_to_sale': {
+        const { order_id } = body;
+
+        if (!order_id) {
+          return Response.json({ error: 'order_id is required' }, { status: 400 });
+        }
+
+        const { data: order, error: orderError } = await supabase
+          .from('erp_orders')
+          .select('*')
+          .eq('id', order_id)
+          .maybeSingle();
+
+        if (orderError) return Response.json({ error: orderError.message }, { status: 500 });
+        if (!order) return Response.json({ error: 'Order not found' }, { status: 404 });
+
+        const existingSlipPrefix = cleanCsvValue(order.order_no) || '';
+        const { data: existingSale } = await supabase
+          .from('qb_sales_history')
+          .select('id,slip_number')
+          .ilike('slip_number', `%${existingSlipPrefix}%`)
+          .limit(1)
+          .maybeSingle();
+
+        if (existingSale) {
+          return Response.json({ error: `此訂單可能已轉銷貨：${existingSale.slip_number || ''}`.trim() }, { status: 400 });
+        }
+
+        const { data: orderItems, error: orderItemsError } = await supabase
+          .from('erp_order_items')
+          .select('*')
+          .eq('order_id', order_id)
+          .order('id', { ascending: true });
+
+        if (orderItemsError) return Response.json({ error: orderItemsError.message }, { status: 500 });
+        if (!orderItems?.length) return Response.json({ error: 'Order items are missing' }, { status: 400 });
+
+        const { data: customer } = await runErpCustomerQuery((columns) =>
+          supabase
+            .from('erp_customers')
+            .select(columns)
+            .eq('id', order.customer_id)
+            .maybeSingle()
+        );
+
+        const saleDate = toDateValue(order.order_date) || new Date().toISOString().slice(0, 10);
+        const slipNumber = `銷 ${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`;
+        const invoiceNumber = cleanCsvValue(order.order_no) ? `INV-${String(order.order_no).slice(-8)}` : null;
+
+        const { data: sale, error: saleError } = await supabase
+          .from('qb_sales_history')
+          .insert({
+            sale_date: saleDate,
+            slip_number: slipNumber,
+            invoice_number: invoiceNumber,
+            customer_name: cleanCsvValue(customer?.company_name) || cleanCsvValue(customer?.name) || '未命名客戶',
+            sales_person: 'admin',
+            subtotal: toNumber(order.subtotal),
+            tax: toNumber(order.tax_amount),
+            total: toNumber(order.total_amount),
+            cost: orderItems.reduce((sum, item) => sum + (Number(item.cost_price_snapshot || 0) * Number(item.qty || 0)), 0),
+            gross_profit: toNumber(order.total_amount) - orderItems.reduce((sum, item) => sum + (Number(item.cost_price_snapshot || 0) * Number(item.qty || 0)), 0),
+            profit_margin: toNumber(order.total_amount) > 0
+              ? `${(((toNumber(order.total_amount) - orderItems.reduce((sum, item) => sum + (Number(item.cost_price_snapshot || 0) * Number(item.qty || 0)), 0)) / toNumber(order.total_amount)) * 100).toFixed(2)}%`
+              : null,
+          })
+          .select('*')
+          .single();
+
+        if (saleError) return Response.json({ error: saleError.message }, { status: 500 });
+
+        const salesItemsPayload = orderItems.map((item) => ({
+          order_id: Number(order.id),
+          item_number: item.item_number_snapshot || null,
+          description: item.description_snapshot || null,
+          quantity: Math.max(1, Number(item.qty || 1)),
+          unit_price: toNumber(item.unit_price),
+          subtotal: toNumber(item.line_total),
+          stock_status: 'sold',
+          estimated_arrival: null,
+          notes: slipNumber,
+        }));
+
+        const { error: salesItemsError } = salesItemsPayload.length
+          ? await supabase.from('qb_order_items').insert(salesItemsPayload)
+          : { error: null };
+
+        if (salesItemsError) {
+          await supabase.from('qb_sales_history').delete().eq('id', sale.id);
+          return Response.json({ error: salesItemsError.message }, { status: 500 });
+        }
+
+        if (customer?.company_name || customer?.tax_id) {
+          const { error: invoiceError } = await supabase
+            .from('qb_invoices')
+            .insert({
+              invoice_number: invoiceNumber || slipNumber.replace(/\s+/g, ''),
+              order_id: Number(order.id),
+              customer_id: null,
+              invoice_type: customer?.tax_id ? 'triplicate' : 'duplicate',
+              tax_id: cleanCsvValue(customer?.tax_id),
+              company_name: cleanCsvValue(customer?.company_name),
+              amount: toNumber(order.subtotal),
+              tax_amount: toNumber(order.tax_amount),
+              issued_at: new Date().toISOString(),
+              notes: cleanCsvValue(order.remark),
+            });
+
+          if (invoiceError) {
+            await supabase.from('qb_order_items').delete().eq('order_id', Number(order.id));
+            await supabase.from('qb_sales_history').delete().eq('id', sale.id);
+            return Response.json({ error: invoiceError.message }, { status: 500 });
+          }
+        }
+
+        await supabase
+          .from('erp_orders')
+          .update({ status: 'completed', shipping_status: 'shipped' })
+          .eq('id', order.id);
+
+        return Response.json({
+          success: true,
+          sale,
+          count: salesItemsPayload.length,
+        });
+      }
+
       default:
         return Response.json({ error: 'Unknown action' }, { status: 400 });
     }
