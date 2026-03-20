@@ -787,15 +787,17 @@ function ImportStatus({ status }) {
 }
 function CsvImportButton({ datasetId, onImported, compact = false }) {
   const { status, busy, selectedFile, previewCount, batchProgress, recentImportHint, chooseFile, importSelected, clearSelection } = useCsvImport(datasetId, onImported);
-  const panelWidth = compact ? 320 : 360;
+  const panelWidth = compact ? 248 : 360;
+  const panelMinHeight = compact ? 116 : 188;
+  const statusMinHeight = compact ? (status ? 48 : 0) : 72;
 
   return (
-    <div style={{ width: '100%', maxWidth: panelWidth, minWidth: compact ? 280 : 320 }}>
+    <div style={{ width: '100%', maxWidth: panelWidth, minWidth: compact ? 220 : 320 }}>
       <div style={{ display: 'grid', gap: 8, justifyItems: 'stretch' }}>
-        <div style={{ minHeight: 72 }}>
+        <div style={{ minHeight: statusMinHeight }}>
           <ImportStatus status={status} />
         </div>
-        <div style={{ ...S.panelMuted, minHeight: 188, textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ ...S.panelMuted, minHeight: panelMinHeight, padding: compact ? '12px 14px' : S.panelMuted.padding, textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           {selectedFile ? (
             <>
               <div>
@@ -809,7 +811,7 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
                 ) : null}
                 {batchProgress ? (
                   <>
-                    <div style={{ fontSize: 12, color: '#1976f3', marginTop: 8 }}>
+                    <div style={{ fontSize: compact ? 11 : 12, color: '#1976f3', marginTop: 8, lineHeight: 1.6 }}>
                       匯入進度 {batchProgress.current}/{batchProgress.total} 批 · {fmt(batchProgress.processed)}/{fmt(batchProgress.all)} 筆 · {batchProgress.percent}%
                     </div>
                     <div style={{ marginTop: 8, height: 8, borderRadius: 999, background: '#dbe7f7', overflow: 'hidden' }}>
@@ -818,11 +820,11 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
                   </>
                 ) : null}
               </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: compact ? 'flex-end' : 'flex-start' }}>
-                <button onClick={importSelected} disabled={busy} style={S.btnPrimary}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: compact ? 'flex-end' : 'flex-start', flexWrap: compact ? 'wrap' : 'nowrap' }}>
+                <button onClick={importSelected} disabled={busy} style={{ ...S.btnPrimary, padding: compact ? '8px 14px' : S.btnPrimary.padding, fontSize: compact ? 12 : 13 }}>
                   {busy && batchProgress ? `匯入中 ${batchProgress.current}/${batchProgress.total}` : busy ? '匯入中...' : '確認匯入'}
                 </button>
-                <button onClick={clearSelection} disabled={busy} style={S.btnGhost}>取消</button>
+                <button onClick={clearSelection} disabled={busy} style={{ ...S.btnGhost, padding: compact ? '8px 12px' : S.btnGhost.padding, fontSize: compact ? 12 : 13 }}>取消</button>
               </div>
             </>
           ) : (
@@ -832,7 +834,7 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
                 <div style={{ fontSize: 12, color: '#94a1b2', lineHeight: 1.7 }}>尚未選擇檔案</div>
               </div>
               <div style={{ display: 'flex', justifyContent: compact ? 'flex-end' : 'flex-start' }}>
-                <label style={{ ...(compact ? S.btnGhost : S.btnPrimary), display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <label style={{ ...(compact ? { ...S.btnGhost, padding: '8px 14px', fontSize: 12 } : S.btnPrimary), display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   選擇檔案
                   <input
                     type="file"
