@@ -4,6 +4,8 @@ import { S } from '../shared/styles';
 import { useViewportWidth, fmt, fmtP, fmtDate, fmtMs, getPresetDateRange, toDateInputValue, todayInTaipei } from '../shared/formatters';
 import { apiGet, apiPost, SALES_DOCUMENT_FOCUS_KEY } from '../shared/api';
 import { Loading, EmptyState, StatusBanner, PageLead, Pager, PanelHeader, CsvImportButton, ProductEditModal } from '../shared/ui';
+import { SaleDetailDrawer } from '../components/SalesDocuments';
+import { StatCard } from '../components/Dashboard';
 
 export function FormalCustomers() {
   const width = useViewportWidth();
