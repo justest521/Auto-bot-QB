@@ -2695,6 +2695,7 @@ function Quotes() {
                     {convertingId === row.id ? '轉單中...' : '轉訂單'}
                   </button>
                 )}
+                <button onClick={() => window.open(`/api/pdf?type=quote&id=${row.id}`, '_blank')} style={{ ...S.btnGhost, padding: '5px 8px', fontSize: 11, marginLeft: 4 }}>PDF</button>
               </div>
             </div>
           ))}
@@ -2804,6 +2805,7 @@ function Orders({ setTab }) {
                     {convertingId === row.id ? '轉銷中...' : '轉銷貨'}
                   </button>
                 )}
+                <button onClick={() => window.open(`/api/pdf?type=order&id=${row.id}`, '_blank')} style={{ ...S.btnGhost, padding: '5px 8px', fontSize: 11, marginLeft: 4 }}>PDF</button>
               </div>
             </div>
           ))}
@@ -2891,7 +2893,9 @@ function SalesDocuments() {
               <div style={{ fontSize: 12, color: '#617084' }}>{row.sales_person || '-'}</div>
               {!isTablet && <div style={{ fontSize: 13, color: '#1c2740', textAlign: 'right', ...S.mono }}>{fmtP(row.subtotal)}</div>}
               {!isTablet && <div style={{ fontSize: 13, color: '#129c59', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total)}</div>}
-              {!isTablet && <div style={{ fontSize: 13, color: '#1976f3', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.gross_profit)}</div>}
+              {!isTablet && <div style={{ fontSize: 13, color: '#1976f3', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.gross_profit)}
+                <button onClick={() => window.open(`/api/pdf?type=sale&id=${row.id}`, '_blank')} style={{ ...S.btnGhost, padding: '3px 6px', fontSize: 10, marginLeft: 6 }}>PDF</button>
+              </div>}
             </div>
           ))}
         </div>
@@ -3713,6 +3717,483 @@ function ChatHistory() {
   );
 }
 
+/* ========================================= INVENTORY 庫存管理 ========================================= */
+function Inventory() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState({ items: [], total: 0, page: 0, limit: 30, summary: {} });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [adjOpen, setAdjOpen] = useState(null);
+  const [adjQty, setAdjQty] = useState('');
+  const [adjType, setAdjType] = useState('in');
+  const [adjNotes, setAdjNotes] = useState('');
+
+  const load = useCallback(async (page = 0, q = search, f = filter) => {
+    setLoading(true);
+    try { setData(await apiGet({ action: 'inventory', page: String(page), search: q, filter: f, limit: '30' })); } finally { setLoading(false); }
+  }, [search, filter]);
+
+  useEffect(() => { load(); }, []);
+
+  const handleAdjust = async () => {
+    if (!adjOpen || !adjQty) return;
+    try {
+      await apiPost({ action: 'inventory_adjust', item_number: adjOpen, movement_type: adjType, quantity: adjQty, notes: adjNotes });
+      setAdjOpen(null); setAdjQty(''); setAdjNotes('');
+      load(data.page, search, filter);
+    } catch (e) { alert(e.message); }
+  };
+
+  const sm = data.summary || {};
+  return (
+    <div>
+      <PageLead eyebrow="Inventory" title="庫存管理" description="即時掌握所有商品庫存量、安全庫存水位，並可手動進行入庫/出庫異動。" />
+      <div style={S.statGrid}>
+        <StatCard code="ALL" label="總商品數" value={fmt(sm.total_products)} tone="blue" />
+        <StatCard code="LOW" label="低於安全水位" value={fmt(sm.low_stock)} tone="blue" accent="#f59e0b" />
+        <StatCard code="OUT" label="零庫存商品" value={fmt(sm.out_of_stock)} tone="blue" accent="#ef4444" />
+      </div>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(0, search, filter)} placeholder="搜尋料號或品名..." style={{ ...S.input, flex: 1 }} />
+        <select value={filter} onChange={(e) => { setFilter(e.target.value); load(0, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 160 }}>
+          <option value="all">全部</option>
+          <option value="low_stock">低庫存</option>
+          <option value="out_of_stock">零庫存</option>
+        </select>
+        <button onClick={() => load(0, search, filter)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {loading ? <Loading /> : data.items.length === 0 ? <EmptyState text="沒有符合條件的商品" /> : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 13 }}>
+            <thead><tr style={{ background: '#f1f5fa' }}>
+              {['料號','品名','分類','庫存','安全水位','狀態','操作'].map(h => <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, color: '#6b7a8d', fontWeight: 700, borderBottom: '1px solid #dbe3ee' }}>{h}</th>)}
+            </tr></thead>
+            <tbody>{data.items.map(it => (
+              <tr key={it.item_number} style={{ borderBottom: '1px solid #edf0f5' }}>
+                <td style={{ padding: '10px 12px', ...S.mono, color: '#1976f3', fontWeight: 600 }}>{it.item_number}</td>
+                <td style={{ padding: '10px 12px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.description || '-'}</td>
+                <td style={{ padding: '10px 12px', color: '#617084' }}>{it.category || '-'}</td>
+                <td style={{ padding: '10px 12px', fontWeight: 700, color: Number(it.stock_qty || 0) <= 0 ? '#ef4444' : Number(it.stock_qty) <= Number(it.safety_stock) ? '#f59e0b' : '#16a34a' }}>{it.stock_qty ?? 0}</td>
+                <td style={{ padding: '10px 12px', color: '#617084' }}>{it.safety_stock ?? 0}</td>
+                <td style={{ padding: '10px 12px' }}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></td>
+                <td style={{ padding: '10px 12px' }}><button onClick={() => setAdjOpen(it.item_number)} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: 12 }}>異動</button></td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
+      <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, filter)} />
+      {adjOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 400, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>庫存異動 — {adjOpen}</h3>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>異動類型</label>
+              <select value={adjType} onChange={(e) => setAdjType(e.target.value)} style={S.input}>
+                <option value="in">入庫 (增加)</option>
+                <option value="out">出庫 (減少)</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>數量</label>
+              <input type="number" value={adjQty} onChange={(e) => setAdjQty(e.target.value)} style={S.input} placeholder="輸入數量" min="1" />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={S.label}>備註</label>
+              <input value={adjNotes} onChange={(e) => setAdjNotes(e.target.value)} style={S.input} placeholder="選填" />
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setAdjOpen(null)} style={S.btnGhost}>取消</button>
+              <button onClick={handleAdjust} style={S.btnPrimary}>確認異動</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ========================================= PAYMENTS 收款管理 ========================================= */
+function Payments() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState({ payments: [], total: 0, page: 0, limit: 30, summary: {} });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusF, setStatusF] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({ order_id: '', amount: '', payment_method: 'transfer', payment_date: '', bank_last5: '', notes: '' });
+
+  const load = useCallback(async (page = 0, q = search, st = statusF) => {
+    setLoading(true);
+    try { setData(await apiGet({ action: 'payments', page: String(page), search: q, status: st })); } finally { setLoading(false); }
+  }, [search, statusF]);
+
+  useEffect(() => { load(); }, []);
+
+  const handleCreate = async () => {
+    try {
+      await apiPost({ action: 'create_payment', ...form });
+      setCreateOpen(false); setForm({ order_id: '', amount: '', payment_method: 'transfer', payment_date: '', bank_last5: '', notes: '' });
+      load();
+    } catch (e) { alert(e.message); }
+  };
+
+  const handleConfirm = async (id) => {
+    try { await apiPost({ action: 'confirm_payment', payment_id: id }); load(); } catch (e) { alert(e.message); }
+  };
+
+  const sm = data.summary || {};
+  const methodLabel = (m) => ({ transfer: '匯款', cash: '現金', check: '支票', card: '信用卡' })[m] || m || '-';
+
+  return (
+    <div>
+      <PageLead eyebrow="Payments" title="收款管理" description="記錄客戶付款、確認收款狀態，自動更新訂單付款進度。"
+        action={<button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 新增收款</button>} />
+      <div style={S.statGrid}>
+        <StatCard code="PEND" label="待確認" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
+        <StatCard code="CONF" label="已確認" value={fmt(sm.confirmed)} tone="blue" accent="#16a34a" />
+        <StatCard code="AMT" label="已收金額" value={fmtP(sm.total_confirmed_amount)} tone="blue" />
+      </div>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(0, search, statusF)} placeholder="搜尋收款單號..." style={{ ...S.input, flex: 1 }} />
+        <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(0, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 140 }}>
+          <option value="">全部狀態</option>
+          <option value="pending">待確認</option>
+          <option value="confirmed">已確認</option>
+        </select>
+        <button onClick={() => load(0, search, statusF)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {loading ? <Loading /> : data.payments.length === 0 ? <EmptyState text="目前沒有收款記錄" /> : data.payments.map(p => (
+        <div key={p.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '140px 100px 120px minmax(0,1fr) 100px', gap: 12, alignItems: 'center' }}>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>PAY_NO</div><div style={{ fontSize: 13, fontWeight: 700, color: '#1976f3', ...S.mono }}>{p.payment_number || '-'}</div></div>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>AMOUNT</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(p.amount)}</div></div>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>METHOD</div><div style={{ fontSize: 13 }}>{methodLabel(p.payment_method)}</div></div>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>DATE</div><div style={{ fontSize: 12 }}>{fmtDate(p.payment_date || p.created_at)}</div></div>
+            <div>{p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}</div>
+          </div>
+        </div>
+      ))}
+      <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF)} />
+      {createOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>新增收款記錄</h3>
+            {[
+              { key: 'order_id', label: '訂單 ID (qb_sales_history)', type: 'text' },
+              { key: 'amount', label: '金額', type: 'number' },
+              { key: 'payment_date', label: '付款日期', type: 'date' },
+              { key: 'bank_last5', label: '帳號末五碼', type: 'text' },
+              { key: 'notes', label: '備註', type: 'text' },
+            ].map(f => (
+              <div key={f.key} style={{ marginBottom: 12 }}>
+                <label style={S.label}>{f.label}</label>
+                <input type={f.type} value={form[f.key]} onChange={(e) => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} style={S.input} />
+              </div>
+            ))}
+            <div style={{ marginBottom: 16 }}>
+              <label style={S.label}>付款方式</label>
+              <select value={form.payment_method} onChange={(e) => setForm(prev => ({ ...prev, payment_method: e.target.value }))} style={S.input}>
+                <option value="transfer">匯款</option><option value="cash">現金</option><option value="check">支票</option><option value="card">信用卡</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button>
+              <button onClick={handleCreate} style={S.btnPrimary}>建立收款</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ========================================= SHIPMENTS 出貨管理 ========================================= */
+function Shipments() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState({ shipments: [], total: 0, page: 0, limit: 30, summary: {} });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusF, setStatusF] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({ order_id: '', carrier: '', tracking_no: '', shipping_address: '', remark: '' });
+
+  const load = useCallback(async (page = 0, q = search, st = statusF) => {
+    setLoading(true);
+    try { setData(await apiGet({ action: 'shipments', page: String(page), search: q, status: st })); } finally { setLoading(false); }
+  }, [search, statusF]);
+
+  useEffect(() => { load(); }, []);
+
+  const handleCreate = async () => {
+    try { await apiPost({ action: 'create_shipment', ...form }); setCreateOpen(false); setForm({ order_id: '', carrier: '', tracking_no: '', shipping_address: '', remark: '' }); load(); } catch (e) { alert(e.message); }
+  };
+
+  const handleStatus = async (id, status) => {
+    try { await apiPost({ action: 'update_shipment_status', shipment_id: id, status }); load(); } catch (e) { alert(e.message); }
+  };
+
+  const sm = data.summary || {};
+  const statusLabel = (s) => ({ pending: '待出貨', shipped: '已出貨', delivered: '已送達', cancelled: '已取消' })[s] || s;
+  const statusColor = (s) => ({ pending: 'default', shipped: 'green', delivered: 'green', cancelled: 'red' })[s] || 'default';
+
+  return (
+    <div>
+      <PageLead eyebrow="Shipments" title="出貨管理" description="追蹤訂單出貨進度、物流資訊與到貨狀態。"
+        action={<button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 建立出貨</button>} />
+      <div style={S.statGrid}>
+        <StatCard code="PEND" label="待出貨" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
+        <StatCard code="SHIP" label="已出貨" value={fmt(sm.shipped)} tone="blue" accent="#3b82f6" />
+        <StatCard code="DELV" label="已送達" value={fmt(sm.delivered)} tone="blue" accent="#16a34a" />
+      </div>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(0, search, statusF)} placeholder="搜尋出貨單號或物流單號..." style={{ ...S.input, flex: 1 }} />
+        <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(0, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 140 }}>
+          <option value="">全部狀態</option><option value="pending">待出貨</option><option value="shipped">已出貨</option><option value="delivered">已送達</option>
+        </select>
+        <button onClick={() => load(0, search, statusF)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {loading ? <Loading /> : data.shipments.length === 0 ? <EmptyState text="目前沒有出貨記錄" /> : data.shipments.map(s => (
+        <div key={s.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 120px minmax(0,1fr) 130px 120px', gap: 12, alignItems: 'center' }}>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>SHIP_NO</div><div style={{ fontSize: 13, fontWeight: 700, color: '#1976f3', ...S.mono }}>{s.shipment_no || '-'}</div></div>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>CARRIER</div><div style={{ fontSize: 13 }}>{s.carrier || '-'}</div></div>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>TRACKING</div><div style={{ fontSize: 13, ...S.mono }}>{s.tracking_no || '-'}</div></div>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>DATE</div><div style={{ fontSize: 12 }}>{fmtDate(s.ship_date || s.created_at)}</div></div>
+            <div>
+              <span style={S.tag(statusColor(s.status))}>{statusLabel(s.status)}</span>
+              {s.status === 'pending' && <button onClick={() => handleStatus(s.id, 'shipped')} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, marginLeft: 6 }}>出貨</button>}
+              {s.status === 'shipped' && <button onClick={() => handleStatus(s.id, 'delivered')} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, marginLeft: 6 }}>送達</button>}
+            </div>
+          </div>
+        </div>
+      ))}
+      <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF)} />
+      {createOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>建立出貨單</h3>
+            {[
+              { key: 'order_id', label: '訂單 ID (erp_orders)', type: 'text' },
+              { key: 'carrier', label: '物流商', type: 'text' },
+              { key: 'tracking_no', label: '物流單號', type: 'text' },
+              { key: 'shipping_address', label: '送貨地址', type: 'text' },
+              { key: 'remark', label: '備註', type: 'text' },
+            ].map(f => (
+              <div key={f.key} style={{ marginBottom: 12 }}>
+                <label style={S.label}>{f.label}</label>
+                <input type={f.type} value={form[f.key]} onChange={(e) => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} style={S.input} />
+              </div>
+            ))}
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button>
+              <button onClick={handleCreate} style={S.btnPrimary}>建立出貨</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ========================================= RETURNS 退貨管理 ========================================= */
+function Returns() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState({ returns: [], total: 0, page: 0, limit: 30, summary: {} });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusF, setStatusF] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({ customer_id: '', reason: '', remark: '' });
+  const [items, setItems] = useState([{ item_number: '', description: '', qty_returned: 1, unit_price: 0, line_total: 0 }]);
+
+  const load = useCallback(async (page = 0, q = search, st = statusF) => {
+    setLoading(true);
+    try { setData(await apiGet({ action: 'returns', page: String(page), search: q, status: st })); } finally { setLoading(false); }
+  }, [search, statusF]);
+
+  useEffect(() => { load(); }, []);
+
+  const updateItem = (idx, key, val) => {
+    setItems(prev => {
+      const next = [...prev];
+      next[idx] = { ...next[idx], [key]: val };
+      if (key === 'qty_returned' || key === 'unit_price') {
+        next[idx].line_total = Number(next[idx].qty_returned || 0) * Number(next[idx].unit_price || 0);
+      }
+      return next;
+    });
+  };
+
+  const handleCreate = async () => {
+    try {
+      await apiPost({ action: 'create_return', ...form, items: items.filter(i => i.item_number) });
+      setCreateOpen(false); setForm({ customer_id: '', reason: '', remark: '' });
+      setItems([{ item_number: '', description: '', qty_returned: 1, unit_price: 0, line_total: 0 }]);
+      load();
+    } catch (e) { alert(e.message); }
+  };
+
+  const handleApprove = async (id) => {
+    try { await apiPost({ action: 'approve_return', return_id: id }); load(); } catch (e) { alert(e.message); }
+  };
+
+  const sm = data.summary || {};
+  const statusLabel = (s) => ({ pending: '待審核', approved: '已核准', rejected: '已拒絕', refunded: '已退款' })[s] || s;
+  const statusColor = (s) => ({ pending: 'default', approved: 'green', rejected: 'red', refunded: 'green' })[s] || 'default';
+
+  return (
+    <div>
+      <PageLead eyebrow="Returns" title="退貨管理" description="管理客戶退貨申請、審核退貨並自動回補庫存。"
+        action={<button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 建立退貨</button>} />
+      <div style={S.statGrid}>
+        <StatCard code="PEND" label="待審核" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
+        <StatCard code="APVD" label="已核准" value={fmt(sm.approved)} tone="blue" accent="#16a34a" />
+        <StatCard code="REFN" label="退款總額" value={fmtP(sm.total_refund)} tone="blue" accent="#ef4444" />
+      </div>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(0, search, statusF)} placeholder="搜尋退貨單號或原因..." style={{ ...S.input, flex: 1 }} />
+        <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(0, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 140 }}>
+          <option value="">全部狀態</option><option value="pending">待審核</option><option value="approved">已核准</option><option value="rejected">已拒絕</option>
+        </select>
+        <button onClick={() => load(0, search, statusF)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {loading ? <Loading /> : data.returns.length === 0 ? <EmptyState text="目前沒有退貨記錄" /> : data.returns.map(r => (
+        <div key={r.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 120px minmax(0,1fr) 100px 120px', gap: 12, alignItems: 'center' }}>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>RTN_NO</div><div style={{ fontSize: 13, fontWeight: 700, color: '#1976f3', ...S.mono }}>{r.return_no || '-'}</div></div>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>REFUND</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(r.refund_amount)}</div></div>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>REASON</div><div style={{ fontSize: 12, color: '#617084' }}>{r.reason || '-'}</div></div>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>DATE</div><div style={{ fontSize: 12 }}>{fmtDate(r.return_date || r.created_at)}</div></div>
+            <div>
+              <span style={S.tag(statusColor(r.status))}>{statusLabel(r.status)}</span>
+              {r.status === 'pending' && <button onClick={() => handleApprove(r.id)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, marginLeft: 6 }}>核准</button>}
+            </div>
+          </div>
+        </div>
+      ))}
+      <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF)} />
+      {createOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 560, maxWidth: '90vw', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>建立退貨單</h3>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>客戶 ID (選填)</label><input value={form.customer_id} onChange={(e) => setForm(p => ({ ...p, customer_id: e.target.value }))} style={S.input} /></div>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>退貨原因</label><input value={form.reason} onChange={(e) => setForm(p => ({ ...p, reason: e.target.value }))} style={S.input} /></div>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>備註</label><input value={form.remark} onChange={(e) => setForm(p => ({ ...p, remark: e.target.value }))} style={S.input} /></div>
+            <div style={{ marginBottom: 8 }}><label style={S.label}>退貨明細</label></div>
+            {items.map((it, idx) => (
+              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 80px 80px', gap: 6, marginBottom: 6 }}>
+                <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value)} style={{ ...S.input, fontSize: 12 }} placeholder="料號" />
+                <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, fontSize: 12 }} placeholder="品名" />
+                <input type="number" value={it.qty_returned} onChange={(e) => updateItem(idx, 'qty_returned', e.target.value)} style={{ ...S.input, fontSize: 12 }} placeholder="數量" />
+                <input type="number" value={it.unit_price} onChange={(e) => updateItem(idx, 'unit_price', e.target.value)} style={{ ...S.input, fontSize: 12 }} placeholder="單價" />
+                <div style={{ fontSize: 12, padding: '10px 4px', color: '#617084' }}>{fmtP(it.line_total)}</div>
+              </div>
+            ))}
+            <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_returned: 1, unit_price: 0, line_total: 0 }])} style={{ ...S.btnGhost, fontSize: 12, marginBottom: 16 }}>+ 新增品項</button>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button>
+              <button onClick={handleCreate} style={S.btnPrimary}>建立退貨</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ========================================= INQUIRIES 詢價管理 ========================================= */
+function Inquiries() {
+  const width = useViewportWidth();
+  const isMobile = width < 820;
+  const [data, setData] = useState({ inquiries: [], total: 0, page: 0, limit: 30, summary: {} });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusF, setStatusF] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({ customer_id: '', subject: '', description: '', priority: 'normal' });
+
+  const load = useCallback(async (page = 0, q = search, st = statusF) => {
+    setLoading(true);
+    try { setData(await apiGet({ action: 'inquiries', page: String(page), search: q, status: st })); } finally { setLoading(false); }
+  }, [search, statusF]);
+
+  useEffect(() => { load(); }, []);
+
+  const handleCreate = async () => {
+    try { await apiPost({ action: 'create_inquiry', ...form }); setCreateOpen(false); setForm({ customer_id: '', subject: '', description: '', priority: 'normal' }); load(); } catch (e) { alert(e.message); }
+  };
+
+  const handleStatus = async (id, status) => {
+    try { await apiPost({ action: 'update_inquiry_status', inquiry_id: id, status }); load(); } catch (e) { alert(e.message); }
+  };
+
+  const sm = data.summary || {};
+  const statusLabel = (s) => ({ open: '待處理', quoted: '已報價', closed: '已結案', cancelled: '已取消' })[s] || s;
+  const statusColor = (s) => ({ open: 'default', quoted: 'green', closed: 'green', cancelled: 'red' })[s] || 'default';
+  const priorityColor = (p) => ({ high: 'red', urgent: 'red', normal: 'default', low: 'green' })[p] || 'default';
+
+  return (
+    <div>
+      <PageLead eyebrow="Inquiries" title="詢價管理" description="追蹤客戶詢價需求，可轉報價單進入正式交易流程。"
+        action={<button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 新增詢價</button>} />
+      <div style={S.statGrid}>
+        <StatCard code="OPEN" label="待處理" value={fmt(sm.open)} tone="blue" accent="#f59e0b" />
+        <StatCard code="QUOT" label="已報價" value={fmt(sm.quoted)} tone="blue" accent="#3b82f6" />
+        <StatCard code="CLSD" label="已結案" value={fmt(sm.closed)} tone="blue" accent="#16a34a" />
+      </div>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(0, search, statusF)} placeholder="搜尋詢價單號或主旨..." style={{ ...S.input, flex: 1 }} />
+        <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(0, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 140 }}>
+          <option value="">全部狀態</option><option value="open">待處理</option><option value="quoted">已報價</option><option value="closed">已結案</option>
+        </select>
+        <button onClick={() => load(0, search, statusF)} style={S.btnPrimary}>搜尋</button>
+      </div>
+      {loading ? <Loading /> : data.inquiries.length === 0 ? <EmptyState text="目前沒有詢價記錄" /> : data.inquiries.map(inq => (
+        <div key={inq.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px minmax(0,1fr) 80px 100px 140px', gap: 12, alignItems: 'center' }}>
+            <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>INQ_NO</div><div style={{ fontSize: 13, fontWeight: 700, color: '#1976f3', ...S.mono }}>{inq.inquiry_no || '-'}</div></div>
+            <div><div style={{ fontSize: 14, fontWeight: 600, color: '#1c2740' }}>{inq.subject || '-'}</div><div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>{(inq.description || '').slice(0, 80)}{(inq.description || '').length > 80 ? '...' : ''}</div></div>
+            <div><span style={S.tag(priorityColor(inq.priority))}>{inq.priority || 'normal'}</span></div>
+            <div><div style={{ fontSize: 12 }}>{fmtDate(inq.inquiry_date || inq.created_at)}</div></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={S.tag(statusColor(inq.status))}>{statusLabel(inq.status)}</span>
+              {inq.status === 'open' && <button onClick={() => handleStatus(inq.id, 'quoted')} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11 }}>已報價</button>}
+              {inq.status === 'quoted' && <button onClick={() => handleStatus(inq.id, 'closed')} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11 }}>結案</button>}
+            </div>
+          </div>
+        </div>
+      ))}
+      <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF)} />
+      {createOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>新增詢價</h3>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>客戶 ID (選填)</label><input value={form.customer_id} onChange={(e) => setForm(p => ({ ...p, customer_id: e.target.value }))} style={S.input} /></div>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>主旨 *</label><input value={form.subject} onChange={(e) => setForm(p => ({ ...p, subject: e.target.value }))} style={S.input} /></div>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>說明</label><textarea value={form.description} onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))} style={{ ...S.input, minHeight: 80 }} /></div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={S.label}>優先度</label>
+              <select value={form.priority} onChange={(e) => setForm(p => ({ ...p, priority: e.target.value }))} style={S.input}>
+                <option value="low">低</option><option value="normal">一般</option><option value="high">高</option><option value="urgent">緊急</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button>
+              <button onClick={handleCreate} style={S.btnPrimary}>建立詢價</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ========================================= SIDEBAR & LAYOUT ========================================= */
 const SECTIONS = [
   {
@@ -3735,11 +4216,21 @@ const SECTIONS = [
   {
     title: 'ERP 交易作業',
     tabs: [
+      { id: 'inquiries', label: '詢價單', code: 'INQ' },
       { id: 'quotes', label: '報價單', code: 'QUOT' },
       { id: 'orders', label: '訂單', code: 'ORDR' },
       { id: 'sales_documents', label: '銷貨單', code: 'SALE' },
+      { id: 'shipments', label: '出貨管理', code: 'SHIP' },
+      { id: 'returns', label: '退貨管理', code: 'RTN' },
       { id: 'promotions', label: '活動管理', code: 'PRMO' },
       { id: 'pricing', label: '報價規則', code: 'PRCE' },
+    ],
+  },
+  {
+    title: 'ERP 倉儲/財務',
+    tabs: [
+      { id: 'inventory', label: '庫存管理', code: 'INVT' },
+      { id: 'payments', label: '收款管理', code: 'PAY' },
     ],
   },
   {
@@ -3778,6 +4269,11 @@ const TAB_COMPONENTS = {
   profit_analysis: ProfitAnalysis,
   promotions: Promotions,
   pricing: PricingRules,
+  inventory: Inventory,
+  payments: Payments,
+  shipments: Shipments,
+  returns: Returns,
+  inquiries: Inquiries,
   ai_prompt: AIPrompt,
   chat_history: ChatHistory,
 };
