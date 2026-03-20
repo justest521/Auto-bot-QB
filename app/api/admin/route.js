@@ -774,6 +774,119 @@ export async function GET(request) {
         });
       }
 
+      case 'formal_customer_detail': {
+        const erpCustomerId = (searchParams.get('erp_customer_id') || '').trim();
+        if (!erpCustomerId) {
+          return Response.json({ error: 'erp_customer_id is required' }, { status: 400 });
+        }
+
+        let customerStageReady = true;
+        const { data: customer, error: customerError, stageReady } = await runErpCustomerQuery((columns) =>
+          supabase
+            .from('erp_customers')
+            .select(columns)
+            .eq('id', erpCustomerId)
+            .maybeSingle()
+        );
+
+        customerStageReady = stageReady;
+        if (customerError) return Response.json({ error: customerError.message }, { status: 500 });
+        if (!customer) return Response.json({ error: 'Customer not found' }, { status: 404 });
+
+        let quoteRows = [];
+        let orderRows = [];
+        let salesRows = [];
+        let lineProfile = null;
+        let lineMessageCount = 0;
+
+        try {
+          const [{ data: quotes }, { data: orders }] = await Promise.all([
+            supabase
+              .from('erp_quotes')
+              .select('id,quote_no,quote_date,status,total_amount,valid_until,remark')
+              .eq('customer_id', customer.id)
+              .order('quote_date', { ascending: false, nullsFirst: false })
+              .limit(5),
+            supabase
+              .from('erp_orders')
+              .select('id,order_no,order_date,status,payment_status,shipping_status,total_amount,remark')
+              .eq('customer_id', customer.id)
+              .order('order_date', { ascending: false, nullsFirst: false })
+              .limit(5),
+          ]);
+          quoteRows = quotes || [];
+          orderRows = orders || [];
+        } catch {
+          quoteRows = [];
+          orderRows = [];
+        }
+
+        try {
+          const candidateNames = [...new Set([
+            cleanCsvValue(customer.company_name),
+            cleanCsvValue(customer.name),
+            cleanCsvValue(customer.display_name),
+          ].filter(Boolean))];
+
+          if (candidateNames.length) {
+            let salesQuery = supabase
+              .from('qb_sales_history')
+              .select('id,slip_number,sale_date,invoice_number,customer_name,sales_person,subtotal,tax,total,cost,gross_profit,profit_margin');
+
+            salesQuery = salesQuery.or(candidateNames.map((name) => `customer_name.eq.${String(name).replace(/,/g, '\\,')}`).join(','));
+            const { data: sales } = await salesQuery
+              .order('sale_date', { ascending: false, nullsFirst: false })
+              .limit(10);
+
+            salesRows = sales || [];
+          }
+        } catch {
+          salesRows = [];
+        }
+
+        if (customer.line_user_id) {
+          try {
+            const [{ data: lineCustomer }, lineMessages] = await Promise.all([
+              supabase
+                .from('quickbuy_line_customers')
+                .select('*')
+                .eq('line_user_id', customer.line_user_id)
+                .maybeSingle(),
+              supabase
+                .from('quickbuy_line_messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('line_user_id', customer.line_user_id),
+            ]);
+            lineProfile = lineCustomer || null;
+            lineMessageCount = lineMessages.count || 0;
+          } catch {
+            lineProfile = null;
+            lineMessageCount = 0;
+          }
+        }
+
+        const summary = {
+          quote_count: quoteRows.length,
+          quote_total: quoteRows.reduce((sum, row) => sum + Number(row.total_amount || 0), 0),
+          order_count: orderRows.length,
+          order_total: orderRows.reduce((sum, row) => sum + Number(row.total_amount || 0), 0),
+          sale_count: salesRows.length,
+          sales_total: salesRows.reduce((sum, row) => sum + Number(row.total || 0), 0),
+          gross_profit_total: salesRows.reduce((sum, row) => sum + Number(row.gross_profit || 0), 0),
+          line_message_count: lineMessageCount,
+        };
+
+        return Response.json({
+          customer,
+          summary,
+          recent_quotes: quoteRows,
+          recent_orders: orderRows,
+          recent_sales: salesRows.slice(0, 5),
+          line_profile: lineProfile,
+          customer_stage_ready: customerStageReady,
+        });
+      }
+
       case 'promotions': {
         const { data } = await supabase
           .from('quickbuy_promotions')
