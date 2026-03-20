@@ -1087,6 +1087,7 @@ export async function GET(request) {
       case 'products': {
         const search = searchParams.get('q') || '';
         const category = searchParams.get('category') || 'all';
+        const status = searchParams.get('status') || 'all';
         const page = parseInt(searchParams.get('page') || '0', 10);
         const limit = Math.min(parseInt(searchParams.get('limit') || '25', 10), 50);
         const offset = page * limit;
@@ -1097,12 +1098,15 @@ export async function GET(request) {
             'item_number,description,us_price,tw_retail_price,tw_reseller_price,product_status,category,replacement_model,weight_kg,origin_country',
             { count: 'exact' }
           )
-          .eq('product_status', 'Current')
           .order('item_number', { ascending: true })
           .range(offset, offset + limit - 1);
 
         if (category && category !== 'all') {
           query = query.eq('category', category);
+        }
+
+        if (status && status !== 'all') {
+          query = query.eq('product_status', status);
         }
 
         const trimmed = search.trim();
@@ -1119,11 +1123,26 @@ export async function GET(request) {
         const { data, count, error } = await query;
         if (error) return Response.json({ error: error.message }, { status: 500 });
 
+        const [allProducts, currentProducts, replacementProducts, categoryRows] = await Promise.all([
+          supabase.from('quickbuy_products').select('*', { count: 'exact', head: true }),
+          supabase.from('quickbuy_products').select('*', { count: 'exact', head: true }).eq('product_status', 'Current'),
+          supabase.from('quickbuy_products').select('*', { count: 'exact', head: true }).not('replacement_model', 'is', null),
+          supabase.from('quickbuy_products').select('category').limit(5000),
+        ]);
+
+        const categoryCount = new Set((categoryRows.data || []).map((row) => row.category).filter(Boolean)).size;
+
         return Response.json({
           products: data || [],
           total: count || 0,
           page,
           limit,
+          summary: {
+            total_products: allProducts.count || 0,
+            current_products: currentProducts.count || 0,
+            replacement_products: replacementProducts.count || 0,
+            category_count: categoryCount,
+          },
         });
       }
 
@@ -1673,6 +1692,35 @@ export async function POST(request) {
           .from('erp_customers')
           .update(payload)
           .eq('id', erp_customer_id);
+
+        if (error) return Response.json({ error: error.message }, { status: 500 });
+        return Response.json({ success: true });
+      }
+
+      case 'update_product_master': {
+        const { item_number, product } = body;
+
+        if (!item_number || !product) {
+          return Response.json({ error: 'item_number and product are required' }, { status: 400 });
+        }
+
+        const payload = {
+          description: cleanCsvValue(product.description),
+          us_price: product.us_price === '' || product.us_price === null || product.us_price === undefined ? null : toNumber(product.us_price),
+          tw_retail_price: toNumber(product.tw_retail_price),
+          tw_reseller_price: toNumber(product.tw_reseller_price),
+          product_status: cleanCsvValue(product.product_status) || 'Current',
+          category: cleanCsvValue(product.category) || 'other',
+          replacement_model: cleanCsvValue(product.replacement_model),
+          weight_kg: product.weight_kg === '' || product.weight_kg === null || product.weight_kg === undefined ? null : toNumber(product.weight_kg),
+          origin_country: cleanCsvValue(product.origin_country),
+          search_text: cleanCsvValue(product.search_text),
+        };
+
+        const { error } = await supabase
+          .from('quickbuy_products')
+          .update(payload)
+          .eq('item_number', item_number);
 
         if (error) return Response.json({ error: error.message }, { status: 500 });
         return Response.json({ success: true });
