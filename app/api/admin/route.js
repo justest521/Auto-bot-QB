@@ -2008,7 +2008,7 @@ export async function POST(request) {
               line_total: lineTotal,
               cost_price_snapshot: item.cost_price_snapshot !== undefined && item.cost_price_snapshot !== null && item.cost_price_snapshot !== ''
                 ? toNumber(item.cost_price_snapshot)
-                : null,
+                : 0,
             };
           })
           .filter((item) => item.item_number_snapshot || item.description_snapshot);
