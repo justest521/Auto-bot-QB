@@ -934,7 +934,7 @@ function SaleDetailDrawer({ slipNumber, open, onClose }) {
                   <div><span style={{ color: '#7b889b', ...S.mono }}>NUMBER</span> {invoice.invoice_number || '-'}</div>
                   <div><span style={{ color: '#7b889b', ...S.mono }}>TYPE</span> {invoice.invoice_type || '-'}</div>
                   <div><span style={{ color: '#7b889b', ...S.mono }}>COMPANY</span> {invoice.company_name || '-'}</div>
-                  <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {invoice.tax_id || '-'}</div>
+                  <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID -</span> {invoice.tax_id || '-'}</div>
                   <div><span style={{ color: '#7b889b', ...S.mono }}>AMOUNT</span> {fmtP(invoice.amount)}</div>
                   <div><span style={{ color: '#7b889b', ...S.mono }}>ISSUED</span> {fmtDate(invoice.issued_at)}</div>
                 </div>
@@ -1503,8 +1503,8 @@ function FormalCustomers() {
                     <div style={{ fontSize: 15, color: '#1c2740', fontWeight: 700 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                     <div style={{ marginTop: 6, fontSize: 12, color: '#617084', lineHeight: 1.7 }}>
                       <div><span style={{ color: '#7b889b', ...S.mono }}>CODE</span> {customer.customer_code || '-'}</div>
-                      <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {customer.name || '-'}</div>
-                      <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {customer.phone || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {customer.name || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {customer.phone || '-'}</div>
                     </div>
                   </div>
                   <div style={{ display: 'grid', gap: 6, justifyItems: 'end' }}>
@@ -1611,11 +1611,11 @@ function FormalCustomers() {
                     {detail?.line_profile ? <span style={S.tag('green')}>{detail.line_profile.display_name || 'LINE 客戶'}</span> : null}
                   </div>
                   <div style={{ fontSize: 14, color: '#617084', lineHeight: 1.8 }}>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {detailCustomer.name || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {detailCustomer.phone || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL</span> {detailCustomer.email || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {detailCustomer.tax_id || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS</span> {detailCustomer.address || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {detailCustomer.name || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {detailCustomer.phone || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL -</span> {detailCustomer.email || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID -</span> {detailCustomer.tax_id || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS -</span> {detailCustomer.address || '-'}</div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
                     <StatCard code="QUOTE" label="報價筆數" value={fmt(summary.quote_count)} sub={fmtP(summary.quote_total)} tone="blue" />
@@ -1973,7 +1973,7 @@ function Customers() {
             <div style={{ ...S.panelMuted, display: 'grid', gap: 8 }}>
               <div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>CUSTOMER_PROFILE</div>
               <div style={{ fontSize: 12, color: '#4f6178', lineHeight: 1.8 }}>
-                <div><span style={{ color: '#7b889b', ...S.mono }}>LAST_CONTACT</span> {fmtDate(detailCustomer.last_contact_at || detailCustomer.created_at)}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>LAST_CONTACT -</span> {fmtDate(detailCustomer.last_contact_at || detailCustomer.created_at)}</div>
                 <div><span style={{ color: '#7b889b', ...S.mono }}>STATUS</span> {(detailCustomer.message_count || 0) > 1 ? '既有客戶' : '新客戶'}</div>
               </div>
             </div>
@@ -2014,11 +2014,11 @@ function Customers() {
                   </div>
                 ) : (
                   <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8 }}>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {detailCustomer.linked_customer.name || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {detailCustomer.linked_customer.phone || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL</span> {detailCustomer.linked_customer.email || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {detailCustomer.linked_customer.tax_id || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS</span> {detailCustomer.linked_customer.address || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {detailCustomer.linked_customer.name || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {detailCustomer.linked_customer.phone || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL -</span> {detailCustomer.linked_customer.email || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID -</span> {detailCustomer.linked_customer.tax_id || '-'}</div>
+                    <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS -</span> {detailCustomer.linked_customer.address || '-'}</div>
                     <div><span style={{ color: '#7b889b', ...S.mono }}>NOTES</span> {detailCustomer.linked_customer.notes || '-'}</div>
                   </div>
                 )}
@@ -2093,9 +2093,9 @@ function Customers() {
                                 {erpCustomer.company_name || erpCustomer.name || '未命名客戶'}
                               </div>
                       <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8, marginTop: 4 }}>
-                        <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {erpCustomer.name || '-'}</div>
-                        <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {erpCustomer.phone || '-'}</div>
-                        <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {erpCustomer.tax_id || '-'}</div>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {erpCustomer.name || '-'}</div>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {erpCustomer.phone || '-'}</div>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID -</span> {erpCustomer.tax_id || '-'}</div>
                         {erpCustomer.customer_stage && <div><span style={{ color: '#7b889b', ...S.mono }}>STAGE</span> {stageMeta[erpCustomer.customer_stage]?.label || erpCustomer.customer_stage}</div>}
                       </div>
                     </div>
@@ -3151,9 +3151,9 @@ function Vendors() {
             <div>
               <div style={{ fontSize: 15, color: '#1c2740', fontWeight: 700 }}>{vendor.vendor_name || '未命名廠商'}</div>
               <div style={{ fontSize: 12, color: '#617084', lineHeight: 1.8, marginTop: 6 }}>
-                <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {vendor.contact_name || '-'}</div>
-                <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {vendor.phone || vendor.mobile || '-'}</div>
-                <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS</span> {vendor.address || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {vendor.contact_name || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {vendor.phone || vendor.mobile || '-'}</div>
+                <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS -</span> {vendor.address || '-'}</div>
               </div>
             </div>
             <div style={S.panelMuted}>
