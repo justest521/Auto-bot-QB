@@ -6147,10 +6147,12 @@ export default function AdminPage() {
         .qb-sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
         .qb-sb::-webkit-scrollbar-track{background:transparent}
         input:focus,select:focus,textarea:focus{border-color:#009061!important;box-shadow:0 0 0 3px rgba(0,144,97,0.08)!important}
-        .qb-card-hover:hover{background:#009061!important;border-color:#009061!important;color:#fff!important;box-shadow:0 8px 24px rgba(0,144,97,0.25), 6px 6px 16px rgba(0,0,0,0.08)!important;transform:translateY(-2px)}
-        .qb-card-hover:hover *{color:#fff!important}
-        .qb-card-hover:hover span[style]{color:#fff!important}
-        .qb-card-hover{transition:all 0.25s ease}
+        .qb-card-hover:hover{background:#E8F2EE!important;border-color:#E8F2EE!important;box-shadow:0 4px 16px rgba(0,144,97,0.12), 6px 6px 16px rgba(0,0,0,0.04)!important;transform:translateY(-1px)}
+        .qb-card-hover{transition:all 0.25s ease;cursor:pointer}
+        .qb-content>div>div[style*="border-radius"]{transition:all 0.25s ease}
+        .qb-content>div>div[style*="border-radius"]:hover{background:#E8F2EE!important;border-color:#E8F2EE!important;box-shadow:0 4px 16px rgba(0,144,97,0.12)!important;transform:translateY(-1px)}
+        .qb-content table tr{transition:background 0.2s ease}
+        .qb-content table tbody tr:hover{background:#E8F2EE!important}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         @keyframes badgeGlow{0%,100%{box-shadow:0 0 4px rgba(239,68,68,0.3)}50%{box-shadow:0 0 12px rgba(239,68,68,0.6)}}
       `}</style>
@@ -6282,7 +6284,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div style={{ ...S.content, padding: isMobile ? '18px 14px 30px' : isTablet ? '22px 18px 34px' : S.content.padding }}>
+          <div className="qb-content" style={{ ...S.content, padding: isMobile ? '18px 14px 30px' : isTablet ? '22px 18px 34px' : S.content.padding }}>
             <ActiveTab setTab={setTab} />
           </div>
         </div>
