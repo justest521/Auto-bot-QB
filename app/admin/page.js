@@ -1424,6 +1424,12 @@ function FormalCustomers() {
   const [selectedSlipNumber, setSelectedSlipNumber] = useState('');
   const [expandedPanels, setExpandedPanels] = useState({});
   const togglePanel = (key) => setExpandedPanels((prev) => ({ ...prev, [key]: !prev[key] }));
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [editSaving, setEditSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({ company_name: '', name: '', phone: '', email: '', tax_id: '', address: '', notes: '' });
+  const [createSaving, setCreateSaving] = useState(false);
 
   const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
     setLoading(true);
@@ -1462,13 +1468,53 @@ function FormalCustomers() {
     }
   }, [selectedCustomerId, loadDetail]);
 
+  const startEditing = () => {
+    if (!detailCustomer) return;
+    setEditForm({
+      name: detailCustomer.name || '',
+      company_name: detailCustomer.company_name || '',
+      phone: detailCustomer.phone || '',
+      email: detailCustomer.email || '',
+      tax_id: detailCustomer.tax_id || '',
+      address: detailCustomer.address || '',
+      notes: detailCustomer.notes || '',
+    });
+    setEditing(true);
+  };
+
+  const saveEdit = async () => {
+    setEditSaving(true);
+    try {
+      await apiPost({ action: 'update_customer_profile', erp_customer_id: selectedCustomerId, profile: editForm });
+      setEditing(false);
+      await loadDetail(selectedCustomerId);
+      await load(data.page, search, pageSize);
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const saveCreate = async () => {
+    if (!createForm.company_name.trim()) return;
+    setCreateSaving(true);
+    try {
+      const result = await apiPost({ action: 'create_customer', profile: createForm });
+      setCreating(false);
+      setCreateForm({ company_name: '', name: '', phone: '', email: '', tax_id: '', address: '', notes: '' });
+      await load(1, search, pageSize);
+      if (result?.customer?.id) setSelectedCustomerId(result.customer.id);
+    } finally {
+      setCreateSaving(false);
+    }
+  };
+
+  const detailCustomer = detail?.customer;
   const stageMeta = {
     lead: { label: '詢問名單', color: '' },
     prospect: { label: '潛在客戶', color: 'yellow' },
     customer: { label: '正式客戶', color: 'green' },
     vip: { label: 'VIP', color: 'red' },
   };
-  const detailCustomer = detail?.customer;
   const summary = detail?.summary || {};
 
   const listPane = (
@@ -1560,7 +1606,10 @@ function FormalCustomers() {
         eyebrow="Customers"
         title="客戶主檔"
         description="這裡顯示全部正式 ERP 客戶，不限是否來自 LINE。適合查看你匯入的一千多筆正式客戶資料。"
-        action={<CsvImportButton datasetId="erp_customers" onImported={() => load(1, search, pageSize)} compact />}
+        action={<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button onClick={() => { setCreating(true); setSelectedCustomerId(''); }} style={S.btnPrimary}>+ 新增客戶</button>
+          <CsvImportButton datasetId="erp_customers" onImported={() => load(1, search, pageSize)} compact />
+        </div>}
       />
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input
@@ -1599,24 +1648,62 @@ function FormalCustomers() {
           <div>{listPane}</div>
           <div style={{ position: 'sticky', top: 84 }}>
             <div style={S.card}>
-              {detailLoading ? <Loading /> : !detailCustomer ? <EmptyState text="請先選擇一位正式客戶" /> : (
-                <div style={{ display: 'grid', gap: 16 }}>
-                  <PanelHeader
-                    title={detailCustomer.company_name || detailCustomer.name || '客戶檔案'}
-                    meta={detailCustomer.customer_code || 'ERP customer'}
-                    badge={<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={S.tag(stageMeta[detailCustomer.customer_stage]?.color || '')}>{stageMeta[detailCustomer.customer_stage]?.label || '詢問名單'}</span>
-                      {detailCustomer.line_user_id ? <span style={S.tag('line')}>LINE 已連通</span> : <span style={S.tag('')}>ERP only</span>}
-                      {detail?.line_profile ? <span style={S.tag('green')}>{detail.line_profile.display_name || 'LINE 客戶'}</span> : null}
-                    </div>}
-                  />
-                  <div style={{ fontSize: 14, color: '#617084', lineHeight: 1.8 }}>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {detailCustomer.name || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {detailCustomer.phone || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL -</span> {detailCustomer.email || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID -</span> {detailCustomer.tax_id || '-'}</div>
-                    <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS -</span> {detailCustomer.address || '-'}</div>
+              {creating ? (
+                <div style={{ display: 'grid', gap: 14 }}>
+                  <PanelHeader title="新增客戶" meta="手動建立一筆正式客戶" />
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+                    <div><label style={S.label}>公司名稱 *</label><input value={createForm.company_name} onChange={(e) => setCreateForm({ ...createForm, company_name: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>聯絡人</label><input value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>電話</label><input value={createForm.phone} onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>Email</label><input value={createForm.email} onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>統一編號</label><input value={createForm.tax_id} onChange={(e) => setCreateForm({ ...createForm, tax_id: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>地址</label><input value={createForm.address} onChange={(e) => setCreateForm({ ...createForm, address: e.target.value })} style={S.input} /></div>
                   </div>
+                  <div><label style={S.label}>備註</label><textarea value={createForm.notes} onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })} rows={3} style={{ ...S.input, resize: 'vertical', lineHeight: 1.6 }} /></div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={saveCreate} disabled={createSaving || !createForm.company_name.trim()} style={S.btnPrimary}>{createSaving ? '建立中...' : '建立客戶'}</button>
+                    <button onClick={() => setCreating(false)} style={S.btnGhost}>取消</button>
+                  </div>
+                </div>
+              ) : detailLoading ? <Loading /> : !detailCustomer ? <EmptyState text="請先選擇一位正式客戶" /> : (
+                <div style={{ display: 'grid', gap: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <PanelHeader
+                      title={detailCustomer.company_name || detailCustomer.name || '客戶檔案'}
+                      meta={detailCustomer.customer_code || 'ERP customer'}
+                      badge={<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <span style={S.tag(stageMeta[detailCustomer.customer_stage]?.color || '')}>{stageMeta[detailCustomer.customer_stage]?.label || '詢問名單'}</span>
+                        {detailCustomer.line_user_id ? <span style={S.tag('line')}>LINE 已連通</span> : <span style={S.tag('')}>ERP only</span>}
+                        {detail?.line_profile ? <span style={S.tag('green')}>{detail.line_profile.display_name || 'LINE 客戶'}</span> : null}
+                      </div>}
+                    />
+                    <button onClick={() => editing ? setEditing(false) : startEditing()} style={{ ...S.btnGhost, fontSize: 12, padding: '6px 12px', flexShrink: 0 }}>
+                      {editing ? '取消' : '編輯'}
+                    </button>
+                  </div>
+                  {editing ? (
+                    <div style={{ display: 'grid', gap: 10 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+                        <div><label style={S.label}>公司名稱</label><input value={editForm.company_name} onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>聯絡人</label><input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>電話</label><input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>Email</label><input value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>統一編號</label><input value={editForm.tax_id} onChange={(e) => setEditForm({ ...editForm, tax_id: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>地址</label><input value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} style={S.input} /></div>
+                      </div>
+                      <div><label style={S.label}>備註</label><textarea value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} rows={3} style={{ ...S.input, resize: 'vertical', lineHeight: 1.6 }} /></div>
+                      <button onClick={saveEdit} disabled={editSaving} style={S.btnPrimary}>{editSaving ? '儲存中...' : '儲存'}</button>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 14, color: '#617084', lineHeight: 1.8 }}>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {detailCustomer.name || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {detailCustomer.phone || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL -</span> {detailCustomer.email || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID -</span> {detailCustomer.tax_id || '-'}</div>
+                      <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS -</span> {detailCustomer.address || '-'}</div>
+                      {detailCustomer.notes && <div><span style={{ color: '#7b889b', ...S.mono }}>NOTES -</span> {detailCustomer.notes}</div>}
+                    </div>
+                  )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
                     <StatCard code="QUOTE" label="報價筆數" value={fmt(summary.quote_count)} sub={fmtP(summary.quote_total)} tone="blue" />
                     <StatCard code="ORDER" label="訂單筆數" value={fmt(summary.order_count)} sub={fmtP(summary.order_total)} tone="yellow" />
