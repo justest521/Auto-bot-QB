@@ -4742,6 +4742,8 @@ function DealerUsers() {
   const [form, setForm] = useState({ username: '', password: '', display_name: '', role: 'dealer', company_name: '', phone: '', email: '' });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
+  const [permSaving, setPermSaving] = useState(null);
 
   const load = async () => { setLoading(true); try { setData(await apiGet({ action: 'dealer_users' })); } finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
@@ -4770,9 +4772,40 @@ function DealerUsers() {
     alert('密碼已重設');
   };
 
+  const togglePerm = async (user, field) => {
+    setPermSaving(user.id + field);
+    try {
+      await apiPost({ action: 'update_dealer_user', user_id: user.id, [field]: !user[field] });
+      await load();
+    } finally { setPermSaving(null); }
+  };
+
+  const changeRole = async (user, newRole) => {
+    await apiPost({ action: 'update_dealer_user', user_id: user.id, role: newRole });
+    await load();
+  };
+
+  const changePriceLevel = async (user, level) => {
+    await apiPost({ action: 'update_dealer_user', user_id: user.id, price_level: level });
+    await load();
+  };
+
+  const PermToggle = ({ user, field, label }) => {
+    const on = !!user[field];
+    const isSaving = permSaving === user.id + field;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
+        <span style={{ fontSize: 12, color: '#617084' }}>{label}</span>
+        <button onClick={() => togglePerm(user, field)} disabled={isSaving} style={{ width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer', background: on ? '#22c55e' : '#d1d5db', position: 'relative', transition: 'background 0.2s' }}>
+          <span style={{ position: 'absolute', top: 2, left: on ? 20 : 2, width: 18, height: 18, borderRadius: 9, background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div>
-      <PageLead eyebrow="DEALER USERS" title="經銷商/業務帳號" description="管理可登入訂貨入口的帳號，設定角色與權限。" action={<button onClick={() => setShowCreate(!showCreate)} style={S.btnPrimary}>{showCreate ? '取消' : '+ 新增帳號'}</button>} />
+      <PageLead eyebrow="DEALER USERS" title="經銷商/業務帳號" description="管理帳號、角色與權限。點擊帳號展開權限設定。" action={<button onClick={() => setShowCreate(!showCreate)} style={S.btnPrimary}>{showCreate ? '取消' : '+ 新增帳號'}</button>} />
       {msg && <div style={{ ...S.card, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#b42318' : '#15803d', marginBottom: 14 }}>{msg}</div>}
       {showCreate && (
         <div style={{ ...S.card, marginBottom: 16 }}>
@@ -4793,16 +4826,52 @@ function DealerUsers() {
             <div>帳號</div><div>姓名 / 公司</div><div>角色</div><div>電話</div><div>狀態</div><div>操作</div>
           </div>
           {data.rows.map((u, idx) => (
-            <div key={u.id} style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 100px 130px 100px 160px', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
-              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{u.username}</div>
-              <div><div style={{ fontSize: 13, fontWeight: 600, color: '#1c2740' }}>{u.display_name}</div>{u.company_name && <div style={{ fontSize: 11, color: '#617084' }}>{u.company_name}</div>}</div>
-              <div><span style={S.tag(ROLE_TONE[u.role] || '')}>{ROLE_MAP[u.role] || u.role}</span></div>
-              <div style={{ fontSize: 12, color: '#617084' }}>{u.phone || '-'}</div>
-              <div><span style={S.tag(u.status === 'active' ? 'green' : '')}>{u.status === 'active' ? '啟用' : '停用'}</span></div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <button onClick={() => toggleStatus(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11 }}>{u.status === 'active' ? '停用' : '啟用'}</button>
-                <button onClick={() => resetPw(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11 }}>重設密碼</button>
+            <div key={u.id}>
+              <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 100px 130px 100px 160px', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: expandedId === u.id ? '#f0f7ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === u.id ? null : u.id)}>
+                <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{u.username}</div>
+                <div><div style={{ fontSize: 13, fontWeight: 600, color: '#1c2740' }}>{u.display_name}</div>{u.company_name && <div style={{ fontSize: 11, color: '#617084' }}>{u.company_name}</div>}</div>
+                <div><span style={S.tag(ROLE_TONE[u.role] || '')}>{ROLE_MAP[u.role] || u.role}</span></div>
+                <div style={{ fontSize: 12, color: '#617084' }}>{u.phone || '-'}</div>
+                <div><span style={S.tag(u.status === 'active' ? 'green' : '')}>{u.status === 'active' ? '啟用' : '停用'}</span></div>
+                <div style={{ display: 'flex', gap: 4 }} onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => toggleStatus(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11 }}>{u.status === 'active' ? '停用' : '啟用'}</button>
+                  <button onClick={() => resetPw(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11 }}>重設密碼</button>
+                </div>
               </div>
+              {expandedId === u.id && (
+                <div style={{ padding: '16px 20px', background: '#f8fafc', borderTop: '1px solid #e6edf5', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+                  <div style={{ ...S.card, padding: '16px', background: '#fff' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#1c2740', marginBottom: 12 }}>權限設定</div>
+                    <PermToggle user={u} field="can_see_stock" label="查看庫存" />
+                    <PermToggle user={u} field="can_place_order" label="下單權限" />
+                    <PermToggle user={u} field="notify_on_arrival" label="到貨通知" />
+                  </div>
+                  <div style={{ ...S.card, padding: '16px', background: '#fff' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#1c2740', marginBottom: 12 }}>角色與價格</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
+                      <span style={{ fontSize: 12, color: '#617084' }}>角色</span>
+                      <select value={u.role} onChange={(e) => changeRole(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: '4px 8px', fontSize: 12 }}>
+                        <option value="dealer">經銷商</option><option value="sales">業務</option><option value="technician">維修技師</option>
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
+                      <span style={{ fontSize: 12, color: '#617084' }}>價格等級</span>
+                      <select value={u.price_level || 'reseller'} onChange={(e) => changePriceLevel(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: '4px 8px', fontSize: 12 }}>
+                        <option value="cost">成本價</option><option value="reseller">經銷價</option><option value="retail">零售價</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ ...S.card, padding: '16px', background: '#fff' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#1c2740', marginBottom: 12 }}>帳號資訊</div>
+                    <div style={{ fontSize: 11, color: '#617084', display: 'grid', gap: 4 }}>
+                      <div>Email: {u.email || '-'}</div>
+                      <div>LINE: {u.line_user_id ? '已綁定' : '未綁定'}</div>
+                      <div>上次登入: {u.last_login_at ? u.last_login_at.slice(0, 16).replace('T', ' ') : '從未登入'}</div>
+                      <div>建立日期: {u.created_at ? u.created_at.slice(0, 10) : '-'}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -4818,6 +4887,9 @@ function DealerOrders() {
   const [consolidating, setConsolidating] = useState(false);
   const [msg, setMsg] = useState('');
   const [statusFilter, setStatusFilter] = useState('pending');
+  const [expandedId, setExpandedId] = useState(null);
+  const [editingStatus, setEditingStatus] = useState({});
+  const [editingRemark, setEditingRemark] = useState({});
 
   const STATUS_MAP = { pending: '待處理', confirmed: '已確認', purchasing: '採購中', partial_arrived: '部分到貨', arrived: '已到貨', shipped: '已出貨', completed: '已完成', cancelled: '已取消' };
   const STATUS_TONE = { pending: 'yellow', confirmed: 'blue', purchasing: 'blue', arrived: 'green', shipped: 'green', completed: 'green', cancelled: '' };
@@ -4843,9 +4915,33 @@ function DealerOrders() {
     } catch (e) { setMsg(e.message); } finally { setConsolidating(false); }
   };
 
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await apiPost({ action: 'update_dealer_order', order_id: orderId, status: newStatus });
+      setMsg('訂單狀態已更新');
+      await load();
+    } catch (e) { setMsg(e.message); }
+  };
+
+  const updateOrderRemark = async (orderId, remark) => {
+    try {
+      await apiPost({ action: 'update_dealer_order', order_id: orderId, remark });
+      setMsg('備註已更新');
+      await load();
+    } catch (e) { setMsg(e.message); }
+  };
+
+  const updateItemQty = async (item, newQty) => {
+    if (newQty < 0) return;
+    try {
+      await apiPost({ action: 'update_dealer_order_item', item_id: item.id, qty: newQty, unit_price: item.unit_price });
+      await load();
+    } catch (e) { setMsg(e.message); }
+  };
+
   return (
     <div>
-      <PageLead eyebrow="DEALER ORDERS" title="經銷商訂單" description="從經銷商/業務入口下的訂單，可勾選彙整為採購單。" action={selected.length > 0 ? <button onClick={consolidate} disabled={consolidating} style={{ ...S.btnPrimary, opacity: consolidating ? 0.7 : 1 }}>{consolidating ? '彙整中...' : `彙整 ${selected.length} 筆 → 採購單`}</button> : null} />
+      <PageLead eyebrow="DEALER ORDERS" title="經銷商訂單" description="點擊訂單展開明細，可即時編輯數量、狀態與備註。可勾選彙整為採購單。" action={selected.length > 0 ? <button onClick={consolidate} disabled={consolidating} style={{ ...S.btnPrimary, opacity: consolidating ? 0.7 : 1 }}>{consolidating ? '彙整中...' : `彙整 ${selected.length} 筆 → 採購單`}</button> : null} />
       {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 14 }}>{msg}</div>}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {[['', '全部'], ['pending', '待處理'], ['purchasing', '採購中'], ['arrived', '已到貨'], ['shipped', '已出貨']].map(([key, label]) => (
@@ -4854,19 +4950,139 @@ function DealerOrders() {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="沒有訂單" /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px minmax(0,1fr)', gap: 10, padding: '12px 16px', borderBottom: '2px solid #e6edf5', color: '#7b889b', fontSize: 11, fontWeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px 60px', gap: 10, padding: '12px 16px', borderBottom: '2px solid #e6edf5', color: '#7b889b', fontSize: 11, fontWeight: 600 }}>
             <div><input type="checkbox" checked={selected.length > 0 && selected.length === data.rows.filter((r) => r.status === 'pending').length} onChange={selectAll} /></div>
-            <div>訂單號</div><div>下單人</div><div>日期</div><div>狀態</div><div style={{ textAlign: 'right' }}>金額</div><div>明細</div>
+            <div>訂單號</div><div>下單人</div><div>日期</div><div>狀態</div><div style={{ textAlign: 'right' }}>金額</div><div></div>
           </div>
-          {data.rows.map((row, idx) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px minmax(0,1fr)', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selected.includes(row.id) ? '#edf5ff' : idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
-              <div>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
-              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
-              <div><div style={{ fontSize: 13, fontWeight: 600, color: '#1c2740' }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: 11, color: '#617084' }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div>
-              <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{row.order_date || '-'}</div>
-              <div><span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span></div>
-              <div style={{ fontSize: 13, color: '#129c59', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
-              <div style={{ fontSize: 11, color: '#617084', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(row.items || []).map((i) => `${i.item_number_snapshot} x${i.qty}`).join(', ') || '-'}</div>
+          {data.rows.map((row, idx) => {
+            const isExpanded = expandedId === row.id;
+            return (
+              <div key={row.id}>
+                <div style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px 60px', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: isExpanded ? '#f0f7ff' : selected.includes(row.id) ? '#edf5ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer' }} onClick={() => setExpandedId(isExpanded ? null : row.id)}>
+                  <div onClick={(e) => e.stopPropagation()}>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
+                  <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
+                  <div><div style={{ fontSize: 13, fontWeight: 600, color: '#1c2740' }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: 11, color: '#617084' }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div>
+                  <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{row.order_date || '-'}</div>
+                  <div><span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span></div>
+                  <div style={{ fontSize: 13, color: '#129c59', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>{isExpanded ? '\u25B2' : '\u25BC'}</div>
+                </div>
+                {isExpanded && (
+                  <div style={{ padding: '16px 20px', background: '#f8fafc', borderTop: '1px solid #e6edf5' }}>
+                    {/* Order Items Detail */}
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#1c2740', marginBottom: 10 }}>訂單明細</div>
+                    <div style={{ ...S.card, padding: 0, overflow: 'hidden', marginBottom: 16, background: '#fff' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '130px minmax(0,1fr) 90px 90px 90px 80px', gap: 8, padding: '8px 14px', borderBottom: '1px solid #e6edf5', color: '#7b889b', fontSize: 10, fontWeight: 600 }}>
+                        <div>料號</div><div>品名</div><div>單價</div><div>數量</div><div>小計</div><div>操作</div>
+                      </div>
+                      {(row.items || []).map((item) => (
+                        <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '130px minmax(0,1fr) 90px 90px 90px 80px', gap: 8, padding: '10px 14px', borderTop: '1px solid #f0f3f7', alignItems: 'center', fontSize: 12 }}>
+                          <div style={{ color: '#1976f3', fontWeight: 600, ...S.mono }}>{item.item_number_snapshot}</div>
+                          <div style={{ color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description_snapshot || '-'}</div>
+                          <div style={{ color: '#617084', ...S.mono }}>{fmtP(item.unit_price)}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <button onClick={() => updateItemQty(item, item.qty - 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: 11, minWidth: 24 }}>-</button>
+                            <span style={{ ...S.mono, fontWeight: 700, minWidth: 20, textAlign: 'center' }}>{item.qty}</span>
+                            <button onClick={() => updateItemQty(item, item.qty + 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: 11, minWidth: 24 }}>+</button>
+                          </div>
+                          <div style={{ color: '#129c59', fontWeight: 600, ...S.mono }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
+                          <div>{item.qty > 0 && <button onClick={() => { if (confirm('刪除此品項？')) updateItemQty(item, 0); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 10, color: '#ef4444', borderColor: '#fecdd3' }}>刪除</button>}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Status + Remark Edit */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
+                      <div>
+                        <label style={{ ...S.label, marginBottom: 6 }}>變更狀態</label>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {Object.entries(STATUS_MAP).map(([k, v]) => (
+                            <button key={k} onClick={() => updateOrderStatus(row.id, k)} disabled={row.status === k} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11, background: row.status === k ? '#1976f3' : '#fff', color: row.status === k ? '#fff' : '#4b5563', borderColor: row.status === k ? '#1976f3' : '#dbe3ee', opacity: row.status === k ? 1 : 0.8 }}>{v}</button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ ...S.label, marginBottom: 6 }}>備註</label>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <input defaultValue={row.remark || ''} onChange={(e) => setEditingRemark({ ...editingRemark, [row.id]: e.target.value })} style={{ ...S.input, flex: 1, fontSize: 12 }} placeholder="訂單備註" />
+                          <button onClick={() => updateOrderRemark(row.id, editingRemark[row.id] ?? row.remark)} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12 }}>儲存</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ========== Announcements Manager ==========
+function Announcements() {
+  const [anns, setAnns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState({ title: '', content: '', type: 'info', priority: 0 });
+  const [msg, setMsg] = useState('');
+
+  const TYPE_MAP = { info: '一般', warning: '警告', success: '成功', urgent: '緊急' };
+  const TYPE_TONE = { info: 'blue', warning: 'yellow', success: 'green', urgent: 'red' };
+
+  const load = async () => { setLoading(true); try { const res = await apiGet({ action: 'announcements' }); setAnns(res.announcements || []); } finally { setLoading(false); } };
+  useEffect(() => { load(); }, []);
+
+  const create = async () => {
+    try {
+      await apiPost({ action: 'create_announcement', ...form });
+      setMsg('公告已發布');
+      setShowCreate(false);
+      setForm({ title: '', content: '', type: 'info', priority: 0 });
+      await load();
+    } catch (e) { setMsg(e.message); }
+  };
+
+  const toggleActive = async (ann) => {
+    await apiPost({ action: 'update_announcement', announcement_id: ann.id, is_active: !ann.is_active });
+    await load();
+  };
+
+  const deleteAnn = async (ann) => {
+    if (!confirm(`確定刪除公告「${ann.title}」？`)) return;
+    await apiPost({ action: 'delete_announcement', announcement_id: ann.id });
+    await load();
+  };
+
+  return (
+    <div>
+      <PageLead eyebrow="ANNOUNCEMENTS" title="公告管理" description="發布公告給經銷商/業務/技師，會顯示在他們的入口頁面頂部。" action={<button onClick={() => setShowCreate(!showCreate)} style={S.btnPrimary}>{showCreate ? '取消' : '+ 發布公告'}</button>} />
+      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14 }}>{msg}</div>}
+      {showCreate && (
+        <div style={{ ...S.card, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
+            <div><label style={S.label}>標題 *</label><input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} style={S.input} placeholder="公告標題" /></div>
+            <div><label style={S.label}>類型</label><select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} style={S.input}><option value="info">一般</option><option value="warning">警告</option><option value="success">成功</option><option value="urgent">緊急</option></select></div>
+            <div><label style={S.label}>優先級 (數字越大越前)</label><input type="number" value={form.priority} onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })} style={S.input} /></div>
+          </div>
+          <div style={{ marginBottom: 14 }}><label style={S.label}>內容</label><textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} style={{ ...S.input, minHeight: 80 }} placeholder="公告內容（可留空）" /></div>
+          <button onClick={create} style={S.btnPrimary}>發布公告</button>
+        </div>
+      )}
+      {loading ? <Loading /> : anns.length === 0 ? <EmptyState text="沒有公告" /> : (
+        <div style={{ display: 'grid', gap: 10 }}>
+          {anns.map((ann) => (
+            <div key={ann.id} style={{ ...S.card, display: 'flex', alignItems: 'center', gap: 14, opacity: ann.is_active ? 1 : 0.5 }}>
+              <span style={S.tag(TYPE_TONE[ann.type] || 'blue')}>{TYPE_MAP[ann.type] || ann.type}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#1c2740' }}>{ann.title}</div>
+                {ann.content && <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>{ann.content}</div>}
+                <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4, ...S.mono }}>{ann.created_at?.slice(0, 16).replace('T', ' ')}</div>
+              </div>
+              <span style={S.tag(ann.is_active ? 'green' : '')}>{ann.is_active ? '啟用' : '停用'}</span>
+              <button onClick={() => toggleActive(ann)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11 }}>{ann.is_active ? '停用' : '啟用'}</button>
+              <button onClick={() => deleteAnn(ann)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11, color: '#ef4444', borderColor: '#fecdd3' }}>刪除</button>
             </div>
           ))}
         </div>
@@ -4952,6 +5168,7 @@ const SECTIONS = [
     tabs: [
       { id: 'dealer_users', label: '帳號管理', code: 'DUSR' },
       { id: 'dealer_orders', label: '經銷商訂單', code: 'DORD' },
+      { id: 'announcements', label: '公告管理', code: 'ANN' },
     ],
   },
   {
@@ -5030,6 +5247,7 @@ const TAB_COMPONENTS = {
   financial_report: FinancialReport,
   dealer_users: DealerUsers,
   dealer_orders: DealerOrders,
+  announcements: Announcements,
 };
 
 export default function AdminPage() {

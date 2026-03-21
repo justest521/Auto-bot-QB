@@ -51,11 +51,22 @@ export async function GET(request) {
     if (!user) return jsonErr('未授權，請重新登入', 401);
 
     switch (action) {
-      case 'me':
+      case 'me': {
+        // Also fetch active announcements for this role
+        const { data: anns } = await supabase
+          .from('erp_announcements')
+          .select('id, title, content, type, priority')
+          .eq('is_active', true)
+          .order('priority', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(10);
+        const myAnns = anns || [];
         return jsonOk({
           user: sanitizeUser(user),
           role_config: ROLE_CONFIG[user.role] || ROLE_CONFIG.dealer,
+          announcements: myAnns,
         });
+      }
 
       case 'products': {
         const page = parseInt(searchParams.get('page') || '1', 10);

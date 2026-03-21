@@ -876,12 +876,16 @@ export default function DealerPortal() {
   const [activeTab, setActiveTab] = useState('catalog');
   const [cart, setCart] = useState([]);
   const [notiCount, setNotiCount] = useState(0);
+  const [announcements, setAnnouncements] = useState([]);
 
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? window.localStorage.getItem(DEALER_TOKEN_KEY) : null;
     if (saved) {
       dealerGet({ action: 'me', token: saved })
-        .then(result => { setToken(saved); setUser(result.user); setRoleConfig(result.role_config); })
+        .then(result => {
+          setToken(saved); setUser(result.user); setRoleConfig(result.role_config);
+          setAnnouncements(result.announcements || []);
+        })
         .catch(() => { window.localStorage.removeItem(DEALER_TOKEN_KEY); });
     }
   }, []);
@@ -976,6 +980,24 @@ export default function DealerPortal() {
 
         {/* Content */}
         <div style={{ padding: '24px 20px', maxWidth: 900, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          {/* Announcements Banner */}
+          {announcements.length > 0 && (
+            <div style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+              {announcements.map(ann => {
+                const colors = { info: { bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.2)', text: '#a5b4fc', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' }, warning: { bg: 'rgba(234,179,8,0.08)', border: 'rgba(234,179,8,0.2)', text: '#eab308', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' }, urgent: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.25)', text: '#f87171', icon: 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' }, success: { bg: 'rgba(52,211,153,0.08)', border: 'rgba(52,211,153,0.2)', text: '#34d399', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' } };
+                const c = colors[ann.type] || colors.info;
+                return (
+                  <div key={ann.id} style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 10, animation: 'slideDown 0.3s' }}>
+                    <SvgIcon d={c.icon} size={18} color={c.text} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: c.text }}>{ann.title}</div>
+                      {ann.content && <div style={{ fontSize: 12, color: 'rgba(148,163,184,0.7)', marginTop: 4 }}>{ann.content}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {activeTab === 'catalog' && <CatalogTab token={token} user={user} roleConfig={roleConfig} cart={cart} setCart={setCart} />}
           {activeTab === 'cart' && <CartTab token={token} user={user} cart={cart} setCart={setCart} setActiveTab={setActiveTab} />}
           {activeTab === 'orders' && <OrdersTab token={token} />}
