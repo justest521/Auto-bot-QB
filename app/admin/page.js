@@ -573,12 +573,12 @@ function useCsvImport(datasetId, onImported) {
 const S = {
   page: { minHeight: '100vh', background: '#fdfdfe', color: '#1a1d23', fontFamily: "'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" },
   shell: { display: 'flex', minHeight: '100vh' },
-  sidebar: { width: 260, background: '#ffffff', color: '#64748b', padding: '20px 0 20px', borderRight: '1px solid #E8F2EE', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' },
+  sidebar: { width: 260, background: '#ffffff', color: '#64748b', padding: '20px 0 20px', borderRight: '1px solid #009061', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' },
   main: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: '#fdfdfe' },
-  header: { height: 64, background: '#ffffff', borderBottom: '1px solid #E8F2EE', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', position: 'sticky', top: 0, zIndex: 100 },
+  header: { height: 64, background: '#ffffff', borderBottom: '1px solid #009061', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', position: 'sticky', top: 0, zIndex: 100 },
   content: { flex: 1, padding: '28px 32px 40px', minHeight: 'calc(100vh - 64px)' },
-  card: { background: '#ffffff', border: '1px solid #E8F2EE', borderRadius: 18, padding: '20px 22px', marginBottom: 16, boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', transition: 'all 0.25s ease' },
-  panelMuted: { background: '#fdfdfe', border: '1px solid #E8F2EE', borderRadius: 14, padding: '14px 16px' },
+  card: { background: '#ffffff', border: '1px solid #009061', borderRadius: 18, padding: '20px 22px', marginBottom: 16, boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', transition: 'all 0.25s ease' },
+  panelMuted: { background: '#fdfdfe', border: '1px solid #009061', borderRadius: 14, padding: '14px 16px' },
   input: { background: '#ffffff', border: '1px solid #d1d9e0', borderRadius: 10, padding: '10px 14px', color: '#1a1d23', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' },
   btnPrimary: { background: '#009061', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.2, boxShadow: '0 1px 3px rgba(0,144,97,0.3)', transition: 'background 0.15s, box-shadow 0.15s' },
   btnGhost: { background: '#fff', color: '#475569', border: '1px solid #d1d9e0', borderRadius: 10, padding: '9px 16px', cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.15s, background 0.15s' },
@@ -1081,7 +1081,7 @@ function StatCard({ code, label, value, sub, accent, tone = 'blue' }) {
   };
   const t = toneColors[tone] || toneColors.blue;
   return (
-    <div className="qb-card-hover" style={{ minWidth: 180, padding: '20px 22px 18px', position: 'relative', overflow: 'hidden', borderRadius: 18, background: '#ffffff', border: '1px solid #E8F2EE', boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', cursor: 'pointer' }}>
+    <div className="qb-card-hover" style={{ minWidth: 180, padding: '20px 22px 18px', position: 'relative', overflow: 'hidden', borderRadius: 18, background: '#ffffff', border: '1px solid #009061', boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', cursor: 'pointer' }}>
       <div style={{ position: 'absolute', top: 16, right: 18, width: 36, height: 36, borderRadius: 10, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: t.accent, fontWeight: 700, ...S.mono }}>{code}</div>
       <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8, fontWeight: 500 }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 700, color: accent || '#1a1d23', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
@@ -6099,7 +6099,7 @@ export default function AdminPage() {
   if (!isAuthed) {
     return (
       <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #ecfdf5 0%, #fdfdfe 50%, #d1fae5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'auto' }}>
-        <div style={{ width: '100%', maxWidth: 440, background: '#ffffff', borderRadius: 20, padding: '36px 32px', color: '#1a1d23', boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #E8F2EE' }}>
+        <div style={{ width: '100%', maxWidth: 440, background: '#ffffff', borderRadius: 20, padding: '36px 32px', color: '#1a1d23', boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #009061' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
             <div style={{ width: 42, height: 42, borderRadius: 12, background: '#009061', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15, ...S.mono }}>QB</div>
             <div>
@@ -6160,7 +6160,7 @@ export default function AdminPage() {
         {/* ===== SIDEBAR ===== */}
         <div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 68 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
           {/* Logo + collapse toggle */}
-          <div style={{ padding: '0 16px 16px', borderBottom: '1px solid #E8F2EE', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ padding: '0 16px 16px', borderBottom: '1px solid #009061', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
               <div style={{ width: 38, height: 38, minWidth: 38, borderRadius: 12, background: '#009061', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 14, ...S.mono }}>QB</div>
               {!sidebarCollapsed && <div style={{ whiteSpace: 'nowrap' }}>
@@ -6258,9 +6258,9 @@ export default function AdminPage() {
 
           {/* System status (only expanded) */}
           {!sidebarCollapsed && (
-            <div style={{ padding: '16px 16px 0', borderTop: '1px solid #E8F2EE', marginTop: 8 }}>
+            <div style={{ padding: '16px 16px 0', borderTop: '1px solid #009061', marginTop: 8 }}>
               <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 8, letterSpacing: 0.5 }}>SYSTEM</div>
-              <div style={{ background: '#fdfdfe', border: '1px solid #E8F2EE', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#64748b', display: 'grid', gap: 6 }}>
+              <div style={{ background: '#fdfdfe', border: '1px solid #009061', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#64748b', display: 'grid', gap: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>產品</span><span style={{ color: '#1a1d23', fontWeight: 600, ...S.mono }}>{sidebarStats?.products?.toLocaleString?.() ?? '...'}</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>對話</span><span style={{ color: '#1a1d23', fontWeight: 600, ...S.mono }}>{sidebarStats?.chats?.toLocaleString?.() ?? '...'}</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Webhook</span><span style={{ color: '#059669', fontWeight: 600, ...S.mono }}>ON</span></div>
