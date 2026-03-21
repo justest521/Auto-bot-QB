@@ -5513,8 +5513,8 @@ export default function AdminPage() {
                     <span style={{ fontSize: 14, color: hasActiveTab ? (section.accent || '#2da5ff') : '#5e7490', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 16, textAlign: 'center' }}>{sectionIcon}</span>
                     {!sidebarCollapsed && <>
                       <span style={{ fontSize: 10, color: hasActiveTab ? '#c0dcff' : (section.accent || '#5e7490'), fontWeight: 600, letterSpacing: 1.1, ...S.mono, flex: 1 }}>{section.title}</span>
-                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', boxShadow: '0 2px 8px rgba(239,68,68,0.4)', animation: 'pulse 2s infinite', marginRight: 2 }}>{sectionBadge}</span> : null; })()}
-                      <span style={{ fontSize: 10, color: '#4a5e78', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>{'\u25BE'}</span>
+                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', boxShadow: '0 2px 8px rgba(239,68,68,0.4)', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
+                      <span style={{ fontSize: 10, color: '#4a5e78', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', width: 20, textAlign: 'center', flexShrink: 0 }}>{'\u25BE'}</span>
                     </>}
                   </div>
                   {!sidebarCollapsed && !isCollapsed && (
@@ -5531,7 +5531,7 @@ export default function AdminPage() {
                           {pendingBadges[t.id] > 0 && (
                             <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', boxShadow: '0 2px 8px rgba(239,68,68,0.4)', animation: 'pulse 2s infinite' }}>{pendingBadges[t.id]}</span>
                           )}
-                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#4a5e78', cursor: 'pointer', padding: '2px 4px' }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
+                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#4a5e78', cursor: 'pointer', width: 20, textAlign: 'center', flexShrink: 0 }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
                         </div>
                       ))}
                     </div>
