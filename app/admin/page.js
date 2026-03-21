@@ -793,12 +793,9 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
   const statusMinHeight = compact ? (status ? 48 : 0) : 72;
 
   return (
-    <div style={{ width: '100%', maxWidth: panelWidth, minWidth: compact ? 220 : 320 }}>
-      <div style={{ display: 'grid', gap: 8, justifyItems: 'stretch' }}>
-        <div style={{ minHeight: statusMinHeight }}>
-          <ImportStatus status={status} />
-        </div>
-        <div style={{ ...S.panelMuted, minHeight: panelMinHeight, padding: compact ? '12px 14px' : S.panelMuted.padding, textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div>
+      {status && <ImportStatus status={status} />}
+      <div style={selectedFile ? { ...S.panelMuted, padding: '12px 14px', textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } : {}}>
           {selectedFile ? (
             <>
               <div>
@@ -830,13 +827,9 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
             </>
           ) : (
             <>
-              <div>
-                <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>FILE_PREVIEW</div>
-                <div style={{ fontSize: 12, color: '#94a1b2', lineHeight: 1.7 }}>尚未選擇檔案</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: compact ? 'flex-end' : 'flex-start' }}>
-                <label style={{ ...(compact ? { ...S.btnGhost, padding: '8px 14px', fontSize: 12 } : S.btnPrimary), display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  選擇檔案
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <label style={{ ...S.btnGhost, padding: '8px 16px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  匯入
                   <input
                     type="file"
                     accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xls,application/vnd.ms-excel"
@@ -849,10 +842,8 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
                     }}
                   />
                 </label>
-              </div>
             </>
           )}
-        </div>
       </div>
     </div>
   );
@@ -1531,31 +1522,25 @@ function FormalCustomers() {
           </div>
         ) : (
           <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '110px minmax(0,1.1fr) 120px 110px' : '130px minmax(0,1.3fr) 140px 180px 130px 120px', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e6edf5', color: '#7b889b', fontSize: 10, ...S.mono }}>
-              <div>客戶代號</div>
-              <div>客戶資料</div>
-              {!isTablet && <div>聯絡人</div>}
+            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 12, padding: '14px 18px', borderBottom: '1px solid #F2F2F2', color: '#7b889b', fontSize: 11, fontWeight: 600 }}>
+              <div>公司名稱</div>
+              <div>聯絡人</div>
               <div>電話</div>
-              <div>階段</div>
-              <div>渠道</div>
+              {!isTablet && <div>地區</div>}
             </div>
             {data.customers.map((customer) => (
               <button
                 key={customer.id}
                 onClick={() => setSelectedCustomerId(customer.id)}
-                style={{ display: 'grid', gridTemplateColumns: isTablet ? '110px minmax(0,1.1fr) 120px 110px' : '130px minmax(0,1.3fr) 140px 180px 130px 120px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selectedCustomerId === customer.id ? '#f0f7ff' : '#fff', border: 0, textAlign: 'left', cursor: 'pointer' }}
+                style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 12, padding: '14px 18px', borderTop: '1px solid #F2F2F2', alignItems: 'center', background: selectedCustomerId === customer.id ? '#ecfdf5' : '#fff', border: 0, textAlign: 'left', cursor: 'pointer', width: '100%' }}
               >
-                <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{customer.customer_code || '-'}</div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 14, color: '#1c2740', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.company_name || customer.name || '未命名客戶'}</div>
-                  <div style={{ fontSize: 12, color: '#617084', marginTop: 4, lineHeight: 1.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {customer.email || customer.tax_id || customer.address || '-'}
-                  </div>
+                  <div style={{ fontSize: 14, color: '#1a1d23', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, ...S.mono }}>{customer.customer_code || ''}</div>
                 </div>
-                {!isTablet && <div style={{ fontSize: 12, color: '#617084' }}>{customer.name || '-'}</div>}
-                <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{customer.phone || '-'}</div>
-                <div><span style={S.tag(stageMeta[customer.customer_stage]?.color || '')}>{stageMeta[customer.customer_stage]?.label || '詢問名單'}</span></div>
-                <div>{customer.line_user_id ? <span style={S.tag('line')}>LINE</span> : <span style={S.tag('')}>ERP</span>}</div>
+                <div style={{ fontSize: 13, color: '#475569' }}>{customer.name || '-'}</div>
+                <div style={{ fontSize: 13, color: '#475569', ...S.mono }}>{customer.phone || '-'}</div>
+                {!isTablet && <div style={{ fontSize: 13, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.address ? customer.address.slice(0, 6) : '-'}</div>}
               </button>
             ))}
           </div>
