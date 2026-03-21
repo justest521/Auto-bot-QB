@@ -55,12 +55,13 @@ export async function GET(request) {
         // Also fetch active announcements for this role
         const { data: anns } = await supabase
           .from('erp_announcements')
-          .select('id, title, content, type, priority')
+          .select('id, title, content, type, priority, target_roles')
           .eq('is_active', true)
           .order('priority', { ascending: false })
           .order('created_at', { ascending: false })
-          .limit(10);
-        const myAnns = anns || [];
+          .limit(20);
+        // Filter: show if target_roles is empty (all) or includes user's role
+        const myAnns = (anns || []).filter(a => !a.target_roles || a.target_roles.length === 0 || a.target_roles.includes(user.role));
         return jsonOk({
           user: sanitizeUser(user),
           role_config: ROLE_CONFIG[user.role] || ROLE_CONFIG.dealer,

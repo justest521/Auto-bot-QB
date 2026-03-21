@@ -5025,11 +5025,21 @@ function Announcements() {
   const [anns, setAnns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ title: '', content: '', type: 'info', priority: 0 });
+  const [form, setForm] = useState({ title: '', content: '', type: 'info', priority: 0, target_roles: [] });
   const [msg, setMsg] = useState('');
 
   const TYPE_MAP = { info: '一般', warning: '警告', success: '成功', urgent: '緊急' };
   const TYPE_TONE = { info: 'blue', warning: 'yellow', success: 'green', urgent: 'red' };
+  const ROLE_OPTIONS = [
+    { value: 'dealer', label: '經銷商' },
+    { value: 'sales', label: '業務' },
+    { value: 'technician', label: '技師' },
+  ];
+  const ROLE_LABEL = { dealer: '經銷商', sales: '業務', technician: '技師' };
+  const ROLE_TONE = { dealer: 'blue', sales: 'yellow', technician: 'green' };
+  const toggleRole = (role) => {
+    setForm(f => ({ ...f, target_roles: f.target_roles.includes(role) ? f.target_roles.filter(r => r !== role) : [...f.target_roles, role] }));
+  };
 
   const load = async () => { setLoading(true); try { const res = await apiGet({ action: 'announcements' }); setAnns(res.announcements || []); } finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
@@ -5039,7 +5049,7 @@ function Announcements() {
       await apiPost({ action: 'create_announcement', ...form });
       setMsg('公告已發布');
       setShowCreate(false);
-      setForm({ title: '', content: '', type: 'info', priority: 0 });
+      setForm({ title: '', content: '', type: 'info', priority: 0, target_roles: [] });
       await load();
     } catch (e) { setMsg(e.message); }
   };
@@ -5067,6 +5077,14 @@ function Announcements() {
             <div><label style={S.label}>優先級 (數字越大越前)</label><input type="number" value={form.priority} onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })} style={S.input} /></div>
           </div>
           <div style={{ marginBottom: 14 }}><label style={S.label}>內容</label><textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} style={{ ...S.input, minHeight: 80 }} placeholder="公告內容（可留空）" /></div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={S.label}>可見角色（不選 = 全部可見）</label>
+            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+              {ROLE_OPTIONS.map(r => (
+                <button key={r.value} onClick={() => toggleRole(r.value)} style={{ padding: '6px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: '2px solid', borderColor: form.target_roles.includes(r.value) ? '#6366f1' : '#e5e7eb', background: form.target_roles.includes(r.value) ? '#6366f1' : '#fff', color: form.target_roles.includes(r.value) ? '#fff' : '#617084', transition: 'all 0.15s' }}>{r.label}</button>
+              ))}
+            </div>
+          </div>
           <button onClick={create} style={S.btnPrimary}>發布公告</button>
         </div>
       )}
@@ -5078,7 +5096,12 @@ function Announcements() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: '#1c2740' }}>{ann.title}</div>
                 {ann.content && <div style={{ fontSize: 12, color: '#617084', marginTop: 4 }}>{ann.content}</div>}
-                <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4, ...S.mono }}>{ann.created_at?.slice(0, 16).replace('T', ' ')}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                  <span style={{ fontSize: 10, color: '#9ca3af', ...S.mono }}>{ann.created_at?.slice(0, 16).replace('T', ' ')}</span>
+                  {ann.target_roles && ann.target_roles.length > 0 ? ann.target_roles.map(r => (
+                    <span key={r} style={S.tag(ROLE_TONE[r] || 'blue')}>{ROLE_LABEL[r] || r}</span>
+                  )) : <span style={S.tag('')}>全部</span>}
+                </div>
               </div>
               <span style={S.tag(ann.is_active ? 'green' : '')}>{ann.is_active ? '啟用' : '停用'}</span>
               <button onClick={() => toggleActive(ann)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11 }}>{ann.is_active ? '停用' : '啟用'}</button>
