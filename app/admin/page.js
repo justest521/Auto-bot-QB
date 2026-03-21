@@ -591,7 +591,7 @@ const S = {
   eyebrow: { fontSize: 11, color: '#009061', fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8, ...{ fontFamily: "'SF Mono', 'Fira Code', monospace" } },
   statGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 },
   twoCol: { display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 16, alignItems: 'start' },
-  tag: (color) => ({ display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: color === 'green' ? '#ecfdf5' : color === 'red' ? '#fef2f2' : color === 'line' ? '#ecfdf5' : '#f1f5f9', color: color === 'green' ? '#059669' : color === 'red' ? '#dc2626' : color === 'line' ? '#059669' : '#475569', border: 'none' }),
+  tag: (color) => ({ display: 'inline-block', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: color === 'green' ? '#ecfdf5' : color === 'red' ? '#fef2f2' : color === 'line' ? '#ecfdf5' : '#f1f5f9', color: color === 'green' ? '#059669' : color === 'red' ? '#dc2626' : color === 'line' ? '#059669' : '#475569', border: 'none' }),
 };
 
 /* ========================================= SHARED ========================================= */
@@ -853,7 +853,7 @@ function PanelHeader({ title, meta, badge }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
       <div>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#1c2740' }}>{title}</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#1c2740' }}>{title}</div>
         {meta ? <div style={{ marginTop: 4, fontSize: 12, color: '#7b889b' }}>{meta}</div> : null}
       </div>
       {badge}
@@ -1073,11 +1073,11 @@ function StatCard({ code, label, value, sub, accent, tone = 'blue' }) {
   };
   const t = toneColors[tone] || toneColors.blue;
   return (
-    <div className="qb-card-hover" style={{ minWidth: 180, padding: '20px 22px 18px', position: 'relative', overflow: 'hidden', borderRadius: 18, background: '#ffffff', border: '1px solid #F2F2F2', boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', cursor: 'pointer' }}>
-      <div style={{ position: 'absolute', top: 16, right: 18, width: 36, height: 36, borderRadius: 10, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: t.accent, fontWeight: 700, ...S.mono }}>{code}</div>
-      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8, fontWeight: 500 }}>{label}</div>
+    <div className="qb-card-hover" style={{ minWidth: 140, padding: '16px 18px 14px', position: 'relative', overflow: 'hidden', borderRadius: 14, background: '#ffffff', border: '1px solid #F2F2F2', boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', cursor: 'pointer' }}>
+      <div style={{ position: 'absolute', top: 12, right: 14, width: 32, height: 32, borderRadius: 8, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: t.accent, fontWeight: 700, ...S.mono }}>{code}</div>
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6, fontWeight: 500 }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 700, color: accent || '#1a1d23', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>{sub}</div>}
     </div>
   );
 }
@@ -1604,16 +1604,16 @@ function FormalCustomers() {
                     meta={detailCustomer.customer_code || 'ERP customer'}
                     badge={<div style={S.tag(stageMeta[detailCustomer.customer_stage]?.color || '')}>{stageMeta[detailCustomer.customer_stage]?.label || '詢問名單'}</div>}
                   />
-                  <div style={{ fontSize: 13, color: '#617084', lineHeight: 1.8 }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: -8, marginBottom: 4 }}>
+                    {detailCustomer.line_user_id ? <span style={S.tag('line')}>LINE 已連通</span> : <span style={S.tag('')}>ERP only</span>}
+                    {detail?.line_profile ? <span style={S.tag('green')}>{detail.line_profile.display_name || 'LINE 客戶'}</span> : null}
+                  </div>
+                  <div style={{ fontSize: 14, color: '#617084', lineHeight: 1.8 }}>
                     <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT</span> {detailCustomer.name || '-'}</div>
                     <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE</span> {detailCustomer.phone || '-'}</div>
                     <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL</span> {detailCustomer.email || '-'}</div>
                     <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID</span> {detailCustomer.tax_id || '-'}</div>
                     <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS</span> {detailCustomer.address || '-'}</div>
-                    <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {detailCustomer.line_user_id ? <span style={S.tag('line')}>LINE 已連通</span> : <span style={S.tag('')}>ERP only</span>}
-                      {detail?.line_profile ? <span style={S.tag('green')}>{detail.line_profile.display_name || 'LINE 客戶'}</span> : null}
-                    </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
                     <StatCard code="QUOTE" label="報價筆數" value={fmt(summary.quote_count)} sub={fmtP(summary.quote_total)} tone="blue" />
