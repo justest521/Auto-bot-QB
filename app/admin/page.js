@@ -580,7 +580,7 @@ const S = {
   card: { background: '#ffffff', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 18, padding: '20px 22px', marginBottom: 16, boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', transition: 'box-shadow 0.2s' },
   panelMuted: { background: '#fdfdfe', border: '1px solid #e8ecf1', borderRadius: 14, padding: '14px 16px' },
   input: { background: '#ffffff', border: '1px solid #d1d9e0', borderRadius: 10, padding: '10px 14px', color: '#1a1d23', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' },
-  btnPrimary: { background: '#2563eb', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.2, boxShadow: '0 1px 3px rgba(37,99,235,0.3)', transition: 'background 0.15s, box-shadow 0.15s' },
+  btnPrimary: { background: '#009061', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.2, boxShadow: '0 1px 3px rgba(0,144,97,0.3)', transition: 'background 0.15s, box-shadow 0.15s' },
   btnGhost: { background: '#fff', color: '#475569', border: '1px solid #d1d9e0', borderRadius: 10, padding: '9px 16px', cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.15s, background 0.15s' },
   btnLine: { background: '#06c755', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, boxShadow: '0 1px 3px rgba(6,199,85,0.3)' },
   label: { color: '#64748b', fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 6, letterSpacing: 0.5 },
@@ -588,7 +588,7 @@ const S = {
   pageLead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18, marginBottom: 24 },
   pageTitle: { fontSize: 24, fontWeight: 700, color: '#1a1d23', letterSpacing: -0.3, marginBottom: 4 },
   pageDesc: { fontSize: 14, color: '#64748b', lineHeight: 1.7, maxWidth: 760 },
-  eyebrow: { fontSize: 11, color: '#2563eb', fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8, ...{ fontFamily: "'SF Mono', 'Fira Code', monospace" } },
+  eyebrow: { fontSize: 11, color: '#009061', fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8, ...{ fontFamily: "'SF Mono', 'Fira Code', monospace" } },
   statGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 },
   twoCol: { display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 16, alignItems: 'start' },
   tag: (color) => ({ display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: color === 'green' ? '#ecfdf5' : color === 'red' ? '#fef2f2' : color === 'line' ? '#ecfdf5' : '#f1f5f9', color: color === 'green' ? '#059669' : color === 'red' ? '#dc2626' : color === 'line' ? '#059669' : '#475569', border: 'none' }),
@@ -596,7 +596,7 @@ const S = {
 
 /* ========================================= SHARED ========================================= */
 function Loading() {
-  return <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div style={{ color: '#94a3b8', fontSize: 13 }}><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#2563eb', marginRight: 8, animation: 'pulse 1.5s infinite' }} />載入中...</div></div>;
+  return <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div style={{ color: '#94a3b8', fontSize: 13 }}><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#009061', marginRight: 8, animation: 'pulse 1.5s infinite' }} />載入中...</div></div>;
 }
 function EmptyState({ text }) {
   return <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8', fontSize: 13 }}>{text}</div>;
@@ -606,7 +606,7 @@ function StatusBanner({ text, tone = 'neutral' }) {
   const toneMap = {
     success: { background: '#ecfdf5', borderColor: '#a7f3d0', color: '#059669' },
     error: { background: '#fef2f2', borderColor: '#fecaca', color: '#dc2626' },
-    info: { background: '#eff6ff', borderColor: '#bfdbfe', color: '#2563eb' },
+    info: { background: '#ecfdf5', borderColor: '#a7f3d0', color: '#009061' },
     neutral: { background: '#fdfdfe', borderColor: '#e2e8f0', color: '#64748b' },
   };
   return <div style={{ ...S.card, padding: '14px 16px', ...(toneMap[tone] || toneMap.neutral) }}>{text}</div>;
@@ -1073,7 +1073,7 @@ function TrendLineChart({ daily }) {
 }
 function StatCard({ code, label, value, sub, accent, tone = 'blue' }) {
   const toneColors = {
-    blue: { accent: '#2563eb', bg: '#eff6ff', light: '#93c5fd' },
+    blue: { accent: '#009061', bg: '#ecfdf5', light: '#6ee7b7' },
     green: { accent: '#059669', bg: '#ecfdf5', light: '#6ee7b7' },
     yellow: { accent: '#d97706', bg: '#fffbeb', light: '#fcd34d' },
     red: { accent: '#dc2626', bg: '#fef2f2', light: '#fca5a5' },
@@ -5346,7 +5346,7 @@ function StockAlerts() {
   const load = async () => { setLoading(true); try { const res = await apiGet({ action: 'stock_alerts' }); setAlerts(res.alerts || []); } finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
-  const URGENCY = { critical: { label: '缺貨', color: '#dc2626', bg: '#fef2f2' }, high: { label: '偏低', color: '#f59e0b', bg: '#fffbeb' }, medium: { label: '注意', color: '#3b82f6', bg: '#eff6ff' } };
+  const URGENCY = { critical: { label: '缺貨', color: '#dc2626', bg: '#fef2f2' }, high: { label: '偏低', color: '#f59e0b', bg: '#fffbeb' }, medium: { label: '注意', color: '#3b82f6', bg: '#ecfdf5' } };
 
   return (
     <div>
@@ -5755,7 +5755,7 @@ function Tickets() {
           <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 12 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#1c2740', marginBottom: 10 }}>回覆記錄 ({replies.length})</div>
             {replies.map((r, i) => (
-              <div key={i} style={{ marginBottom: 8, padding: '10px 12px', background: r.sender_type === 'admin' ? '#eff6ff' : '#f8fafc', borderRadius: 6, fontSize: 13 }}>
+              <div key={i} style={{ marginBottom: 8, padding: '10px 12px', background: r.sender_type === 'admin' ? '#ecfdf5' : '#f8fafc', borderRadius: 6, fontSize: 13 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ fontWeight: 600, color: r.sender_type === 'admin' ? '#1976f3' : '#617084' }}>{r.sender_name || r.sender_type}</span>
                   <span style={{ fontSize: 10, color: '#9ca3af' }}>{r.created_at?.slice(0, 16)}</span>
@@ -6098,10 +6098,10 @@ export default function AdminPage() {
 
   if (!isAuthed) {
     return (
-      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #eff6ff 0%, #fdfdfe 50%, #e0f2fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'auto' }}>
+      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #ecfdf5 0%, #fdfdfe 50%, #d1fae5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'auto' }}>
         <div style={{ width: '100%', maxWidth: 440, background: '#ffffff', borderRadius: 20, padding: '36px 32px', color: '#1a1d23', boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #e8ecf1' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15, ...S.mono }}>QB</div>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#009061', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15, ...S.mono }}>QB</div>
             <div>
               <div style={{ color: '#1a1d23', fontSize: 18, fontWeight: 700 }}>Auto-bot QB</div>
               <div style={{ color: '#94a3b8', fontSize: 12 }}>管理後台登入</div>
@@ -6136,17 +6136,17 @@ export default function AdminPage() {
 
       <style>{`
         .qb-sb-item{transition:all 0.2s ease}
-        .qb-sb-item:hover{background:rgba(37,99,235,0.06)!important;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(37,99,235,0.08), inset 0 1px 0 rgba(255,255,255,0.7);border-color:rgba(37,99,235,0.1)!important}
+        .qb-sb-item:hover{background:rgba(0,144,97,0.06)!important;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,144,97,0.08), inset 0 1px 0 rgba(255,255,255,0.7);border-color:rgba(0,144,97,0.1)!important}
         .qb-sb-star{opacity:0;transition:opacity 0.15s}
         .qb-sb-item:hover .qb-sb-star{opacity:1}
         .qb-sb-star.is-fav{opacity:1;color:#f59e0b!important}
         .qb-sb-section-hdr{transition:all 0.2s ease}
-        .qb-sb-section-hdr:hover{background:rgba(37,99,235,0.04);backdrop-filter:blur(8px);box-shadow:0 1px 8px rgba(37,99,235,0.06), inset 0 1px 0 rgba(255,255,255,0.6)}
-        .qb-sb-search:focus{border-color:#2563eb!important;box-shadow:0 0 0 3px rgba(37,99,235,0.1)!important}
+        .qb-sb-section-hdr:hover{background:rgba(0,144,97,0.04);backdrop-filter:blur(8px);box-shadow:0 1px 8px rgba(0,144,97,0.06), inset 0 1px 0 rgba(255,255,255,0.6)}
+        .qb-sb-search:focus{border-color:#009061!important;box-shadow:0 0 0 3px rgba(0,144,97,0.1)!important}
         .qb-sb::-webkit-scrollbar{width:3px}
         .qb-sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
         .qb-sb::-webkit-scrollbar-track{background:transparent}
-        input:focus,select:focus,textarea:focus{border-color:#2563eb!important;box-shadow:0 0 0 3px rgba(37,99,235,0.08)!important}
+        input:focus,select:focus,textarea:focus{border-color:#009061!important;box-shadow:0 0 0 3px rgba(0,144,97,0.08)!important}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         @keyframes badgeGlow{0%,100%{box-shadow:0 0 4px rgba(239,68,68,0.3)}50%{box-shadow:0 0 12px rgba(239,68,68,0.6)}}
       `}</style>
@@ -6156,7 +6156,7 @@ export default function AdminPage() {
           {/* Logo + collapse toggle */}
           <div style={{ padding: '0 16px 16px', borderBottom: '1px solid #e8ecf1', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
-              <div style={{ width: 38, height: 38, minWidth: 38, borderRadius: 12, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 14, ...S.mono }}>QB</div>
+              <div style={{ width: 38, height: 38, minWidth: 38, borderRadius: 12, background: '#009061', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 14, ...S.mono }}>QB</div>
               {!sidebarCollapsed && <div style={{ whiteSpace: 'nowrap' }}>
                 <div style={{ color: '#1a1d23', fontSize: 15, fontWeight: 700, letterSpacing: -0.2 }}>Auto-bot QB</div>
                 <div style={{ color: '#94a3b8', fontSize: 11 }}>ERP Console</div>
@@ -6186,8 +6186,8 @@ export default function AdminPage() {
                 <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, letterSpacing: 0.5 }}>我的最愛</span>
               </div>
               {SECTIONS.flatMap((s) => s.tabs).filter((t) => favs.includes(t.id)).map((t) => (
-                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#2563eb' : '#475569', background: tab === t.id ? '#eff6ff' : 'transparent', borderRadius: 8, margin: '1px 8px', transition: 'all 0.15s', fontWeight: tab === t.id ? 600 : 400 }}>
-                  <span style={{ fontSize: 9, color: tab === t.id ? '#2563eb' : '#94a3b8', ...S.mono, width: 34, flexShrink: 0 }}>{t.code}</span>
+                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#009061' : '#475569', background: tab === t.id ? '#ecfdf5' : 'transparent', borderRadius: 8, margin: '1px 8px', transition: 'all 0.15s', fontWeight: tab === t.id ? 600 : 400 }}>
+                  <span style={{ fontSize: 9, color: tab === t.id ? '#009061' : '#94a3b8', ...S.mono, width: 34, flexShrink: 0 }}>{t.code}</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                 </div>
               ))}
@@ -6212,7 +6212,7 @@ export default function AdminPage() {
                     onClick={() => !sidebarCollapsed && toggleCollapsed(section.title)}
                     style={{ padding: sidebarCollapsed ? '10px 0' : '10px 16px 8px 12px', borderTop: 'none', marginTop: si > 0 ? 4 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 8, transition: 'background 0.12s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? 0 : '0 4px', background: hasActiveTab ? '#f8fafc' : 'transparent' }}
                   >
-                    <span style={{ fontSize: 15, color: hasActiveTab ? (section.accent || '#2563eb') : '#94a3b8', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 18, textAlign: 'center' }}>{sectionIcon}</span>
+                    <span style={{ fontSize: 15, color: hasActiveTab ? (section.accent || '#009061') : '#94a3b8', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 18, textAlign: 'center' }}>{sectionIcon}</span>
                     {!sidebarCollapsed && <>
                       <span style={{ fontSize: 14, color: hasActiveTab ? '#1a1d23' : '#64748b', fontWeight: 600, letterSpacing: 0.1, flex: 1 }}>{section.title}</span>
                       {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
@@ -6228,9 +6228,9 @@ export default function AdminPage() {
                           key={t.id}
                           className="qb-sb-item"
                           onClick={() => setTab(t.id)}
-                          style={{ padding: '9px 14px 9px 20px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#2563eb' : '#475569', background: isActive ? '#eff6ff' : 'transparent', borderRadius: 10, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? 600 : 400 }}
+                          style={{ padding: '9px 14px 9px 20px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#009061' : '#475569', background: isActive ? '#ecfdf5' : 'transparent', borderRadius: 10, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? 600 : 400 }}
                         >
-                          <span style={{ fontSize: 10, color: isActive ? '#93c5fd' : '#cbd5e1', flexShrink: 0 }}>{'\u2514'}</span>
+                          <span style={{ fontSize: 10, color: isActive ? '#6ee7b7' : '#cbd5e1', flexShrink: 0 }}>{'\u2514'}</span>
                           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                           {pendingBadges[t.id] > 0 && (
                             <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{pendingBadges[t.id]}</span>
@@ -6243,7 +6243,7 @@ export default function AdminPage() {
                   )}
                   {/* Collapsed mode: show icon-only for active tab */}
                   {sidebarCollapsed && section.tabs.map((t) => (
-                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '8px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#2563eb' : '#94a3b8', background: tab === t.id ? '#eff6ff' : 'transparent', borderRadius: 8, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0, position: 'relative', margin: '1px 6px' }}>{t.code}{pendingBadges[t.id] > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />}</div>
+                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '8px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#009061' : '#94a3b8', background: tab === t.id ? '#ecfdf5' : 'transparent', borderRadius: 8, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0, position: 'relative', margin: '1px 6px' }}>{t.code}{pendingBadges[t.id] > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />}</div>
                   ))}
                 </div>
               );
