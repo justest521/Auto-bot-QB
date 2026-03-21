@@ -1701,7 +1701,7 @@ function FormalCustomers() {
                       <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL -</span> {detailCustomer.email || '-'}</div>
                       <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID -</span> {detailCustomer.tax_id || '-'}</div>
                       <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS -</span> {detailCustomer.address || '-'}</div>
-                      {detailCustomer.notes && <div><span style={{ color: '#7b889b', ...S.mono }}>NOTES -</span> {detailCustomer.notes}</div>}
+                      {detailCustomer.notes && <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}><span style={{ color: '#7b889b', ...S.mono }}>NOTES -</span> {detailCustomer.notes}</div>}
                     </div>
                   )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
