@@ -4303,6 +4303,9 @@ function PurchaseOrders() {
   const [data, setData] = useState({ rows: [], total: 0, page: 0, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true); const [search, setSearch] = useState(''); const [statusF, setStatusF] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
+  const [expandedPo, setExpandedPo] = useState(null);
+  const [poItems, setPoItems] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(false);
   const [form, setForm] = useState({ vendor_id: '', expected_date: '', remark: '' });
   const [items, setItems] = useState([{ item_number: '', description: '', qty: 1, unit_cost: 0, line_total: 0 }]);
 
@@ -4316,6 +4319,17 @@ function PurchaseOrders() {
 
   const handleCreate = async () => { try { await apiPost({ action: 'create_purchase_order', ...form, items: items.filter(i => i.item_number) }); setCreateOpen(false); setForm({ vendor_id: '', expected_date: '', remark: '' }); setItems([{ item_number: '', description: '', qty: 1, unit_cost: 0, line_total: 0 }]); load(); } catch (e) { alert(e.message); } };
   const handleConfirm = async (id) => { try { await apiPost({ action: 'confirm_purchase_order', po_id: id }); load(); } catch (e) { alert(e.message); } };
+
+  const toggleExpand = async (poId) => {
+    if (expandedPo === poId) { setExpandedPo(null); return; }
+    setExpandedPo(poId);
+    setLoadingItems(true);
+    try {
+      const res = await apiGet({ action: 'po_items', po_id: poId });
+      setPoItems(res.items || []);
+    } catch { setPoItems([]); }
+    finally { setLoadingItems(false); }
+  };
 
   const sm = data.summary || {};
   const statusLabel = (s) => ({ draft: '草稿', confirmed: '已確認', received: '已到貨', cancelled: '已取消' })[s] || s;
@@ -4337,17 +4351,43 @@ function PurchaseOrders() {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有採購單" /> : data.rows.map(r => (
         <div key={r.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 100px 100px 120px minmax(0,1fr) 140px', gap: 12, alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 100px 100px 120px minmax(0,1fr) 140px auto', gap: 12, alignItems: 'center', cursor: 'pointer' }} onClick={() => toggleExpand(r.id)}>
             <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>PO_NO</div><div style={{ fontSize: 13, fontWeight: 700, color: '#1976f3', ...S.mono }}>{r.po_no || '-'}</div></div>
             <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>DATE</div><div style={{ fontSize: 12 }}>{fmtDate(r.po_date)}</div></div>
             <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>AMOUNT</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(r.total_amount)}</div></div>
             <div><span style={S.tag(statusColor(r.status))}>{statusLabel(r.status)}</span></div>
             <div style={{ fontSize: 12, color: '#617084' }}>{r.remark || '-'}</div>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 6 }} onClick={(e) => e.stopPropagation()}>
               {r.status === 'draft' && <button onClick={() => handleConfirm(r.id)} style={{ ...S.btnGhost, padding: '5px 10px', fontSize: 12 }}>確認</button>}
               {r.status === 'confirmed' && <button onClick={() => { setForm({ vendor_id: r.vendor_id || '', expected_date: '', remark: `採購單 ${r.po_no} 進貨` }); }} style={{ ...S.btnGhost, padding: '5px 10px', fontSize: 12 }}>轉進貨</button>}
             </div>
+            <span style={{ fontSize: 16, color: '#9ca3af', transition: 'transform 0.2s', transform: expandedPo === r.id ? 'rotate(180deg)' : 'rotate(0)' }}>{'\u25B2'}</span>
           </div>
+          {expandedPo === r.id && (
+            <div style={{ marginTop: 14, borderTop: '1px solid #e5e7eb', paddingTop: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#1c2740', marginBottom: 10 }}>採購明細</div>
+              {loadingItems ? <div style={{ fontSize: 12, color: '#9ca3af' }}>載入中...</div> : poItems.length === 0 ? <div style={{ fontSize: 12, color: '#9ca3af' }}>沒有明細項目</div> : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <thead><tr style={{ background: '#f8fafc', textAlign: 'left' }}>
+                    <th style={{ padding: '8px 10px', color: '#7b889b', fontWeight: 600 }}>料號</th>
+                    <th style={{ padding: '8px 10px', color: '#7b889b', fontWeight: 600 }}>品名</th>
+                    <th style={{ padding: '8px 10px', color: '#7b889b', fontWeight: 600, textAlign: 'right' }}>單價</th>
+                    <th style={{ padding: '8px 10px', color: '#7b889b', fontWeight: 600, textAlign: 'center' }}>數量</th>
+                    <th style={{ padding: '8px 10px', color: '#7b889b', fontWeight: 600, textAlign: 'right' }}>小計</th>
+                  </tr></thead>
+                  <tbody>{poItems.map((item, i) => (
+                    <tr key={item.id || i} style={{ borderTop: '1px solid #f0f0f0' }}>
+                      <td style={{ padding: '8px 10px', fontWeight: 600, color: '#1976f3', ...S.mono }}>{item.item_number || '-'}</td>
+                      <td style={{ padding: '8px 10px', color: '#374151' }}>{item.description || '-'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', ...S.mono }}>{fmtP(item.unit_cost)}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 600 }}>{item.qty}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#059669', ...S.mono }}>{fmtP(item.line_total)}</td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              )}
+            </div>
+          )}
         </div>
       ))}
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF)} />
@@ -5322,14 +5362,13 @@ export default function AdminPage() {
     }
   }, []);
 
-  // Fetch pending badge counts for sidebar
+  // Fetch pending badge counts for sidebar (all sections)
   useEffect(() => {
     if (!isAuthed) return;
     const fetchBadges = () => {
-      apiGet({ action: 'dealer_orders', status: 'pending' })
+      apiGet({ action: 'pending_badges' })
         .then((res) => {
-          const count = res?.total || res?.rows?.length || 0;
-          setPendingBadges((prev) => ({ ...prev, dealer_orders: count }));
+          setPendingBadges(res || {});
         })
         .catch(() => {});
     };
@@ -5474,7 +5513,7 @@ export default function AdminPage() {
                     <span style={{ fontSize: 14, color: hasActiveTab ? (section.accent || '#2da5ff') : '#5e7490', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 16, textAlign: 'center' }}>{sectionIcon}</span>
                     {!sidebarCollapsed && <>
                       <span style={{ fontSize: 10, color: hasActiveTab ? '#c0dcff' : (section.accent || '#5e7490'), fontWeight: 600, letterSpacing: 1.1, ...S.mono, flex: 1 }}>{section.title}</span>
-                      {(() => { const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 8, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', boxShadow: '0 2px 6px rgba(239,68,68,0.4)' }}>{sectionBadge}</span> : null; })()}
+                      {(() => { const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', boxShadow: '0 2px 8px rgba(239,68,68,0.4)', animation: 'pulse 2s infinite', marginRight: 2 }}>{sectionBadge}</span> : null; })()}
                       <span style={{ fontSize: 10, color: '#4a5e78', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>{'\u25BE'}</span>
                     </>}
                   </div>
