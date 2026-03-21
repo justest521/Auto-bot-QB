@@ -5305,7 +5305,7 @@ export default function AdminPage() {
     const fetchBadges = () => {
       apiGet({ action: 'dealer_orders', status: 'pending' })
         .then((res) => {
-          const count = res?.orders?.length || 0;
+          const count = res?.total || res?.rows?.length || 0;
           setPendingBadges((prev) => ({ ...prev, dealer_orders: count }));
         })
         .catch(() => {});
