@@ -6136,12 +6136,12 @@ export default function AdminPage() {
 
       <style>{`
         .qb-sb-item{transition:all 0.2s ease}
-        .qb-sb-item:hover{background:rgba(37,99,235,0.06)!important;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(37,99,235,0.08), inset 0 1px 0 rgba(255,255,255,0.7);border-color:rgba(37,99,235,0.1)!important}
+        .qb-sb-item:hover{background:#f1f5f9!important;backdrop-filter:blur(8px);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
         .qb-sb-star{opacity:0;transition:opacity 0.15s}
         .qb-sb-item:hover .qb-sb-star{opacity:1}
         .qb-sb-star.is-fav{opacity:1;color:#f59e0b!important}
-        .qb-sb-section-hdr{transition:all 0.2s ease}
-        .qb-sb-section-hdr:hover{background:rgba(37,99,235,0.04);backdrop-filter:blur(8px);box-shadow:0 1px 8px rgba(37,99,235,0.06), inset 0 1px 0 rgba(255,255,255,0.6)}
+        .qb-sb-section-hdr{transition:all 0.15s ease}
+        .qb-sb-section-hdr:hover{background:#f8f9fb}
         .qb-sb-search:focus{border-color:#2563eb!important;box-shadow:0 0 0 3px rgba(37,99,235,0.1)!important}
         .qb-sb::-webkit-scrollbar{width:3px}
         .qb-sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
@@ -6181,13 +6181,12 @@ export default function AdminPage() {
           {/* Favorites section */}
           {!sidebarCollapsed && favs.length > 0 && !sidebarSearch && (
             <div>
-              <div style={{ padding: '10px 16px 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 11, color: '#f59e0b' }}>{'\u2605'}</span>
-                <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, letterSpacing: 0.5 }}>我的最愛</span>
+              <div style={{ padding: '16px 14px 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase' }}>FAVORITES</span>
               </div>
               {SECTIONS.flatMap((s) => s.tabs).filter((t) => favs.includes(t.id)).map((t) => (
-                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#2563eb' : '#475569', background: tab === t.id ? '#eff6ff' : 'transparent', borderRadius: 8, margin: '1px 8px', transition: 'all 0.15s', fontWeight: tab === t.id ? 600 : 400 }}>
-                  <span style={{ fontSize: 9, color: tab === t.id ? '#2563eb' : '#94a3b8', ...S.mono, width: 34, flexShrink: 0 }}>{t.code}</span>
+                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '10px 14px', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10, color: tab === t.id ? '#fff' : '#475569', background: tab === t.id ? '#1e293b' : 'transparent', borderRadius: 10, margin: '2px 10px', transition: 'all 0.2s', fontWeight: tab === t.id ? 600 : 400, boxShadow: tab === t.id ? '0 2px 8px rgba(30,41,59,0.18)' : 'none' }}>
+                  <span style={{ fontSize: 11, color: tab === t.id ? '#fbbf24' : '#f59e0b' }}>{'\u2605'}</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                 </div>
               ))}
@@ -6207,20 +6206,21 @@ export default function AdminPage() {
               const hasActiveTab = section.tabs.some((t) => t.id === tab);
               return (
                 <div key={section.title}>
+                  {/* Section label - UpNext style uppercase gray */}
                   <div
                     className="qb-sb-section-hdr"
                     onClick={() => !sidebarCollapsed && toggleCollapsed(section.title)}
-                    style={{ padding: sidebarCollapsed ? '10px 0' : '10px 16px 8px 12px', borderTop: 'none', marginTop: si > 0 ? 4 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 8, transition: 'background 0.12s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? 0 : '0 4px', background: hasActiveTab ? '#f8fafc' : 'transparent' }}
+                    style={{ padding: sidebarCollapsed ? '10px 0' : '20px 16px 6px 14px', borderTop: 'none', marginTop: si > 0 ? 2 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 0, transition: 'background 0.12s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: 0, background: 'transparent' }}
                   >
-                    <span style={{ fontSize: 15, color: hasActiveTab ? (section.accent || '#2563eb') : '#94a3b8', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 18, textAlign: 'center' }}>{sectionIcon}</span>
+                    {sidebarCollapsed && <span style={{ fontSize: 15, color: hasActiveTab ? (section.accent || '#2563eb') : '#94a3b8', transition: 'color 0.2s' }}>{sectionIcon}</span>}
                     {!sidebarCollapsed && <>
-                      <span style={{ fontSize: 14, color: hasActiveTab ? '#1a1d23' : '#64748b', fontWeight: 600, letterSpacing: 0.1, flex: 1 }}>{section.title}</span>
-                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
-                      <span style={{ fontSize: 10, color: '#cbd5e1', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', width: 20, textAlign: 'center', flexShrink: 0 }}>{'\u25BE'}</span>
+                      <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', flex: 1 }}>{section.title}</span>
+                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{sectionBadge}</span> : null; })()}
+                      <span style={{ fontSize: 10, color: '#cbd5e1', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', width: 16, textAlign: 'center', flexShrink: 0 }}>{'\u25BE'}</span>
                     </>}
                   </div>
                   {!sidebarCollapsed && !isCollapsed && (
-                    <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', padding: '0 8px' }}>
+                    <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', padding: '2px 10px 4px' }}>
                       {section.tabs.map((t) => {
                         const isActive = tab === t.id;
                         return (
@@ -6228,14 +6228,14 @@ export default function AdminPage() {
                           key={t.id}
                           className="qb-sb-item"
                           onClick={() => setTab(t.id)}
-                          style={{ padding: '9px 14px 9px 20px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#2563eb' : '#475569', background: isActive ? '#eff6ff' : 'transparent', borderRadius: 10, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? 600 : 400 }}
+                          style={{ padding: '10px 14px', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10, color: isActive ? '#fff' : '#475569', background: isActive ? '#1e293b' : 'transparent', borderRadius: 10, margin: '2px 0', transition: 'all 0.2s', fontWeight: isActive ? 600 : 400, boxShadow: isActive ? '0 2px 8px rgba(30,41,59,0.18)' : 'none' }}
                         >
-                          <span style={{ fontSize: 10, color: isActive ? '#93c5fd' : '#cbd5e1', flexShrink: 0 }}>{'\u2514'}</span>
+                          <span style={{ fontSize: 15, width: 22, textAlign: 'center', flexShrink: 0, color: isActive ? '#fff' : '#94a3b8', transition: 'color 0.2s' }}>{sectionIcon}</span>
                           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                           {pendingBadges[t.id] > 0 && (
-                            <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{pendingBadges[t.id]}</span>
+                            <span style={{ background: isActive ? '#ef4444' : '#ef4444', color: '#fff', fontSize: 10, fontWeight: 700, borderRadius: 999, minWidth: 22, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px' }}>{pendingBadges[t.id]}</span>
                           )}
-                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#cbd5e1', cursor: 'pointer', width: 20, textAlign: 'center', flexShrink: 0 }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
+                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 12, color: isActive ? 'rgba(255,255,255,0.5)' : '#cbd5e1', cursor: 'pointer', width: 20, textAlign: 'center', flexShrink: 0 }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
                         </div>
                         );
                       })}
@@ -6243,7 +6243,7 @@ export default function AdminPage() {
                   )}
                   {/* Collapsed mode: show icon-only for active tab */}
                   {sidebarCollapsed && section.tabs.map((t) => (
-                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '8px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#2563eb' : '#94a3b8', background: tab === t.id ? '#eff6ff' : 'transparent', borderRadius: 8, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0, position: 'relative', margin: '1px 6px' }}>{t.code}{pendingBadges[t.id] > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />}</div>
+                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '10px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#fff' : '#94a3b8', background: tab === t.id ? '#1e293b' : 'transparent', borderRadius: 10, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0, position: 'relative', margin: '2px 8px' }}>{t.code}{pendingBadges[t.id] > 0 && <span style={{ position: 'absolute', top: 3, right: 3, width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />}</div>
                   ))}
                 </div>
               );
