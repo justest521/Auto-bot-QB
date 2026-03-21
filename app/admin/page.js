@@ -1472,22 +1472,21 @@ function FormalCustomers() {
   const listPane = (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 18 }}>
-        <div style={S.panelMuted}>
+        <div style={{ ...S.panelMuted, background: '#ffffff' }}>
           <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>DB_CUSTOMERS</div>
           <div style={{ fontSize: 28, color: '#1c2740', fontWeight: 700, ...S.mono }}>{fmt(data.total)}</div>
         </div>
-        <div style={S.panelMuted}>
+        <div style={{ ...S.panelMuted, background: '#ffffff' }}>
           <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>LATEST_IMPORT</div>
-          <div style={{ fontSize: 20, color: '#1976f3', fontWeight: 700, ...S.mono }}>{fmt(data.latest_import?.count || 0)}</div>
+          <div style={{ fontSize: 28, color: '#1976f3', fontWeight: 700, ...S.mono }}>{fmt(data.latest_import?.count || 0)}</div>
         </div>
-        <div style={S.panelMuted}>
+        <div style={{ ...S.panelMuted, background: '#ffffff' }}>
           <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 6, ...S.mono }}>CHECKPOINT</div>
           <div style={{ fontSize: 14, color: data.latest_import?.count === data.total ? '#129c59' : '#f59e0b', fontWeight: 700 }}>
             {data.latest_import?.count === data.total ? '匯入筆數與資料庫一致' : '匯入筆數與目前資料庫不同步'}
           </div>
         </div>
       </div>
-      <div style={{ fontSize: 11, color: '#7b889b', marginBottom: 12, ...S.mono }}>共 {fmt(data.total)} 位正式客戶</div>
       {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的正式客戶資料" /> : (
         isMobile ? (
           <div style={{ display: 'grid', gap: 8 }}>
@@ -1516,7 +1515,7 @@ function FormalCustomers() {
           </div>
         ) : (
           <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 12, padding: '14px 18px', borderBottom: '1px solid #F2F2F2', color: '#7b889b', fontSize: 11, fontWeight: 600 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 12, padding: '14px 18px', borderBottom: '1px solid #F2F2F2', color: '#7b889b', fontSize: 12, fontWeight: 600 }}>
               <div>公司名稱</div>
               <div>聯絡人</div>
               <div>電話</div>
@@ -1532,9 +1531,9 @@ function FormalCustomers() {
                   <div style={{ fontSize: 14, color: '#1a1d23', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                   <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, ...S.mono }}>{customer.customer_code || ''}</div>
                 </div>
-                <div style={{ fontSize: 13, color: '#475569' }}>{customer.name || '-'}</div>
-                <div style={{ fontSize: 13, color: '#475569', ...S.mono }}>{customer.phone || '-'}</div>
-                {!isTablet && <div style={{ fontSize: 13, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.address ? customer.address.slice(0, 6) : '-'}</div>}
+                <div style={{ fontSize: 14, color: '#475569' }}>{customer.name || '-'}</div>
+                <div style={{ fontSize: 14, color: '#475569', ...S.mono }}>{customer.phone || '-'}</div>
+                {!isTablet && <div style={{ fontSize: 14, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.address ? customer.address.slice(0, 6) : '-'}</div>}
               </button>
             ))}
           </div>
