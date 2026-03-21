@@ -72,7 +72,7 @@ export async function GET(request) {
           .range(offset, offset + limit - 1);
 
         if (q) {
-          query = query.or(`item_number.ilike.%${q}%,description.ilike.%${q}%,brand.ilike.%${q}%`);
+          query = query.or(`item_number.ilike.%${q}%,description.ilike.%${q}%,search_text.ilike.%${q}%`);
         }
         if (category && category !== 'all') {
           query = query.eq('category', category);
@@ -87,16 +87,15 @@ export async function GET(request) {
             id: p.id,
             item_number: p.item_number,
             description: p.description,
-            brand: p.brand,
             category: p.category,
+            origin_country: p.origin_country || null,
             price: Number(p[roleConfig.price_field] || p.tw_retail_price || 0),
             price_label: roleConfig.price_label,
             stock_qty: user.can_see_stock !== false ? Number(p.stock_qty || 0) : null,
             safety_stock: user.can_see_stock !== false ? Number(p.safety_stock || 0) : null,
-            image_url: p.image_url || null,
           };
           if (roleConfig.can_see_cost) {
-            item.cost_price = Number(p.cost_price || 0);
+            item.us_price = Number(p.us_price || 0);
             item.reseller_price = Number(p.tw_reseller_price || 0);
             item.retail_price = Number(p.tw_retail_price || 0);
           }
@@ -374,7 +373,7 @@ export async function POST(request) {
       const itemNumbers = items.map((i) => i.item_number).filter(Boolean);
       const { data: products } = await supabase
         .from('quickbuy_products')
-        .select('item_number, description, tw_reseller_price, tw_retail_price, cost_price, stock_qty')
+        .select('item_number, description, tw_reseller_price, tw_retail_price, us_price, stock_qty')
         .in('item_number', itemNumbers);
 
       const productMap = Object.fromEntries((products || []).map((p) => [p.item_number, p]));
@@ -389,7 +388,7 @@ export async function POST(request) {
           description_snapshot: p.description || '',
           qty: Math.max(1, Number(i.qty || 1)),
           unit_price: price,
-          cost_price_snapshot: Number(p.cost_price || 0),
+          cost_price_snapshot: Number(p.us_price || 0),
           line_total: price * Math.max(1, Number(i.qty || 1)),
         };
       }).filter(Boolean);

@@ -324,7 +324,7 @@ function CatalogTab({ token, user, roleConfig, cart, setCart }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span className="qb-mono" style={{ fontSize: 12, color: '#a5b4fc', fontWeight: 700 }}>{p.item_number}</span>
-                    {p.brand && <span style={{ fontSize: 10, color: 'rgba(148,163,184,0.4)', padding: '2px 6px', background: 'rgba(99,102,241,0.06)', borderRadius: 4 }}>{p.brand}</span>}
+                    {p.category && <span style={{ fontSize: 10, color: 'rgba(148,163,184,0.4)', padding: '2px 6px', background: 'rgba(99,102,241,0.06)', borderRadius: 4 }}>{p.category}</span>}
                   </div>
                   <div style={{ fontSize: 13, color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description || '-'}</div>
                   <div style={{ display: 'flex', gap: 14, marginTop: 6, alignItems: 'center' }}>
@@ -334,7 +334,7 @@ function CatalogTab({ token, user, roleConfig, cart, setCart }) {
                         庫存 {p.stock_qty}
                       </span>
                     )}
-                    {roleConfig?.can_see_cost && <span className="qb-mono" style={{ fontSize: 11, color: 'rgba(148,163,184,0.4)' }}>成本 {fmtP(p.cost_price)}</span>}
+                    {roleConfig?.can_see_cost && <span className="qb-mono" style={{ fontSize: 11, color: 'rgba(148,163,184,0.4)' }}>美金成本 {fmtP(p.us_price)}</span>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
