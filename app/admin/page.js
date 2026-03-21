@@ -5452,6 +5452,363 @@ function ReorderSuggestions() {
   );
 }
 
+/* ========================================= INVOICES 發票管理 ========================================= */
+function Invoices() {
+  const width = useViewportWidth(); const isMobile = width < 820;
+  const [data, setData] = useState({ rows: [], total: 0, summary: {} });
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [msg, setMsg] = useState('');
+  const [payDialog, setPayDialog] = useState(null);
+  const [payAmount, setPayAmount] = useState('');
+
+  const load = async (status = statusFilter) => {
+    setLoading(true);
+    try { const res = await apiGet({ action: 'invoices', status }); setData(res); } finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const STATUS_MAP = {
+    draft: { label: '草稿', color: '#9ca3af' },
+    sent: { label: '已寄送', color: '#3b82f6' },
+    unpaid: { label: '未付款', color: '#f59e0b' },
+    partial: { label: '部分付款', color: '#f97316' },
+    paid: { label: '已付清', color: '#16a34a' },
+    overdue: { label: '逾期', color: '#dc2626' },
+    cancelled: { label: '已取消', color: '#6b7280' },
+  };
+
+  const handlePay = async () => {
+    if (!payDialog || !payAmount || Number(payAmount) <= 0) return;
+    try {
+      await apiPost({ action: 'record_payment', invoice_id: payDialog.id, amount: Number(payAmount), payment_method: 'transfer' });
+      setMsg('付款已記錄'); setPayDialog(null); setPayAmount(''); await load();
+    } catch (e) { setMsg(e.message); }
+  };
+
+  const s = data.summary || {};
+
+  return (
+    <div>
+      <PageLead eyebrow="INVOICES" title="發票管理" description="管理發票開立、付款狀態追蹤，參考 Odoo 會計模組。" />
+      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+
+      <div style={S.statGrid}>
+        <StatCard code="UNPD" label="未付款" value={fmtP(s.unpaid_amount)} tone="yellow" />
+        <StatCard code="PAID" label="已收款" value={fmtP(s.paid_amount)} tone="green" />
+        <StatCard code="OVRD" label="逾期" value={fmtP(s.overdue_amount)} tone="red" />
+        <StatCard code="TOTL" label="發票數" value={data.total} tone="blue" />
+      </div>
+
+      {/* Status filter */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        <button onClick={() => { setStatusFilter(''); load(''); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, background: !statusFilter ? '#1e3a5f' : '#fff', color: !statusFilter ? '#fff' : '#617084' }}>全部</button>
+        {Object.entries(STATUS_MAP).map(([k, v]) => (
+          <button key={k} onClick={() => { setStatusFilter(k); load(k); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, borderColor: v.color, background: statusFilter === k ? v.color : '#fff', color: statusFilter === k ? '#fff' : v.color }}>{v.label}</button>
+        ))}
+      </div>
+
+      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有發票資料" /> : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead><tr style={{ background: '#f8fafc' }}>
+            <th style={{ padding: '10px 12px', textAlign: 'left', color: '#7b889b', fontWeight: 600 }}>發票號</th>
+            <th style={{ padding: '10px 12px', textAlign: 'left', color: '#7b889b', fontWeight: 600 }}>客戶</th>
+            <th style={{ padding: '10px 12px', textAlign: 'center', color: '#7b889b', fontWeight: 600 }}>狀態</th>
+            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#7b889b', fontWeight: 600 }}>金額</th>
+            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#7b889b', fontWeight: 600 }}>已付</th>
+            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#7b889b', fontWeight: 600 }}>餘額</th>
+            <th style={{ padding: '10px 12px', textAlign: 'center', color: '#7b889b', fontWeight: 600 }}>到期日</th>
+            <th style={{ padding: '10px 12px', textAlign: 'center', color: '#7b889b', fontWeight: 600 }}>操作</th>
+          </tr></thead>
+          <tbody>{(data.rows || []).map(inv => {
+            const st = STATUS_MAP[inv.status] || STATUS_MAP.draft;
+            const balance = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
+            return (
+              <tr key={inv.id} style={{ borderTop: '1px solid #f0f0f0' }}>
+                <td style={{ padding: '10px 12px', fontWeight: 600, color: '#1976f3', ...S.mono }}>{inv.invoice_no || '-'}</td>
+                <td style={{ padding: '10px 12px' }}>{inv.customer_name || '-'}</td>
+                <td style={{ padding: '10px 12px', textAlign: 'center' }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></td>
+                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(inv.total_amount)}</td>
+                <td style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a', ...S.mono }}>{fmtP(inv.paid_amount)}</td>
+                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</td>
+                <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 11, ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</td>
+                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                  {balance > 0 && inv.status !== 'cancelled' && (
+                    <button onClick={() => { setPayDialog(inv); setPayAmount(String(balance)); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>收款</button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}</tbody>
+        </table>
+      )}
+
+      {payDialog && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 400, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>記錄收款</h3>
+            <div style={{ marginBottom: 12, fontSize: 13, color: '#617084' }}>發票：{payDialog.invoice_no} / 餘額：{fmtP(Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0))}</div>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>收款金額</label><input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} style={S.input} /></div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setPayDialog(null)} style={S.btnGhost}>取消</button>
+              <button onClick={handlePay} style={S.btnPrimary}>確認收款</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ========================================= APPROVALS 簽核審批 ========================================= */
+function Approvals() {
+  const [data, setData] = useState({ rows: [], total: 0, pending_count: 0 });
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('pending');
+  const [msg, setMsg] = useState('');
+  const [noteDialog, setNoteDialog] = useState(null);
+  const [note, setNote] = useState('');
+
+  const load = async (status = statusFilter) => {
+    setLoading(true);
+    try { const res = await apiGet({ action: 'approvals', status }); setData(res); } finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const STATUS_MAP = {
+    pending: { label: '待審核', color: '#f59e0b' },
+    approved: { label: '已核准', color: '#16a34a' },
+    rejected: { label: '已駁回', color: '#dc2626' },
+  };
+  const TYPE_MAP = {
+    purchase_order: '採購單', quote: '報價單', order: '訂單', expense: '費用', other: '其他',
+  };
+
+  const handleProcess = async (approval, decision) => {
+    if (decision === 'rejected' && !note.trim()) {
+      setNoteDialog(approval); return;
+    }
+    try {
+      await apiPost({ action: 'process_approval', approval_id: approval.id, decision, note: note || '' });
+      setMsg(decision === 'approved' ? '已核准' : '已駁回');
+      setNoteDialog(null); setNote('');
+      await load();
+    } catch (e) { setMsg(e.message); }
+  };
+
+  return (
+    <div>
+      <PageLead eyebrow="APPROVALS" title="簽核審批" description="集中管理採購單、報價單等文件的核准流程，參考 Odoo 審批模組。" />
+      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+
+      <div style={S.statGrid}>
+        <StatCard code="PEND" label="待審核" value={data.pending_count || 0} tone="yellow" />
+        <StatCard code="TOTL" label="全部" value={data.total} tone="blue" />
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        {Object.entries(STATUS_MAP).map(([k, v]) => (
+          <button key={k} onClick={() => { setStatusFilter(k); load(k); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, borderColor: v.color, background: statusFilter === k ? v.color : '#fff', color: statusFilter === k ? '#fff' : v.color }}>{v.label}</button>
+        ))}
+      </div>
+
+      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有審批記錄" /> : (data.rows || []).map(a => {
+        const st = STATUS_MAP[a.status] || STATUS_MAP.pending;
+        return (
+          <div key={a.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 11 }}>{st.label}</span>
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#1c2740' }}>{TYPE_MAP[a.doc_type] || a.doc_type} — {a.doc_no || a.doc_id}</div>
+                <div style={{ fontSize: 11, color: '#617084' }}>申請人：{a.requester_name || '-'} · {a.created_at?.slice(0, 10)}</div>
+                {a.note && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>備註：{a.note}</div>}
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#1e3a5f', ...S.mono }}>{fmtP(a.amount)}</div>
+              </div>
+              {a.status === 'pending' && (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button onClick={() => handleProcess(a, 'approved')} style={{ ...S.btnPrimary, padding: '5px 14px', fontSize: 12 }}>核准</button>
+                  <button onClick={() => { setNoteDialog(a); setNote(''); }} style={{ ...S.btnGhost, padding: '5px 14px', fontSize: 12, borderColor: '#dc2626', color: '#dc2626' }}>駁回</button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      {noteDialog && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 420, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>駁回原因</h3>
+            <div style={{ marginBottom: 12 }}><textarea value={note} onChange={e => setNote(e.target.value)} placeholder="請說明駁回原因..." style={{ ...S.input, minHeight: 80 }} /></div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setNoteDialog(null)} style={S.btnGhost}>取消</button>
+              <button onClick={() => handleProcess(noteDialog, 'rejected')} style={{ ...S.btnPrimary, background: '#dc2626' }}>確認駁回</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ========================================= TICKETS 客服工單 ========================================= */
+function Tickets() {
+  const [data, setData] = useState({ rows: [], total: 0, summary: {} });
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [msg, setMsg] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({ title: '', description: '', priority: 'medium', source: 'admin' });
+  const [detail, setDetail] = useState(null);
+  const [replies, setReplies] = useState([]);
+  const [replyText, setReplyText] = useState('');
+
+  const load = async (status = statusFilter) => {
+    setLoading(true);
+    try { const res = await apiGet({ action: 'tickets', status }); setData(res); } finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const STATUS_MAP = {
+    open: { label: '開立', color: '#3b82f6' },
+    in_progress: { label: '處理中', color: '#f59e0b' },
+    resolved: { label: '已解決', color: '#16a34a' },
+    closed: { label: '已關閉', color: '#6b7280' },
+  };
+  const PRIORITY_MAP = {
+    low: { label: '低', color: '#9ca3af' },
+    medium: { label: '中', color: '#3b82f6' },
+    high: { label: '高', color: '#f59e0b' },
+    urgent: { label: '緊急', color: '#dc2626' },
+  };
+
+  const handleCreate = async () => {
+    if (!form.title.trim()) { setMsg('請輸入工單標題'); return; }
+    try { await apiPost({ action: 'create_ticket', ...form }); setCreateOpen(false); setForm({ title: '', description: '', priority: 'medium', source: 'admin' }); setMsg('工單已建立'); await load(); } catch (e) { setMsg(e.message); }
+  };
+
+  const openDetail = async (ticket) => {
+    try {
+      const res = await apiGet({ action: 'ticket_detail', ticket_id: ticket.id });
+      setDetail(res.ticket || ticket);
+      setReplies(res.replies || []);
+    } catch (e) { setMsg(e.message); }
+  };
+
+  const handleReply = async () => {
+    if (!replyText.trim() || !detail) return;
+    try {
+      await apiPost({ action: 'reply_ticket', ticket_id: detail.id, content: replyText, sender_type: 'admin', sender_name: '管理員' });
+      setReplyText('');
+      await openDetail(detail);
+      await load();
+    } catch (e) { setMsg(e.message); }
+  };
+
+  const updateStatus = async (ticketId, newStatus) => {
+    try { await apiPost({ action: 'update_ticket', ticket_id: ticketId, status: newStatus }); setMsg('狀態已更新'); if (detail?.id === ticketId) await openDetail({ id: ticketId }); await load(); } catch (e) { setMsg(e.message); }
+  };
+
+  const sm = data.summary || {};
+
+  return (
+    <div>
+      <PageLead eyebrow="HELPDESK" title="客服工單" description="客服工單管理，可結合 LINE 訊息自動建立。參考 Odoo Helpdesk。" action={<button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 新增工單</button>} />
+      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+
+      <div style={S.statGrid}>
+        <StatCard code="OPEN" label="開立" value={sm.open || 0} tone="blue" />
+        <StatCard code="PROG" label="處理中" value={sm.in_progress || 0} tone="yellow" />
+        <StatCard code="DONE" label="已解決" value={sm.resolved || 0} tone="green" />
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        <button onClick={() => { setStatusFilter(''); load(''); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, background: !statusFilter ? '#1e3a5f' : '#fff', color: !statusFilter ? '#fff' : '#617084' }}>全部</button>
+        {Object.entries(STATUS_MAP).map(([k, v]) => (
+          <button key={k} onClick={() => { setStatusFilter(k); load(k); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, borderColor: v.color, background: statusFilter === k ? v.color : '#fff', color: statusFilter === k ? '#fff' : v.color }}>{v.label}</button>
+        ))}
+      </div>
+
+      {/* Ticket detail panel */}
+      {detail && (
+        <div style={{ ...S.card, padding: '16px', marginBottom: 16, borderLeft: `3px solid ${STATUS_MAP[detail.status]?.color || '#3b82f6'}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div>
+              <span style={{ fontSize: 16, fontWeight: 700, color: '#1c2740' }}>{detail.title}</span>
+              <span style={{ marginLeft: 10, ...S.tag(''), background: STATUS_MAP[detail.status]?.color || '#3b82f6', color: '#fff', fontSize: 10 }}>{STATUS_MAP[detail.status]?.label || detail.status}</span>
+              <span style={{ marginLeft: 6, ...S.tag(''), background: PRIORITY_MAP[detail.priority]?.color || '#3b82f6', color: '#fff', fontSize: 10 }}>{PRIORITY_MAP[detail.priority]?.label || detail.priority}</span>
+            </div>
+            <button onClick={() => setDetail(null)} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11 }}>關閉</button>
+          </div>
+          {detail.description && <div style={{ fontSize: 13, color: '#617084', marginBottom: 12, padding: '10px', background: '#f8fafc', borderRadius: 6 }}>{detail.description}</div>}
+          <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 12 }}>來源：{detail.source || '-'} · 建立：{detail.created_at?.slice(0, 16)} · {detail.customer_name ? `客戶：${detail.customer_name}` : ''}</div>
+
+          {/* Status actions */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+            {detail.status !== 'resolved' && <button onClick={() => updateStatus(detail.id, 'resolved')} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, borderColor: '#16a34a', color: '#16a34a' }}>標記已解決</button>}
+            {detail.status !== 'closed' && detail.status === 'resolved' && <button onClick={() => updateStatus(detail.id, 'closed')} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, borderColor: '#6b7280', color: '#6b7280' }}>關閉工單</button>}
+            {detail.status === 'open' && <button onClick={() => updateStatus(detail.id, 'in_progress')} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, borderColor: '#f59e0b', color: '#f59e0b' }}>開始處理</button>}
+          </div>
+
+          {/* Replies */}
+          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1c2740', marginBottom: 10 }}>回覆記錄 ({replies.length})</div>
+            {replies.map((r, i) => (
+              <div key={i} style={{ marginBottom: 8, padding: '10px 12px', background: r.sender_type === 'admin' ? '#eff6ff' : '#f8fafc', borderRadius: 6, fontSize: 13 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontWeight: 600, color: r.sender_type === 'admin' ? '#1976f3' : '#617084' }}>{r.sender_name || r.sender_type}</span>
+                  <span style={{ fontSize: 10, color: '#9ca3af' }}>{r.created_at?.slice(0, 16)}</span>
+                </div>
+                <div style={{ color: '#374151' }}>{r.content}</div>
+              </div>
+            ))}
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <input value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="輸入回覆..." style={{ ...S.input, flex: 1 }} onKeyDown={e => e.key === 'Enter' && handleReply()} />
+              <button onClick={handleReply} style={S.btnPrimary}>送出</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ticket list */}
+      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有工單" /> : (data.rows || []).map(t => {
+        const st = STATUS_MAP[t.status] || STATUS_MAP.open;
+        const pr = PRIORITY_MAP[t.priority] || PRIORITY_MAP.medium;
+        return (
+          <div key={t.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 8, cursor: 'pointer', borderLeft: `3px solid ${st.color}` }} onClick={() => openDetail(t)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 11 }}>{st.label}</span>
+              <span style={{ ...S.tag(''), background: pr.color, color: '#fff', fontSize: 10 }}>{pr.label}</span>
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#1c2740' }}>{t.title}</div>
+                <div style={{ fontSize: 11, color: '#617084' }}>{t.customer_name || t.source || '-'} · {t.created_at?.slice(0, 10)}</div>
+              </div>
+              {t.reply_count > 0 && <span style={{ ...S.tag(''), fontSize: 10 }}>{t.reply_count} 回覆</span>}
+            </div>
+          </div>
+        );
+      })}
+
+      {createOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 480, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>新增工單</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div style={{ gridColumn: '1 / -1' }}><label style={S.label}>標題 *</label><input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} style={S.input} /></div>
+              <div><label style={S.label}>優先度</label><select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))} style={S.input}><option value="low">低</option><option value="medium">中</option><option value="high">高</option><option value="urgent">緊急</option></select></div>
+              <div><label style={S.label}>來源</label><select value={form.source} onChange={e => setForm(f => ({ ...f, source: e.target.value }))} style={S.input}><option value="admin">管理員</option><option value="line">LINE</option><option value="email">Email</option><option value="phone">電話</option></select></div>
+            </div>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>描述</label><textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={{ ...S.input, minHeight: 80 }} /></div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}><button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button><button onClick={handleCreate} style={S.btnPrimary}>建立工單</button></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ========================================= SIDEBAR & LAYOUT ========================================= */
 const SECTION_ICONS = {
   'ERP 總覽': '\u25C9',
@@ -5461,6 +5818,9 @@ const SECTION_ICONS = {
   'ERP 倉儲管理': '\u2338',
   'ERP 分析報表': '\u2637',
   'CRM 客戶管線': '\u2764',
+  'ERP 財務會計': '\u2696',
+  'ERP 審批簽核': '\u2611',
+  '客服工單': '\u260E',
   '經銷商入口': '\u263A',
   'LINE 與系統': '\u269B',
 };
@@ -5531,6 +5891,27 @@ const SECTIONS = [
     accent: '#ec4899',
     tabs: [
       { id: 'crm_leads', label: '商機管線', code: 'CRM' },
+    ],
+  },
+  {
+    title: 'ERP 財務會計',
+    accent: '#0d9488',
+    tabs: [
+      { id: 'invoices', label: '發票管理', code: 'INV' },
+    ],
+  },
+  {
+    title: 'ERP 審批簽核',
+    accent: '#7c3aed',
+    tabs: [
+      { id: 'approvals', label: '簽核審批', code: 'APPR' },
+    ],
+  },
+  {
+    title: '客服工單',
+    accent: '#0891b2',
+    tabs: [
+      { id: 'tickets', label: '工單管理', code: 'TCKT' },
     ],
   },
   {
@@ -5622,6 +6003,9 @@ const TAB_COMPONENTS = {
   crm_leads: CRMLeads,
   stock_alerts: StockAlerts,
   reorder: ReorderSuggestions,
+  invoices: Invoices,
+  approvals: Approvals,
+  tickets: Tickets,
 };
 
 export default function AdminPage() {
