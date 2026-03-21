@@ -577,7 +577,7 @@ const S = {
   main: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: '#fdfdfe' },
   header: { height: 64, background: '#ffffff', borderBottom: '1px solid #e8ecf1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', position: 'sticky', top: 0, zIndex: 100 },
   content: { flex: 1, padding: '28px 32px 40px', minHeight: 'calc(100vh - 64px)' },
-  card: { background: '#ffffff', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 18, padding: '20px 22px', marginBottom: 16, boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', transition: 'box-shadow 0.2s' },
+  card: { background: '#ffffff', border: '1px solid #E8F2EE', borderRadius: 18, padding: '20px 22px', marginBottom: 16, boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', transition: 'all 0.25s ease' },
   panelMuted: { background: '#fdfdfe', border: '1px solid #e8ecf1', borderRadius: 14, padding: '14px 16px' },
   input: { background: '#ffffff', border: '1px solid #d1d9e0', borderRadius: 10, padding: '10px 14px', color: '#1a1d23', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' },
   btnPrimary: { background: '#009061', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.2, boxShadow: '0 1px 3px rgba(0,144,97,0.3)', transition: 'background 0.15s, box-shadow 0.15s' },
@@ -1081,7 +1081,7 @@ function StatCard({ code, label, value, sub, accent, tone = 'blue' }) {
   };
   const t = toneColors[tone] || toneColors.blue;
   return (
-    <div style={{ minWidth: 180, padding: '20px 22px 18px', position: 'relative', overflow: 'hidden', borderRadius: 18, background: '#ffffff', border: '1px solid rgba(0,0,0,0.04)', boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', transition: 'box-shadow 0.2s' }}>
+    <div className="qb-card-hover" style={{ minWidth: 180, padding: '20px 22px 18px', position: 'relative', overflow: 'hidden', borderRadius: 18, background: '#ffffff', border: '1px solid #E8F2EE', boxShadow: '6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)', cursor: 'pointer' }}>
       <div style={{ position: 'absolute', top: 16, right: 18, width: 36, height: 36, borderRadius: 10, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: t.accent, fontWeight: 700, ...S.mono }}>{code}</div>
       <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8, fontWeight: 500 }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 700, color: accent || '#1a1d23', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
@@ -6147,6 +6147,10 @@ export default function AdminPage() {
         .qb-sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
         .qb-sb::-webkit-scrollbar-track{background:transparent}
         input:focus,select:focus,textarea:focus{border-color:#009061!important;box-shadow:0 0 0 3px rgba(0,144,97,0.08)!important}
+        .qb-card-hover:hover{background:#009061!important;border-color:#009061!important;color:#fff!important;box-shadow:0 8px 24px rgba(0,144,97,0.25), 6px 6px 16px rgba(0,0,0,0.08)!important;transform:translateY(-2px)}
+        .qb-card-hover:hover *{color:#fff!important}
+        .qb-card-hover:hover span[style]{color:#fff!important}
+        .qb-card-hover{transition:all 0.25s ease}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         @keyframes badgeGlow{0%,100%{box-shadow:0 0 4px rgba(239,68,68,0.3)}50%{box-shadow:0 0 12px rgba(239,68,68,0.6)}}
       `}</style>
