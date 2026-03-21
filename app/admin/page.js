@@ -1521,11 +1521,11 @@ function FormalCustomers() {
               <div>電話</div>
               {!isTablet && <div>地區</div>}
             </div>
-            {data.customers.map((customer) => (
+            {data.customers.map((customer, idx) => (
               <button
                 key={customer.id}
                 onClick={() => setSelectedCustomerId(customer.id)}
-                style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 12, padding: '14px 18px', borderTop: '1px solid #F2F2F2', alignItems: 'center', background: selectedCustomerId === customer.id ? '#ecfdf5' : '#fff', border: 0, textAlign: 'left', cursor: 'pointer', width: '100%' }}
+                style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 12, padding: '14px 18px', alignItems: 'center', background: selectedCustomerId === customer.id ? '#ecfdf5' : idx % 2 === 1 ? '#f9fafb' : '#fff', borderWidth: '1px 0 0 0', borderStyle: 'solid', borderColor: '#F2F2F2', textAlign: 'left', cursor: 'pointer', width: '100%' }}
               >
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 14, color: '#1a1d23', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.company_name || customer.name || '未命名客戶'}</div>
