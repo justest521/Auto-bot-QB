@@ -571,14 +571,14 @@ function useCsvImport(datasetId, onImported) {
 
 /* ========================================= STYLES ========================================= */
 const S = {
-  page: { minHeight: '100vh', background: '#f8f9fb', color: '#1a1d23', fontFamily: "'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" },
+  page: { minHeight: '100vh', background: '#fdfdfe', color: '#1a1d23', fontFamily: "'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" },
   shell: { display: 'flex', minHeight: '100vh' },
   sidebar: { width: 260, background: '#ffffff', color: '#64748b', padding: '20px 0 20px', borderRight: '1px solid #e8ecf1', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' },
-  main: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: '#f8f9fb' },
+  main: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: '#fdfdfe' },
   header: { height: 64, background: '#ffffff', borderBottom: '1px solid #e8ecf1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', position: 'sticky', top: 0, zIndex: 100 },
   content: { flex: 1, padding: '28px 32px 40px', minHeight: 'calc(100vh - 64px)' },
   card: { background: '#ffffff', border: '1px solid #e8ecf1', borderRadius: 16, padding: '20px 22px', marginBottom: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' },
-  panelMuted: { background: '#f8f9fb', border: '1px solid #e8ecf1', borderRadius: 14, padding: '14px 16px' },
+  panelMuted: { background: '#fdfdfe', border: '1px solid #e8ecf1', borderRadius: 14, padding: '14px 16px' },
   input: { background: '#ffffff', border: '1px solid #d1d9e0', borderRadius: 10, padding: '10px 14px', color: '#1a1d23', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' },
   btnPrimary: { background: '#2563eb', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.2, boxShadow: '0 1px 3px rgba(37,99,235,0.3)', transition: 'background 0.15s, box-shadow 0.15s' },
   btnGhost: { background: '#fff', color: '#475569', border: '1px solid #d1d9e0', borderRadius: 10, padding: '9px 16px', cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.15s, background 0.15s' },
@@ -607,7 +607,7 @@ function StatusBanner({ text, tone = 'neutral' }) {
     success: { background: '#ecfdf5', borderColor: '#a7f3d0', color: '#059669' },
     error: { background: '#fef2f2', borderColor: '#fecaca', color: '#dc2626' },
     info: { background: '#eff6ff', borderColor: '#bfdbfe', color: '#2563eb' },
-    neutral: { background: '#f8f9fb', borderColor: '#e2e8f0', color: '#64748b' },
+    neutral: { background: '#fdfdfe', borderColor: '#e2e8f0', color: '#64748b' },
   };
   return <div style={{ ...S.card, padding: '14px 16px', ...(toneMap[tone] || toneMap.neutral) }}>{text}</div>;
 }
@@ -6098,7 +6098,7 @@ export default function AdminPage() {
 
   if (!isAuthed) {
     return (
-      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #eff6ff 0%, #f8f9fb 50%, #e0f2fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'auto' }}>
+      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #eff6ff 0%, #fdfdfe 50%, #e0f2fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'auto' }}>
         <div style={{ width: '100%', maxWidth: 440, background: '#ffffff', borderRadius: 20, padding: '36px 32px', color: '#1a1d23', boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #e8ecf1' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
             <div style={{ width: 42, height: 42, borderRadius: 12, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15, ...S.mono }}>QB</div>
@@ -6128,8 +6128,8 @@ export default function AdminPage() {
   return (
     <div style={S.page}>
       <style>{`
-        html,body{background:#f8f9fb!important;margin:0;padding:0}
-        body > div:first-child{min-height:100vh;background:#f8f9fb}
+        html,body{background:#fdfdfe!important;margin:0;padding:0}
+        body > div:first-child{min-height:100vh;background:#fdfdfe}
         *{box-sizing:border-box}
       `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -6254,7 +6254,7 @@ export default function AdminPage() {
           {!sidebarCollapsed && (
             <div style={{ padding: '16px 16px 0', borderTop: '1px solid #e8ecf1', marginTop: 8 }}>
               <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 8, letterSpacing: 0.5 }}>SYSTEM</div>
-              <div style={{ background: '#f8f9fb', border: '1px solid #e8ecf1', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#64748b', display: 'grid', gap: 6 }}>
+              <div style={{ background: '#fdfdfe', border: '1px solid #e8ecf1', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#64748b', display: 'grid', gap: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>產品</span><span style={{ color: '#1a1d23', fontWeight: 600, ...S.mono }}>{sidebarStats?.products?.toLocaleString?.() ?? '...'}</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>對話</span><span style={{ color: '#1a1d23', fontWeight: 600, ...S.mono }}>{sidebarStats?.chats?.toLocaleString?.() ?? '...'}</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Webhook</span><span style={{ color: '#059669', fontWeight: 600, ...S.mono }}>ON</span></div>
