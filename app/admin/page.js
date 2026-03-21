@@ -5225,6 +5225,233 @@ function Announcements() {
   );
 }
 
+/* ========================================= CRM LEADS 商機管線 ========================================= */
+function CRMLeads() {
+  const width = useViewportWidth(); const isMobile = width < 820;
+  const [data, setData] = useState({ rows: [], total: 0, pipeline: {} });
+  const [loading, setLoading] = useState(true);
+  const [stageFilter, setStageFilter] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState({ customer_name: '', contact_name: '', phone: '', email: '', source: 'manual', expected_amount: 0, notes: '' });
+  const [msg, setMsg] = useState('');
+
+  const STAGES = [
+    { id: 'new', label: '新線索', color: '#6366f1' },
+    { id: 'qualified', label: '已確認', color: '#3b82f6' },
+    { id: 'proposition', label: '提案中', color: '#f59e0b' },
+    { id: 'negotiation', label: '議價中', color: '#f97316' },
+    { id: 'won', label: '成交', color: '#16a34a' },
+    { id: 'lost', label: '流失', color: '#ef4444' },
+  ];
+  const STAGE_MAP = Object.fromEntries(STAGES.map(s => [s.id, s]));
+  const SOURCE_LABELS = { manual: '手動', line: 'LINE', website: '網站', referral: '轉介', dealer: '經銷商' };
+
+  const load = async (stage = stageFilter) => {
+    setLoading(true);
+    try { const res = await apiGet({ action: 'crm_leads', stage }); setData(res); } finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const handleCreate = async () => {
+    if (!form.customer_name.trim()) { setMsg('請輸入客戶名稱'); return; }
+    try { await apiPost({ action: 'create_lead', ...form }); setCreateOpen(false); setForm({ customer_name: '', contact_name: '', phone: '', email: '', source: 'manual', expected_amount: 0, notes: '' }); setMsg('線索已建立'); await load(); } catch (e) { setMsg(e.message); }
+  };
+
+  const updateStage = async (lead, newStage) => {
+    try { await apiPost({ action: 'update_lead', lead_id: lead.id, stage: newStage }); await load(); } catch (e) { setMsg(e.message); }
+  };
+
+  const p = data.pipeline || {};
+
+  return (
+    <div>
+      <PageLead eyebrow="CRM PIPELINE" title="商機管線" description="追蹤從線索到成交的完整流程，參考 Odoo CRM 邏輯。" action={<button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 新增線索</button>} />
+      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+
+      {/* Pipeline Kanban Summary */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: 8, marginBottom: 20 }}>
+        {STAGES.map(s => (
+          <div key={s.id} onClick={() => { setStageFilter(stageFilter === s.id ? '' : s.id); load(stageFilter === s.id ? '' : s.id); }} style={{ ...S.card, cursor: 'pointer', textAlign: 'center', padding: '14px 8px', borderLeft: `3px solid ${s.color}`, background: stageFilter === s.id ? `${s.color}10` : '#fff' }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: s.color, ...S.mono }}>{p[s.id] || 0}</div>
+            <div style={{ fontSize: 11, color: '#617084', marginTop: 2 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Win rate bar */}
+      <div style={{ ...S.card, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+        <span style={{ fontSize: 12, color: '#617084' }}>成交率</span>
+        <div style={{ flex: 1, background: '#f0f0f0', borderRadius: 999, height: 8, overflow: 'hidden' }}>
+          <div style={{ width: `${p.win_rate || 0}%`, background: 'linear-gradient(90deg, #16a34a, #22c55e)', height: '100%', borderRadius: 999, transition: 'width 0.5s' }} />
+        </div>
+        <span style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{p.win_rate || 0}%</span>
+        <span style={{ fontSize: 12, color: '#617084' }}>成交金額</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: '#1e3a5f', ...S.mono }}>NT${(p.total_won_amount || 0).toLocaleString()}</span>
+      </div>
+
+      {/* Lead list */}
+      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有線索" /> : (data.rows || []).map(lead => (
+        <div key={lead.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span style={{ ...S.tag(STAGE_MAP[lead.stage]?.color ? '' : 'blue'), background: STAGE_MAP[lead.stage]?.color || '#6366f1', color: '#fff', fontSize: 11 }}>{STAGE_MAP[lead.stage]?.label || lead.stage}</span>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1c2740' }}>{lead.customer_name}</div>
+              <div style={{ fontSize: 11, color: '#617084' }}>{lead.contact_name || ''} {lead.phone ? `· ${lead.phone}` : ''}</div>
+            </div>
+            <span style={S.tag('')}>{SOURCE_LABELS[lead.source] || lead.source}</span>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1e3a5f', ...S.mono }}>NT${Number(lead.expected_amount || 0).toLocaleString()}</div>
+              <div style={{ fontSize: 10, color: '#9ca3af', ...S.mono }}>{lead.created_at?.slice(0, 10)}</div>
+            </div>
+            {/* Stage transition buttons */}
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {lead.stage !== 'won' && lead.stage !== 'lost' && (
+                <>
+                  {STAGES.filter(s => s.id !== lead.stage && s.id !== 'lost').map(s => (
+                    <button key={s.id} onClick={() => updateStage(lead, s.id)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 10, borderColor: s.color, color: s.color }}>{s.label}</button>
+                  ))}
+                  <button onClick={() => updateStage(lead, 'lost')} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 10, borderColor: '#ef4444', color: '#ef4444' }}>流失</button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {createOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 480, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>新增線索</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div><label style={S.label}>客戶名稱 *</label><input value={form.customer_name} onChange={e => setForm(f => ({ ...f, customer_name: e.target.value }))} style={S.input} /></div>
+              <div><label style={S.label}>聯絡人</label><input value={form.contact_name} onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))} style={S.input} /></div>
+              <div><label style={S.label}>電話</label><input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} style={S.input} /></div>
+              <div><label style={S.label}>Email</label><input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={S.input} /></div>
+              <div><label style={S.label}>來源</label><select value={form.source} onChange={e => setForm(f => ({ ...f, source: e.target.value }))} style={S.input}><option value="manual">手動</option><option value="line">LINE</option><option value="website">網站</option><option value="referral">轉介</option><option value="dealer">經銷商</option></select></div>
+              <div><label style={S.label}>預估金額</label><input type="number" value={form.expected_amount} onChange={e => setForm(f => ({ ...f, expected_amount: Number(e.target.value) }))} style={S.input} /></div>
+            </div>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>備註</label><textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} style={{ ...S.input, minHeight: 60 }} /></div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}><button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button><button onClick={handleCreate} style={S.btnPrimary}>建立線索</button></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ========================================= STOCK ALERTS 庫存警示 ========================================= */
+function StockAlerts() {
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => { setLoading(true); try { const res = await apiGet({ action: 'stock_alerts' }); setAlerts(res.alerts || []); } finally { setLoading(false); } };
+  useEffect(() => { load(); }, []);
+
+  const URGENCY = { critical: { label: '缺貨', color: '#dc2626', bg: '#fef2f2' }, high: { label: '偏低', color: '#f59e0b', bg: '#fffbeb' }, medium: { label: '注意', color: '#3b82f6', bg: '#eff6ff' } };
+
+  return (
+    <div>
+      <PageLead eyebrow="STOCK ALERTS" title="庫存警示" description="低於安全庫存的商品一覽，參考 Odoo 自動補貨規則。" action={<button onClick={load} style={S.btnGhost}>重新整理</button>} />
+      <div style={S.statGrid}>
+        <StatCard code="CRIT" label="缺貨" value={alerts.filter(a => a.urgency === 'critical').length} tone="red" />
+        <StatCard code="LOW" label="偏低" value={alerts.filter(a => a.urgency === 'high').length} tone="yellow" />
+        <StatCard code="WARN" label="注意" value={alerts.filter(a => a.urgency === 'medium').length} tone="blue" />
+      </div>
+      {loading ? <Loading /> : alerts.length === 0 ? <EmptyState text="所有商品庫存正常" /> : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead><tr style={{ background: '#f8fafc' }}>
+            <th style={{ padding: '10px 12px', textAlign: 'left', color: '#7b889b', fontWeight: 600 }}>狀態</th>
+            <th style={{ padding: '10px 12px', textAlign: 'left', color: '#7b889b', fontWeight: 600 }}>料號</th>
+            <th style={{ padding: '10px 12px', textAlign: 'left', color: '#7b889b', fontWeight: 600 }}>品名</th>
+            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#7b889b', fontWeight: 600 }}>現有庫存</th>
+            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#7b889b', fontWeight: 600 }}>安全庫存</th>
+            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#7b889b', fontWeight: 600 }}>缺口</th>
+          </tr></thead>
+          <tbody>{alerts.map((a, i) => {
+            const u = URGENCY[a.urgency] || URGENCY.medium;
+            return (
+              <tr key={i} style={{ borderTop: '1px solid #f0f0f0', background: u.bg }}>
+                <td style={{ padding: '10px 12px' }}><span style={{ ...S.tag(''), background: u.color, color: '#fff', fontSize: 10 }}>{u.label}</span></td>
+                <td style={{ padding: '10px 12px', fontWeight: 600, color: '#1976f3', ...S.mono }}>{a.item_number}</td>
+                <td style={{ padding: '10px 12px' }}>{a.description || '-'}</td>
+                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: a.stock_qty <= 0 ? '#dc2626' : '#f59e0b', ...S.mono }}>{a.stock_qty}</td>
+                <td style={{ padding: '10px 12px', textAlign: 'right', ...S.mono }}>{a.safety_stock}</td>
+                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#dc2626', ...S.mono }}>-{a.deficit}</td>
+              </tr>
+            );
+          })}</tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+/* ========================================= REORDER SUGGESTIONS 補貨建議 ========================================= */
+function ReorderSuggestions() {
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState([]);
+  const [msg, setMsg] = useState('');
+
+  const load = async () => { setLoading(true); try { const res = await apiGet({ action: 'reorder_suggestions', status: 'pending' }); setSuggestions(res.suggestions || []); } finally { setLoading(false); } };
+  useEffect(() => { load(); }, []);
+
+  const generate = async () => { setLoading(true); try { await apiGet({ action: 'reorder_suggestions', generate: '1', status: 'pending' }); await load(); setMsg('已掃描庫存並產生補貨建議'); } catch (e) { setMsg(e.message); } };
+
+  const convertToPO = async () => {
+    if (!selected.length) return;
+    try {
+      const res = await apiPost({ action: 'reorder_to_po', suggestion_ids: selected });
+      setMsg(res.message || '採購單已建立');
+      setSelected([]);
+      await load();
+    } catch (e) { setMsg(e.message); }
+  };
+
+  const dismiss = async (id) => {
+    try { await apiPost({ action: 'dismiss_reorder', suggestion_id: id }); await load(); } catch (e) { setMsg(e.message); }
+  };
+
+  const toggleSelect = (id) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const toggleAll = () => setSelected(prev => prev.length === suggestions.length ? [] : suggestions.map(s => s.id));
+
+  return (
+    <div>
+      <PageLead eyebrow="REORDER" title="補貨建議" description="根據安全庫存自動產生補貨建議，可勾選轉為採購單。參考 Odoo 補貨規則。" action={
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={generate} style={S.btnGhost}>掃描庫存</button>
+          {selected.length > 0 && <button onClick={convertToPO} style={S.btnPrimary}>轉採購單 ({selected.length})</button>}
+        </div>
+      } />
+      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      {loading ? <Loading /> : suggestions.length === 0 ? <EmptyState text="目前沒有補貨建議，點擊「掃描庫存」檢查" /> : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead><tr style={{ background: '#f8fafc' }}>
+            <th style={{ padding: '10px 12px', textAlign: 'center', width: 40 }}><input type="checkbox" checked={selected.length === suggestions.length} onChange={toggleAll} /></th>
+            <th style={{ padding: '10px 12px', textAlign: 'left', color: '#7b889b', fontWeight: 600 }}>料號</th>
+            <th style={{ padding: '10px 12px', textAlign: 'left', color: '#7b889b', fontWeight: 600 }}>品名</th>
+            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#7b889b', fontWeight: 600 }}>現有</th>
+            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#7b889b', fontWeight: 600 }}>安全</th>
+            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#7b889b', fontWeight: 600 }}>建議採購</th>
+            <th style={{ padding: '10px 12px', textAlign: 'center', color: '#7b889b', fontWeight: 600 }}>操作</th>
+          </tr></thead>
+          <tbody>{suggestions.map(s => (
+            <tr key={s.id} style={{ borderTop: '1px solid #f0f0f0' }}>
+              <td style={{ padding: '10px 12px', textAlign: 'center' }}><input type="checkbox" checked={selected.includes(s.id)} onChange={() => toggleSelect(s.id)} /></td>
+              <td style={{ padding: '10px 12px', fontWeight: 600, color: '#1976f3', ...S.mono }}>{s.item_number}</td>
+              <td style={{ padding: '10px 12px' }}>{s.description || '-'}</td>
+              <td style={{ padding: '10px 12px', textAlign: 'right', color: s.current_stock <= 0 ? '#dc2626' : '#f59e0b', fontWeight: 700, ...S.mono }}>{s.current_stock}</td>
+              <td style={{ padding: '10px 12px', textAlign: 'right', ...S.mono }}>{s.safety_stock}</td>
+              <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#16a34a', ...S.mono }}>{s.suggested_qty}</td>
+              <td style={{ padding: '10px 12px', textAlign: 'center' }}><button onClick={() => dismiss(s.id)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 10 }}>略過</button></td>
+            </tr>
+          ))}</tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 /* ========================================= SIDEBAR & LAYOUT ========================================= */
 const SECTION_ICONS = {
   'ERP 總覽': '\u25C9',
@@ -5233,6 +5460,7 @@ const SECTION_ICONS = {
   'ERP 銷售出貨': '\u2B06',
   'ERP 倉儲管理': '\u2338',
   'ERP 分析報表': '\u2637',
+  'CRM 客戶管線': '\u2764',
   '經銷商入口': '\u263A',
   'LINE 與系統': '\u269B',
 };
@@ -5282,6 +5510,8 @@ const SECTIONS = [
     title: 'ERP 倉儲管理',
     tabs: [
       { id: 'inventory', label: '庫存總覽', code: 'INVT' },
+      { id: 'stock_alerts', label: '庫存警示', code: 'ALRT' },
+      { id: 'reorder', label: '補貨建議', code: 'REOD' },
       { id: 'stocktake', label: '盤點作業', code: 'STTK' },
       { id: 'stock_adjustments', label: '調整單', code: 'ADJ' },
     ],
@@ -5294,6 +5524,13 @@ const SECTIONS = [
       { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
       { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
       { id: 'imports', label: '資料匯入', code: 'IMPT' },
+    ],
+  },
+  {
+    title: 'CRM 客戶管線',
+    accent: '#ec4899',
+    tabs: [
+      { id: 'crm_leads', label: '商機管線', code: 'CRM' },
     ],
   },
   {
@@ -5382,6 +5619,9 @@ const TAB_COMPONENTS = {
   dealer_users: DealerUsers,
   dealer_orders: DealerOrders,
   announcements: Announcements,
+  crm_leads: CRMLeads,
+  stock_alerts: StockAlerts,
+  reorder: ReorderSuggestions,
 };
 
 export default function AdminPage() {
@@ -5579,7 +5819,7 @@ export default function AdminPage() {
                   <div
                     className="qb-sb-section-hdr"
                     onClick={() => !sidebarCollapsed && toggleCollapsed(section.title)}
-                    style={{ padding: sidebarCollapsed ? '10px 0' : '10px 14px 6px', borderTop: si > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none', marginTop: si > 0 ? 2 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 4, transition: 'background 0.12s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}
+                    style={{ padding: sidebarCollapsed ? '10px 0' : '10px 20px 6px 14px', borderTop: si > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none', marginTop: si > 0 ? 2 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 4, transition: 'background 0.12s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}
                   >
                     <span style={{ fontSize: 14, color: hasActiveTab ? (section.accent || '#2da5ff') : '#5e7490', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 16, textAlign: 'center' }}>{sectionIcon}</span>
                     {!sidebarCollapsed && <>
