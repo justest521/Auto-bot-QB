@@ -1604,12 +1604,12 @@ function FormalCustomers() {
                   <PanelHeader
                     title={detailCustomer.company_name || detailCustomer.name || '客戶檔案'}
                     meta={detailCustomer.customer_code || 'ERP customer'}
-                    badge={<div style={S.tag(stageMeta[detailCustomer.customer_stage]?.color || '')}>{stageMeta[detailCustomer.customer_stage]?.label || '詢問名單'}</div>}
+                    badge={<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={S.tag(stageMeta[detailCustomer.customer_stage]?.color || '')}>{stageMeta[detailCustomer.customer_stage]?.label || '詢問名單'}</span>
+                      {detailCustomer.line_user_id ? <span style={S.tag('line')}>LINE 已連通</span> : <span style={S.tag('')}>ERP only</span>}
+                      {detail?.line_profile ? <span style={S.tag('green')}>{detail.line_profile.display_name || 'LINE 客戶'}</span> : null}
+                    </div>}
                   />
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: -8, marginBottom: 4 }}>
-                    {detailCustomer.line_user_id ? <span style={S.tag('line')}>LINE 已連通</span> : <span style={S.tag('')}>ERP only</span>}
-                    {detail?.line_profile ? <span style={S.tag('green')}>{detail.line_profile.display_name || 'LINE 客戶'}</span> : null}
-                  </div>
                   <div style={{ fontSize: 14, color: '#617084', lineHeight: 1.8 }}>
                     <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {detailCustomer.name || '-'}</div>
                     <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {detailCustomer.phone || '-'}</div>
