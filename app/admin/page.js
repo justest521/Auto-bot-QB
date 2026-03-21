@@ -4306,8 +4306,12 @@ function PurchaseOrders() {
   const [expandedPo, setExpandedPo] = useState(null);
   const [poItems, setPoItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
+  const [emailDialog, setEmailDialog] = useState(null); // { po, vendor_email }
+  const [emailTo, setEmailTo] = useState('');
+  const [sending, setSending] = useState(false);
   const [form, setForm] = useState({ vendor_id: '', expected_date: '', remark: '' });
   const [items, setItems] = useState([{ item_number: '', description: '', qty: 1, unit_cost: 0, line_total: 0 }]);
+  const [msg, setMsg] = useState('');
 
   const load = useCallback(async (page = 0, q = search, st = statusF) => {
     setLoading(true);
@@ -4332,21 +4336,73 @@ function PurchaseOrders() {
   };
 
   const sm = data.summary || {};
-  const statusLabel = (s) => ({ draft: '草稿', confirmed: '已確認', received: '已到貨', cancelled: '已取消' })[s] || s;
-  const statusColor = (s) => ({ draft: 'default', confirmed: 'green', received: 'green', cancelled: 'red' })[s] || 'default';
+  const statusLabel = (s) => ({ draft: '草稿', sent: '已寄出', confirmed: '已確認', shipped: '已出貨', received: '已到貨', rejected: '退回', cancelled: '已取消' })[s] || s;
+  const statusColor = (s) => ({ draft: 'default', sent: 'blue', confirmed: 'green', shipped: 'blue', received: 'green', rejected: 'red', cancelled: 'red' })[s] || 'default';
+
+  const handleSendEmail = async (po) => {
+    // Get vendor email if available
+    let vendorEmail = '';
+    if (po.vendor_id) {
+      try {
+        const res = await apiGet({ action: 'vendors', search: '', limit: '1', id: String(po.vendor_id) });
+        vendorEmail = res?.rows?.[0]?.email || '';
+      } catch {}
+    }
+    setEmailTo(vendorEmail);
+    setEmailDialog(po);
+  };
+
+  const confirmSendEmail = async () => {
+    if (!emailTo.trim()) { setMsg('請輸入收件人 email'); return; }
+    setSending(true); setMsg('');
+    try {
+      const res = await fetch('/api/po', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send_po_email', po_id: emailDialog.id, to_email: emailTo.trim() }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setMsg(data.message || '已寄出');
+      setEmailDialog(null);
+      await load();
+    } catch (e) { setMsg(e.message); }
+    finally { setSending(false); }
+  };
+
+  const handleExport = async (poId) => {
+    try {
+      const res = await fetch('/api/po', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'export_po', po_id: poId }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      // Download Excel
+      const link = document.createElement('a');
+      link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${data.excel_base64}`;
+      link.download = data.filename;
+      link.click();
+      setMsg('Excel 已下載');
+    } catch (e) { setMsg(e.message); }
+  };
 
   return (
     <div>
       <PageLead eyebrow="Purchase Orders" title="採購單" description="建立對廠商的採購訂單，確認後可轉進貨單入庫。"
         action={<button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 新增採購單</button>} />
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#dc2626' : '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
       <div style={S.statGrid}>
         <StatCard code="DFT" label="草稿" value={fmt(sm.draft)} tone="blue" />
+        <StatCard code="SENT" label="已寄出" value={fmt(sm.sent)} tone="blue" accent="#6366f1" />
         <StatCard code="CNF" label="已確認" value={fmt(sm.confirmed)} tone="blue" accent="#3b82f6" />
+        <StatCard code="SHIP" label="已出貨" value={fmt(sm.shipped)} tone="blue" accent="#f59e0b" />
         <StatCard code="RCV" label="已到貨" value={fmt(sm.received)} tone="blue" accent="#16a34a" />
       </div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(0, search, statusF)} placeholder="搜尋採購單號..." style={{ ...S.input, flex: 1 }} />
-        <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(0, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 140 }}><option value="">全部</option><option value="draft">草稿</option><option value="confirmed">已確認</option><option value="received">已到貨</option></select>
+        <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(0, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 140 }}><option value="">全部</option><option value="draft">草稿</option><option value="sent">已寄出</option><option value="confirmed">已確認</option><option value="shipped">已出貨</option><option value="received">已到貨</option><option value="rejected">退回</option></select>
         <button onClick={() => load(0, search, statusF)} style={S.btnPrimary}>搜尋</button>
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有採購單" /> : data.rows.map(r => (
@@ -4357,9 +4413,11 @@ function PurchaseOrders() {
             <div><div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>AMOUNT</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(r.total_amount)}</div></div>
             <div><span style={S.tag(statusColor(r.status))}>{statusLabel(r.status)}</span></div>
             <div style={{ fontSize: 12, color: '#617084' }}>{r.remark || '-'}</div>
-            <div style={{ display: 'flex', gap: 6 }} onClick={(e) => e.stopPropagation()}>
-              {r.status === 'draft' && <button onClick={() => handleConfirm(r.id)} style={{ ...S.btnGhost, padding: '5px 10px', fontSize: 12 }}>確認</button>}
-              {r.status === 'confirmed' && <button onClick={() => { setForm({ vendor_id: r.vendor_id || '', expected_date: '', remark: `採購單 ${r.po_no} 進貨` }); }} style={{ ...S.btnGhost, padding: '5px 10px', fontSize: 12 }}>轉進貨</button>}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => handleExport(r.id)} style={{ ...S.btnGhost, padding: '5px 10px', fontSize: 11 }}>匯出</button>
+              {(r.status === 'draft' || r.status === 'confirmed') && <button onClick={() => handleSendEmail(r)} style={{ ...S.btnPrimary, padding: '5px 10px', fontSize: 11, background: '#6366f1' }}>寄給原廠</button>}
+              {r.status === 'draft' && <button onClick={() => handleConfirm(r.id)} style={{ ...S.btnGhost, padding: '5px 10px', fontSize: 11 }}>確認</button>}
+              {(r.status === 'confirmed' || r.status === 'shipped') && <button onClick={() => { setForm({ vendor_id: r.vendor_id || '', expected_date: '', remark: `採購單 ${r.po_no} 進貨` }); }} style={{ ...S.btnGhost, padding: '5px 10px', fontSize: 11 }}>轉進貨</button>}
             </div>
             <span style={{ fontSize: 16, color: '#9ca3af', transition: 'transform 0.2s', transform: expandedPo === r.id ? 'rotate(180deg)' : 'rotate(0)' }}>{'\u25B2'}</span>
           </div>
@@ -4410,6 +4468,19 @@ function PurchaseOrders() {
             ))}
             <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty: 1, unit_cost: 0, line_total: 0 }])} style={{ ...S.btnGhost, fontSize: 12, marginBottom: 16 }}>+ 新增品項</button>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}><button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button><button onClick={handleCreate} style={S.btnPrimary}>建立採購單</button></div>
+          </div>
+        </div>
+      )}
+      {emailDialog && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>寄送採購單給原廠</h3>
+            <p style={{ fontSize: 13, color: '#617084', margin: '0 0 16px' }}>採購單 <b>{emailDialog.po_no}</b> 將以 Excel 附件寄出，原廠可透過信件中的按鈕直接回覆接單/出貨。</p>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>收件人 Email *</label><input value={emailTo} onChange={(e) => setEmailTo(e.target.value)} style={S.input} placeholder="supplier@example.com" type="email" /></div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setEmailDialog(null)} style={S.btnGhost}>取消</button>
+              <button onClick={confirmSendEmail} disabled={sending} style={{ ...S.btnPrimary, opacity: sending ? 0.7 : 1, background: '#6366f1' }}>{sending ? '寄送中...' : '寄出'}</button>
+            </div>
           </div>
         </div>
       )}
