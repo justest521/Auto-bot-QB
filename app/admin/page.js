@@ -4733,6 +4733,16 @@ function FinancialReport() {
 }
 
 /* ========================================= SIDEBAR & LAYOUT ========================================= */
+const SECTION_ICONS = {
+  'ERP 總覽': '\u25C9',
+  'ERP 主檔資料': '\u2630',
+  'ERP 採購進貨': '\u2B07',
+  'ERP 銷售出貨': '\u2B06',
+  'ERP 倉儲管理': '\u2338',
+  'ERP 分析報表': '\u2637',
+  'LINE 與系統': '\u269B',
+};
+
 const SECTIONS = [
   {
     title: 'ERP 總覽',
@@ -4803,6 +4813,37 @@ const SECTIONS = [
   },
 ];
 
+const FAV_STORAGE_KEY = 'qb_admin_favorites';
+const COLLAPSED_STORAGE_KEY = 'qb_admin_collapsed';
+
+function useFavorites() {
+  const [favs, setFavs] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem(FAV_STORAGE_KEY) || '[]'); } catch { return []; }
+  });
+  const toggle = (tabId) => {
+    setFavs((prev) => {
+      const next = prev.includes(tabId) ? prev.filter((id) => id !== tabId) : [...prev, tabId];
+      try { window.localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+  return { favs, toggle, isFav: (id) => favs.includes(id) };
+}
+
+function useCollapsed() {
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem(COLLAPSED_STORAGE_KEY) || '{}'); } catch { return {}; }
+  });
+  const toggle = (title) => {
+    setCollapsed((prev) => {
+      const next = { ...prev, [title]: !prev[title] };
+      try { window.localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+  return { collapsed, toggle };
+}
+
 const TAB_COMPONENTS = {
   env_health: EnvHealth,
   report_center: ReportCenter,
@@ -4847,6 +4888,10 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState('');
   const [tab, setTab] = useState('report_center');
   const [sidebarStats, setSidebarStats] = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarSearch, setSidebarSearch] = useState('');
+  const { favs, toggle: toggleFav, isFav } = useFavorites();
+  const { collapsed, toggle: toggleCollapsed } = useCollapsed();
   const ActiveTab = TAB_COMPONENTS[tab] || Dashboard;
 
   useEffect(() => {
@@ -4939,71 +4984,136 @@ export default function AdminPage() {
       `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
+      <style>{`
+        .qb-sb-item:hover{background:rgba(45,140,255,0.10)!important}
+        .qb-sb-star{opacity:0;transition:opacity 0.15s}
+        .qb-sb-item:hover .qb-sb-star{opacity:1}
+        .qb-sb-star.is-fav{opacity:1;color:#f5c542!important}
+        .qb-sb-section-hdr:hover{background:rgba(255,255,255,0.04)}
+        .qb-sb-search:focus{border-color:rgba(45,140,255,0.5)!important;box-shadow:0 0 0 2px rgba(45,140,255,0.15)}
+        .qb-sb::-webkit-scrollbar{width:4px}
+        .qb-sb::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:4px}
+        .qb-sb::-webkit-scrollbar-track{background:transparent}
+      `}</style>
       <div style={{ ...S.shell, flexDirection: isTablet ? 'column' : 'row' }}>
-        <div style={{ ...S.sidebar, width: isTablet ? '100%' : S.sidebar.width, height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position }}>
-          <div style={{ padding: '0 20px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #2da5ff 0%, #1f7cff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, ...S.mono }}>QB</div>
-              <div>
-                <div style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>Quick Buy</div>
-                <div style={{ color: '#8fa2bd', fontSize: 11, ...S.mono }}>Admin Console v2.0</div>
-              </div>
+        {/* ===== SIDEBAR ===== */}
+        <div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 64 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
+          {/* Logo + collapse toggle */}
+          <div style={{ padding: '0 14px 14px', borderBottom: '1px solid rgba(255,255,255,0.07)', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
+              <div style={{ width: 36, height: 36, minWidth: 36, borderRadius: 10, background: 'linear-gradient(135deg, #2da5ff 0%, #1f7cff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 13, ...S.mono, boxShadow: '0 4px 12px rgba(45,140,255,0.35)' }}>QB</div>
+              {!sidebarCollapsed && <div style={{ whiteSpace: 'nowrap' }}>
+                <div style={{ color: '#fff', fontSize: 14, fontWeight: 700, letterSpacing: 0.3 }}>Quick Buy</div>
+                <div style={{ color: '#5e7490', fontSize: 10, ...S.mono }}>ERP Console</div>
+              </div>}
             </div>
+            {!isTablet && <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', border: 'none', color: '#5e7490', cursor: 'pointer', fontSize: 16, padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s' }} title={sidebarCollapsed ? '展開' : '收合'}>{sidebarCollapsed ? '\u276F' : '\u276E'}</button>}
           </div>
-          {SECTIONS.map((section, si) => (
-            <div key={section.title}>
-              <div style={{ padding: '14px 20px 8px', borderTop: si > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none', marginTop: si > 0 ? 8 : 0 }}>
-                <div style={{ fontSize: 10, color: section.accent || '#70829c', ...S.mono, letterSpacing: 1.2 }}>{section.title}</div>
+
+          {/* Search bar (only when expanded) */}
+          {!sidebarCollapsed && (
+            <div style={{ padding: '4px 12px 8px' }}>
+              <input
+                className="qb-sb-search"
+                value={sidebarSearch}
+                onChange={(e) => setSidebarSearch(e.target.value)}
+                placeholder="\u2315 搜尋功能..."
+                style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '7px 10px', color: '#c6d0df', fontSize: 12, outline: 'none', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' }}
+              />
+            </div>
+          )}
+
+          {/* Favorites section */}
+          {!sidebarCollapsed && favs.length > 0 && !sidebarSearch && (
+            <div>
+              <div style={{ padding: '10px 14px 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: '#f5c542' }}>{'\u2605'}</span>
+                <span style={{ fontSize: 10, color: '#f5c542', fontWeight: 600, letterSpacing: 1, ...S.mono }}>我的最愛</span>
               </div>
-              <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))' }}>
-              {section.tabs.map(t => (
-                <div
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
-                  style={{
-                    padding: '11px 20px',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    color: tab === t.id ? '#ffffff' : '#9eb0c9',
-                    background: tab === t.id ? 'linear-gradient(90deg, rgba(45,140,255,0.28) 0%, rgba(45,140,255,0.08) 100%)' : 'transparent',
-                    borderLeft: `3px solid ${tab === t.id ? (section.accent || '#2d8cff') : 'transparent'}`,
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  <span style={{ fontSize: 10, color: tab === t.id ? '#8fd1ff' : '#61748f', ...S.mono, width: 40 }}>{t.code}</span>
-                  {t.label}
+              {SECTIONS.flatMap((s) => s.tabs).filter((t) => favs.includes(t.id)).map((t) => (
+                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '8px 14px', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#fff' : '#b0c0d4', background: tab === t.id ? 'rgba(45,140,255,0.22)' : 'transparent', borderLeft: `2px solid ${tab === t.id ? '#f5c542' : 'transparent'}`, borderRadius: '0 6px 6px 0', margin: '1px 6px 1px 0', transition: 'all 0.15s' }}>
+                  <span style={{ fontSize: 9, color: '#f5c542', ...S.mono, width: 34, flexShrink: 0, opacity: 0.7 }}>{t.code}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                 </div>
               ))}
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '8px 14px' }} />
+            </div>
+          )}
+
+          {/* Main sections */}
+          {(() => {
+            const sq = sidebarSearch.trim().toLowerCase();
+            const filteredSections = sq
+              ? SECTIONS.map((s) => ({ ...s, tabs: s.tabs.filter((t) => t.label.toLowerCase().includes(sq) || t.code.toLowerCase().includes(sq)) })).filter((s) => s.tabs.length > 0)
+              : SECTIONS;
+            return filteredSections.map((section, si) => {
+              const isCollapsed = !sq && collapsed[section.title];
+              const sectionIcon = SECTION_ICONS[section.title] || '\u25CB';
+              const hasActiveTab = section.tabs.some((t) => t.id === tab);
+              return (
+                <div key={section.title}>
+                  <div
+                    className="qb-sb-section-hdr"
+                    onClick={() => !sidebarCollapsed && toggleCollapsed(section.title)}
+                    style={{ padding: sidebarCollapsed ? '10px 0' : '10px 14px 6px', borderTop: si > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none', marginTop: si > 0 ? 2 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 4, transition: 'background 0.12s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}
+                  >
+                    <span style={{ fontSize: 14, color: hasActiveTab ? (section.accent || '#2da5ff') : '#5e7490', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 16, textAlign: 'center' }}>{sectionIcon}</span>
+                    {!sidebarCollapsed && <>
+                      <span style={{ fontSize: 10, color: hasActiveTab ? '#c0dcff' : (section.accent || '#5e7490'), fontWeight: 600, letterSpacing: 1.1, ...S.mono, flex: 1 }}>{section.title}</span>
+                      <span style={{ fontSize: 10, color: '#4a5e78', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>{'\u25BE'}</span>
+                    </>}
+                  </div>
+                  {!sidebarCollapsed && !isCollapsed && (
+                    <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+                      {section.tabs.map((t) => (
+                        <div
+                          key={t.id}
+                          className="qb-sb-item"
+                          onClick={() => setTab(t.id)}
+                          style={{ padding: '8px 14px 8px 16px', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#ffffff' : '#9eb0c9', background: tab === t.id ? 'linear-gradient(90deg, rgba(45,140,255,0.22) 0%, rgba(45,140,255,0.06) 100%)' : 'transparent', borderLeft: `2px solid ${tab === t.id ? (section.accent || '#2d8cff') : 'transparent'}`, borderRadius: '0 6px 6px 0', margin: '1px 6px 1px 0', transition: 'all 0.15s' }}
+                        >
+                          <span style={{ fontSize: 9, color: tab === t.id ? '#8fd1ff' : '#4a5e78', ...S.mono, width: 34, flexShrink: 0 }}>{t.code}</span>
+                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
+                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#4a5e78', cursor: 'pointer', padding: '2px 4px' }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Collapsed mode: show icon-only for active tab */}
+                  {sidebarCollapsed && section.tabs.map((t) => (
+                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '8px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#fff' : '#5e7490', background: tab === t.id ? 'rgba(45,140,255,0.22)' : 'transparent', borderLeft: `2px solid ${tab === t.id ? (section.accent || '#2d8cff') : 'transparent'}`, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0 }}>{t.code}</div>
+                  ))}
+                </div>
+              );
+            });
+          })()}
+
+          {/* System status (only expanded) */}
+          {!sidebarCollapsed && (
+            <div style={{ padding: '12px 14px 0', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 8 }}>
+              <div style={{ fontSize: 10, color: '#4a5e78', ...S.mono, marginBottom: 8, letterSpacing: 1 }}>SYSTEM</div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '10px 12px', fontSize: 11, color: '#7b8fa8', display: 'grid', gap: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>產品</span><span style={{ color: '#b0c0d4', ...S.mono }}>{sidebarStats?.products?.toLocaleString?.() ?? '...'}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>對話</span><span style={{ color: '#b0c0d4', ...S.mono }}>{sidebarStats?.chats?.toLocaleString?.() ?? '...'}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Webhook</span><span style={{ color: '#62df97', ...S.mono }}>ON</span></div>
               </div>
             </div>
-          ))}
-
-          <div style={{ padding: '18px 20px 0', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 14 }}>
-            <div style={{ fontSize: 10, color: '#70829c', ...S.mono, marginBottom: 10 }}>SYSTEM</div>
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: 14, fontSize: 11, color: '#b7c4d8' }}>
-              <div style={{ padding: '4px 0' }}>產品：{sidebarStats?.products?.toLocaleString?.() ?? '載入中...'}</div>
-              <div style={{ padding: '4px 0' }}>歷史對話：{sidebarStats?.chats?.toLocaleString?.() ?? '載入中...'}</div>
-              <div style={{ padding: '4px 0' }}>Webhook：<span style={{ color: '#62df97' }}>ON</span></div>
-              <div style={{ padding: '4px 0' }}>LIFF：<span style={{ color: '#62df97' }}>ON</span></div>
-            </div>
-          </div>
+          )}
         </div>
 
+        {/* ===== MAIN CONTENT ===== */}
         <div style={S.main}>
           <div style={S.header}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <div style={{ width: 12, height: 12, borderRadius: 999, background: '#2d8cff' }} />
+              <div style={{ width: 10, height: 10, borderRadius: 999, background: '#2d8cff', boxShadow: '0 0 8px rgba(45,140,255,0.5)' }} />
               <div>
                 <div style={{ color: '#172337', fontWeight: 700, fontSize: 15 }}>Quick Buy 管理後台</div>
-                {!isMobile && <div style={{ color: '#7b889b', fontSize: 11 }}>Sales, inquiry monitoring and knowledge operations</div>}
+                {!isMobile && <div style={{ color: '#7b889b', fontSize: 11, ...S.mono }}>ERP · CRM · LINE Bot</div>}
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {!isMobile && <div style={{ fontSize: 11, color: '#7b889b', ...S.mono }}>main / {tab}</div>}
-              <button onClick={logout} style={{ ...S.btnGhost, padding: '7px 12px', fontSize: 11 }}>登出</button>
+              {!isMobile && <div style={{ fontSize: 10, color: '#9eaab8', ...S.mono, background: '#f0f3f8', padding: '4px 10px', borderRadius: 6 }}>{tab}</div>}
+              <button onClick={logout} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 11 }}>登出</button>
             </div>
           </div>
 
