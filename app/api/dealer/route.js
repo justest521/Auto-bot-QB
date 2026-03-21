@@ -1,19 +1,7 @@
 export const dynamic = 'force-dynamic';
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import crypto from 'crypto';
-
-let _supabase = null;
-function getSupabase() {
-  if (!_supabase) {
-    _supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
-    );
-  }
-  return _supabase;
-}
-const supabase = new Proxy({}, { get: (_, prop) => getSupabase()[prop] });
 
 function hashPassword(password) {
   return crypto.createHash('sha256').update(password + (process.env.DEALER_SALT || 'qb_dealer_2024')).digest('hex');
@@ -49,6 +37,7 @@ const ROLE_CONFIG = {
 
 // ========== GET ==========
 export async function GET(request) {
+  try {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action') || '';
   const token = searchParams.get('token') || '';
@@ -200,10 +189,15 @@ export async function GET(request) {
   }
 
   return jsonErr('Use POST for login');
+  } catch (err) {
+    console.error('[dealer GET error]', err);
+    return jsonErr('Server error: ' + (err.message || 'unknown'), 500);
+  }
 }
 
 // ========== POST ==========
 export async function POST(request) {
+  try {
   let body;
   try { body = await request.json(); } catch { return jsonErr('Invalid JSON'); }
   const { action } = body;
@@ -326,6 +320,10 @@ export async function POST(request) {
 
     default:
       return jsonErr('Unknown action: ' + action);
+  }
+  } catch (err) {
+    console.error('[dealer POST error]', err);
+    return jsonErr('Server error: ' + (err.message || 'unknown'), 500);
   }
 }
 
