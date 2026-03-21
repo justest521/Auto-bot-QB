@@ -6135,11 +6135,13 @@ export default function AdminPage() {
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       <style>{`
-        .qb-sb-item:hover{background:#f1f5f9!important}
+        .qb-sb-item{transition:all 0.2s ease}
+        .qb-sb-item:hover{background:rgba(37,99,235,0.06)!important;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(37,99,235,0.08), inset 0 1px 0 rgba(255,255,255,0.7);border-color:rgba(37,99,235,0.1)!important}
         .qb-sb-star{opacity:0;transition:opacity 0.15s}
         .qb-sb-item:hover .qb-sb-star{opacity:1}
         .qb-sb-star.is-fav{opacity:1;color:#f59e0b!important}
-        .qb-sb-section-hdr:hover{background:#f8f9fb}
+        .qb-sb-section-hdr{transition:all 0.2s ease}
+        .qb-sb-section-hdr:hover{background:rgba(37,99,235,0.04);backdrop-filter:blur(8px);box-shadow:0 1px 8px rgba(37,99,235,0.06), inset 0 1px 0 rgba(255,255,255,0.6)}
         .qb-sb-search:focus{border-color:#2563eb!important;box-shadow:0 0 0 3px rgba(37,99,235,0.1)!important}
         .qb-sb::-webkit-scrollbar{width:3px}
         .qb-sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
@@ -6212,7 +6214,7 @@ export default function AdminPage() {
                   >
                     <span style={{ fontSize: 15, color: hasActiveTab ? (section.accent || '#2563eb') : '#94a3b8', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 18, textAlign: 'center' }}>{sectionIcon}</span>
                     {!sidebarCollapsed && <>
-                      <span style={{ fontSize: 11, color: hasActiveTab ? '#1a1d23' : '#64748b', fontWeight: 600, letterSpacing: 0.3, flex: 1 }}>{section.title}</span>
+                      <span style={{ fontSize: 14, color: hasActiveTab ? '#1a1d23' : '#64748b', fontWeight: 600, letterSpacing: 0.1, flex: 1 }}>{section.title}</span>
                       {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
                       <span style={{ fontSize: 10, color: '#cbd5e1', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', width: 20, textAlign: 'center', flexShrink: 0 }}>{'\u25BE'}</span>
                     </>}
