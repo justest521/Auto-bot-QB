@@ -1428,7 +1428,8 @@ function FormalCustomers() {
   const [editForm, setEditForm] = useState({});
   const [editSaving, setEditSaving] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [createForm, setCreateForm] = useState({ company_name: '', name: '', phone: '', email: '', tax_id: '', address: '', notes: '' });
+  const emptyForm = { company_name: '', full_name: '', name: '', phone: '', fax: '', mobile: '', email: '', tax_id: '', job_title: '', sales_person: '', billing_customer: '', discount_percent: '', stop_date: '', invoice_email: '', invoice_mobile: '', carrier_type: '', carrier_code: '', bank_account: '', payment_method: '', payment_days: '', monthly_closing_day: '', collection_method: '', collection_day: '', address: '', registered_address: '', invoice_address: '', shipping_address: '', business_address: '', notes: '' };
+  const [createForm, setCreateForm] = useState({ ...emptyForm });
   const [createSaving, setCreateSaving] = useState(false);
 
   const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
@@ -1470,15 +1471,10 @@ function FormalCustomers() {
 
   const startEditing = () => {
     if (!detailCustomer) return;
-    setEditForm({
-      name: detailCustomer.name || '',
-      company_name: detailCustomer.company_name || '',
-      phone: detailCustomer.phone || '',
-      email: detailCustomer.email || '',
-      tax_id: detailCustomer.tax_id || '',
-      address: detailCustomer.address || '',
-      notes: detailCustomer.notes || '',
-    });
+    const c = detailCustomer;
+    const f = {};
+    Object.keys(emptyForm).forEach((k) => { f[k] = c[k] || ''; });
+    setEditForm(f);
     setEditing(true);
   };
 
@@ -1500,7 +1496,7 @@ function FormalCustomers() {
     try {
       const result = await apiPost({ action: 'create_customer', profile: createForm });
       setCreating(false);
-      setCreateForm({ company_name: '', name: '', phone: '', email: '', tax_id: '', address: '', notes: '' });
+      setCreateForm({ ...emptyForm });
       await load(1, search, pageSize);
       if (result?.customer?.id) setSelectedCustomerId(result.customer.id);
     } finally {
@@ -1651,13 +1647,43 @@ function FormalCustomers() {
               {creating ? (
                 <div style={{ display: 'grid', gap: 14 }}>
                   <PanelHeader title="新增客戶" meta="手動建立一筆正式客戶" />
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
-                    <div><label style={S.label}>公司名稱 *</label><input value={createForm.company_name} onChange={(e) => setCreateForm({ ...createForm, company_name: e.target.value })} style={S.input} /></div>
-                    <div><label style={S.label}>聯絡人</label><input value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} style={S.input} /></div>
-                    <div><label style={S.label}>電話</label><input value={createForm.phone} onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })} style={S.input} /></div>
-                    <div><label style={S.label}>Email</label><input value={createForm.email} onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })} style={S.input} /></div>
+                  <div style={{ fontSize: 12, color: '#7b889b', fontWeight: 600, marginTop: 4 }}>基本資料</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10 }}>
+                    <div><label style={S.label}>客戶簡稱 *</label><input value={createForm.company_name} onChange={(e) => setCreateForm({ ...createForm, company_name: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>客戶全名</label><input value={createForm.full_name} onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })} style={S.input} /></div>
                     <div><label style={S.label}>統一編號</label><input value={createForm.tax_id} onChange={(e) => setCreateForm({ ...createForm, tax_id: e.target.value })} style={S.input} /></div>
-                    <div><label style={S.label}>地址</label><input value={createForm.address} onChange={(e) => setCreateForm({ ...createForm, address: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>主聯絡人</label><input value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>職稱</label><input value={createForm.job_title} onChange={(e) => setCreateForm({ ...createForm, job_title: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>業務</label><input value={createForm.sales_person} onChange={(e) => setCreateForm({ ...createForm, sales_person: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>電話</label><input value={createForm.phone} onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>傳真</label><input value={createForm.fax} onChange={(e) => setCreateForm({ ...createForm, fax: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>手機</label><input value={createForm.mobile} onChange={(e) => setCreateForm({ ...createForm, mobile: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>Email</label><input value={createForm.email} onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>請款客戶</label><input value={createForm.billing_customer} onChange={(e) => setCreateForm({ ...createForm, billing_customer: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>固定折扣 %</label><input type="number" value={createForm.discount_percent} onChange={(e) => setCreateForm({ ...createForm, discount_percent: e.target.value })} style={S.input} /></div>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#7b889b', fontWeight: 600, marginTop: 8 }}>發票與載具</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10 }}>
+                    <div><label style={S.label}>發票通知手機</label><input value={createForm.invoice_mobile} onChange={(e) => setCreateForm({ ...createForm, invoice_mobile: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>發票通知 Email</label><input value={createForm.invoice_email} onChange={(e) => setCreateForm({ ...createForm, invoice_email: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>載具類別</label><input value={createForm.carrier_type} onChange={(e) => setCreateForm({ ...createForm, carrier_type: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>會員載具顯碼</label><input value={createForm.carrier_code} onChange={(e) => setCreateForm({ ...createForm, carrier_code: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>匯款帳號</label><input value={createForm.bank_account} onChange={(e) => setCreateForm({ ...createForm, bank_account: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>停止往來日</label><input type="date" value={createForm.stop_date} onChange={(e) => setCreateForm({ ...createForm, stop_date: e.target.value })} style={S.input} /></div>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#7b889b', fontWeight: 600, marginTop: 8 }}>結帳與收款</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr 1fr', gap: 10 }}>
+                    <div><label style={S.label}>結帳方式</label><select value={createForm.payment_method} onChange={(e) => setCreateForm({ ...createForm, payment_method: e.target.value })} style={S.input}><option value="">請選擇</option><option value="出貨後">出貨後</option><option value="月結">月結</option></select></div>
+                    <div><label style={S.label}>結帳天數</label><input type="number" value={createForm.payment_days} onChange={(e) => setCreateForm({ ...createForm, payment_days: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>收款方式</label><select value={createForm.collection_method} onChange={(e) => setCreateForm({ ...createForm, collection_method: e.target.value })} style={S.input}><option value="">請選擇</option><option value="結帳後">結帳後</option><option value="每月">每月</option></select></div>
+                    <div><label style={S.label}>收款日</label><input type="number" value={createForm.collection_day} onChange={(e) => setCreateForm({ ...createForm, collection_day: e.target.value })} style={S.input} /></div>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#7b889b', fontWeight: 600, marginTop: 8 }}>地址</div>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    <div><label style={S.label}>登記地址</label><input value={createForm.registered_address || createForm.address} onChange={(e) => setCreateForm({ ...createForm, registered_address: e.target.value, address: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>發票地址</label><input value={createForm.invoice_address} onChange={(e) => setCreateForm({ ...createForm, invoice_address: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>送貨地址</label><input value={createForm.shipping_address} onChange={(e) => setCreateForm({ ...createForm, shipping_address: e.target.value })} style={S.input} /></div>
+                    <div><label style={S.label}>營業地址</label><input value={createForm.business_address} onChange={(e) => setCreateForm({ ...createForm, business_address: e.target.value })} style={S.input} /></div>
                   </div>
                   <div><label style={S.label}>備註</label><textarea value={createForm.notes} onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })} rows={3} style={{ ...S.input, resize: 'vertical', lineHeight: 1.6 }} /></div>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -1683,25 +1709,70 @@ function FormalCustomers() {
                   </div>
                   {editing ? (
                     <div style={{ display: 'grid', gap: 10 }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
-                        <div><label style={S.label}>公司名稱</label><input value={editForm.company_name} onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })} style={S.input} /></div>
-                        <div><label style={S.label}>聯絡人</label><input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={S.input} /></div>
-                        <div><label style={S.label}>電話</label><input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} style={S.input} /></div>
-                        <div><label style={S.label}>Email</label><input value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} style={S.input} /></div>
+                      <div style={{ fontSize: 12, color: '#7b889b', fontWeight: 600 }}>基本資料</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10 }}>
+                        <div><label style={S.label}>客戶簡稱</label><input value={editForm.company_name} onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>客戶全名</label><input value={editForm.full_name} onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })} style={S.input} /></div>
                         <div><label style={S.label}>統一編號</label><input value={editForm.tax_id} onChange={(e) => setEditForm({ ...editForm, tax_id: e.target.value })} style={S.input} /></div>
-                        <div><label style={S.label}>地址</label><input value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>主聯絡人</label><input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>職稱</label><input value={editForm.job_title} onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>業務</label><input value={editForm.sales_person} onChange={(e) => setEditForm({ ...editForm, sales_person: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>電話</label><input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>傳真</label><input value={editForm.fax} onChange={(e) => setEditForm({ ...editForm, fax: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>手機</label><input value={editForm.mobile} onChange={(e) => setEditForm({ ...editForm, mobile: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>Email</label><input value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>請款客戶</label><input value={editForm.billing_customer} onChange={(e) => setEditForm({ ...editForm, billing_customer: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>固定折扣 %</label><input type="number" value={editForm.discount_percent} onChange={(e) => setEditForm({ ...editForm, discount_percent: e.target.value })} style={S.input} /></div>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#7b889b', fontWeight: 600, marginTop: 8 }}>發票與載具</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10 }}>
+                        <div><label style={S.label}>發票通知手機</label><input value={editForm.invoice_mobile} onChange={(e) => setEditForm({ ...editForm, invoice_mobile: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>發票通知 Email</label><input value={editForm.invoice_email} onChange={(e) => setEditForm({ ...editForm, invoice_email: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>載具類別</label><input value={editForm.carrier_type} onChange={(e) => setEditForm({ ...editForm, carrier_type: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>會員載具顯碼</label><input value={editForm.carrier_code} onChange={(e) => setEditForm({ ...editForm, carrier_code: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>匯款帳號</label><input value={editForm.bank_account} onChange={(e) => setEditForm({ ...editForm, bank_account: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>停止往來日</label><input type="date" value={editForm.stop_date} onChange={(e) => setEditForm({ ...editForm, stop_date: e.target.value })} style={S.input} /></div>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#7b889b', fontWeight: 600, marginTop: 8 }}>結帳與收款</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr 1fr', gap: 10 }}>
+                        <div><label style={S.label}>結帳方式</label><select value={editForm.payment_method} onChange={(e) => setEditForm({ ...editForm, payment_method: e.target.value })} style={S.input}><option value="">請選擇</option><option value="出貨後">出貨後</option><option value="月結">月結</option></select></div>
+                        <div><label style={S.label}>結帳天數</label><input type="number" value={editForm.payment_days} onChange={(e) => setEditForm({ ...editForm, payment_days: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>收款方式</label><select value={editForm.collection_method} onChange={(e) => setEditForm({ ...editForm, collection_method: e.target.value })} style={S.input}><option value="">請選擇</option><option value="結帳後">結帳後</option><option value="每月">每月</option></select></div>
+                        <div><label style={S.label}>收款日</label><input type="number" value={editForm.collection_day} onChange={(e) => setEditForm({ ...editForm, collection_day: e.target.value })} style={S.input} /></div>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#7b889b', fontWeight: 600, marginTop: 8 }}>地址</div>
+                      <div style={{ display: 'grid', gap: 10 }}>
+                        <div><label style={S.label}>登記地址</label><input value={editForm.registered_address || editForm.address} onChange={(e) => setEditForm({ ...editForm, registered_address: e.target.value, address: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>發票地址</label><input value={editForm.invoice_address} onChange={(e) => setEditForm({ ...editForm, invoice_address: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>送貨地址</label><input value={editForm.shipping_address} onChange={(e) => setEditForm({ ...editForm, shipping_address: e.target.value })} style={S.input} /></div>
+                        <div><label style={S.label}>營業地址</label><input value={editForm.business_address} onChange={(e) => setEditForm({ ...editForm, business_address: e.target.value })} style={S.input} /></div>
                       </div>
                       <div><label style={S.label}>備註</label><textarea value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} rows={3} style={{ ...S.input, resize: 'vertical', lineHeight: 1.6 }} /></div>
                       <button onClick={saveEdit} disabled={editSaving} style={S.btnPrimary}>{editSaving ? '儲存中...' : '儲存'}</button>
                     </div>
                   ) : (
-                    <div style={{ fontSize: 14, color: '#617084', lineHeight: 1.8 }}>
-                      <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {detailCustomer.name || '-'}</div>
-                      <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {detailCustomer.phone || '-'}</div>
-                      <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL -</span> {detailCustomer.email || '-'}</div>
-                      <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID -</span> {detailCustomer.tax_id || '-'}</div>
-                      <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS -</span> {detailCustomer.address || '-'}</div>
-                      {detailCustomer.notes && <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}><span style={{ color: '#7b889b', ...S.mono }}>NOTES -</span> {detailCustomer.notes}</div>}
+                    <div style={{ display: 'grid', gap: 12 }}>
+                      <div style={{ fontSize: 14, color: '#617084', lineHeight: 1.8 }}>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>CONTACT -</span> {detailCustomer.name || '-'}{detailCustomer.job_title ? ` (${detailCustomer.job_title})` : ''}</div>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>PHONE -</span> {detailCustomer.phone || '-'}{detailCustomer.fax ? ` / 傳真 ${detailCustomer.fax}` : ''}</div>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>MOBILE -</span> {detailCustomer.mobile || '-'}</div>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>EMAIL -</span> {detailCustomer.email || '-'}</div>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>TAX_ID -</span> {detailCustomer.tax_id || '-'}</div>
+                        {detailCustomer.sales_person && <div><span style={{ color: '#7b889b', ...S.mono }}>SALES -</span> {detailCustomer.sales_person}</div>}
+                        {detailCustomer.discount_percent > 0 && <div><span style={{ color: '#7b889b', ...S.mono }}>DISCOUNT -</span> {detailCustomer.discount_percent}%</div>}
+                      </div>
+                      {(detailCustomer.payment_method || detailCustomer.collection_method) && (
+                        <div style={{ fontSize: 13, color: '#617084', padding: '10px 14px', background: '#f9fafb', borderRadius: 10 }}>
+                          {detailCustomer.payment_method && <span>結帳：{detailCustomer.payment_method} {detailCustomer.payment_days || 0} 天</span>}
+                          {detailCustomer.payment_method && detailCustomer.collection_method && <span style={{ margin: '0 8px', color: '#cbd5e1' }}>|</span>}
+                          {detailCustomer.collection_method && <span>收款：{detailCustomer.collection_method} {detailCustomer.collection_day || ''} 日</span>}
+                        </div>
+                      )}
+                      <div style={{ fontSize: 14, color: '#617084', lineHeight: 1.8 }}>
+                        <div><span style={{ color: '#7b889b', ...S.mono }}>ADDRESS -</span> {detailCustomer.registered_address || detailCustomer.address || '-'}</div>
+                        {detailCustomer.shipping_address && detailCustomer.shipping_address !== (detailCustomer.registered_address || detailCustomer.address) && <div><span style={{ color: '#7b889b', ...S.mono }}>SHIP_TO -</span> {detailCustomer.shipping_address}</div>}
+                      </div>
+                      {detailCustomer.notes && <div style={{ fontSize: 13, color: '#617084', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}><span style={{ color: '#7b889b', ...S.mono }}>NOTES -</span> {detailCustomer.notes}</div>}
                     </div>
                   )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
