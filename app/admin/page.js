@@ -5042,6 +5042,7 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState('');
   const [tab, setTab] = useState('report_center');
   const [sidebarStats, setSidebarStats] = useState(null);
+  const [pendingBadges, setPendingBadges] = useState({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const { favs, toggle: toggleFav, isFav } = useFavorites();
@@ -5079,6 +5080,22 @@ export default function AdminPage() {
         .finally(() => setAuthLoading(false));
     }
   }, []);
+
+  // Fetch pending badge counts for sidebar
+  useEffect(() => {
+    if (!isAuthed) return;
+    const fetchBadges = () => {
+      apiGet({ action: 'dealer_orders', status: 'pending' })
+        .then((res) => {
+          const count = res?.orders?.length || 0;
+          setPendingBadges((prev) => ({ ...prev, dealer_orders: count }));
+        })
+        .catch(() => {});
+    };
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 60000);
+    return () => clearInterval(interval);
+  }, [isAuthed, tab]);
 
   const login = async () => {
     const trimmed = token.trim();
@@ -5148,6 +5165,8 @@ export default function AdminPage() {
         .qb-sb::-webkit-scrollbar{width:4px}
         .qb-sb::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:4px}
         .qb-sb::-webkit-scrollbar-track{background:transparent}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+        @keyframes badgeGlow{0%,100%{box-shadow:0 0 4px rgba(239,68,68,0.3)}50%{box-shadow:0 0 12px rgba(239,68,68,0.6)}}
       `}</style>
       <div style={{ ...S.shell, flexDirection: isTablet ? 'column' : 'row' }}>
         {/* ===== SIDEBAR ===== */}
@@ -5214,6 +5233,7 @@ export default function AdminPage() {
                     <span style={{ fontSize: 14, color: hasActiveTab ? (section.accent || '#2da5ff') : '#5e7490', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 16, textAlign: 'center' }}>{sectionIcon}</span>
                     {!sidebarCollapsed && <>
                       <span style={{ fontSize: 10, color: hasActiveTab ? '#c0dcff' : (section.accent || '#5e7490'), fontWeight: 600, letterSpacing: 1.1, ...S.mono, flex: 1 }}>{section.title}</span>
+                      {(() => { const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 8, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', boxShadow: '0 2px 6px rgba(239,68,68,0.4)' }}>{sectionBadge}</span> : null; })()}
                       <span style={{ fontSize: 10, color: '#4a5e78', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>{'\u25BE'}</span>
                     </>}
                   </div>
@@ -5228,6 +5248,9 @@ export default function AdminPage() {
                         >
                           <span style={{ fontSize: 9, color: tab === t.id ? '#8fd1ff' : '#4a5e78', ...S.mono, width: 34, flexShrink: 0 }}>{t.code}</span>
                           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
+                          {pendingBadges[t.id] > 0 && (
+                            <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', boxShadow: '0 2px 8px rgba(239,68,68,0.4)', animation: 'pulse 2s infinite' }}>{pendingBadges[t.id]}</span>
+                          )}
                           <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#4a5e78', cursor: 'pointer', padding: '2px 4px' }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
                         </div>
                       ))}
@@ -5235,7 +5258,7 @@ export default function AdminPage() {
                   )}
                   {/* Collapsed mode: show icon-only for active tab */}
                   {sidebarCollapsed && section.tabs.map((t) => (
-                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '8px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#fff' : '#5e7490', background: tab === t.id ? 'rgba(45,140,255,0.22)' : 'transparent', borderLeft: `2px solid ${tab === t.id ? (section.accent || '#2d8cff') : 'transparent'}`, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0 }}>{t.code}</div>
+                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '8px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#fff' : '#5e7490', background: tab === t.id ? 'rgba(45,140,255,0.22)' : 'transparent', borderLeft: `2px solid ${tab === t.id ? (section.accent || '#2d8cff') : 'transparent'}`, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0, position: 'relative' }}>{t.code}{pendingBadges[t.id] > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 6px rgba(239,68,68,0.6)' }} />}</div>
                   ))}
                 </div>
               );
