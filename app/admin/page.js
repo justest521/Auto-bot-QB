@@ -1422,6 +1422,8 @@ function FormalCustomers() {
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [selectedSlipNumber, setSelectedSlipNumber] = useState('');
+  const [expandedPanels, setExpandedPanels] = useState({});
+  const togglePanel = (key) => setExpandedPanels((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
     setLoading(true);
@@ -1622,28 +1624,38 @@ function FormalCustomers() {
                     <StatCard code="GP" label="毛利" value={fmtP(summary.gross_profit_total)} sub={`訊息 ${fmt(summary.line_message_count)} 筆`} tone="red" />
                   </div>
                   <div style={S.panelMuted}>
-                    <PanelHeader title="最近報價" meta="最近 5 張報價單" badge={<div style={S.tag('')}>{fmt(detail?.recent_quotes?.length || 0)} 筆</div>} />
-                    {detail?.recent_quotes?.length ? detail.recent_quotes.map((row) => (
+                    <PanelHeader title="最近報價" meta={`共 ${fmt(detail?.recent_quotes?.length || 0)} 張`} badge={<div style={S.tag('')}>{fmt(detail?.recent_quotes?.length || 0)} 筆</div>} />
+                    {detail?.recent_quotes?.length ? detail.recent_quotes.slice(0, expandedPanels.quotes ? 10 : 3).map((row) => (
                       <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 90px', gap: 10, padding: '8px 0', borderTop: '1px solid #e6edf5', alignItems: 'center' }}>
                         <div style={{ color: '#1976f3', fontSize: 12, fontWeight: 700, ...S.mono }}>{row.quote_no || '-'}</div>
                         <div style={{ color: '#617084', fontSize: 12 }}>{row.quote_date || '-'} · {row.status || 'draft'}</div>
                         <div style={{ textAlign: 'right', color: '#1c2740', fontSize: 12, fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
                       </div>
                     )) : <EmptyState text="目前沒有報價單資料" />}
+                    {(detail?.recent_quotes?.length || 0) > 3 && (
+                      <button onClick={() => togglePanel('quotes')} style={{ ...S.btnGhost, width: '100%', marginTop: 8, fontSize: 12, padding: '6px 0', textAlign: 'center' }}>
+                        {expandedPanels.quotes ? '收合' : `展開全部 ${fmt(detail.recent_quotes.length)} 筆`}
+                      </button>
+                    )}
                   </div>
                   <div style={S.panelMuted}>
-                    <PanelHeader title="最近訂單" meta="最近 5 張訂單" badge={<div style={S.tag('')}>{fmt(detail?.recent_orders?.length || 0)} 筆</div>} />
-                    {detail?.recent_orders?.length ? detail.recent_orders.map((row) => (
+                    <PanelHeader title="最近訂單" meta={`共 ${fmt(detail?.recent_orders?.length || 0)} 張`} badge={<div style={S.tag('')}>{fmt(detail?.recent_orders?.length || 0)} 筆</div>} />
+                    {detail?.recent_orders?.length ? detail.recent_orders.slice(0, expandedPanels.orders ? 10 : 3).map((row) => (
                       <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 90px', gap: 10, padding: '8px 0', borderTop: '1px solid #e6edf5', alignItems: 'center' }}>
                         <div style={{ color: '#1976f3', fontSize: 12, fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
                         <div style={{ color: '#617084', fontSize: 12 }}>{row.order_date || '-'} · {row.status || 'draft'}</div>
                         <div style={{ textAlign: 'right', color: '#1c2740', fontSize: 12, fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
                       </div>
                     )) : <EmptyState text="目前沒有訂單資料" />}
+                    {(detail?.recent_orders?.length || 0) > 3 && (
+                      <button onClick={() => togglePanel('orders')} style={{ ...S.btnGhost, width: '100%', marginTop: 8, fontSize: 12, padding: '6px 0', textAlign: 'center' }}>
+                        {expandedPanels.orders ? '收合' : `展開全部 ${fmt(detail.recent_orders.length)} 筆`}
+                      </button>
+                    )}
                   </div>
                   <div style={S.panelMuted}>
-                    <PanelHeader title="最近銷貨" meta="從 qb_sales_history 對應最近單據" badge={<div style={S.tag('green')}>{fmt(detail?.recent_sales?.length || 0)} 筆</div>} />
-                    {detail?.recent_sales?.length ? detail.recent_sales.map((row) => (
+                    <PanelHeader title="最近銷貨" meta={`共 ${fmt(detail?.recent_sales?.length || 0)} 張`} badge={<div style={S.tag('green')}>{fmt(detail?.recent_sales?.length || 0)} 筆</div>} />
+                    {detail?.recent_sales?.length ? detail.recent_sales.slice(0, expandedPanels.sales ? 10 : 3).map((row) => (
                       <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 90px 90px', gap: 10, padding: '8px 0', borderTop: '1px solid #e6edf5', alignItems: 'center' }}>
                         <button onClick={() => setSelectedSlipNumber(row.slip_number)} style={{ background: 'none', border: 0, padding: 0, textAlign: 'left', color: '#1976f3', fontSize: 12, fontWeight: 700, cursor: 'pointer', ...S.mono }}>{row.slip_number || '-'}</button>
                         <div style={{ color: '#617084', fontSize: 12 }}>{row.sale_date || '-'} · {row.sales_person || '-'}</div>
@@ -1651,6 +1663,11 @@ function FormalCustomers() {
                         <div style={{ textAlign: 'right', color: '#1976f3', fontSize: 12, fontWeight: 700, ...S.mono }}>{fmtP(row.gross_profit)}</div>
                       </div>
                     )) : <EmptyState text="目前沒有銷貨資料" />}
+                    {(detail?.recent_sales?.length || 0) > 3 && (
+                      <button onClick={() => togglePanel('sales')} style={{ ...S.btnGhost, width: '100%', marginTop: 8, fontSize: 12, padding: '6px 0', textAlign: 'center' }}>
+                        {expandedPanels.sales ? '收合' : `展開全部 ${fmt(detail.recent_sales.length)} 筆`}
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
