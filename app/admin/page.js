@@ -571,43 +571,43 @@ function useCsvImport(datasetId, onImported) {
 
 /* ========================================= STYLES ========================================= */
 const S = {
-  page: { minHeight: '100vh', background: 'linear-gradient(180deg, #e9eef5 0%, #f5f7fb 220px)', color: '#192434', fontFamily: "'Noto Sans TC', 'SF Mono', monospace, sans-serif" },
+  page: { minHeight: '100vh', background: '#f8f9fb', color: '#1a1d23', fontFamily: "'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" },
   shell: { display: 'flex', minHeight: '100vh' },
-  sidebar: { width: 248, background: 'linear-gradient(180deg, #1d2636 0%, #101723 100%)', color: '#c6d0df', padding: '18px 0 20px', boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.04)', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' },
-  main: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' },
-  header: { height: 64, background: 'rgba(255,255,255,0.92)', borderBottom: '1px solid #d8e0ea', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px', position: 'sticky', top: 0, zIndex: 100, backdropFilter: 'blur(12px)' },
-  content: { flex: 1, padding: '26px 28px 40px', minHeight: 'calc(100vh - 64px)' },
-  card: { background: '#ffffff', border: '1px solid #dbe3ee', borderRadius: 14, padding: '18px 20px', marginBottom: 18, boxShadow: '0 10px 28px rgba(20, 35, 60, 0.06)' },
-  panelMuted: { background: '#f8fbff', border: '1px solid #dbe6f3', borderRadius: 12, padding: '14px 16px' },
-  input: { background: '#fff', border: '1px solid #ccd6e3', borderRadius: 10, padding: '10px 14px', color: '#152033', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s', boxShadow: 'inset 0 1px 2px rgba(17,24,39,0.04)' },
-  btnPrimary: { background: 'linear-gradient(180deg, #2d8cff 0%, #1976f3 100%)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.2, boxShadow: '0 8px 18px rgba(25,118,243,0.22)' },
-  btnGhost: { background: '#fff', color: '#5b6779', border: '1px solid #ccd6e3', borderRadius: 10, padding: '9px 14px', cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif" },
-  btnLine: { background: 'linear-gradient(180deg, #19c767 0%, #06b755 100%)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, boxShadow: '0 8px 18px rgba(6,183,85,0.2)' },
-  label: { color: '#6d7a8b', fontSize: 11, fontWeight: 700, display: 'block', marginBottom: 6, letterSpacing: 0.9, textTransform: 'uppercase' },
-  mono: { fontFamily: "'SF Mono', 'Fira Code', monospace", letterSpacing: 0.5 },
-  pageLead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18, marginBottom: 18 },
-  pageTitle: { fontSize: 28, fontWeight: 700, color: '#172337', letterSpacing: -0.6, marginBottom: 6 },
-  pageDesc: { fontSize: 13, color: '#718096', lineHeight: 1.7, maxWidth: 760 },
-  eyebrow: { fontSize: 11, color: '#1976f3', fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8, ...{ fontFamily: "'SF Mono', 'Fira Code', monospace" } },
-  statGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 24 },
+  sidebar: { width: 260, background: '#ffffff', color: '#64748b', padding: '20px 0 20px', borderRight: '1px solid #e8ecf1', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' },
+  main: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: '#f8f9fb' },
+  header: { height: 64, background: '#ffffff', borderBottom: '1px solid #e8ecf1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', position: 'sticky', top: 0, zIndex: 100 },
+  content: { flex: 1, padding: '28px 32px 40px', minHeight: 'calc(100vh - 64px)' },
+  card: { background: '#ffffff', border: '1px solid #e8ecf1', borderRadius: 16, padding: '20px 22px', marginBottom: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)' },
+  panelMuted: { background: '#f8f9fb', border: '1px solid #e8ecf1', borderRadius: 14, padding: '14px 16px' },
+  input: { background: '#ffffff', border: '1px solid #d1d9e0', borderRadius: 10, padding: '10px 14px', color: '#1a1d23', fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' },
+  btnPrimary: { background: '#2563eb', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", letterSpacing: 0.2, boxShadow: '0 1px 3px rgba(37,99,235,0.3)', transition: 'background 0.15s, box-shadow 0.15s' },
+  btnGhost: { background: '#fff', color: '#475569', border: '1px solid #d1d9e0', borderRadius: 10, padding: '9px 16px', cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.15s, background 0.15s' },
+  btnLine: { background: '#06c755', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: 13, boxShadow: '0 1px 3px rgba(6,199,85,0.3)' },
+  label: { color: '#64748b', fontSize: 11, fontWeight: 600, display: 'block', marginBottom: 6, letterSpacing: 0.5 },
+  mono: { fontFamily: "'SF Mono', 'Fira Code', 'Cascadia Code', monospace", letterSpacing: 0.3 },
+  pageLead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18, marginBottom: 24 },
+  pageTitle: { fontSize: 24, fontWeight: 700, color: '#1a1d23', letterSpacing: -0.3, marginBottom: 4 },
+  pageDesc: { fontSize: 14, color: '#64748b', lineHeight: 1.7, maxWidth: 760 },
+  eyebrow: { fontSize: 11, color: '#2563eb', fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8, ...{ fontFamily: "'SF Mono', 'Fira Code', monospace" } },
+  statGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 },
   twoCol: { display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 16, alignItems: 'start' },
-  tag: (color) => ({ display: 'inline-block', fontSize: 11, fontWeight: 700, padding: '4px 9px', borderRadius: 999, background: color === 'green' ? '#ddf7ea' : color === 'red' ? '#ffe3e6' : color === 'line' ? '#def8ea' : '#edf2f7', color: color === 'green' ? '#129c59' : color === 'red' ? '#d1435b' : color === 'line' ? '#06a14d' : '#63758a', border: `1px solid ${color === 'green' ? '#bdeccb' : color === 'red' ? '#ffc7cf' : color === 'line' ? '#bcefd2' : '#d9e2ec'}` }),
+  tag: (color) => ({ display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: color === 'green' ? '#ecfdf5' : color === 'red' ? '#fef2f2' : color === 'line' ? '#ecfdf5' : '#f1f5f9', color: color === 'green' ? '#059669' : color === 'red' ? '#dc2626' : color === 'line' ? '#059669' : '#475569', border: 'none' }),
 };
 
 /* ========================================= SHARED ========================================= */
 function Loading() {
-  return <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div style={{ color: '#7e8a9b', fontSize: 12, ...S.mono }}><span style={{ color: '#1976f3' }}>●</span> loading...</div></div>;
+  return <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div style={{ color: '#94a3b8', fontSize: 13 }}><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#2563eb', marginRight: 8, animation: 'pulse 1.5s infinite' }} />載入中...</div></div>;
 }
 function EmptyState({ text }) {
-  return <div style={{ textAlign: 'center', padding: '40px 0', color: '#8a96a8', fontSize: 12, ...S.mono }}>{text}</div>;
+  return <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8', fontSize: 13 }}>{text}</div>;
 }
 function StatusBanner({ text, tone = 'neutral' }) {
   if (!text) return null;
   const toneMap = {
-    success: { background: '#edf9f2', borderColor: '#bdeccb', color: '#127248' },
-    error: { background: '#fff4f4', borderColor: '#ffc7cf', color: '#d1435b' },
-    info: { background: '#edf5ff', borderColor: '#94c3ff', color: '#1976f3' },
-    neutral: { background: '#f8fbff', borderColor: '#dbe6f3', color: '#617084' },
+    success: { background: '#ecfdf5', borderColor: '#a7f3d0', color: '#059669' },
+    error: { background: '#fef2f2', borderColor: '#fecaca', color: '#dc2626' },
+    info: { background: '#eff6ff', borderColor: '#bfdbfe', color: '#2563eb' },
+    neutral: { background: '#f8f9fb', borderColor: '#e2e8f0', color: '#64748b' },
   };
   return <div style={{ ...S.card, padding: '14px 16px', ...(toneMap[tone] || toneMap.neutral) }}>{text}</div>;
 }
@@ -1072,21 +1072,20 @@ function TrendLineChart({ daily }) {
   );
 }
 function StatCard({ code, label, value, sub, accent, tone = 'blue' }) {
-  const palette = {
-    blue: ['#16a7d8', '#0c8bc2'],
-    green: ['#31c764', '#18a74d'],
-    yellow: ['#f1be19', '#dea000'],
-    red: ['#ef4764', '#d52f54'],
-    navy: ['#4d6fff', '#2f4dde'],
+  const toneColors = {
+    blue: { accent: '#2563eb', bg: '#eff6ff', light: '#93c5fd' },
+    green: { accent: '#059669', bg: '#ecfdf5', light: '#6ee7b7' },
+    yellow: { accent: '#d97706', bg: '#fffbeb', light: '#fcd34d' },
+    red: { accent: '#dc2626', bg: '#fef2f2', light: '#fca5a5' },
+    navy: { accent: '#4f46e5', bg: '#eef2ff', light: '#a5b4fc' },
   };
-  const [start, end] = palette[tone] || palette.blue;
+  const t = toneColors[tone] || toneColors.blue;
   return (
-    <div style={{ minWidth: 165, padding: '18px 18px 16px', position: 'relative', overflow: 'hidden', borderRadius: 14, background: `linear-gradient(135deg, ${start} 0%, ${end} 100%)`, color: '#fff', boxShadow: '0 16px 34px rgba(20,35,60,0.12)' }}>
-      <div style={{ position: 'absolute', top: 14, right: 16, fontSize: 10, color: 'rgba(255,255,255,0.55)', ...S.mono }}>{code}</div>
-      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.76)', marginBottom: 10, letterSpacing: 0.4 }}>{label}</div>
-      <div style={{ fontSize: 30, fontWeight: 700, color: accent || '#fff', ...S.mono, letterSpacing: -1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.86)', marginTop: 8 }}>{sub}</div>}
-      <div style={{ marginTop: 16, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.16)', fontSize: 11, color: 'rgba(255,255,255,0.88)', fontWeight: 600 }}>More info</div>
+    <div style={{ minWidth: 180, padding: '20px 22px 18px', position: 'relative', overflow: 'hidden', borderRadius: 16, background: '#ffffff', border: '1px solid #e8ecf1', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'box-shadow 0.2s' }}>
+      <div style={{ position: 'absolute', top: 16, right: 18, width: 36, height: 36, borderRadius: 10, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: t.accent, fontWeight: 700, ...S.mono }}>{code}</div>
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8, fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 28, fontWeight: 700, color: accent || '#1a1d23', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>{sub}</div>}
     </div>
   );
 }
@@ -6099,21 +6098,26 @@ export default function AdminPage() {
 
   if (!isAuthed) {
     return (
-      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #0f1729 0%, #18253a 52%, #243b5a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'auto' }}>
-        <div style={{ width: '100%', maxWidth: 460, background: 'rgba(9,14,24,0.82)', borderRadius: 18, padding: '26px 28px', color: '#fff', boxShadow: '0 28px 60px rgba(4,10,20,0.42), inset 0 1px 0 rgba(255,255,255,0.03)' }}>
-          <div style={{ color: '#27d3a2', fontWeight: 700, fontSize: 15, letterSpacing: 1.5, ...S.mono, marginBottom: 10 }}>QB ADMIN</div>
-          <div style={{ color: '#fff', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>管理後台登入</div>
-          <div style={{ color: 'rgba(255,255,255,0.72)', fontSize: 14, marginBottom: 18, lineHeight: 1.7 }}>請輸入管理後台 Token，進入查價、活動管理與對話監控介面。</div>
+      <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg, #eff6ff 0%, #f8f9fb 50%, #e0f2fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'auto' }}>
+        <div style={{ width: '100%', maxWidth: 440, background: '#ffffff', borderRadius: 20, padding: '36px 32px', color: '#1a1d23', boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)', border: '1px solid #e8ecf1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15, ...S.mono }}>QB</div>
+            <div>
+              <div style={{ color: '#1a1d23', fontSize: 18, fontWeight: 700 }}>Auto-bot QB</div>
+              <div style={{ color: '#94a3b8', fontSize: 12 }}>管理後台登入</div>
+            </div>
+          </div>
+          <div style={{ color: '#64748b', fontSize: 14, marginBottom: 20, lineHeight: 1.7 }}>請輸入管理後台 Token，進入查價、活動管理與對話監控介面。</div>
           <input
             type="password"
             value={token}
             onChange={(e) => setToken(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && login()}
             placeholder="ADMIN_TOKEN"
-            style={{ ...S.input, background: 'rgba(5,10,18,0.78)', borderColor: 'rgba(255,255,255,0.08)', color: '#fff' }}
+            style={{ ...S.input }}
           />
-          {authError && <div style={{ color: '#f87171', fontSize: 12, marginTop: 10, lineHeight: 1.6 }}>{authError}</div>}
-          <button onClick={login} disabled={authLoading} style={{ ...S.btnPrimary, width: '100%', marginTop: 14, opacity: authLoading ? 0.7 : 1, cursor: authLoading ? 'wait' : 'pointer' }}>
+          {authError && <div style={{ color: '#dc2626', fontSize: 12, marginTop: 10, lineHeight: 1.6 }}>{authError}</div>}
+          <button onClick={login} disabled={authLoading} style={{ ...S.btnPrimary, width: '100%', marginTop: 16, padding: '12px 20px', fontSize: 14, opacity: authLoading ? 0.7 : 1, cursor: authLoading ? 'wait' : 'pointer' }}>
             {authLoading ? '驗證中...' : '進入後台'}
           </button>
         </div>
@@ -6124,49 +6128,50 @@ export default function AdminPage() {
   return (
     <div style={S.page}>
       <style>{`
-        html,body{background:#0f1729!important;margin:0;padding:0}
-        body > div:first-child{min-height:100vh;background:#0f1729}
+        html,body{background:#f8f9fb!important;margin:0;padding:0}
+        body > div:first-child{min-height:100vh;background:#f8f9fb}
         *{box-sizing:border-box}
       `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       <style>{`
-        .qb-sb-item:hover{background:rgba(45,140,255,0.10)!important}
+        .qb-sb-item:hover{background:#f1f5f9!important}
         .qb-sb-star{opacity:0;transition:opacity 0.15s}
         .qb-sb-item:hover .qb-sb-star{opacity:1}
-        .qb-sb-star.is-fav{opacity:1;color:#f5c542!important}
-        .qb-sb-section-hdr:hover{background:rgba(255,255,255,0.04)}
-        .qb-sb-search:focus{border-color:rgba(45,140,255,0.5)!important;box-shadow:0 0 0 2px rgba(45,140,255,0.15)}
-        .qb-sb::-webkit-scrollbar{width:4px}
-        .qb-sb::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:4px}
+        .qb-sb-star.is-fav{opacity:1;color:#f59e0b!important}
+        .qb-sb-section-hdr:hover{background:#f8f9fb}
+        .qb-sb-search:focus{border-color:#2563eb!important;box-shadow:0 0 0 3px rgba(37,99,235,0.1)!important}
+        .qb-sb::-webkit-scrollbar{width:3px}
+        .qb-sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
         .qb-sb::-webkit-scrollbar-track{background:transparent}
+        input:focus,select:focus,textarea:focus{border-color:#2563eb!important;box-shadow:0 0 0 3px rgba(37,99,235,0.08)!important}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         @keyframes badgeGlow{0%,100%{box-shadow:0 0 4px rgba(239,68,68,0.3)}50%{box-shadow:0 0 12px rgba(239,68,68,0.6)}}
       `}</style>
       <div style={{ ...S.shell, flexDirection: isTablet ? 'column' : 'row' }}>
         {/* ===== SIDEBAR ===== */}
-        <div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 64 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
+        <div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 68 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
           {/* Logo + collapse toggle */}
-          <div style={{ padding: '0 14px 14px', borderBottom: '1px solid rgba(255,255,255,0.07)', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ padding: '0 16px 16px', borderBottom: '1px solid #e8ecf1', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
-              <div style={{ width: 36, height: 36, minWidth: 36, borderRadius: 10, background: 'linear-gradient(135deg, #2da5ff 0%, #1f7cff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 13, ...S.mono, boxShadow: '0 4px 12px rgba(45,140,255,0.35)' }}>QB</div>
+              <div style={{ width: 38, height: 38, minWidth: 38, borderRadius: 12, background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 14, ...S.mono }}>QB</div>
               {!sidebarCollapsed && <div style={{ whiteSpace: 'nowrap' }}>
-                <div style={{ color: '#fff', fontSize: 14, fontWeight: 700, letterSpacing: 0.3 }}>Quick Buy</div>
-                <div style={{ color: '#5e7490', fontSize: 10, ...S.mono }}>ERP Console</div>
+                <div style={{ color: '#1a1d23', fontSize: 15, fontWeight: 700, letterSpacing: -0.2 }}>Auto-bot QB</div>
+                <div style={{ color: '#94a3b8', fontSize: 11 }}>ERP Console</div>
               </div>}
             </div>
-            {!isTablet && <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', border: 'none', color: '#5e7490', cursor: 'pointer', fontSize: 16, padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s' }} title={sidebarCollapsed ? '展開' : '收合'}>{sidebarCollapsed ? '\u276F' : '\u276E'}</button>}
+            {!isTablet && <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 16, padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s' }} title={sidebarCollapsed ? '展開' : '收合'}>{sidebarCollapsed ? '\u276F' : '\u276E'}</button>}
           </div>
 
           {/* Search bar (only when expanded) */}
           {!sidebarCollapsed && (
-            <div style={{ padding: '4px 12px 8px' }}>
+            <div style={{ padding: '4px 14px 10px' }}>
               <input
                 className="qb-sb-search"
                 value={sidebarSearch}
                 onChange={(e) => setSidebarSearch(e.target.value)}
-                placeholder="\u2315 搜尋功能..."
-                style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '7px 10px', color: '#c6d0df', fontSize: 12, outline: 'none', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' }}
+                placeholder="搜尋功能..."
+                style={{ width: '100%', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 12px', color: '#1a1d23', fontSize: 13, outline: 'none', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' }}
               />
             </div>
           )}
@@ -6174,17 +6179,17 @@ export default function AdminPage() {
           {/* Favorites section */}
           {!sidebarCollapsed && favs.length > 0 && !sidebarSearch && (
             <div>
-              <div style={{ padding: '10px 14px 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 11, color: '#f5c542' }}>{'\u2605'}</span>
-                <span style={{ fontSize: 10, color: '#f5c542', fontWeight: 600, letterSpacing: 1, ...S.mono }}>我的最愛</span>
+              <div style={{ padding: '10px 16px 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: '#f59e0b' }}>{'\u2605'}</span>
+                <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, letterSpacing: 0.5 }}>我的最愛</span>
               </div>
               {SECTIONS.flatMap((s) => s.tabs).filter((t) => favs.includes(t.id)).map((t) => (
-                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '8px 14px', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#fff' : '#b0c0d4', background: tab === t.id ? 'rgba(45,140,255,0.22)' : 'transparent', borderLeft: `2px solid ${tab === t.id ? '#f5c542' : 'transparent'}`, borderRadius: '0 6px 6px 0', margin: '1px 6px 1px 0', transition: 'all 0.15s' }}>
-                  <span style={{ fontSize: 9, color: '#f5c542', ...S.mono, width: 34, flexShrink: 0, opacity: 0.7 }}>{t.code}</span>
+                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#2563eb' : '#475569', background: tab === t.id ? '#eff6ff' : 'transparent', borderRadius: 8, margin: '1px 8px', transition: 'all 0.15s', fontWeight: tab === t.id ? 600 : 400 }}>
+                  <span style={{ fontSize: 9, color: tab === t.id ? '#2563eb' : '#94a3b8', ...S.mono, width: 34, flexShrink: 0 }}>{t.code}</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                 </div>
               ))}
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '8px 14px' }} />
+              <div style={{ height: 1, background: '#e8ecf1', margin: '8px 16px' }} />
             </div>
           )}
 
@@ -6203,37 +6208,39 @@ export default function AdminPage() {
                   <div
                     className="qb-sb-section-hdr"
                     onClick={() => !sidebarCollapsed && toggleCollapsed(section.title)}
-                    style={{ padding: sidebarCollapsed ? '10px 0' : '10px 20px 6px 14px', borderTop: si > 0 ? '1px solid rgba(255,255,255,0.05)' : 'none', marginTop: si > 0 ? 2 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 4, transition: 'background 0.12s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}
+                    style={{ padding: sidebarCollapsed ? '10px 0' : '10px 20px 8px 16px', borderTop: 'none', marginTop: si > 0 ? 4 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 8, transition: 'background 0.12s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? 0 : '0 8px' }}
                   >
-                    <span style={{ fontSize: 14, color: hasActiveTab ? (section.accent || '#2da5ff') : '#5e7490', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 16, textAlign: 'center' }}>{sectionIcon}</span>
+                    <span style={{ fontSize: 15, color: hasActiveTab ? (section.accent || '#2563eb') : '#94a3b8', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 18, textAlign: 'center' }}>{sectionIcon}</span>
                     {!sidebarCollapsed && <>
-                      <span style={{ fontSize: 10, color: hasActiveTab ? '#c0dcff' : (section.accent || '#5e7490'), fontWeight: 600, letterSpacing: 1.1, ...S.mono, flex: 1 }}>{section.title}</span>
-                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', boxShadow: '0 2px 8px rgba(239,68,68,0.4)', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
-                      <span style={{ fontSize: 10, color: '#4a5e78', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', width: 20, textAlign: 'center', flexShrink: 0 }}>{'\u25BE'}</span>
+                      <span style={{ fontSize: 11, color: hasActiveTab ? '#1a1d23' : '#64748b', fontWeight: 600, letterSpacing: 0.3, flex: 1 }}>{section.title}</span>
+                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
+                      <span style={{ fontSize: 10, color: '#cbd5e1', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', width: 20, textAlign: 'center', flexShrink: 0 }}>{'\u25BE'}</span>
                     </>}
                   </div>
                   {!sidebarCollapsed && !isCollapsed && (
-                    <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))' }}>
-                      {section.tabs.map((t) => (
+                    <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', padding: '0 8px' }}>
+                      {section.tabs.map((t) => {
+                        const isActive = tab === t.id;
+                        return (
                         <div
                           key={t.id}
                           className="qb-sb-item"
                           onClick={() => setTab(t.id)}
-                          style={{ padding: '8px 14px 8px 16px', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#ffffff' : '#9eb0c9', background: tab === t.id ? 'linear-gradient(90deg, rgba(45,140,255,0.22) 0%, rgba(45,140,255,0.06) 100%)' : 'transparent', borderLeft: `2px solid ${tab === t.id ? (section.accent || '#2d8cff') : 'transparent'}`, borderRadius: '0 6px 6px 0', margin: '1px 6px 1px 0', transition: 'all 0.15s' }}
+                          style={{ padding: '9px 14px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#2563eb' : '#475569', background: isActive ? '#eff6ff' : 'transparent', borderRadius: 10, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? 600 : 400 }}
                         >
-                          <span style={{ fontSize: 9, color: tab === t.id ? '#8fd1ff' : '#4a5e78', ...S.mono, width: 34, flexShrink: 0 }}>{t.code}</span>
                           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                           {pendingBadges[t.id] > 0 && (
-                            <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', boxShadow: '0 2px 8px rgba(239,68,68,0.4)', animation: 'pulse 2s infinite' }}>{pendingBadges[t.id]}</span>
+                            <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{pendingBadges[t.id]}</span>
                           )}
-                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#4a5e78', cursor: 'pointer', width: 20, textAlign: 'center', flexShrink: 0 }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
+                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#cbd5e1', cursor: 'pointer', width: 20, textAlign: 'center', flexShrink: 0 }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                   {/* Collapsed mode: show icon-only for active tab */}
                   {sidebarCollapsed && section.tabs.map((t) => (
-                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '8px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#fff' : '#5e7490', background: tab === t.id ? 'rgba(45,140,255,0.22)' : 'transparent', borderLeft: `2px solid ${tab === t.id ? (section.accent || '#2d8cff') : 'transparent'}`, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0, position: 'relative' }}>{t.code}{pendingBadges[t.id] > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 6px rgba(239,68,68,0.6)' }} />}</div>
+                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '8px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#2563eb' : '#94a3b8', background: tab === t.id ? '#eff6ff' : 'transparent', borderRadius: 8, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0, position: 'relative', margin: '1px 6px' }}>{t.code}{pendingBadges[t.id] > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />}</div>
                   ))}
                 </div>
               );
@@ -6242,12 +6249,12 @@ export default function AdminPage() {
 
           {/* System status (only expanded) */}
           {!sidebarCollapsed && (
-            <div style={{ padding: '12px 14px 0', borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 8 }}>
-              <div style={{ fontSize: 10, color: '#4a5e78', ...S.mono, marginBottom: 8, letterSpacing: 1 }}>SYSTEM</div>
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '10px 12px', fontSize: 11, color: '#7b8fa8', display: 'grid', gap: 4 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>產品</span><span style={{ color: '#b0c0d4', ...S.mono }}>{sidebarStats?.products?.toLocaleString?.() ?? '...'}</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>對話</span><span style={{ color: '#b0c0d4', ...S.mono }}>{sidebarStats?.chats?.toLocaleString?.() ?? '...'}</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Webhook</span><span style={{ color: '#62df97', ...S.mono }}>ON</span></div>
+            <div style={{ padding: '16px 16px 0', borderTop: '1px solid #e8ecf1', marginTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 8, letterSpacing: 0.5 }}>SYSTEM</div>
+              <div style={{ background: '#f8f9fb', border: '1px solid #e8ecf1', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#64748b', display: 'grid', gap: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>產品</span><span style={{ color: '#1a1d23', fontWeight: 600, ...S.mono }}>{sidebarStats?.products?.toLocaleString?.() ?? '...'}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>對話</span><span style={{ color: '#1a1d23', fontWeight: 600, ...S.mono }}>{sidebarStats?.chats?.toLocaleString?.() ?? '...'}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Webhook</span><span style={{ color: '#059669', fontWeight: 600, ...S.mono }}>ON</span></div>
               </div>
             </div>
           )}
@@ -6257,15 +6264,14 @@ export default function AdminPage() {
         <div style={S.main}>
           <div style={S.header}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <div style={{ width: 10, height: 10, borderRadius: 999, background: '#2d8cff', boxShadow: '0 0 8px rgba(45,140,255,0.5)' }} />
               <div>
-                <div style={{ color: '#172337', fontWeight: 700, fontSize: 15 }}>Quick Buy 管理後台</div>
-                {!isMobile && <div style={{ color: '#7b889b', fontSize: 11, ...S.mono }}>ERP · CRM · LINE Bot</div>}
+                <div style={{ color: '#1a1d23', fontWeight: 700, fontSize: 16 }}>Auto-bot QB 管理後台</div>
+                {!isMobile && <div style={{ color: '#94a3b8', fontSize: 12 }}>ERP · CRM · LINE Bot</div>}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {!isMobile && <div style={{ fontSize: 10, color: '#9eaab8', ...S.mono, background: '#f0f3f8', padding: '4px 10px', borderRadius: 6 }}>{tab}</div>}
-              <button onClick={logout} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 11 }}>登出</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {!isMobile && <div style={{ fontSize: 11, color: '#64748b', ...S.mono, background: '#f1f5f9', padding: '5px 12px', borderRadius: 8, fontWeight: 500 }}>{tab}</div>}
+              <button onClick={logout} style={{ ...S.btnGhost, padding: '7px 14px', fontSize: 12, borderRadius: 8 }}>登出</button>
             </div>
           </div>
 
