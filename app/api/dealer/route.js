@@ -183,6 +183,133 @@ export async function GET(request) {
         });
       }
 
+      case 'my_performance': {
+        const range = searchParams.get('range') || 'month'; // month | quarter | year
+        const now = new Date();
+        let dateFrom;
+        if (range === 'year') {
+          dateFrom = `${now.getFullYear()}-01-01`;
+        } else if (range === 'quarter') {
+          const qm = Math.floor(now.getMonth() / 3) * 3;
+          dateFrom = `${now.getFullYear()}-${String(qm + 1).padStart(2, '0')}-01`;
+        } else {
+          dateFrom = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        }
+
+        // Get all orders in range
+        const { data: orders } = await supabase
+          .from('erp_orders')
+          .select('id, order_no, order_date, status, total_amount, subtotal, created_at')
+          .eq('dealer_user_id', user.id)
+          .gte('order_date', dateFrom)
+          .order('created_at', { ascending: false });
+
+        const allOrders = orders || [];
+        const activeOrders = allOrders.filter(o => o.status !== 'cancelled');
+        const totalAmount = activeOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+        const totalOrders = activeOrders.length;
+        const avgOrderAmount = totalOrders > 0 ? Math.round(totalAmount / totalOrders) : 0;
+
+        // Status breakdown
+        const statusBreakdown = {};
+        for (const o of allOrders) {
+          const label = ORDER_STATUS_LABEL[o.status] || o.status;
+          if (!statusBreakdown[o.status]) statusBreakdown[o.status] = { label, count: 0, amount: 0 };
+          statusBreakdown[o.status].count++;
+          statusBreakdown[o.status].amount += Number(o.total_amount || 0);
+        }
+
+        // Get top products from order items
+        const orderIds = activeOrders.map(o => o.id);
+        let topProducts = [];
+        if (orderIds.length) {
+          const { data: items } = await supabase
+            .from('erp_order_items')
+            .select('item_number_snapshot, description_snapshot, qty, line_total')
+            .in('order_id', orderIds);
+          const prodMap = {};
+          for (const it of (items || [])) {
+            const k = it.item_number_snapshot;
+            if (!prodMap[k]) prodMap[k] = { item_number: k, description: it.description_snapshot, total_qty: 0, total_amount: 0 };
+            prodMap[k].total_qty += Number(it.qty || 0);
+            prodMap[k].total_amount += Number(it.line_total || 0);
+          }
+          topProducts = Object.values(prodMap).sort((a, b) => b.total_amount - a.total_amount).slice(0, 10);
+        }
+
+        // Monthly trend (last 6 months)
+        const monthlyTrend = [];
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const mOrders = (orders || []).filter(o => o.status !== 'cancelled' && (o.order_date || '').startsWith(mKey));
+          monthlyTrend.push({ month: mKey, orders: mOrders.length, amount: mOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0) });
+        }
+
+        return jsonOk({
+          range,
+          date_from: dateFrom,
+          total_amount: totalAmount,
+          total_orders: totalOrders,
+          avg_order_amount: avgOrderAmount,
+          status_breakdown: Object.values(statusBreakdown),
+          top_products: topProducts,
+          monthly_trend: monthlyTrend,
+        });
+      }
+
+      case 'my_notifications': {
+        // Derive notifications from recent order status changes
+        const { data: recentOrders } = await supabase
+          .from('erp_orders')
+          .select('id, order_no, status, updated_at, total_amount')
+          .eq('dealer_user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(30);
+
+        const notifications = (recentOrders || []).map(o => {
+          let type = 'info';
+          let message = '';
+          const label = ORDER_STATUS_LABEL[o.status] || o.status;
+          if (o.status === 'arrived' || o.status === 'partial_arrived') {
+            type = 'arrival';
+            message = `訂單 ${o.order_no} ${label}`;
+          } else if (o.status === 'shipped') {
+            type = 'shipped';
+            message = `訂單 ${o.order_no} 已出貨`;
+          } else if (o.status === 'confirmed') {
+            type = 'confirmed';
+            message = `訂單 ${o.order_no} 已確認`;
+          } else if (o.status === 'purchasing') {
+            type = 'purchasing';
+            message = `訂單 ${o.order_no} 採購中`;
+          } else if (o.status === 'completed') {
+            type = 'completed';
+            message = `訂單 ${o.order_no} 已完成`;
+          } else if (o.status === 'cancelled') {
+            type = 'cancelled';
+            message = `訂單 ${o.order_no} 已取消`;
+          } else {
+            message = `訂單 ${o.order_no} 狀態：${label}`;
+          }
+          return {
+            id: o.id,
+            type,
+            message,
+            order_no: o.order_no,
+            status: o.status,
+            amount: Number(o.total_amount || 0),
+            time: o.updated_at,
+          };
+        });
+
+        // Count unread-like: orders updated in last 3 days that aren't pending
+        const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+        const newCount = notifications.filter(n => n.time > threeDaysAgo && n.type !== 'info').length;
+
+        return jsonOk({ notifications, new_count: newCount });
+      }
+
       default:
         return jsonErr('Unknown action: ' + action);
     }
@@ -303,6 +430,21 @@ export async function POST(request) {
       return jsonOk({ order: { ...order, items: orderItems }, message: `訂單 ${orderNo} 建立成功` });
     }
 
+    case 'update_profile': {
+      const allowedFields = ['display_name', 'phone', 'email', 'company_name'];
+      const updates = {};
+      for (const f of allowedFields) {
+        if (body[f] !== undefined && body[f] !== null) updates[f] = String(body[f]).trim();
+      }
+      if (Object.keys(updates).length === 0) return jsonErr('沒有可更新的欄位');
+      updates.updated_at = new Date().toISOString();
+
+      const { error } = await supabase.from('erp_dealer_users').update(updates).eq('id', user.id);
+      if (error) return jsonErr(error.message, 500);
+      const { data: updated } = await supabase.from('erp_dealer_users').select('*').eq('id', user.id).maybeSingle();
+      return jsonOk({ user: sanitizeUser(updated || user), message: '資料已更新' });
+    }
+
     case 'change_password': {
       const { old_password, new_password } = body;
       if (!old_password || !new_password) return jsonErr('請填入舊密碼和新密碼');
@@ -382,5 +524,9 @@ function sanitizeUser(user) {
     can_see_stock: user.can_see_stock,
     can_place_order: user.can_place_order,
     notify_on_arrival: user.notify_on_arrival,
+    line_user_id: user.line_user_id || null,
+    linked_customer_id: user.linked_customer_id || null,
+    last_login_at: user.last_login_at || null,
+    created_at: user.created_at || null,
   };
 }
