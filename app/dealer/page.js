@@ -248,13 +248,20 @@ function CatalogTab({ token, user, roleConfig, cart, setCart }) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [stockOnly, setStockOnly] = useState(false);
+  const [error, setError] = useState('');
 
   const load = useCallback(async (p = page, q = search) => {
     setLoading(true);
+    setError('');
     try {
       const result = await dealerGet({ action: 'products', token, page: String(p), limit: '30', q, stock_only: stockOnly ? '1' : '0' });
       setProducts(result.products || []);
       setTotal(result.total || 0);
+    } catch (err) {
+      console.error('[CatalogTab load error]', err);
+      setError(err.message || '載入失敗');
+      setProducts([]);
+      setTotal(0);
     } finally { setLoading(false); }
   }, [token, page, search, stockOnly]);
 
@@ -290,12 +297,19 @@ function CatalogTab({ token, user, roleConfig, cart, setCart }) {
         </span>
       </div>
 
+      {error && (
+        <div style={{ padding: '14px 18px', borderRadius: 12, marginBottom: 16, fontSize: 13, background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
+          載入錯誤：{error}
+          <button className="qb-btn-ghost" onClick={() => load(page, search)} style={{ marginLeft: 12, fontSize: 11, padding: '4px 12px' }}>重試</button>
+        </div>
+      )}
+
       {loading ? (
         <div style={{ padding: 60, textAlign: 'center' }}>
           <div className="qb-shimmer" style={{ width: 200, height: 4, borderRadius: 2, margin: '0 auto 12px' }} />
           <span style={{ color: 'rgba(148,163,184,0.5)', fontSize: 12 }}>載入中...</span>
         </div>
-      ) : products.length === 0 ? (
+      ) : products.length === 0 && !error ? (
         <div style={{ color: 'rgba(148,163,184,0.5)', padding: 60, textAlign: 'center', fontSize: 13 }}>沒有找到商品</div>
       ) : (
         <div style={{ display: 'grid', gap: 8 }}>
