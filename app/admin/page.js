@@ -842,6 +842,7 @@ function CsvImportButton({ datasetId, onImported, compact = false }) {
                     }}
                   />
                 </label>
+              </div>
             </>
           )}
       </div>
