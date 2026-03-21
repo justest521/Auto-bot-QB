@@ -6228,8 +6228,9 @@ export default function AdminPage() {
                           key={t.id}
                           className="qb-sb-item"
                           onClick={() => setTab(t.id)}
-                          style={{ padding: '9px 14px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#2563eb' : '#475569', background: isActive ? '#eff6ff' : 'transparent', borderRadius: 10, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? 600 : 400 }}
+                          style={{ padding: '9px 14px 9px 20px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#2563eb' : '#475569', background: isActive ? '#eff6ff' : 'transparent', borderRadius: 10, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? 600 : 400 }}
                         >
+                          <span style={{ fontSize: 10, color: isActive ? '#93c5fd' : '#cbd5e1', flexShrink: 0 }}>{'\u2514'}</span>
                           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                           {pendingBadges[t.id] > 0 && (
                             <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{pendingBadges[t.id]}</span>
