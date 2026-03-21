@@ -4732,6 +4732,149 @@ function FinancialReport() {
   );
 }
 
+/* ========================================= DEALER MANAGEMENT ========================================= */
+function DealerUsers() {
+  const ROLE_MAP = { dealer: '經銷商', sales: '業務', technician: '維修技師' };
+  const ROLE_TONE = { dealer: 'blue', sales: '', technician: 'green' };
+  const [data, setData] = useState({ rows: [], total: 0 });
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState({ username: '', password: '', display_name: '', role: 'dealer', company_name: '', phone: '', email: '' });
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  const load = async () => { setLoading(true); try { setData(await apiGet({ action: 'dealer_users' })); } finally { setLoading(false); } };
+  useEffect(() => { load(); }, []);
+
+  const createUser = async () => {
+    setSaving(true); setMsg('');
+    try {
+      await apiPost({ action: 'create_dealer_user', ...form });
+      setMsg('帳號建立成功');
+      setShowCreate(false);
+      setForm({ username: '', password: '', display_name: '', role: 'dealer', company_name: '', phone: '', email: '' });
+      await load();
+    } catch (e) { setMsg(e.message); } finally { setSaving(false); }
+  };
+
+  const toggleStatus = async (user) => {
+    const newStatus = user.status === 'active' ? 'disabled' : 'active';
+    await apiPost({ action: 'update_dealer_user', user_id: user.id, status: newStatus });
+    await load();
+  };
+
+  const resetPw = async (user) => {
+    const pw = prompt(`重設 ${user.display_name} 的密碼為：`, '1234');
+    if (!pw) return;
+    await apiPost({ action: 'update_dealer_user', user_id: user.id, new_password: pw });
+    alert('密碼已重設');
+  };
+
+  return (
+    <div>
+      <PageLead eyebrow="DEALER USERS" title="經銷商/業務帳號" description="管理可登入訂貨入口的帳號，設定角色與權限。" action={<button onClick={() => setShowCreate(!showCreate)} style={S.btnPrimary}>{showCreate ? '取消' : '+ 新增帳號'}</button>} />
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#b42318' : '#15803d', marginBottom: 14 }}>{msg}</div>}
+      {showCreate && (
+        <div style={{ ...S.card, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
+            <div><label style={S.label}>帳號 *</label><input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} style={S.input} placeholder="小寫英數" /></div>
+            <div><label style={S.label}>密碼 *</label><input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} style={S.input} placeholder="至少 4 碼" /></div>
+            <div><label style={S.label}>姓名 *</label><input value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} style={S.input} /></div>
+            <div><label style={S.label}>角色</label><select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} style={S.input}><option value="dealer">經銷商</option><option value="sales">業務</option><option value="technician">維修技師</option></select></div>
+            <div><label style={S.label}>公司</label><input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} style={S.input} /></div>
+            <div><label style={S.label}>電話</label><input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} style={S.input} /></div>
+          </div>
+          <button onClick={createUser} disabled={saving} style={{ ...S.btnPrimary, opacity: saving ? 0.7 : 1 }}>{saving ? '建立中...' : '建立帳號'}</button>
+        </div>
+      )}
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="尚無帳號" /> : (
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 100px 130px 100px 160px', gap: 10, padding: '12px 16px', borderBottom: '2px solid #e6edf5', color: '#7b889b', fontSize: 11, fontWeight: 600 }}>
+            <div>帳號</div><div>姓名 / 公司</div><div>角色</div><div>電話</div><div>狀態</div><div>操作</div>
+          </div>
+          {data.rows.map((u, idx) => (
+            <div key={u.id} style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 100px 130px 100px 160px', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
+              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{u.username}</div>
+              <div><div style={{ fontSize: 13, fontWeight: 600, color: '#1c2740' }}>{u.display_name}</div>{u.company_name && <div style={{ fontSize: 11, color: '#617084' }}>{u.company_name}</div>}</div>
+              <div><span style={S.tag(ROLE_TONE[u.role] || '')}>{ROLE_MAP[u.role] || u.role}</span></div>
+              <div style={{ fontSize: 12, color: '#617084' }}>{u.phone || '-'}</div>
+              <div><span style={S.tag(u.status === 'active' ? 'green' : '')}>{u.status === 'active' ? '啟用' : '停用'}</span></div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button onClick={() => toggleStatus(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11 }}>{u.status === 'active' ? '停用' : '啟用'}</button>
+                <button onClick={() => resetPw(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11 }}>重設密碼</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DealerOrders() {
+  const [data, setData] = useState({ rows: [], total: 0 });
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState([]);
+  const [consolidating, setConsolidating] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [statusFilter, setStatusFilter] = useState('pending');
+
+  const STATUS_MAP = { pending: '待處理', confirmed: '已確認', purchasing: '採購中', partial_arrived: '部分到貨', arrived: '已到貨', shipped: '已出貨', completed: '已完成', cancelled: '已取消' };
+  const STATUS_TONE = { pending: 'yellow', confirmed: 'blue', purchasing: 'blue', arrived: 'green', shipped: 'green', completed: 'green', cancelled: '' };
+
+  const load = async () => { setLoading(true); try { setData(await apiGet({ action: 'dealer_orders', status: statusFilter })); } finally { setLoading(false); } };
+  useEffect(() => { load(); }, [statusFilter]);
+
+  const toggleSelect = (id) => setSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  const selectAll = () => {
+    const pendingIds = data.rows.filter((r) => r.status === 'pending').map((r) => r.id);
+    setSelected(selected.length === pendingIds.length ? [] : pendingIds);
+  };
+
+  const consolidate = async () => {
+    if (!selected.length) return;
+    if (!confirm(`確定將 ${selected.length} 筆訂單彙整為採購單？`)) return;
+    setConsolidating(true); setMsg('');
+    try {
+      const result = await apiPost({ action: 'consolidate_orders_to_po', order_ids: selected });
+      setMsg(result.message || '採購單建立成功');
+      setSelected([]);
+      await load();
+    } catch (e) { setMsg(e.message); } finally { setConsolidating(false); }
+  };
+
+  return (
+    <div>
+      <PageLead eyebrow="DEALER ORDERS" title="經銷商訂單" description="從經銷商/業務入口下的訂單，可勾選彙整為採購單。" action={selected.length > 0 ? <button onClick={consolidate} disabled={consolidating} style={{ ...S.btnPrimary, opacity: consolidating ? 0.7 : 1 }}>{consolidating ? '彙整中...' : `彙整 ${selected.length} 筆 → 採購單`}</button> : null} />
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 14 }}>{msg}</div>}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {[['', '全部'], ['pending', '待處理'], ['purchasing', '採購中'], ['arrived', '已到貨'], ['shipped', '已出貨']].map(([key, label]) => (
+          <button key={key} onClick={() => { setStatusFilter(key); setSelected([]); }} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: 12, background: statusFilter === key ? '#1976f3' : '#fff', color: statusFilter === key ? '#fff' : '#4b5563', borderColor: statusFilter === key ? '#1976f3' : '#dbe3ee' }}>{label}</button>
+        ))}
+      </div>
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="沒有訂單" /> : (
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px minmax(0,1fr)', gap: 10, padding: '12px 16px', borderBottom: '2px solid #e6edf5', color: '#7b889b', fontSize: 11, fontWeight: 600 }}>
+            <div><input type="checkbox" checked={selected.length > 0 && selected.length === data.rows.filter((r) => r.status === 'pending').length} onChange={selectAll} /></div>
+            <div>訂單號</div><div>下單人</div><div>日期</div><div>狀態</div><div style={{ textAlign: 'right' }}>金額</div><div>明細</div>
+          </div>
+          {data.rows.map((row, idx) => (
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px minmax(0,1fr)', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selected.includes(row.id) ? '#edf5ff' : idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
+              <div>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
+              <div style={{ fontSize: 12, color: '#1976f3', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
+              <div><div style={{ fontSize: 13, fontWeight: 600, color: '#1c2740' }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: 11, color: '#617084' }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div>
+              <div style={{ fontSize: 12, color: '#617084', ...S.mono }}>{row.order_date || '-'}</div>
+              <div><span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span></div>
+              <div style={{ fontSize: 13, color: '#129c59', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+              <div style={{ fontSize: 11, color: '#617084', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(row.items || []).map((i) => `${i.item_number_snapshot} x${i.qty}`).join(', ') || '-'}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ========================================= SIDEBAR & LAYOUT ========================================= */
 const SECTION_ICONS = {
   'ERP 總覽': '\u25C9',
@@ -4740,6 +4883,7 @@ const SECTION_ICONS = {
   'ERP 銷售出貨': '\u2B06',
   'ERP 倉儲管理': '\u2338',
   'ERP 分析報表': '\u2637',
+  '經銷商入口': '\u263A',
   'LINE 與系統': '\u269B',
 };
 
@@ -4800,6 +4944,14 @@ const SECTIONS = [
       { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
       { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
       { id: 'imports', label: '資料匯入', code: 'IMPT' },
+    ],
+  },
+  {
+    title: '經銷商入口',
+    accent: '#8b5cf6',
+    tabs: [
+      { id: 'dealer_users', label: '帳號管理', code: 'DUSR' },
+      { id: 'dealer_orders', label: '經銷商訂單', code: 'DORD' },
     ],
   },
   {
@@ -4876,6 +5028,8 @@ const TAB_COMPONENTS = {
   stock_adjustments: StockAdjustments,
   psi_report: PSIReport,
   financial_report: FinancialReport,
+  dealer_users: DealerUsers,
+  dealer_orders: DealerOrders,
 };
 
 export default function AdminPage() {
