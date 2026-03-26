@@ -119,119 +119,101 @@ function SaleDetailView({ sale, onBack, setTab }) {
           </div>
 
           {/* ====== Right sidebar ====== */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Status card */}
-            <div style={{ ...cardStyle, padding: '22px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={labelStyle}>目前狀態</div>
-              <span style={{ padding: '6px 16px', borderRadius: 20, fontSize: 14, fontWeight: 700, background: (s.status === 'paid' ? '#16a34a' : s.status === 'void' ? '#ef4444' : '#3b82f6') + '14', color: s.status === 'paid' ? '#16a34a' : s.status === 'void' ? '#ef4444' : '#3b82f6', border: `1px solid ${(s.status === 'paid' ? '#16a34a' : s.status === 'void' ? '#ef4444' : '#3b82f6')}30` }}>
-                {{ draft: '草稿', issued: '已開立', paid: '已收款', void: '作廢' }[String(s.status || 'issued').toLowerCase()] || s.status || '已開立'}
-              </span>
-            </div>
-
-            {/* Customer card */}
-            <div style={{ ...cardStyle, padding: '22px 24px' }}>
-              <div style={labelStyle}>客戶資訊</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 14, lineHeight: 1.3 }}>{s.customer_name || sale.customer_name || '未命名客戶'}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[
-                  { label: '業務', value: s.sales_person || sale.sales_person },
-                  { label: '發票號碼', value: s.invoice_number, mono: true },
-                  { label: '銷貨日期', value: s.sale_date || sale.sale_date, mono: true },
-                ].filter(f => f.value).map((f, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                    <span style={{ fontSize: 14, color: '#b0b8c4', flexShrink: 0, fontWeight: 600 }}>{f.label}</span>
-                    <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 700, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Profit card */}
-            <div style={{ ...cardStyle, padding: '22px 24px' }}>
-              <div style={labelStyle}>毛利分析</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: 14, color: '#b0b8c4', fontWeight: 600 }}>成本</span>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#374151', ...S.mono }}>{fmtP(s.cost || 0)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: 14, color: '#b0b8c4', fontWeight: 600 }}>毛利</span>
-                  <span style={{ fontSize: 18, fontWeight: 800, color: (s.gross_profit || 0) >= 0 ? '#059669' : '#ef4444', ...S.mono }}>{fmtP(s.gross_profit || 0)}</span>
-                </div>
-                {s.total > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: 14, color: '#b0b8c4', fontWeight: 600 }}>毛利率</span>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: '#374151', ...S.mono }}>{((s.gross_profit || 0) / s.total * 100).toFixed(1)}%</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Invoice card */}
-            {invoice && (
-              <div style={{ ...cardStyle, padding: '22px 24px' }}>
-                <div style={labelStyle}>發票資訊</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {[
-                    { label: '發票號碼', value: invoice.invoice_number, mono: true },
-                    { label: '發票類型', value: invoice.invoice_type },
-                    { label: '公司名稱', value: invoice.company_name },
-                    { label: '統編', value: invoice.tax_id, mono: true },
-                    { label: '金額', value: fmtP(invoice.amount), mono: true },
-                  ].filter(f => f.value).map((f, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                      <span style={{ fontSize: 14, color: '#b0b8c4', flexShrink: 0, fontWeight: 600 }}>{f.label}</span>
-                      <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 700, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Timeline card */}
-            {timeline && timeline.length > 0 && (
-              <div style={{ ...cardStyle, padding: '22px 24px' }}>
-                <div style={labelStyle}>狀態歷程</div>
-                <div style={{ position: 'relative', paddingLeft: 20 }}>
-                  {timeline.map((ev, i) => {
-                    const isLast = i === timeline.length - 1;
-                    const dotColor = ev.status === 'done' ? '#16a34a' : ev.status === 'pending' ? '#f59e0b' : ev.status === 'rejected' ? '#ef4444' : ev.status === 'expired' ? '#9ca3af' : '#d1d5db';
-                    const fmtTime = (t) => {
-                      if (!t) return '';
-                      const d = new Date(t);
-                      if (isNaN(d.getTime())) return typeof t === 'string' ? t.slice(0, 10) : '';
-                      const pad = (n) => String(n).padStart(2, '0');
-                      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-                    };
-                    return (
-                      <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 20, minHeight: isLast ? 'auto' : 44 }}>
-                        {!isLast && <div style={{ position: 'absolute', left: -12, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
-                        <div style={{ position: 'absolute', left: -16, top: 4, width: 10, height: 10, borderRadius: '50%', background: dotColor, border: '2px solid #fff', boxShadow: `0 0 0 2px ${dotColor}30` }} />
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: ev.status === 'rejected' ? '#ef4444' : ev.status === 'pending' ? '#f59e0b' : '#1f2937', lineHeight: 1.3 }}>{(() => {
-                            const text = ev.event || '';
-                            const saMatch = text.match(/(SA-\d+)/);
-                            const qtMatch = text.match(/(QT\d+)/);
-                            const poMatch = text.match(/(PO-[\w-]+)/);
-                            const soMatch = text.match(/(SO\d+)/);
-                            if (saMatch) { const parts = text.split(saMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, saMatch[1]); setTab?.('sales_documents'); }}>{saMatch[1]}</span>{parts[1]}</>; }
-                            if (qtMatch) { const parts = text.split(qtMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem('qb_quote_focus', qtMatch[1]); setTab?.('quotes'); }}>{qtMatch[1]}</span>{parts[1]}</>; }
-                            if (poMatch) { const parts = text.split(poMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem(PO_FOCUS_KEY, poMatch[1]); setTab?.('purchase_orders'); }}>{poMatch[1]}</span>{parts[1]}</>; }
-                            if (soMatch) { const parts = text.split(soMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem(ORDER_FOCUS_KEY, soMatch[1]); setTab?.('orders'); }}>{soMatch[1]}</span>{parts[1]}</>; }
-                            return text;
-                          })()}</div>
-                          {ev.time && <div style={{ fontSize: 14, color: '#9ca3af', marginTop: 2, ...S.mono, fontWeight: 600 }}>{fmtTime(ev.time)}</div>}
-                          {ev.by && <div style={{ fontSize: 14, color: '#6b7280', marginTop: 1, fontWeight: 600 }}>由 {ev.by}</div>}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* PDF button */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* 1. PDF button */}
             <button onClick={() => window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+
+            {/* 2. Customer card */}
+            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+              <div style={labelStyle}>客戶資訊</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>{s.customer_name || sale.customer_name || '未命名客戶'}</div>
+              {[
+                { label: '業務', value: s.sales_person || sale.sales_person },
+                { label: '發票號碼', value: s.invoice_number, mono: true },
+                { label: '銷貨日期', value: s.sale_date || sale.sale_date, mono: true },
+              ].filter(f => f.value).map((f, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
+                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...(f.mono ? S.mono : {}), overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* 3. Unified Sales Record Timeline */}
+            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+              <div style={labelStyle}>銷貨紀錄</div>
+              {(() => {
+                const fmtTime = (t) => { if (!t) return ''; const d = new Date(t); if (isNaN(d.getTime())) return typeof t === 'string' ? t.slice(0, 10) : ''; const pad = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+                const saleStatusMap = { draft: '草稿', issued: '已開立', paid: '已收款', void: '作廢' };
+                const saleColorMap = { draft: '#f59e0b', issued: '#3b82f6', paid: '#16a34a', void: '#ef4444' };
+
+                const entries = [];
+                const statusKey = String(s.status || 'issued').toLowerCase();
+
+                // 銷貨建立
+                entries.push({ dot: '#16a34a', label: '銷貨建立', ref: s.slip_number, refType: 'sale', time: s.sale_date, status: 'done' });
+
+                // 審核狀態（如果有timeline中的審核信息）
+                const approvalEv = timeline?.find(e => (e.event || '').match(/審核|approval|批准/i));
+                if (approvalEv || statusKey !== 'draft') {
+                  entries.push({ dot: statusKey === 'draft' ? '#f59e0b' : '#16a34a', label: '審核', detail: saleStatusMap[statusKey] || statusKey, status: statusKey === 'issued' || statusKey === 'paid' ? 'done' : statusKey === 'void' ? 'rejected' : 'pending' });
+                }
+
+                // 發票
+                if (invoice || s.invoice_number) {
+                  entries.push({ dot: s.invoice_number ? '#16a34a' : '#d1d5db', label: '發票', ref: s.invoice_number, refType: 'invoice', detail: invoice?.invoice_type || (s.invoice_number ? '已開' : '未開'), status: s.invoice_number ? 'done' : 'pending' });
+                }
+
+                // 毛利信息
+                entries.push({ dot: (s.gross_profit || 0) >= 0 ? '#16a34a' : '#ef4444', label: '毛利', detail: `NT$${Number(s.gross_profit || 0).toLocaleString()} · ${s.total > 0 ? ((s.gross_profit || 0) / s.total * 100).toFixed(1) : '0'}%`, status: (s.gross_profit || 0) >= 0 ? 'done' : 'warning' });
+
+                // 付款狀態
+                entries.push({ dot: statusKey === 'paid' ? '#16a34a' : '#d1d5db', label: '付款', detail: { draft: '草稿', issued: '未付款', paid: '已收款', void: '作廢' }[statusKey] || statusKey, status: statusKey === 'paid' ? 'done' : statusKey === 'issued' ? 'pending' : statusKey === 'void' ? 'rejected' : 'pending' });
+
+                // 其他timeline事件
+                timeline?.forEach(ev => {
+                  const eventText = ev.event || '';
+                  if (!eventText.match(/銷貨|審核|approval|批准/i) && eventText.trim()) {
+                    const dotColor = ev.status === 'done' ? '#16a34a' : ev.status === 'pending' ? '#f59e0b' : ev.status === 'rejected' ? '#ef4444' : '#d1d5db';
+                    entries.push({ dot: dotColor, label: eventText, time: ev.time, status: ev.status || 'pending' });
+                  }
+                });
+
+                return (
+                  <div style={{ position: 'relative', paddingLeft: 18 }}>
+                    {entries.map((e, i) => {
+                      const isLast = i === entries.length - 1;
+                      const isCurrent = e.status === 'current' || e.status === 'warning';
+                      return (
+                        <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 14, minHeight: isLast ? 'auto' : 28 }}>
+                          {!isLast && <div style={{ position: 'absolute', left: -11, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
+                          <div style={{ position: 'absolute', left: -14, top: 3, width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8, borderRadius: '50%', background: e.dot, border: '2px solid #fff', boxShadow: isCurrent ? `0 0 0 3px ${e.dot}25` : `0 0 0 1.5px ${e.dot}30` }} />
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', lineHeight: 1.3 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
+                            {e.ref && (
+                              <span style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => {
+                                if (e.refType === 'sale') { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
+                                else if (e.refType === 'invoice') { /* handle invoice click if needed */ }
+                              }}>{e.ref}</span>
+                            )}
+                            {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.detailColor || (e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af'), background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
+                          </div>
+                          {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* 4. Remark card */}
+            {s.remark && (
+              <div style={{ ...cardStyle, padding: '16px 20px' }}>
+                <div style={labelStyle}>備註</div>
+                <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontWeight: 700 }}>{s.remark}</div>
+              </div>
+            )}
           </div>
         </div>
       )}

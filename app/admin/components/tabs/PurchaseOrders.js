@@ -172,74 +172,122 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Status card */}
-            <div style={{ ...cardStyle, padding: '22px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={labelStyle}>目前狀態</div>
-              <span style={{ padding: '6px 16px', borderRadius: 20, fontSize: 14, fontWeight: 700, background: `${PO_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: PO_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${PO_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
-                {PO_STATUS_MAP[statusKey] || statusKey}
-              </span>
+            {/* 1. PDF button */}
+            <button onClick={() => window.open(`/api/pdf?type=po&id=${po.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+
+            {/* 2. Vendor card */}
+            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+              <div style={labelStyle}>廠商資訊</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>廠商 ID: {po.vendor_id || '未指定'}</div>
             </div>
 
-            {/* Vendor card */}
-            {po.vendor_id && (
-              <div style={{ ...cardStyle, padding: '22px 24px' }}>
-                <div style={labelStyle}>廠商資訊</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', lineHeight: 1.3 }}>廠商 ID: {po.vendor_id}</div>
-              </div>
-            )}
+            {/* 3. Unified record timeline card - combine source order + creation + approval + receiving */}
+            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+              <div style={labelStyle}>採購記錄</div>
+              {(() => {
+                const fmtTime = (t) => {
+                  if (!t) return '';
+                  const d = new Date(t);
+                  if (isNaN(d.getTime())) return typeof t === 'string' ? t.slice(0, 10) : '';
+                  const pad = (n) => String(n).padStart(2, '0');
+                  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                };
+                const makeClickable = (text) => {
+                  const saMatch = text.match(/(SA-\d+)/);
+                  const qtMatch = text.match(/(QT\d+)/);
+                  const poMatch = text.match(/(PO-[\w-]+)/);
+                  const soMatch = text.match(/(SO\d+)/);
+                  const linkStyle = { color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' };
+                  if (saMatch) { const p = text.split(saMatch[1]); return <>{p[0]}<span style={linkStyle} onClick={() => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, saMatch[1]); setTab?.('sales_documents'); }}>{saMatch[1]}</span>{p[1]}</>; }
+                  if (qtMatch) { const p = text.split(qtMatch[1]); return <>{p[0]}<span style={linkStyle} onClick={() => { window.localStorage.setItem('qb_quote_focus', qtMatch[1]); setTab?.('quotes'); }}>{qtMatch[1]}</span>{p[1]}</>; }
+                  if (poMatch) { const p = text.split(poMatch[1]); return <>{p[0]}<span style={linkStyle} onClick={() => { window.localStorage.setItem(PO_FOCUS_KEY, poMatch[1]); setTab?.('purchase_orders'); }}>{poMatch[1]}</span>{p[1]}</>; }
+                  if (soMatch) { const p = text.split(soMatch[1]); return <>{p[0]}<span style={linkStyle} onClick={() => { window.localStorage.setItem(ORDER_FOCUS_KEY, soMatch[1]); setTab?.('orders'); }}>{soMatch[1]}</span>{p[1]}</>; }
+                  return text;
+                };
 
-            {/* Timeline card */}
-            {timeline && timeline.length > 0 && (
-              <div style={{ ...cardStyle, padding: '22px 24px' }}>
-                <div style={labelStyle}>狀態歷程</div>
-                <div style={{ position: 'relative', paddingLeft: 20 }}>
-                  {timeline.map((ev, i) => {
-                    const isLast = i === timeline.length - 1;
-                    const dotColor = ev.status === 'done' ? '#16a34a' : ev.status === 'pending' ? '#f59e0b' : ev.status === 'rejected' ? '#ef4444' : ev.status === 'expired' ? '#9ca3af' : '#d1d5db';
-                    const fmtTime = (t) => {
-                      if (!t) return '';
-                      const d = new Date(t);
-                      if (isNaN(d.getTime())) return typeof t === 'string' ? t.slice(0, 10) : '';
-                      const pad = (n) => String(n).padStart(2, '0');
-                      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-                    };
-                    return (
-                      <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 20, minHeight: isLast ? 'auto' : 44 }}>
-                        {!isLast && <div style={{ position: 'absolute', left: -12, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
-                        <div style={{ position: 'absolute', left: -16, top: 4, width: 10, height: 10, borderRadius: '50%', background: dotColor, border: '2px solid #fff', boxShadow: `0 0 0 2px ${dotColor}30` }} />
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: ev.status === 'rejected' ? '#ef4444' : ev.status === 'pending' ? '#f59e0b' : '#1f2937', lineHeight: 1.3 }}>{(() => {
-                            const text = ev.event || '';
-                            const saMatch = text.match(/(SA-\d+)/);
-                            const qtMatch = text.match(/(QT\d+)/);
-                            const poMatch = text.match(/(PO-[\w-]+)/);
-                            const soMatch = text.match(/(SO\d+)/);
-                            if (saMatch) { const parts = text.split(saMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, saMatch[1]); setTab?.('sales_documents'); }}>{saMatch[1]}</span>{parts[1]}</>; }
-                            if (qtMatch) { const parts = text.split(qtMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem('qb_quote_focus', qtMatch[1]); setTab?.('quotes'); }}>{qtMatch[1]}</span>{parts[1]}</>; }
-                            if (poMatch) { const parts = text.split(poMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem(PO_FOCUS_KEY, poMatch[1]); setTab?.('purchase_orders'); }}>{poMatch[1]}</span>{parts[1]}</>; }
-                            if (soMatch) { const parts = text.split(soMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem(ORDER_FOCUS_KEY, soMatch[1]); setTab?.('orders'); }}>{soMatch[1]}</span>{parts[1]}</>; }
-                            return text;
-                          })()}</div>
-                          {ev.time && <div style={{ fontSize: 14, color: '#9ca3af', marginTop: 2, ...S.mono, fontWeight: 600 }}>{fmtTime(ev.time)}</div>}
-                          {ev.by && <div style={{ fontSize: 14, color: '#6b7280', marginTop: 1, fontWeight: 600 }}>由 {ev.by}</div>}
+                // Build unified timeline entries
+                const entries = [];
+                const PO_STATUS_COLOR_MAP = { draft: '#f59e0b', sent: '#3b82f6', confirmed: '#16a34a', shipped: '#059669', received: '#10b981', rejected: '#ef4444', cancelled: '#9ca3af' };
+
+                // Source order (from timeline if linked)
+                const sourceOrder = timeline.find(e => (e.event || '').match(/來源訂單|SO\d+/));
+                if (sourceOrder && sourceOrder.event) {
+                  const soMatch = (sourceOrder.event || '').match(/(SO\d+)/);
+                  entries.push({ dot: '#3b82f6', label: '來源訂單', ref: soMatch?.[1], refType: 'order', time: sourceOrder.time, status: 'done' });
+                }
+
+                // PO created
+                entries.push({ dot: '#3b82f6', label: '採購建立', ref: po.po_no, time: po.po_date, status: 'done' });
+
+                // Approval status
+                const approvalEv = timeline.find(e => (e.event || '').match(/審核|確認/));
+                if (statusKey === 'confirmed' || statusKey === 'shipped' || statusKey === 'received') {
+                  entries.push({ dot: '#16a34a', label: '已審核', detail: '已確認', time: approvalEv?.time, status: 'done' });
+                } else if (statusKey === 'sent') {
+                  entries.push({ dot: '#2563eb', label: '待審核', detail: '待確認', time: approvalEv?.time, status: 'current' });
+                } else if (statusKey === 'rejected') {
+                  entries.push({ dot: '#ef4444', label: '審核', detail: '已駁回', time: approvalEv?.time, status: 'rejected' });
+                }
+
+                // Receiving status
+                const receivingEv = timeline.find(e => (e.event || '').match(/到貨|received/));
+                if (statusKey === 'received' || statusKey === 'shipped') {
+                  entries.push({ dot: '#16a34a', label: '到貨', detail: statusKey === 'received' ? '已到貨' : '出貨中', time: receivingEv?.time, status: statusKey === 'received' ? 'done' : 'current' });
+                } else if (statusKey === 'confirmed') {
+                  entries.push({ dot: '#d1d5db', label: '到貨', detail: '待到貨', status: 'pending' });
+                }
+
+                // Other timeline events
+                timeline.forEach(ev => {
+                  const eventText = ev.event || '';
+                  if (!eventText.match(/建立訂單|審核|確認|到貨|SO\d+/) && !entries.some(e => e.ref && eventText.includes(e.ref))) {
+                    entries.push({
+                      dot: '#6b7280',
+                      label: eventText.substring(0, 12),
+                      detail: eventText.length > 12 ? eventText.substring(12) : '',
+                      time: ev.time,
+                      status: 'pending'
+                    });
+                  }
+                });
+
+                return (
+                  <div style={{ position: 'relative', paddingLeft: 18 }}>
+                    {entries.length > 0 ? entries.map((e, i) => {
+                      const isLast = i === entries.length - 1;
+                      const isCurrent = e.status === 'current';
+                      return (
+                        <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 14, minHeight: isLast ? 'auto' : 28 }}>
+                          {!isLast && <div style={{ position: 'absolute', left: -11, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
+                          <div style={{ position: 'absolute', left: -14, top: 3, width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8, borderRadius: '50%', background: e.dot, border: '2px solid #fff', boxShadow: isCurrent ? `0 0 0 3px ${e.dot}25` : `0 0 0 1.5px ${e.dot}30` }} />
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', lineHeight: 1.3 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
+                            {e.ref && (() => {
+                              const clickHandler = e.refType === 'order' ? () => { window.localStorage.setItem(ORDER_FOCUS_KEY, e.ref); setTab?.('orders'); }
+                                : e.refType === 'po' ? () => { window.localStorage.setItem(PO_FOCUS_KEY, e.ref); setTab?.('purchase_orders'); }
+                                : null;
+                              return <span style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
+                            })()}
+                            {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.status === 'done' ? '#6b7280' : isCurrent ? '#1d4ed8' : '#9ca3af', background: isCurrent ? `${e.dot}14` : 'transparent', padding: isCurrent ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
+                          </div>
+                          {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                      );
+                    }) : (
+                      <div style={{ fontSize: 13, color: '#c4cad3' }}>無記錄</div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
 
-            {/* Remark card */}
+            {/* 4. Remark card */}
             {po.remark && (
-              <div style={{ ...cardStyle, padding: '22px 24px' }}>
+              <div style={{ ...cardStyle, padding: '16px 20px' }}>
                 <div style={labelStyle}>備註</div>
-                <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontWeight: 700 }}>{po.remark}</div>
+                <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontWeight: 700 }}>{po.remark}</div>
               </div>
             )}
-
-            {/* PDF button */}
-            <button onClick={() => window.open(`/api/pdf?type=po&id=${po.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
           </div>
         </div>
       )}
