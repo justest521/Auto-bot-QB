@@ -139,6 +139,38 @@ export default function Approvals() {
                 </table>
               </div>
             )}
+
+            {/* Customer history */}
+            {a.customer_history && (
+              <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 18px', background: '#f8fafc' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>客戶歷史</div>
+                  <div style={{ fontSize: 11, color: '#6b7280' }}>共 {a.customer_history.order_count} 筆訂單</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#2563eb', ...S.mono }}>{fmtP(a.customer_history.total_spent)}</div>
+                </div>
+                {a.customer_history.recent_orders && a.customer_history.recent_orders.length > 0 && (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {a.customer_history.recent_orders.map((o, idx) => (
+                      <div key={idx} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px', fontSize: 11 }}>
+                        <span style={{ ...S.mono, color: '#1f2937', fontWeight: 600 }}>{o.order_no}</span>
+                        <span style={{ color: '#6b7280', margin: '0 4px' }}>{o.date}</span>
+                        <span style={{ ...S.mono, color: '#10b981', fontWeight: 700 }}>{fmtP(o.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Approved/Rejected info */}
+            {a.status !== 'pending' && (
+              <div style={{ borderTop: '1px solid #f0f0f0', padding: '10px 18px', background: a.status === 'approved' ? '#f0fdf4' : '#fef2f2', display: 'flex', gap: 12, alignItems: 'center', fontSize: 12 }}>
+                <span style={{ fontWeight: 700, color: a.status === 'approved' ? '#16a34a' : '#dc2626' }}>{a.status === 'approved' ? '已核准' : '已駁回'}</span>
+                <span style={{ color: '#6b7280' }}>審核人：{a.approved_by || '-'}</span>
+                <span style={{ color: '#6b7280' }}>{a.approved_at?.slice(0, 16).replace('T', ' ')}</span>
+                {a.rejected_reason && <span style={{ color: '#dc2626' }}>原因：{a.rejected_reason}</span>}
+              </div>
+            )}
           </div>
         );
       })}
