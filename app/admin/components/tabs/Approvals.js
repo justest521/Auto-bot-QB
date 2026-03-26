@@ -98,7 +98,7 @@ export default function Approvals() {
                 </div>
                 <div style={{ textAlign: 'right', minWidth: 120 }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: a.amount ? '#10b981' : '#9ca3af', ...S.mono }}>{a.amount ? fmtP(a.amount) : '-'}</div>
-                  {items.length > 0 && <div style={{ fontSize: 11, color: '#6b7280' }}>{items.length} 品項</div>}
+                  {items.length > 0 && <div style={{ fontSize: 11, color: '#6b7280' }}>{items.length} 品項 {isExpanded ? '▲' : '▼'}</div>}
                 </div>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                   <button onClick={() => { const pdfType = a.doc_type === 'purchase_order' ? 'purchase_order' : a.doc_type === 'quote' ? 'quote' : a.doc_type === 'sale' ? 'sale' : 'order'; window.open(`/api/pdf?type=${pdfType}&id=${a.doc_id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 11 }}>PDF</button>
@@ -112,8 +112,8 @@ export default function Approvals() {
               </div>
             </div>
 
-            {/* Item details - always shown */}
-            {items.length > 0 && (
+            {/* Item details - collapsible */}
+            {isExpanded && items.length > 0 && (
               <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 18px', background: '#fafbfd' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
@@ -141,7 +141,7 @@ export default function Approvals() {
             )}
 
             {/* Customer history */}
-            {a.customer_history && (
+            {isExpanded && a.customer_history && (
               <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 18px', background: '#f8fafc' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>客戶歷史</div>
