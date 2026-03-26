@@ -388,148 +388,10 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
 
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* Order Progress Timeline */}
-            {(() => {
-              const hasQuote = timeline.some(e => (e.event || '').match(/QT\d+|報價/));
-              const hasApproval = !!approvalData;
-              const hasPO = linkedPOs.length > 0;
-              const hasSale = linkedSales.length > 0;
-              const hasReturn = timeline.some(e => (e.event || '').match(/退貨|退回/));
-              const insufficientCount = items.filter(i => i.stock_status === 'partial').length;
-              const noStockCount = items.filter(i => i.stock_status === 'no_stock').length;
+            {/* 1. PDF button */}
+            <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
 
-              // Build stages dynamically
-              const stages = [];
-              // 1. 報價
-              if (hasQuote) {
-                stages.push({ key: 'quote', label: '報價', status: 'done', icon: '✓', detail: timeline.find(e => (e.event || '').match(/QT\d+|報價/))?.event?.match(/(QT\d+)/)?.[1] || '' });
-              }
-              // 2. 訂單建立
-              stages.push({ key: 'order', label: '訂單建立', status: 'done', icon: '✓', detail: order.order_no });
-              // 3. 審核
-              if (hasApproval || statusKey === 'confirmed') {
-                const approvalStatus = approvalData?.status;
-                stages.push({
-                  key: 'approval', label: '審核簽核',
-                  status: approvalStatus === 'approved' || statusKey === 'confirmed' ? 'done' : approvalStatus === 'rejected' ? 'rejected' : approvalStatus === 'pending' ? 'current' : 'pending',
-                  icon: approvalStatus === 'approved' || statusKey === 'confirmed' ? '✓' : approvalStatus === 'rejected' ? '✕' : approvalStatus === 'pending' ? '…' : '○',
-                  detail: approvalStatus === 'approved' ? '已核准' : approvalStatus === 'rejected' ? '已駁回' : approvalStatus === 'pending' ? '待審核' : statusKey === 'confirmed' ? '已確認' : '',
-                });
-              }
-              // 4. 採購
-              if (hasPO) {
-                const allReceived = linkedPOs.every(p => p.status === 'received');
-                const anyConfirmed = linkedPOs.some(p => p.status === 'confirmed');
-                stages.push({
-                  key: 'purchase', label: '採購進貨',
-                  status: allReceived ? 'done' : anyConfirmed ? 'current' : 'pending',
-                  icon: allReceived ? '✓' : anyConfirmed ? '…' : '○',
-                  detail: `${linkedPOs.length} 張採購單` + (allReceived ? '（已到貨）' : ''),
-                });
-              }
-              // 5. 庫存
-              stages.push({
-                key: 'stock', label: '庫存確認',
-                status: noStockCount === 0 && insufficientCount === 0 ? 'done' : insufficientCount > 0 ? 'warning' : 'current',
-                icon: noStockCount === 0 && insufficientCount === 0 ? '✓' : '!',
-                detail: noStockCount === 0 && insufficientCount === 0 ? `全部充足 (${items.length}項)` : `充足${sufficientCount} 不足${insufficientCount} 無庫存${noStockCount}`,
-              });
-              // 6. 銷貨轉換
-              if (hasSale || items.some(i => Number(i.sold_qty || 0) > 0)) {
-                const totalQty = items.reduce((s, i) => s + Number(i.qty || 0), 0);
-                const totalSold = items.reduce((s, i) => s + Number(i.sold_qty || 0), 0);
-                const allSold = totalSold >= totalQty && totalQty > 0;
-                stages.push({
-                  key: 'sale', label: '銷貨轉換',
-                  status: allSold ? 'done' : totalSold > 0 ? 'current' : 'pending',
-                  icon: allSold ? '✓' : totalSold > 0 ? '…' : '○',
-                  detail: `${totalSold}/${totalQty} 已轉銷` + (linkedSales.length > 0 ? ` (${linkedSales.length}張)` : ''),
-                });
-              }
-              // 7. 付款
-              stages.push({
-                key: 'payment', label: '付款',
-                status: payKey === 'paid' ? 'done' : payKey === 'partial' ? 'current' : 'pending',
-                icon: payKey === 'paid' ? '✓' : payKey === 'partial' ? '…' : '○',
-                detail: PAY_STATUS_MAP[payKey] || payKey,
-              });
-              // 8. 出貨
-              stages.push({
-                key: 'shipping', label: '出貨',
-                status: shipKey === 'delivered' ? 'done' : shipKey === 'shipped' ? 'current' : 'pending',
-                icon: shipKey === 'delivered' ? '✓' : shipKey === 'shipped' ? '…' : '○',
-                detail: SHIP_STATUS_MAP[shipKey] || shipKey,
-              });
-              // 9. 退貨 (optional)
-              if (hasReturn) {
-                stages.push({ key: 'return', label: '退貨處理', status: 'warning', icon: '!', detail: '有退貨紀錄' });
-              }
-              // 10. 完成
-              const isCompleted = statusKey === 'completed' || (payKey === 'paid' && (shipKey === 'shipped' || shipKey === 'delivered'));
-              stages.push({
-                key: 'complete', label: '完成',
-                status: isCompleted ? 'done' : 'pending',
-                icon: isCompleted ? '✓' : '○',
-                detail: isCompleted ? '訂單完成' : '',
-              });
-
-              // Find current step index
-              const currentIdx = stages.findIndex(s => s.status === 'current' || s.status === 'warning');
-
-              const COLOR_MAP = {
-                done: { dot: '#16a34a', bg: '#dcfce7', text: '#15803d', line: '#16a34a' },
-                current: { dot: '#2563eb', bg: '#dbeafe', text: '#1d4ed8', line: '#93c5fd' },
-                warning: { dot: '#d97706', bg: '#fef3c7', text: '#92400e', line: '#fcd34d' },
-                rejected: { dot: '#dc2626', bg: '#fee2e2', text: '#991b1b', line: '#fca5a5' },
-                pending: { dot: '#d1d5db', bg: '#f3f4f6', text: '#9ca3af', line: '#e5e7eb' },
-              };
-
-              return (
-                <div style={{ ...cardStyle, padding: '16px 20px' }}>
-                  <div style={labelStyle}>訂單進度</div>
-                  <div style={{ position: 'relative', paddingLeft: 20 }}>
-                    {stages.map((s, i) => {
-                      const isLast = i === stages.length - 1;
-                      const c = COLOR_MAP[s.status] || COLOR_MAP.pending;
-                      const isCurrent = s.status === 'current' || s.status === 'warning';
-                      return (
-                        <div key={s.key} style={{ position: 'relative', paddingBottom: isLast ? 0 : 12, minHeight: isLast ? 'auto' : 32 }}>
-                          {/* Connecting line */}
-                          {!isLast && <div style={{ position: 'absolute', left: -12, top: 16, width: 2, bottom: 0, background: c.line }} />}
-                          {/* Dot */}
-                          <div style={{
-                            position: 'absolute', left: -17, top: 2, width: isCurrent ? 12 : 10, height: isCurrent ? 12 : 10,
-                            borderRadius: '50%', background: c.dot, border: `2px solid ${c.bg}`,
-                            boxShadow: isCurrent ? `0 0 0 3px ${c.dot}30` : 'none',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 7, color: '#fff', fontWeight: 800,
-                          }}>{s.status === 'done' ? '' : ''}</div>
-                          {/* Content */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 20 }}>
-                            <span style={{
-                              fontSize: isCurrent ? 13 : 12, fontWeight: isCurrent ? 800 : 600,
-                              color: s.status === 'done' ? '#15803d' : s.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af',
-                            }}>
-                              {s.status === 'done' ? '✓' : s.status === 'rejected' ? '✕' : isCurrent ? '●' : '○'} {s.label}
-                            </span>
-                            {s.detail && (
-                              <span style={{
-                                fontSize: 11, color: c.text, fontWeight: 600,
-                                background: isCurrent || s.status === 'warning' || s.status === 'rejected' ? c.bg : 'transparent',
-                                padding: isCurrent || s.status === 'warning' || s.status === 'rejected' ? '1px 8px' : 0,
-                                borderRadius: 4, ...S.mono,
-                              }}>{s.detail}</span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Customer card - compact */}
+            {/* 2. Customer card */}
             <div style={{ ...cardStyle, padding: '16px 20px' }}>
               <div style={labelStyle}>客戶資訊</div>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
@@ -544,94 +406,116 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               ))}
             </div>
 
-            {/* Linked Sales card - compact */}
-            {linkedSales.length > 0 && (
-              <div style={{ ...cardStyle, padding: '16px 20px' }}>
-                <div style={labelStyle}>銷貨紀錄</div>
-                {linkedSales.map((sale, i) => {
-                  const saleStatusMap = { draft: '草稿', issued: '已開立', paid: '已收款', void: '作廢' };
-                  const saleColorMap = { draft: '#f59e0b', issued: '#3b82f6', paid: '#16a34a', void: '#ef4444' };
-                  const sk = String(sale.status || 'draft').toLowerCase();
-                  const sc = saleColorMap[sk] || '#6b7280';
-                  return (
-                    <div key={sale.id || i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: i < linkedSales.length - 1 ? 6 : 0, marginBottom: i < linkedSales.length - 1 ? 6 : 0, borderBottom: i < linkedSales.length - 1 ? '1px solid #f5f6f8' : 'none' }}>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: 'pointer' }} onClick={() => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, sale.slip_number); setTab?.('sales_documents'); }}>{sale.slip_number}</div>
-                        <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, marginTop: 1 }}>{sale.sale_date} · {sale.total_qty != null ? `${sale.total_qty}件` : ''} · NT${Number(sale.total || 0).toLocaleString()}</div>
-                      </div>
-                      <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: `${sc}14`, color: sc, border: `1px solid ${sc}30` }}>{saleStatusMap[sk] || sk}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {/* 3. Combined Order Record — progress + sales + POs + timeline */}
+            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+              <div style={labelStyle}>訂單記錄</div>
+              {(() => {
+                const fmtTime = (t) => { if (!t) return ''; const d = new Date(t); if (isNaN(d.getTime())) return typeof t === 'string' ? t.slice(0, 10) : ''; const pad = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+                const makeClickable = (text) => {
+                  const saMatch = text.match(/(SA-\d+)/);
+                  const qtMatch = text.match(/(QT\d+)/);
+                  const poMatch = text.match(/(PO-[\w-]+)/);
+                  const soMatch = text.match(/(SO\d+)/);
+                  const linkStyle = { color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' };
+                  if (saMatch) { const p = text.split(saMatch[1]); return <>{p[0]}<span style={linkStyle} onClick={() => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, saMatch[1]); setTab?.('sales_documents'); }}>{saMatch[1]}</span>{p[1]}</>; }
+                  if (qtMatch) { const p = text.split(qtMatch[1]); return <>{p[0]}<span style={linkStyle} onClick={() => { window.localStorage.setItem('qb_quote_focus', qtMatch[1]); setTab?.('quotes'); }}>{qtMatch[1]}</span>{p[1]}</>; }
+                  if (poMatch) { const p = text.split(poMatch[1]); return <>{p[0]}<span style={linkStyle} onClick={() => { window.localStorage.setItem(PO_FOCUS_KEY, poMatch[1]); setTab?.('purchase_orders'); }}>{poMatch[1]}</span>{p[1]}</>; }
+                  if (soMatch) { const p = text.split(soMatch[1]); return <>{p[0]}<span style={linkStyle} onClick={() => { window.localStorage.setItem(ORDER_FOCUS_KEY, soMatch[1]); setTab?.('orders'); }}>{soMatch[1]}</span>{p[1]}</>; }
+                  return text;
+                };
 
-            {/* Linked POs card - compact */}
-            {linkedPOs.length > 0 && (
-              <div style={{ ...cardStyle, padding: '16px 20px' }}>
-                <div style={labelStyle}>採購紀錄</div>
-                {linkedPOs.map((po, i) => {
-                  const poStatusMap = { draft: '草稿', confirmed: '已確認', received: '已到貨', cancelled: '已取消' };
-                  const poColorMap = { draft: '#f59e0b', confirmed: '#3b82f6', received: '#16a34a', cancelled: '#ef4444' };
+                // Build unified timeline entries
+                const entries = [];
+                const saleStatusMap = { draft: '草稿', issued: '已開立', paid: '已收款', void: '作廢' };
+                const saleColorMap = { draft: '#f59e0b', issued: '#3b82f6', paid: '#16a34a', void: '#ef4444' };
+                const poStatusMap = { draft: '草稿', confirmed: '已確認', received: '已到貨', cancelled: '已取消' };
+                const poColorMap = { draft: '#f59e0b', confirmed: '#3b82f6', received: '#16a34a', cancelled: '#ef4444' };
+
+                // Progress stages as entries
+                const hasQuote = timeline.some(e => (e.event || '').match(/QT\d+|報價/));
+                const insufficientCount = items.filter(i => i.stock_status === 'partial').length;
+                const noStockCount = items.filter(i => i.stock_status === 'no_stock').length;
+                const totalQty = items.reduce((s, i) => s + Number(i.qty || 0), 0);
+                const totalSold = items.reduce((s, i) => s + Number(i.sold_qty || 0), 0);
+
+                // Quote
+                if (hasQuote) {
+                  const qtEv = timeline.find(e => (e.event || '').match(/QT\d+|報價/));
+                  const qtNo = (qtEv?.event || '').match(/(QT\d+)/)?.[1] || '';
+                  entries.push({ dot: '#16a34a', label: '報價', ref: qtNo, refType: 'quote', time: qtEv?.time, status: 'done' });
+                }
+                // Order created
+                const orderEv = timeline.find(e => (e.event || '').match(/建立訂單/));
+                entries.push({ dot: '#16a34a', label: '訂單建立', ref: order.order_no, time: orderEv?.time || order.created_at, status: 'done' });
+                // Approval
+                if (approvalData || statusKey === 'confirmed') {
+                  const as = approvalData?.status;
+                  const dotColor = (as === 'approved' || statusKey === 'confirmed') ? '#16a34a' : as === 'rejected' ? '#dc2626' : as === 'pending' ? '#2563eb' : '#d1d5db';
+                  const statusText = as === 'approved' ? '已核准' : as === 'rejected' ? '已駁回' : as === 'pending' ? '待審核' : '已確認';
+                  entries.push({ dot: dotColor, label: '審核簽核', detail: statusText, time: approvalData?.approved_at || approvalData?.created_at, status: as === 'approved' || statusKey === 'confirmed' ? 'done' : as === 'pending' ? 'current' : as === 'rejected' ? 'rejected' : 'pending' });
+                }
+                // POs
+                linkedPOs.forEach(po => {
                   const pk = String(po.status || 'draft').toLowerCase();
                   const pc = poColorMap[pk] || '#6b7280';
-                  return (
-                    <div key={po.id || i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: i < linkedPOs.length - 1 ? 6 : 0, marginBottom: i < linkedPOs.length - 1 ? 6 : 0, borderBottom: i < linkedPOs.length - 1 ? '1px solid #f5f6f8' : 'none' }}>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: 'pointer' }} onClick={() => { window.localStorage.setItem(PO_FOCUS_KEY, po.po_no); setTab?.('purchase_orders'); }}>{po.po_no}</div>
-                        <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, marginTop: 1 }}>{po.po_date || ''}</div>
-                      </div>
-                      <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: `${pc}14`, color: pc, border: `1px solid ${pc}30` }}>{poStatusMap[pk] || pk}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                  entries.push({ dot: pc, label: '採購', ref: po.po_no, refType: 'po', detail: poStatusMap[pk] || pk, detailColor: pc, time: po.po_date, status: pk === 'received' ? 'done' : 'current' });
+                });
+                // Stock
+                const stockOk = noStockCount === 0 && insufficientCount === 0;
+                entries.push({ dot: stockOk ? '#16a34a' : '#d97706', label: '庫存', detail: stockOk ? `全部充足 (${items.length}項)` : `充足${sufficientCount} 不足${insufficientCount} 無庫存${noStockCount}`, status: stockOk ? 'done' : 'warning' });
+                // Sales
+                linkedSales.forEach(sale => {
+                  const sk = String(sale.status || 'draft').toLowerCase();
+                  const sc = saleColorMap[sk] || '#6b7280';
+                  entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: `${saleStatusMap[sk] || sk} · ${sale.total_qty != null ? sale.total_qty + '件' : ''} · NT$${Number(sale.total || 0).toLocaleString()}`, detailColor: sc, time: sale.sale_date, status: sk === 'paid' ? 'done' : 'current' });
+                });
+                // Payment
+                entries.push({ dot: payKey === 'paid' ? '#16a34a' : payKey === 'partial' ? '#2563eb' : '#d1d5db', label: '付款', detail: PAY_STATUS_MAP[payKey] || payKey, status: payKey === 'paid' ? 'done' : payKey === 'partial' ? 'current' : 'pending' });
+                // Shipping
+                entries.push({ dot: (shipKey === 'shipped' || shipKey === 'delivered') ? '#16a34a' : '#d1d5db', label: '出貨', detail: SHIP_STATUS_MAP[shipKey] || shipKey, status: (shipKey === 'shipped' || shipKey === 'delivered') ? 'done' : 'pending' });
+                // Completion
+                const isCompleted = statusKey === 'completed' || (payKey === 'paid' && (shipKey === 'shipped' || shipKey === 'delivered'));
+                if (isCompleted) {
+                  entries.push({ dot: '#16a34a', label: '完成', detail: '訂單完成', status: 'done' });
+                }
 
-            {/* Timeline card - compact */}
-            {timeline && timeline.length > 0 && (
-              <div style={{ ...cardStyle, padding: '16px 20px' }}>
-                <div style={labelStyle}>狀態歷程</div>
-                <div style={{ position: 'relative', paddingLeft: 16 }}>
-                  {timeline.map((ev, i) => {
-                    const isLast = i === timeline.length - 1;
-                    const dotColor = ev.status === 'done' ? '#16a34a' : ev.status === 'pending' ? '#f59e0b' : ev.status === 'rejected' ? '#ef4444' : ev.status === 'expired' ? '#9ca3af' : '#d1d5db';
-                    const fmtTime = (t) => { if (!t) return ''; const d = new Date(t); if (isNaN(d.getTime())) return typeof t === 'string' ? t.slice(0, 10) : ''; const pad = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-                    return (
-                      <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 14, minHeight: isLast ? 'auto' : 36 }}>
-                        {!isLast && <div style={{ position: 'absolute', left: -10, top: 8, width: 2, bottom: 0, background: '#e5e7eb' }} />}
-                        <div style={{ position: 'absolute', left: -13, top: 3, width: 8, height: 8, borderRadius: '50%', background: dotColor, border: '2px solid #fff', boxShadow: `0 0 0 1.5px ${dotColor}30` }} />
-                        <div style={{ fontSize: 13, fontWeight: 700, color: ev.status === 'rejected' ? '#ef4444' : ev.status === 'pending' ? '#f59e0b' : '#1f2937', lineHeight: 1.2 }}>{(() => {
-                          const text = ev.event || '';
-                          const saMatch = text.match(/(SA-\d+)/);
-                          const qtMatch = text.match(/(QT\d+)/);
-                          const poMatch = text.match(/(PO-[\w-]+)/);
-                          const soMatch = text.match(/(SO\d+)/);
-                          if (saMatch) { const parts = text.split(saMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, saMatch[1]); setTab?.('sales_documents'); }}>{saMatch[1]}</span>{parts[1]}</>; }
-                          if (qtMatch) { const parts = text.split(qtMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem('qb_quote_focus', qtMatch[1]); setTab?.('quotes'); }}>{qtMatch[1]}</span>{parts[1]}</>; }
-                          if (poMatch) { const parts = text.split(poMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem(PO_FOCUS_KEY, poMatch[1]); setTab?.('purchase_orders'); }}>{poMatch[1]}</span>{parts[1]}</>; }
-                          if (soMatch) { const parts = text.split(soMatch[1]); return <>{parts[0]}<span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { window.localStorage.setItem(ORDER_FOCUS_KEY, soMatch[1]); setTab?.('orders'); }}>{soMatch[1]}</span>{parts[1]}</>; }
-                          return text;
-                        })()}</div>
-                        {ev.time && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1, ...S.mono, fontWeight: 600 }}>{fmtTime(ev.time)}</div>}
-                        {ev.by && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1, fontWeight: 600 }}>由 {ev.by}</div>}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                return (
+                  <div style={{ position: 'relative', paddingLeft: 18 }}>
+                    {entries.map((e, i) => {
+                      const isLast = i === entries.length - 1;
+                      const isCurrent = e.status === 'current' || e.status === 'warning';
+                      const nextDot = !isLast ? (entries[i + 1]?.dot || '#e5e7eb') : '#e5e7eb';
+                      return (
+                        <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 14, minHeight: isLast ? 'auto' : 28 }}>
+                          {!isLast && <div style={{ position: 'absolute', left: -11, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
+                          <div style={{ position: 'absolute', left: -14, top: 3, width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8, borderRadius: '50%', background: e.dot, border: '2px solid #fff', boxShadow: isCurrent ? `0 0 0 3px ${e.dot}25` : `0 0 0 1.5px ${e.dot}30` }} />
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', lineHeight: 1.3 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
+                            {e.ref && (() => {
+                              const clickHandler = e.refType === 'sale' ? () => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
+                                : e.refType === 'po' ? () => { window.localStorage.setItem(PO_FOCUS_KEY, e.ref); setTab?.('purchase_orders'); }
+                                : e.refType === 'quote' ? () => { window.localStorage.setItem('qb_quote_focus', e.ref); setTab?.('quotes'); }
+                                : null;
+                              return <span style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
+                            })()}
+                            {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.detailColor || (e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af'), background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
+                          </div>
+                          {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
 
-            {/* Remark card - compact */}
+            {/* 4. Remark card */}
             {order.remark && (
               <div style={{ ...cardStyle, padding: '16px 20px' }}>
                 <div style={labelStyle}>備註</div>
                 <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontWeight: 700 }}>{order.remark}</div>
               </div>
             )}
-
-            {/* PDF button */}
-            <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
           </div>
         </div>
       )}
