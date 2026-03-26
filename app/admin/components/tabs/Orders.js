@@ -156,7 +156,17 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const handleSelectedToPO = async () => {
     const selectedItems = items.filter(i => selectedItemIds.has(i.id));
     if (selectedItems.length === 0) { setMsg('請先勾選要轉採購的品項'); return; }
-    if (!confirm(`確定將 ${selectedItems.length} 項轉為採購單草稿？`)) return;
+    // 防呆：過濾已有採購單的品項
+    const alreadyHasPO = selectedItems.filter(i => i.po_ref || i.po_info);
+    const canPurchase = selectedItems.filter(i => !i.po_ref && !i.po_info);
+    if (canPurchase.length === 0) {
+      setMsg(`所選 ${alreadyHasPO.length} 項皆已建立採購單，無需重複採購`);
+      return;
+    }
+    const warnText = alreadyHasPO.length > 0
+      ? `\n⚠️ 其中 ${alreadyHasPO.length} 項已有採購單將自動跳過（${alreadyHasPO.map(i => i.item_number_snapshot).join(', ')}）`
+      : '';
+    if (!confirm(`確定將 ${canPurchase.length} 項轉為採購單草稿？${warnText}`)) return;
     setProcessingAction('po');
     setMsg('');
     try {
@@ -293,8 +303,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   {items.map((item) => {
                     const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
                     const isChecked = selectedItemIds.has(item.id);
+                    const hasPO = !!(item.po_ref || item.po_info);
                     return (
-                      <div key={item.id} onClick={() => toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 120px minmax(0,1fr) 75px 60px 60px 80px 70px 70px 80px', gap: 6, padding: '14px 24px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: 'pointer', background: isChecked ? '#f0f7ff' : '#fff', transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isChecked && (e.currentTarget.style.background= isChecked ? '#f0f7ff' : '#fff')}>
+                      <div key={item.id} onClick={() => toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 120px minmax(0,1fr) 75px 60px 60px 80px 70px 70px 80px', gap: 6, padding: '14px 24px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: 'pointer', background: isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff', opacity: hasPO ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && (e.currentTarget.style.background= isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
                           <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 16, height: 16 }} />
                         </div>
@@ -322,9 +333,12 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                         </div>
                         <div style={{ textAlign: 'center' }}>
                           {item.po_info ? (
-                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: item.po_info.status === 'draft' ? '#fef3c7' : item.po_info.status === 'received' ? '#dcfce7' : '#dbeafe', color: item.po_info.status === 'draft' ? '#92400e' : item.po_info.status === 'received' ? '#15803d' : '#1d4ed8', border: `1px solid ${item.po_info.status === 'draft' ? '#fde68a' : item.po_info.status === 'received' ? '#bbf7d0' : '#bfdbfe'}` }}>
-                              {item.po_info.status === 'draft' ? '草稿' : item.po_info.status === 'confirmed' ? '已確認' : item.po_info.status === 'received' ? '已到貨' : item.po_info.status}
-                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                              <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: item.po_info.status === 'draft' ? '#fef3c7' : item.po_info.status === 'received' ? '#dcfce7' : '#dbeafe', color: item.po_info.status === 'draft' ? '#92400e' : item.po_info.status === 'received' ? '#15803d' : '#1d4ed8', border: `1px solid ${item.po_info.status === 'draft' ? '#fde68a' : item.po_info.status === 'received' ? '#bbf7d0' : '#bfdbfe'}` }}>
+                                {item.po_info.status === 'draft' ? '草稿' : item.po_info.status === 'confirmed' ? '已確認' : item.po_info.status === 'received' ? '已到貨' : item.po_info.status}
+                              </span>
+                              {item.po_ref && <span style={{ fontSize: 9, color: '#6b7280', ...S.mono }}>{item.po_ref}</span>}
+                            </div>
                           ) : (
                             <span style={{ fontSize: 11, color: '#d1d5db' }}>—</span>
                           )}
