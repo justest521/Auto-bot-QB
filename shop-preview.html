@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickBuy Tools - Snap-on Japan Style Preview</title>
+<style>
+:root {
+  --color-primary-red: #ED1C24;
+  --color-dark: #1a1a1a;
+  --color-dark-nav: #2a2a2a;
+  --color-white: #fff;
+  --color-light-gray: #f5f5f5;
+  --color-text-dark: #333;
+  --color-text-light: #666;
+  --color-border: #e8e8e8;
+  --color-accent-green: #06C755;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
+  --shadow-red: 0 4px 12px rgba(237,28,36,0.2);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: #333; background: #fff; line-height: 1.6; }
+a { text-decoration: none; color: inherit; }
+
+/* ===== HEADER - Snap-on Japan Style ===== */
+.utility-bar { background: #111; padding: 6px 0; font-size: 12px; }
+.utility-bar-content { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: flex-end; gap: 16px; }
+.utility-link { color: #999; transition: color 0.2s; }
+.utility-link:hover { color: var(--color-primary-red); }
+.utility-sep { color: #444; }
+
+.main-header { background: var(--color-dark); padding: 20px 0; }
+.main-header-content { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { background: var(--color-primary-red); color: white; width: 44px; height: 44px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; }
+.logo-text { color: white; font-size: 22px; font-weight: 700; line-height: 1.15; }
+.logo-text small { font-size: 12px; font-weight: 400; color: #999; display: block; letter-spacing: 2px; }
+
+.search-bar { display: flex; background: #333; border-radius: 4px; overflow: hidden; width: 420px; border: 1px solid #444; transition: border-color 0.2s; }
+.search-bar:focus-within { border-color: var(--color-primary-red); }
+.search-bar input { border: none; background: transparent; color: white; padding: 10px 16px; flex: 1; font-size: 14px; outline: none; }
+.search-bar input::placeholder { color: #888; }
+.search-bar button { background: var(--color-primary-red); border: none; color: white; padding: 10px 16px; cursor: pointer; font-size: 16px; transition: background 0.2s; }
+.search-bar button:hover { background: #c71419; }
+
+.cart-btn { position: relative; background: none; border: 2px solid #555; border-radius: 6px; color: white; font-size: 22px; cursor: pointer; padding: 8px 14px; transition: all 0.2s; }
+.cart-btn:hover { border-color: var(--color-primary-red); }
+.cart-badge { position: absolute; top: -6px; right: -6px; background: var(--color-primary-red); color: white; font-size: 11px; font-weight: 700; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+/* Nav Bar */
+.nav-bar { background: var(--color-dark-nav); border-bottom: 3px solid var(--color-primary-red); }
+.nav-content { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; }
+.nav-item { color: #ccc; padding: 14px 20px; font-size: 14px; font-weight: 500; transition: all 0.2s; position: relative; display: inline-block; border-bottom: 3px solid transparent; margin-bottom: -3px; }
+.nav-item:hover { color: white; background: rgba(237,28,36,0.1); border-bottom-color: var(--color-primary-red); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; left: 0; background: var(--color-dark); min-width: 200px; box-shadow: var(--shadow-lg); z-index: 100; padding: 8px 0; border-top: 3px solid var(--color-primary-red); }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-item { display: block; padding: 10px 24px; color: #bbb; font-size: 13px; transition: all 0.2s; border-left: 3px solid transparent; }
+.nav-dropdown-item:hover { color: white; background: rgba(237,28,36,0.08); border-left-color: var(--color-primary-red); }
+
+/* ===== HERO SLIDER ===== */
+.hero-slider { position: relative; overflow: hidden; }
+.hero-slide { width: 100%; min-height: 480px; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; }
+.hero-slide-1 { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 40%, #1a1a1a 100%); }
+.hero-slide::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 70% 50%, rgba(237,28,36,0.08) 0%, transparent 60%); }
+.hero-content { position: relative; z-index: 1; max-width: 700px; }
+.hero-label { color: var(--color-primary-red); font-size: 14px; font-weight: 700; letter-spacing: 4px; margin-bottom: 16px; }
+.hero-title { font-size: 44px; font-weight: 800; color: white; line-height: 1.2; margin-bottom: 16px; }
+.hero-subtitle { font-size: 16px; color: #aaa; margin-bottom: 32px; line-height: 1.6; }
+.hero-actions { display: flex; gap: 16px; justify-content: center; }
+.btn { display: inline-block; padding: 12px 32px; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; letter-spacing: 0.5px; }
+.btn-red { background: var(--color-primary-red); color: white; }
+.btn-red:hover { background: #c71419; transform: translateY(-2px); box-shadow: var(--shadow-red); }
+.btn-outline-white { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.5); }
+.btn-outline-white:hover { border-color: white; background: rgba(255,255,255,0.1); }
+.btn-green { background: var(--color-accent-green); color: white; }
+.btn-green:hover { background: #05a34a; }
+.hero-dots { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 2; }
+.hero-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.5); cursor: pointer; transition: all 0.3s; }
+.hero-dot.active { background: var(--color-primary-red); border-color: var(--color-primary-red); }
+
+/* ===== SERVICE CARDS ===== */
+.service-section { background: var(--color-light-gray); padding: 40px 0; }
+.service-cards { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+.service-card { background: white; border-radius: 8px; padding: 24px 16px; text-align: center; box-shadow: var(--shadow-sm); transition: all 0.3s; cursor: pointer; border: 1px solid transparent; }
+.service-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--color-primary-red); }
+.service-icon { font-size: 32px; margin-bottom: 12px; }
+.service-title { font-size: 13px; font-weight: 600; color: var(--color-text-dark); }
+
+/* ===== BILINGUAL SECTION HEADING ===== */
+.section { padding: 64px 24px; max-width: 1200px; margin: 0 auto; }
+.section-heading { text-align: center; margin-bottom: 40px; }
+.section-en { color: var(--color-primary-red); font-size: 13px; font-weight: 700; letter-spacing: 3px; margin-bottom: 4px; }
+.section-tw { font-size: 26px; font-weight: 700; color: var(--color-text-dark); }
+.section-heading::after { content: ''; display: block; width: 48px; height: 3px; background: var(--color-primary-red); margin: 16px auto 0; border-radius: 2px; }
+
+/* ===== NEWS SECTION ===== */
+.news-list { list-style: none; }
+.news-item { display: flex; align-items: center; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--color-border); transition: background 0.2s; }
+.news-item:hover { background: var(--color-light-gray); margin: 0 -12px; padding: 16px 12px; border-radius: 4px; }
+.news-date { color: var(--color-text-light); font-size: 14px; font-family: monospace; min-width: 100px; }
+.news-tag { background: var(--color-primary-red); color: white; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 3px; white-space: nowrap; }
+.news-title { font-size: 14px; color: var(--color-text-dark); flex: 1; }
+.news-more { display: inline-block; margin-top: 24px; color: var(--color-primary-red); font-weight: 600; font-size: 14px; border-bottom: 1px solid var(--color-primary-red); padding-bottom: 2px; }
+
+/* ===== NEW PRODUCTS CAROUSEL ===== */
+.products-carousel-wrapper { background: var(--color-light-gray); padding: 64px 0; }
+.products-carousel { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+.product-card-jp { background: white; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.3s; border: 1px solid var(--color-border); }
+.product-card-jp:hover { transform: translateY(-6px); box-shadow: var(--shadow-red); border-color: var(--color-primary-red); }
+.product-img-wrap { position: relative; background: #f8f8f8; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.product-img-wrap img { width: 80%; height: 80%; object-fit: contain; transition: transform 0.3s; }
+.product-card-jp:hover .product-img-wrap img { transform: scale(1.05); }
+.product-img-placeholder { font-size: 48px; color: #ddd; }
+.product-new-badge { position: absolute; top: 10px; left: 10px; background: var(--color-primary-red); color: white; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 3px; }
+.product-card-body { padding: 16px; border-top: 1px solid var(--color-border); }
+.product-model { font-size: 15px; font-weight: 700; color: var(--color-text-dark); margin-bottom: 4px; font-family: 'Segoe UI', monospace; }
+.product-desc-short { font-size: 12px; color: var(--color-text-light); line-height: 1.4; height: 34px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 8px; }
+.product-price-tag { font-size: 18px; font-weight: 800; color: var(--color-primary-red); margin-bottom: 12px; }
+.product-card-actions { display: flex; gap: 8px; }
+.btn-detail-jp { flex: 1; padding: 8px; background: var(--color-dark); color: white; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
+.btn-detail-jp:hover { background: var(--color-primary-red); }
+.btn-cart-jp { padding: 8px 12px; background: none; border: 1px solid var(--color-border); border-radius: 4px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+.btn-cart-jp:hover { border-color: var(--color-primary-red); color: var(--color-primary-red); }
+
+/* ===== PRODUCT LINEUP GRID ===== */
+.lineup-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.lineup-card { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1.3; cursor: pointer; background: linear-gradient(135deg, #2a2a2a, #1a1a1a); transition: all 0.3s; }
+.lineup-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.lineup-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.1)); }
+.lineup-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); font-size: 48px; z-index: 1; opacity: 0.6; transition: opacity 0.3s; }
+.lineup-card:hover .lineup-icon { opacity: 0.9; }
+.lineup-label { position: absolute; bottom: 16px; left: 16px; right: 16px; z-index: 2; color: white; font-size: 15px; font-weight: 600; }
+.lineup-sublabel { color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 2px; }
+
+/* ===== FAMILY BRANDS ===== */
+.brands-row { display: flex; justify-content: center; gap: 48px; padding: 48px 24px; max-width: 1200px; margin: 0 auto; align-items: center; flex-wrap: wrap; }
+.brand-item { font-size: 22px; font-weight: 800; color: #ccc; letter-spacing: 1px; transition: color 0.3s; cursor: pointer; }
+.brand-item:hover { color: var(--color-primary-red); }
+
+/* ===== INFO BLOCKS ===== */
+.info-blocks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; max-width: 1200px; margin: 0 auto; }
+.info-block { padding: 48px 32px; text-align: center; border-right: 1px solid var(--color-border); transition: background 0.3s; }
+.info-block:last-child { border-right: none; }
+.info-block:hover { background: var(--color-light-gray); }
+.info-block-icon { font-size: 36px; margin-bottom: 16px; }
+.info-block-en { color: var(--color-primary-red); font-size: 11px; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px; }
+.info-block-title { font-size: 18px; font-weight: 700; color: var(--color-text-dark); margin-bottom: 12px; }
+.info-block-text { font-size: 13px; color: var(--color-text-light); line-height: 1.7; margin-bottom: 20px; }
+.info-block-link { color: var(--color-primary-red); font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--color-primary-red); padding-bottom: 2px; }
+
+/* ===== FOOTER ===== */
+.footer { background: var(--color-dark); color: white; padding: 48px 0 0; }
+.footer-grid { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; }
+.footer-col-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: white; padding-bottom: 8px; border-bottom: 2px solid var(--color-primary-red); display: inline-block; }
+.footer-col-text { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.7; }
+.footer-links { list-style: none; }
+.footer-links li { margin-bottom: 8px; }
+.footer-links a { color: rgba(255,255,255,0.6); font-size: 13px; transition: color 0.2s; }
+.footer-links a:hover { color: var(--color-primary-red); }
+.footer-contact-info { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 12px; line-height: 1.8; }
+.footer-divider { height: 1px; background: rgba(255,255,255,0.1); margin-top: 40px; }
+.footer-bottom { max-width: 1200px; margin: 0 auto; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+.footer-copyright { font-size: 12px; color: rgba(255,255,255,0.4); }
+.footer-social { display: flex; gap: 12px; }
+.footer-social a { color: rgba(255,255,255,0.5); font-size: 12px; padding: 4px 8px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; transition: all 0.2s; }
+.footer-social a:hover { color: white; border-color: var(--color-primary-red); }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .service-cards { grid-template-columns: repeat(3, 1fr); }
+  .products-carousel { grid-template-columns: repeat(3, 1fr); }
+  .lineup-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .search-bar { width: 200px; }
+  .service-cards { grid-template-columns: repeat(2, 1fr); }
+  .products-carousel { grid-template-columns: repeat(2, 1fr); }
+  .lineup-grid { grid-template-columns: repeat(2, 1fr); }
+  .info-blocks { grid-template-columns: 1fr; }
+  .info-block { border-right: none; border-bottom: 1px solid var(--color-border); }
+  .footer-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-title { font-size: 32px; }
+  .hero-slide { min-height: 360px; }
+  .brands-row { gap: 24px; }
+  .brand-item { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== UTILITY BAR ===== -->
+<div class="utility-bar">
+  <div class="utility-bar-content">
+    <a href="#" class="utility-link">品牌介紹</a>
+    <span class="utility-sep">|</span>
+    <a href="#" class="utility-link">保固說明</a>
+    <span class="utility-sep">|</span>
+    <a href="#" class="utility-link">聯絡我們</a>
+  </div>
+</div>
+
+<!-- ===== MAIN HEADER ===== -->
+<header class="main-header">
+  <div class="main-header-content">
+    <a href="#" class="logo">
+      <div class="logo-mark">Q</div>
+      <div class="logo-text">QuickBuy Tools<small>AUTHORIZED DEALER</small></div>
+    </a>
+    <div class="search-bar">
+      <input type="text" placeholder="搜尋產品名稱或料號...">
+      <button>🔍</button>
+    </div>
+    <button class="cart-btn">🛒<span class="cart-badge">3</span></button>
+  </div>
+</header>
+
+<!-- ===== NAVIGATION ===== -->
+<nav class="nav-bar">
+  <div class="nav-content">
+    <a href="#" class="nav-item" style="border-bottom-color: var(--color-primary-red); color: white;">首頁</a>
+    <div class="nav-dropdown">
+      <a class="nav-item">製品情報 ▼</a>
+      <div class="nav-dropdown-menu">
+        <a href="#" class="nav-dropdown-item">棘輪扳手 & 套筒</a>
+        <a href="#" class="nav-dropdown-item">扳手</a>
+        <a href="#" class="nav-dropdown-item">螺絲起子</a>
+        <a href="#" class="nav-dropdown-item">鉗子</a>
+        <a href="#" class="nav-dropdown-item">工具箱 / 收納</a>
+        <a href="#" class="nav-dropdown-item">電動工具</a>
+        <a href="#" class="nav-dropdown-item">氣動工具</a>
+        <a href="#" class="nav-dropdown-item">診斷設備</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <a class="nav-item">品牌專區 ▼</a>
+      <div class="nav-dropdown-menu">
+        <a href="#" class="nav-dropdown-item">Snap-on</a>
+        <a href="#" class="nav-dropdown-item">Blue Point 美國藍點</a>
+        <a href="#" class="nav-dropdown-item">BAHCO</a>
+        <a href="#" class="nav-dropdown-item">OTC</a>
+        <a href="#" class="nav-dropdown-item">Muc-Off</a>
+      </div>
+    </div>
+    <a href="#" class="nav-item">最新消息</a>
+    <a href="#" class="nav-item">常見問題</a>
+    <a href="#" class="nav-item" style="color: #06C755;">LINE 聯絡</a>
+  </div>
+</nav>
+
+<!-- ===== HERO SLIDER ===== -->
+<div class="hero-slider">
+  <div class="hero-slide hero-slide-1">
+    <div class="hero-content">
+      <div class="hero-label">SNAP-ON AUTHORIZED DEALER</div>
+      <h1 class="hero-title">專業工具<br>值得信賴的選擇</h1>
+      <p class="hero-subtitle">Snap-on 與 Blue Point 台灣授權經銷商<br>超過 120,000 件專業工具，滿足您所有需求</p>
+      <div class="hero-actions">
+        <a href="#" class="btn btn-red">瀏覽全部商品</a>
+        <a href="#" class="btn btn-outline-white">產品型錄</a>
+      </div>
+    </div>
+    <div class="hero-dots">
+      <span class="hero-dot active"></span>
+      <span class="hero-dot"></span>
+      <span class="hero-dot"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SERVICE CARDS ===== -->
+<div class="service-section">
+  <div class="service-cards">
+    <div class="service-card"><div class="service-icon">🏪</div><div class="service-title">經銷據點</div></div>
+    <div class="service-card"><div class="service-icon">📖</div><div class="service-title">產品型錄</div></div>
+    <div class="service-card"><div class="service-icon">🏷️</div><div class="service-title">品牌專區</div></div>
+    <div class="service-card"><div class="service-icon">💬</div><div class="service-title">LINE 諮詢</div></div>
+    <div class="service-card"><div class="service-icon">🛡️</div><div class="service-title">保固服務</div></div>
+    <div class="service-card"><div class="service-icon">🔧</div><div class="service-title">維修校正</div></div>
+  </div>
+</div>
+
+<!-- ===== NEWS & INFORMATION ===== -->
+<div class="section">
+  <div class="section-heading">
+    <div class="section-en">NEWS & INFORMATION</div>
+    <div class="section-tw">最新消息</div>
+  </div>
+  <ul class="news-list">
+    <li class="news-item">
+      <span class="news-date">2026.03.22</span>
+      <span class="news-tag">新品</span>
+      <span class="news-title">HOT TOOLS 2026年 Vol.06 — 本月精選工具特惠活動，歡迎洽詢經銷據點</span>
+    </li>
+    <li class="news-item">
+      <span class="news-date">2026.03.17</span>
+      <span class="news-tag">促銷</span>
+      <span class="news-title">年度末特惠！工具箱、診斷設備限時優惠價，詳情請透過 LINE 聯繫</span>
+    </li>
+    <li class="news-item">
+      <span class="news-date">2026.03.08</span>
+      <span class="news-tag">新品</span>
+      <span class="news-title">HOT TOOLS 2026年 Vol.05 — CYNERGY™ 系列棘輪扳手全新到貨</span>
+    </li>
+    <li class="news-item">
+      <span class="news-date">2026.03.01</span>
+      <span class="news-tag">活動</span>
+      <span class="news-title">Snap-on 限量收藏款 JB24 現正開放預購，數量有限</span>
+    </li>
+    <li class="news-item">
+      <span class="news-date">2026.02.22</span>
+      <span class="news-tag">新品</span>
+      <span class="news-title">HOT TOOLS 2026年 Vol.04 — Blue Point 新品螺絲起子組到貨</span>
+    </li>
+  </ul>
+  <a href="#" class="news-more">查看全部消息 →</a>
+</div>
+
+<!-- ===== NEW PRODUCTS ===== -->
+<div class="products-carousel-wrapper">
+  <div class="section" style="padding-bottom:0">
+    <div class="section-heading">
+      <div class="section-en">NEW PRODUCTS</div>
+      <div class="section-tw">新品上市</div>
+    </div>
+  </div>
+  <div class="products-carousel">
+    <div class="product-card-jp">
+      <div class="product-img-wrap">
+        <img src="https://snap-on-products-hr.imgix.net/AT701BK.jpg?w=300" onerror="this.outerHTML='<div class=product-img-placeholder>🔧</div>'">
+        <span class="product-new-badge">NEW</span>
+      </div>
+      <div class="product-card-body">
+        <div class="product-model">AT701BK</div>
+        <div class="product-desc-short">3/8" 氣動棘輪扳手</div>
+        <div class="product-price-tag">NT$12,500</div>
+        <div class="product-card-actions">
+          <a class="btn-detail-jp">製品詳細</a>
+          <button class="btn-cart-jp">🛒</button>
+        </div>
+      </div>
+    </div>
+    <div class="product-card-jp">
+      <div class="product-img-wrap">
+        <img src="https://snap-on-products-hr.imgix.net/FHCNF72G.jpg?w=300" onerror="this.outerHTML='<div class=product-img-placeholder>🔧</div>'">
+        <span class="product-new-badge">NEW</span>
+      </div>
+      <div class="product-card-body">
+        <div class="product-model">FHCNF72G</div>
+        <div class="product-desc-short">3/8" 72齒快脫棘輪扳手 (綠色)</div>
+        <div class="product-price-tag">NT$6,200</div>
+        <div class="product-card-actions">
+          <a class="btn-detail-jp">製品詳細</a>
+          <button class="btn-cart-jp">🛒</button>
+        </div>
+      </div>
+    </div>
+    <div class="product-card-jp">
+      <div class="product-img-wrap">
+        <div class="product-img-placeholder">🔧</div>
+        <span class="product-new-badge">NEW</span>
+      </div>
+      <div class="product-card-body">
+        <div class="product-model">BLPGSS1232</div>
+        <div class="product-desc-short">Blue Point 12pc 綜合螺絲起子組</div>
+        <div class="product-price-tag">NT$3,800</div>
+        <div class="product-card-actions">
+          <a class="btn-detail-jp">製品詳細</a>
+          <button class="btn-cart-jp">🛒</button>
+        </div>
+      </div>
+    </div>
+    <div class="product-card-jp">
+      <div class="product-img-wrap">
+        <div class="product-img-placeholder">🔧</div>
+      </div>
+      <div class="product-card-body">
+        <div class="product-model">BAHCO-3870</div>
+        <div class="product-desc-short">BAHCO 可調式活動扳手 300mm</div>
+        <div class="product-price-tag">NT$2,400</div>
+        <div class="product-card-actions">
+          <a class="btn-detail-jp">製品詳細</a>
+          <button class="btn-cart-jp">🛒</button>
+        </div>
+      </div>
+    </div>
+    <div class="product-card-jp">
+      <div class="product-img-wrap">
+        <div class="product-img-placeholder">🔧</div>
+      </div>
+      <div class="product-card-body">
+        <div class="product-model">CTR761CDB</div>
+        <div class="product-desc-short">3/8" 14.4V 微型無刷充電棘輪扳手</div>
+        <div class="product-price-tag">NT$28,500</div>
+        <div class="product-card-actions">
+          <a class="btn-detail-jp">製品詳細</a>
+          <button class="btn-cart-jp">🛒</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRODUCT LINEUP ===== -->
+<div class="section">
+  <div class="section-heading">
+    <div class="section-en">PRODUCT LINEUP</div>
+    <div class="section-tw">產品專區</div>
+  </div>
+  <div class="lineup-grid">
+    <div class="lineup-card"><div class="lineup-icon">🔧</div><div class="lineup-label">棘輪扳手 & 套筒<div class="lineup-sublabel">Ratchets & Sockets</div></div></div>
+    <div class="lineup-card"><div class="lineup-icon">🔩</div><div class="lineup-label">扳手<div class="lineup-sublabel">Wrenches</div></div></div>
+    <div class="lineup-card"><div class="lineup-icon">🪛</div><div class="lineup-label">螺絲起子<div class="lineup-sublabel">Screwdrivers</div></div></div>
+    <div class="lineup-card"><div class="lineup-icon">🔨</div><div class="lineup-label">鉗子<div class="lineup-sublabel">Pliers</div></div></div>
+    <div class="lineup-card" style="background: linear-gradient(135deg, #2d1a1a, #1a1a2d);"><div class="lineup-icon">🧰</div><div class="lineup-label">工具箱 / 收納<div class="lineup-sublabel">Tool Storage</div></div></div>
+    <div class="lineup-card" style="background: linear-gradient(135deg, #1a2d1a, #1a1a2d);"><div class="lineup-icon">⚡</div><div class="lineup-label">電動工具<div class="lineup-sublabel">Power Tools</div></div></div>
+    <div class="lineup-card"><div class="lineup-icon">💨</div><div class="lineup-label">氣動工具<div class="lineup-sublabel">Air Tools</div></div></div>
+    <div class="lineup-card" style="background: linear-gradient(135deg, #1a1a2d, #2d1a2d);"><div class="lineup-icon">📊</div><div class="lineup-label">診斷設備<div class="lineup-sublabel">Diagnostics</div></div></div>
+  </div>
+</div>
+
+<!-- ===== FAMILY BRANDS ===== -->
+<div style="border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8;">
+  <div class="brands-row">
+    <span class="brand-item" style="color: var(--color-primary-red);">SNAP-ON</span>
+    <span class="brand-item">BLUE POINT</span>
+    <span class="brand-item">BAHCO</span>
+    <span class="brand-item">OTC</span>
+    <span class="brand-item">MUC-OFF</span>
+  </div>
+</div>
+
+<!-- ===== INFO BLOCKS ===== -->
+<div class="info-blocks">
+  <div class="info-block">
+    <div class="info-block-icon">🛒</div>
+    <div class="info-block-en">HOW TO BUY</div>
+    <div class="info-block-title">產品購買方式</div>
+    <div class="info-block-text">直接在線上選購加入購物車，或透過 LINE 聯繫我們取得報價與專業建議。</div>
+    <a href="#" class="info-block-link">了解更多</a>
+  </div>
+  <div class="info-block">
+    <div class="info-block-icon">🔧</div>
+    <div class="info-block-en">REPAIR & CALIBRATION</div>
+    <div class="info-block-title">維修與校正</div>
+    <div class="info-block-text">所有 Snap-on 產品均提供原廠維修與校正服務，確保工具始終維持最佳狀態。</div>
+    <a href="#" class="info-block-link">維修詳情</a>
+  </div>
+  <div class="info-block">
+    <div class="info-block-icon">💬</div>
+    <div class="info-block-en">LINE SUPPORT</div>
+    <div class="info-block-title">LINE 即時諮詢</div>
+    <div class="info-block-text">加入我們的 LINE 官方帳號，即時獲得產品諮詢、報價與售後服務支援。</div>
+    <a href="#" class="info-block-link">加入好友</a>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-col-title">QuickBuy Tools</div>
+      <p class="footer-col-text">台灣 Snap-on、Blue Point 官方授權經銷商。提供專業工具、設備與完整售後服務。</p>
+      <div class="footer-social" style="margin-top:16px;">
+        <a href="#">LINE</a>
+        <a href="#">FB</a>
+        <a href="#">IG</a>
+        <a href="#">YT</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">產品與服務</div>
+      <ul class="footer-links">
+        <li><a href="#">全部商品</a></li>
+        <li><a href="#">棘輪扳手 & 套筒</a></li>
+        <li><a href="#">扳手</a></li>
+        <li><a href="#">螺絲起子</a></li>
+        <li><a href="#">診斷設備</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">品牌</div>
+      <ul class="footer-links">
+        <li><a href="#">Snap-on</a></li>
+        <li><a href="#">Blue Point</a></li>
+        <li><a href="#">BAHCO</a></li>
+        <li><a href="#">OTC</a></li>
+        <li><a href="#">Muc-Off</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">顧客支援</div>
+      <ul class="footer-links">
+        <li><a href="#">聯絡我們</a></li>
+        <li><a href="#">常見問題</a></li>
+        <li><a href="#">保固說明</a></li>
+        <li><a href="#">維修校正</a></li>
+      </ul>
+      <div class="footer-contact-info">
+        營業時間: 週一～週五 09:00-18:00<br>
+        Email: support@quickbuy.tw
+      </div>
+    </div>
+  </div>
+  <div class="footer-divider"></div>
+  <div class="footer-bottom">
+    <div class="footer-copyright">© 2026 QuickBuy Tools. All rights reserved. | Snap-on, Blue Point are registered trademarks.</div>
+    <div class="footer-social">
+      <a href="#">LINE</a>
+      <a href="#">Facebook</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

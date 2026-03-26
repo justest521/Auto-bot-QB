@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QB Admin 設計規格標註</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans TC', sans-serif; background: #f0f0f0; }
+
+/* Annotation styles */
+.anno {
+  position: absolute;
+  background: rgba(220, 38, 38, 0.9);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 50;
+  font-family: 'SF Mono', monospace;
+  pointer-events: none;
+  line-height: 1.4;
+}
+.anno.blue { background: rgba(37, 99, 235, 0.9); }
+.anno.green { background: rgba(0, 144, 97, 0.9); }
+.anno.purple { background: rgba(124, 58, 237, 0.9); }
+.anno.orange { background: rgba(234, 88, 12, 0.9); }
+
+.dim-line {
+  position: absolute;
+  border: 1px dashed rgba(220, 38, 38, 0.5);
+  z-index: 40;
+}
+.dim-line.blue { border-color: rgba(37, 99, 235, 0.5); }
+.dim-line.green { border-color: rgba(0, 144, 97, 0.5); }
+.dim-line.purple { border-color: rgba(124, 58, 237, 0.5); }
+
+.spec-section {
+  margin: 40px auto;
+  max-width: 1300px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.spec-section h2 {
+  font-size: 20px;
+  color: #1a1d23;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #009061;
+}
+
+/* Color palette */
+.color-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.color-chip {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: 10px; border: 1px solid #e5e7eb;
+}
+.color-dot { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.08); }
+.color-info { font-size: 12px; color: #475569; line-height: 1.6; }
+.color-info strong { display: block; font-size: 13px; color: #1a1d23; }
+
+/* Page mockup */
+.page-mock {
+  position: relative;
+  background: #fdfdfe;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 900px;
+  display: flex;
+}
+
+/* Sidebar mock */
+.sidebar-mock {
+  width: 260px;
+  background: #fff;
+  border-right: 1px solid #F2F2F2;
+  padding: 20px 0;
+  flex-shrink: 0;
+  position: relative;
+}
+.sb-logo { padding: 0 20px 20px; font-size: 22px; font-weight: 700; color: #009061; }
+.sb-section-label {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1d23;
+  background: #f8fafc;
+  position: relative;
+}
+.sb-tab {
+  padding: 9px 14px 9px 20px;
+  font-size: 13px;
+  color: #64748b;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sb-tab.active { color: #009061; background: #ecfdf5; font-weight: 600; }
+.sb-tab .tree { color: #cbd5e1; font-size: 12px; font-family: monospace; }
+
+/* Main area */
+.main-mock { flex: 1; display: flex; flex-direction: column; position: relative; }
+.header-mock {
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #F2F2F2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: relative;
+}
+.content-mock { padding: 28px 32px 40px; position: relative; }
+
+/* Page lead */
+.page-lead { margin-bottom: 24px; position: relative; }
+.eyebrow { font-size: 11px; color: #009061; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 8px; font-family: 'SF Mono', monospace; }
+.page-title { font-size: 24px; font-weight: 700; color: #1a1d23; letter-spacing: -0.3px; margin-bottom: 4px; }
+.page-desc { font-size: 14px; color: #64748b; line-height: 1.7; }
+
+/* Stat cards area */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; position: relative; }
+.stat-card-top {
+  background: #fff;
+  border: 1px solid #F2F2F2;
+  border-radius: 14px;
+  padding: 14px 16px;
+  position: relative;
+}
+.stat-label-top { font-size: 11px; color: #7b889b; margin-bottom: 6px; font-family: 'SF Mono', monospace; }
+.stat-value-top { font-size: 28px; font-weight: 700; color: #1c2740; font-family: 'SF Mono', monospace; }
+.stat-value-top.blue { color: #1976f3; }
+.stat-value-top.orange { color: #f59e0b; }
+
+/* Two column layout */
+.two-col { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; align-items: start; }
+
+/* Table */
+.table-mock { background: #fff; border: 1px solid #F2F2F2; border-radius: 18px; padding: 20px 22px; box-shadow: 6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8); position: relative; }
+.table-header {
+  display: grid;
+  grid-template-columns: 1.5fr 140px 160px 1fr;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #F2F2F2;
+  color: #7b889b;
+  font-size: 12px;
+  font-weight: 600;
+  position: relative;
+}
+.table-row {
+  display: grid;
+  grid-template-columns: 1.5fr 140px 160px 1fr;
+  gap: 12px;
+  padding: 14px 18px;
+  border-top: 1px solid #F2F2F2;
+  align-items: center;
+  position: relative;
+}
+.table-row .company { font-size: 14px; color: #1a1d23; font-weight: 600; }
+.table-row .code { font-size: 11px; color: #94a3b8; margin-top: 2px; font-family: 'SF Mono', monospace; }
+.table-row .cell { font-size: 14px; color: #475569; }
+
+/* Detail panel */
+.detail-card {
+  background: #fff;
+  border: 1px solid #F2F2F2;
+  border-radius: 18px;
+  padding: 20px 22px;
+  box-shadow: 6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8);
+  position: relative;
+}
+.detail-title { font-size: 16px; font-weight: 700; color: #1c2740; }
+.detail-meta { font-size: 12px; color: #7b889b; margin-top: 4px; }
+.detail-tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.tag-green { background: #ecfdf5; color: #059669; }
+.tag-gray { background: #f1f5f9; color: #475569; }
+
+.contact-block { font-size: 14px; color: #617084; line-height: 1.8; position: relative; }
+.contact-block .label { color: #7b889b; font-family: 'SF Mono', monospace; font-size: 14px; }
+
+/* Mini stat cards */
+.mini-stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; position: relative; }
+.mini-stat {
+  min-width: 140px;
+  padding: 16px 18px 14px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #F2F2F2;
+  box-shadow: 6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8);
+  position: relative;
+}
+.mini-stat .badge {
+  position: absolute; top: 12px; right: 14px;
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; font-family: 'SF Mono', monospace;
+}
+.mini-stat .ms-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+.mini-stat .ms-value { font-size: 28px; font-weight: 700; color: #1a1d23; font-family: 'SF Mono', monospace; }
+.mini-stat .ms-sub { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+/* Panel muted */
+.panel-muted {
+  background: #fdfdfe;
+  border: 1px solid #F2F2F2;
+  border-radius: 14px;
+  padding: 14px 16px;
+  position: relative;
+}
+.panel-title { font-size: 16px; font-weight: 700; color: #1c2740; }
+.panel-meta { font-size: 12px; color: #7b889b; margin-top: 4px; }
+.panel-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 90px;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid #e6edf5;
+  align-items: center;
+}
+.panel-row .pr-no { color: #1976f3; font-size: 12px; font-weight: 700; font-family: 'SF Mono', monospace; }
+.panel-row .pr-info { color: #617084; font-size: 12px; }
+.panel-row .pr-amount { text-align: right; color: #1c2740; font-size: 12px; font-weight: 700; font-family: 'SF Mono', monospace; }
+
+/* Buttons */
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; position: relative; }
+.btn-primary {
+  background: #009061; color: #fff; border: none; border-radius: 10px;
+  padding: 10px 20px; font-weight: 600; font-size: 13px;
+  font-family: 'Noto Sans TC', sans-serif;
+  box-shadow: 0 1px 3px rgba(0,144,97,0.3);
+}
+.btn-ghost {
+  background: #fff; color: #475569; border: 1px solid #d1d9e0; border-radius: 10px;
+  padding: 9px 16px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif;
+}
+.btn-line {
+  background: #06c755; color: #fff; border: none; border-radius: 10px;
+  padding: 10px 20px; font-weight: 600; font-size: 13px;
+  box-shadow: 0 1px 3px rgba(6,199,85,0.3);
+}
+.input-mock {
+  background: #fff; border: 1px solid #d1d9e0; border-radius: 10px;
+  padding: 10px 14px; font-size: 13px; color: #1a1d23; width: 200px;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+
+/* Spacing indicators */
+.spacing-box {
+  position: absolute;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px dashed rgba(124, 58, 237, 0.4);
+  z-index: 30;
+  display: flex; align-items: center; justify-content: center;
+}
+.spacing-box span {
+  font-size: 9px; color: #7c3aed; font-weight: 700;
+  font-family: 'SF Mono', monospace; background: rgba(255,255,255,0.9);
+  padding: 1px 4px; border-radius: 3px;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== COLOR PALETTE ==================== -->
+<div class="spec-section">
+  <h2>🎨 色彩系統 Color Palette</h2>
+  <div class="color-grid">
+    <div class="color-chip">
+      <div class="color-dot" style="background:#009061"></div>
+      <div class="color-info"><strong>Primary Green</strong>#009061<br>主按鈕、Active、Eyebrow</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#1a1d23"></div>
+      <div class="color-info"><strong>Text Primary</strong>#1a1d23<br>頁面標題、主要文字</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#1c2740"></div>
+      <div class="color-info"><strong>Text Dark</strong>#1c2740<br>卡片標題、數字</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#475569"></div>
+      <div class="color-info"><strong>Text Secondary</strong>#475569<br>表格內容、Ghost按鈕</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#617084"></div>
+      <div class="color-info"><strong>Text Muted</strong>#617084<br>聯絡資訊、面板內文</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#64748b"></div>
+      <div class="color-info"><strong>Text Light</strong>#64748b<br>描述文字、Label</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#7b889b"></div>
+      <div class="color-info"><strong>Text Faint</strong>#7b889b<br>Mono標籤、副標</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#94a3b8"></div>
+      <div class="color-info"><strong>Text Disabled</strong>#94a3b8<br>StatCard標籤、客戶代碼</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#fdfdfe"></div>
+      <div class="color-info"><strong>Background</strong>#fdfdfe<br>頁面底色、panelMuted底色</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#ffffff; border: 1px solid #ddd"></div>
+      <div class="color-info"><strong>Card White</strong>#ffffff<br>卡片、Sidebar、Header</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#F2F2F2"></div>
+      <div class="color-info"><strong>Border</strong>#F2F2F2<br>卡片邊框、表格分隔線</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#d1d9e0"></div>
+      <div class="color-info"><strong>Input Border</strong>#d1d9e0<br>輸入框、Ghost按鈕邊框</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#ecfdf5"></div>
+      <div class="color-info"><strong>Active BG</strong>#ecfdf5<br>Active tab、選中行</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#E8F2EE"></div>
+      <div class="color-info"><strong>Hover BG</strong>#E8F2EE<br>卡片Hover、表格Hover</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#1976f3"></div>
+      <div class="color-info"><strong>Accent Blue</strong>#1976f3<br>LATEST_IMPORT、連結</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#f59e0b"></div>
+      <div class="color-info"><strong>Warning Orange</strong>#f59e0b<br>CHECKPOINT 不同步</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#129c59"></div>
+      <div class="color-info"><strong>Success Green</strong>#129c59<br>CHECKPOINT 同步</div>
+    </div>
+    <div class="color-chip">
+      <div class="color-dot" style="background:#06c755"></div>
+      <div class="color-info"><strong>LINE Green</strong>#06c755<br>LINE 按鈕</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FULL PAGE MOCKUP ==================== -->
+<div class="spec-section">
+  <h2>📐 完整頁面標註 — 客戶主檔頁</h2>
+  <div class="page-mock">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar-mock">
+      <div class="sb-logo" style="position:relative">
+        QB
+        <div class="anno green" style="top:-2px;right:20px">22px / 700 / #009061</div>
+      </div>
+
+      <div class="sb-section-label" style="position:relative">
+        ERP 總覽
+        <div class="anno blue" style="top:-8px;right:10px">14px / 700 / #1a1d23<br>bg: #f8fafc (active)</div>
+      </div>
+      <div class="sb-tab active" style="position:relative">
+        <span class="tree">└</span> 儀表板
+        <div class="anno blue" style="top:-8px;right:10px">13px / 600 / #009061<br>bg: #ecfdf5</div>
+      </div>
+      <div class="sb-tab" style="position:relative">
+        <span class="tree">└</span> 客戶主檔
+      </div>
+      <div class="sb-tab">
+        <span class="tree">└</span> 商品主檔
+      </div>
+
+      <div style="height:12px"></div>
+      <div class="sb-section-label">報價管理</div>
+      <div class="sb-tab" style="position:relative">
+        <span class="tree">└</span> 建立報價
+        <div class="anno" style="top:-8px;right:10px">13px / 400 / #64748b</div>
+      </div>
+      <div class="sb-tab"><span class="tree">└</span> 報價列表</div>
+
+      <!-- Sidebar spacing annotations -->
+      <div class="anno purple" style="bottom:20px;left:10px">
+        寬度: 260px<br>
+        padding: 20px 0<br>
+        border-right: 1px #F2F2F2<br>
+        tab padding: 9px 14px 9px 20px
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-mock">
+
+      <!-- Header -->
+      <div class="header-mock">
+        <div style="font-size:13px;color:#475569">QB Admin</div>
+        <div style="font-size:13px;color:#475569;display:flex;gap:12px;align-items:center">
+          <span style="color:#7b889b;font-size:11px;font-family:'SF Mono',monospace">v2.0</span>
+          登出
+        </div>
+        <div class="anno purple" style="top:-14px;right:40px">height: 64px / padding: 0 32px / bg: #fff / border-bottom: 1px #F2F2F2</div>
+      </div>
+
+      <!-- Content -->
+      <div class="content-mock">
+        <div class="anno purple" style="top:4px;right:10px">content padding: 28px 32px 40px</div>
+
+        <!-- Page Lead -->
+        <div class="page-lead" style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px">
+          <div>
+            <div class="eyebrow" style="position:relative">
+              CUSTOMERS
+              <div class="anno green" style="top:-14px;left:120px">11px / 600 / #009061<br>uppercase / mono / ls: 1.2px<br>mb: 8px</div>
+            </div>
+            <div class="page-title" style="position:relative">
+              正式客戶主檔
+              <div class="anno" style="top:-14px;left:200px">24px / 700 / #1a1d23<br>ls: -0.3px / mb: 4px</div>
+            </div>
+            <div class="page-desc" style="position:relative">
+              查看你匯入的正式 ERP 客戶資料
+              <div class="anno" style="top:-14px;left:280px">14px / 400 / #64748b<br>line-height: 1.7</div>
+            </div>
+          </div>
+          <div style="position:relative">
+            <button class="btn-ghost" style="padding:8px 16px;font-size:13px">匯入</button>
+            <div class="anno orange" style="top:-16px;right:0">btnGhost / 13px<br>padding: 8px 16px<br>border: 1px #d1d9e0<br>radius: 10px</div>
+          </div>
+        </div>
+
+        <!-- Stat Grid (top 3 cards) -->
+        <div class="stat-grid" style="position:relative">
+          <div class="anno purple" style="top:-16px;left:0">gap: 12px / mb: 18px</div>
+          <div class="stat-card-top" style="position:relative">
+            <div class="stat-label-top">DB_CUSTOMERS</div>
+            <div class="stat-value-top">1,893</div>
+            <div class="anno" style="top:-12px;right:6px">panelMuted + bg:#fff<br>radius: 14 / padding: 14px 16px</div>
+            <div class="anno blue" style="bottom:-12px;left:6px">label: 11px mono #7b889b<br>value: 28px 700 #1c2740</div>
+          </div>
+          <div class="stat-card-top">
+            <div class="stat-label-top">LATEST_IMPORT</div>
+            <div class="stat-value-top blue">1,889</div>
+          </div>
+          <div class="stat-card-top" style="position:relative">
+            <div class="stat-label-top">CHECKPOINT</div>
+            <div style="font-size:14px;color:#f59e0b;font-weight:700">匯入筆數與目前資料庫不同步</div>
+            <div class="anno orange" style="bottom:-12px;right:6px">status: 14px 700<br>sync=#129c59 unsync=#f59e0b</div>
+          </div>
+        </div>
+
+        <!-- Two Column -->
+        <div class="two-col">
+          <!-- Left: Table -->
+          <div class="table-mock" style="position:relative">
+            <div class="anno purple" style="top:-14px;left:10px">S.card: radius 18 / padding 20px 22px<br>shadow: 6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)</div>
+
+            <!-- Search bar mock -->
+            <div style="margin-bottom:14px;position:relative">
+              <input class="input-mock" placeholder="搜尋客戶..." style="width:100%">
+              <div class="anno orange" style="top:-14px;right:0">input: 13px / #1a1d23<br>padding: 10px 14px / radius: 10<br>border: 1px #d1d9e0</div>
+            </div>
+
+            <div class="table-header" style="position:relative">
+              <div>公司名稱</div>
+              <div>聯絡人</div>
+              <div>電話</div>
+              <div>地區</div>
+              <div class="anno blue" style="top:-14px;right:0">表頭: 12px / 600 / #7b889b<br>padding: 14px 18px</div>
+            </div>
+            <div class="table-row" style="position:relative;background:#ecfdf5">
+              <div>
+                <div class="company">TMAX工坊</div>
+                <div class="code">000003</div>
+              </div>
+              <div class="cell">王小明</div>
+              <div class="cell" style="font-family:'SF Mono',monospace">02-2345-6789</div>
+              <div class="cell">台北市信</div>
+              <div class="anno" style="top:-14px;right:0">公司: 14px/600/#1a1d23<br>代碼: 11px mono #94a3b8<br>其餘: 14px/#475569<br>selected bg: #ecfdf5</div>
+            </div>
+            <div class="table-row">
+              <div>
+                <div class="company">測試科技有限公司</div>
+                <div class="code">000015</div>
+              </div>
+              <div class="cell">李大華</div>
+              <div class="cell" style="font-family:'SF Mono',monospace">03-9876-5432</div>
+              <div class="cell">新北市板</div>
+            </div>
+            <div class="table-row" style="position:relative">
+              <div>
+                <div class="company">日月光半導體</div>
+                <div class="code">000028</div>
+              </div>
+              <div class="cell">張美麗</div>
+              <div class="cell" style="font-family:'SF Mono',monospace">07-1234-5678</div>
+              <div class="cell">高雄市楠</div>
+              <div class="anno green" style="bottom:-14px;left:0">hover: bg #E8F2EE / translateY(-1px)<br>grid: 1.5fr 140px 160px 1fr / gap 12</div>
+            </div>
+
+            <!-- Pager -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;position:relative">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:11px;color:#7b889b;font-family:'SF Mono',monospace">每頁</span>
+                <select style="font-size:12px;padding:6px 8px;border:1px solid #d1d9e0;border-radius:8px">
+                  <option>20</option>
+                </select>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="btn-ghost" style="padding:6px 10px;font-size:12px">← 上一頁</button>
+                <span style="color:#666;font-size:12px;font-family:'SF Mono',monospace">P1 / 95</span>
+                <button class="btn-ghost" style="padding:6px 10px;font-size:12px">下一頁 →</button>
+              </div>
+              <div class="anno" style="bottom:-18px;right:0">pager: 11-12px / mt:18px</div>
+            </div>
+          </div>
+
+          <!-- Right: Detail panel -->
+          <div class="detail-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative">
+              <div>
+                <div class="detail-title">TMAX工坊</div>
+                <div class="detail-meta">000003</div>
+              </div>
+              <div class="detail-tag tag-green">正式客戶</div>
+              <div class="anno" style="top:-16px;right:0">title: 16px/700/#1c2740<br>meta: 12px/#7b889b<br>tag: 12px/600 pill</div>
+            </div>
+
+            <!-- Tags moved under title -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;position:relative">
+              <span class="detail-tag tag-gray">ERP only</span>
+              <div class="anno blue" style="top:-14px;right:0">tag: 12px/600<br>padding: 3px 10px<br>radius: 999px</div>
+            </div>
+
+            <!-- Contact block -->
+            <div class="contact-block" style="margin-bottom:16px;position:relative">
+              <div><span class="label">CONTACT</span> TMAX工坊</div>
+              <div><span class="label">PHONE</span> -</div>
+              <div><span class="label">EMAIL</span> -</div>
+              <div><span class="label">TAX_ID</span> -</div>
+              <div><span class="label">ADDRESS</span> -</div>
+              <div class="anno" style="top:-14px;right:0">14px / #617084<br>line-height: 1.8<br>label: 14px mono #7b889b</div>
+            </div>
+
+            <!-- Mini stat cards -->
+            <div class="mini-stat-grid" style="margin-bottom:16px">
+              <div class="mini-stat" style="position:relative">
+                <div class="badge" style="background:#ecfdf5;color:#009061">QUOTE</div>
+                <div class="ms-label">報價筆數</div>
+                <div class="ms-value">0</div>
+                <div class="ms-sub">-</div>
+                <div class="anno" style="bottom:-14px;left:0;font-size:9px">minW:140 / pad:16px 18px 14px<br>radius:14 / badge:32×32 r8<br>label:12px #94a3b8<br>value:28px 700 #1a1d23<br>sub:12px #64748b<br>badge text:12px</div>
+              </div>
+              <div class="mini-stat">
+                <div class="badge" style="background:#fffbeb;color:#d97706">ORDER</div>
+                <div class="ms-label">訂單筆數</div>
+                <div class="ms-value">0</div>
+                <div class="ms-sub">-</div>
+              </div>
+              <div class="mini-stat">
+                <div class="badge" style="background:#ecfdf5;color:#059669">SALE</div>
+                <div class="ms-label">銷貨筆數</div>
+                <div class="ms-value">1</div>
+                <div class="ms-sub">-</div>
+              </div>
+              <div class="mini-stat">
+                <div class="badge" style="background:#fef2f2;color:#dc2626">GP</div>
+                <div class="ms-label">毛利</div>
+                <div class="ms-value">—</div>
+                <div class="ms-sub">訊息 0 筆</div>
+              </div>
+            </div>
+
+            <!-- Recent quotes panel -->
+            <div class="panel-muted" style="margin-bottom:12px;position:relative">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                <div>
+                  <div class="panel-title">最近報價</div>
+                  <div class="panel-meta">最近 5 張報價單</div>
+                </div>
+                <span class="detail-tag tag-gray">0 筆</span>
+              </div>
+              <div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:13px">目前沒有報價單資料</div>
+              <div class="anno" style="top:-14px;right:0">panelMuted: bg #fdfdfe<br>radius:14 / pad:14px 16px<br>border: 1px #F2F2F2</div>
+              <div class="anno blue" style="bottom:-14px;left:0">title:16px/700/#1c2740<br>meta:12px/#7b889b<br>empty:13px/#94a3b8</div>
+            </div>
+
+            <!-- Recent orders panel -->
+            <div class="panel-muted" style="position:relative">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                <div>
+                  <div class="panel-title">最近訂單</div>
+                  <div class="panel-meta">最近 5 張訂單</div>
+                </div>
+                <span class="detail-tag tag-gray">0 筆</span>
+              </div>
+              <div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:13px">目前沒有訂單資料</div>
+              <div class="anno orange" style="bottom:-14px;right:0">row: 12px mono 藍 / 12px / 12px 700</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== BUTTONS & INPUTS ==================== -->
+<div class="spec-section">
+  <h2>🔘 按鈕與輸入框</h2>
+  <div class="btn-row" style="position:relative;align-items:center">
+    <div style="position:relative">
+      <button class="btn-primary">確認匯入</button>
+      <div class="anno green" style="top:-28px;left:0">btnPrimary: 13px/600/#fff<br>bg:#009061 / pad:10px 20px<br>radius:10 / shadow:0 1px 3px rgba(0,144,97,0.3)</div>
+    </div>
+    <div style="position:relative;margin-left:60px">
+      <button class="btn-ghost">取消</button>
+      <div class="anno" style="top:-28px;left:0">btnGhost: 13px/#475569<br>bg:#fff / pad:9px 16px<br>border:1px #d1d9e0 / radius:10</div>
+    </div>
+    <div style="position:relative;margin-left:60px">
+      <button class="btn-line">LINE 推播</button>
+      <div class="anno green" style="top:-28px;left:0">btnLine: 13px/600/#fff<br>bg:#06c755 / pad:10px 20px<br>radius:10</div>
+    </div>
+    <div style="position:relative;margin-left:60px">
+      <input class="input-mock" value="搜尋..." style="width:180px">
+      <div class="anno blue" style="top:-28px;left:0">input: 13px/#1a1d23<br>bg:#fff / pad:10px 14px<br>border:1px #d1d9e0 / radius:10</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SPACING SUMMARY ==================== -->
+<div class="spec-section">
+  <h2>📏 間距規格表</h2>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead>
+      <tr style="border-bottom:2px solid #009061;text-align:left">
+        <th style="padding:10px 12px;color:#1c2740">元素</th>
+        <th style="padding:10px 12px;color:#1c2740">屬性</th>
+        <th style="padding:10px 12px;color:#1c2740">值</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Sidebar</td><td style="padding:10px 12px">width / padding</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">260px / 20px 0</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Sidebar Section</td><td style="padding:10px 12px">padding</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">12px 20px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Sidebar Tab</td><td style="padding:10px 12px">padding</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">9px 14px 9px 20px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Header</td><td style="padding:10px 12px">height / padding</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">64px / 0 32px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Content</td><td style="padding:10px 12px">padding</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">28px 32px 40px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Page Lead</td><td style="padding:10px 12px">margin-bottom / gap</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">24px / 18px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Eyebrow → Title</td><td style="padding:10px 12px">margin-bottom</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">8px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Title → Desc</td><td style="padding:10px 12px">margin-bottom</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">4px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Card (S.card)</td><td style="padding:10px 12px">padding / radius / mb</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">20px 22px / 18px / 16px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Panel Muted</td><td style="padding:10px 12px">padding / radius</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">14px 16px / 14px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Stat Grid (top)</td><td style="padding:10px 12px">gap / mb</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">12px / 18px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Two Column</td><td style="padding:10px 12px">columns / gap</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">1.5fr 1fr / 16px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">StatCard (mini)</td><td style="padding:10px 12px">minW / padding / radius</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">140px / 16px 18px 14px / 14px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Mini Stat Grid</td><td style="padding:10px 12px">columns / gap</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">repeat(2, 1fr) / 10-12px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Table Header</td><td style="padding:10px 12px">padding / columns</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">14px 18px / 1.5fr 140px 160px 1fr</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Table Row</td><td style="padding:10px 12px">padding / gap</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">14px 18px / 12px</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">PanelHeader</td><td style="padding:10px 12px">margin-bottom</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">14px</td></tr>
+      <tr><td style="padding:10px 12px;font-weight:600">Pager</td><td style="padding:10px 12px">margin-top</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#7c3aed">18px</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== TYPOGRAPHY SUMMARY ==================== -->
+<div class="spec-section">
+  <h2>🔤 字級規格表</h2>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead>
+      <tr style="border-bottom:2px solid #009061;text-align:left">
+        <th style="padding:10px 12px;color:#1c2740">元素</th>
+        <th style="padding:10px 12px;color:#1c2740">字級</th>
+        <th style="padding:10px 12px;color:#1c2740">字重</th>
+        <th style="padding:10px 12px;color:#1c2740">顏色</th>
+        <th style="padding:10px 12px;color:#1c2740">字體</th>
+        <th style="padding:10px 12px;color:#1c2740">範例</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">StatCard 大數字</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">28px</td><td style="padding:10px 12px">700</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#1a1d23;border-radius:3px;vertical-align:middle"></span> #1a1d23</td><td style="padding:10px 12px;font-size:11px">Mono</td><td style="padding:10px 12px;font-size:28px;font-weight:700;font-family:'SF Mono',monospace">1,893</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">頁面標題</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">24px</td><td style="padding:10px 12px">700</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#1a1d23;border-radius:3px;vertical-align:middle"></span> #1a1d23</td><td style="padding:10px 12px;font-size:11px">Noto Sans TC</td><td style="padding:10px 12px;font-size:24px;font-weight:700">正式客戶主檔</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">面板標題 / 公司名</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">16px</td><td style="padding:10px 12px">700</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#1c2740;border-radius:3px;vertical-align:middle"></span> #1c2740</td><td style="padding:10px 12px;font-size:11px">Noto Sans TC</td><td style="padding:10px 12px;font-size:16px;font-weight:700;color:#1c2740">TMAX工坊</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">側邊欄大標題</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">14px</td><td style="padding:10px 12px">700</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#1a1d23;border-radius:3px;vertical-align:middle"></span> #1a1d23</td><td style="padding:10px 12px;font-size:11px">Noto Sans TC</td><td style="padding:10px 12px;font-size:14px;font-weight:700">ERP 總覽</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">頁面描述 / 聯絡資訊</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">14px</td><td style="padding:10px 12px">400</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#64748b;border-radius:3px;vertical-align:middle"></span> #64748b / #617084</td><td style="padding:10px 12px;font-size:11px">Noto Sans TC</td><td style="padding:10px 12px;font-size:14px;color:#617084">CONTACT TMAX工坊</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">表格內容 / 公司名欄</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">14px</td><td style="padding:10px 12px">400-600</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#475569;border-radius:3px;vertical-align:middle"></span> #475569 / #1a1d23</td><td style="padding:10px 12px;font-size:11px">Noto Sans TC</td><td style="padding:10px 12px;font-size:14px;color:#475569">王小明</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">CHECKPOINT 狀態</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">14px</td><td style="padding:10px 12px">700</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#f59e0b;border-radius:3px;vertical-align:middle"></span> #f59e0b / #129c59</td><td style="padding:10px 12px;font-size:11px">Noto Sans TC</td><td style="padding:10px 12px;font-size:14px;font-weight:700;color:#f59e0b">不同步</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">側邊欄 Tab / 按鈕</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">13px</td><td style="padding:10px 12px">400-600</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#64748b;border-radius:3px;vertical-align:middle"></span> #64748b / #009061</td><td style="padding:10px 12px;font-size:11px">Noto Sans TC</td><td style="padding:10px 12px;font-size:13px;color:#64748b">└ 客戶主檔</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">表頭 / Tag / StatCard標籤</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">12px</td><td style="padding:10px 12px">500-600</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#7b889b;border-radius:3px;vertical-align:middle"></span> #7b889b / #94a3b8</td><td style="padding:10px 12px;font-size:11px">Noto Sans TC / Mono</td><td style="padding:10px 12px;font-size:12px;color:#7b889b;font-weight:600">公司名稱</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">面板內列表</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">12px</td><td style="padding:10px 12px">400-700</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#1976f3;border-radius:3px;vertical-align:middle"></span> #1976f3 / #617084</td><td style="padding:10px 12px;font-size:11px">Mono</td><td style="padding:10px 12px;font-size:12px;color:#1976f3;font-weight:700;font-family:'SF Mono',monospace">QT-20260301</td></tr>
+      <tr style="border-bottom:1px solid #F2F2F2"><td style="padding:10px 12px;font-weight:600">Eyebrow / Label / 統計標題</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">11px</td><td style="padding:10px 12px">600</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#009061;border-radius:3px;vertical-align:middle"></span> #009061 / #7b889b</td><td style="padding:10px 12px;font-size:11px">Mono</td><td style="padding:10px 12px;font-size:11px;color:#009061;font-weight:600;font-family:'SF Mono',monospace;letter-spacing:1.2px">CUSTOMERS</td></tr>
+      <tr><td style="padding:10px 12px;font-weight:600">客戶代碼</td><td style="padding:10px 12px;font-family:'SF Mono',monospace;color:#dc2626">11px</td><td style="padding:10px 12px">400</td><td style="padding:10px 12px"><span style="display:inline-block;width:14px;height:14px;background:#94a3b8;border-radius:3px;vertical-align:middle"></span> #94a3b8</td><td style="padding:10px 12px;font-size:11px">Mono</td><td style="padding:10px 12px;font-size:11px;color:#94a3b8;font-family:'SF Mono',monospace">000003</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== SHADOW EFFECTS ==================== -->
+<div class="spec-section">
+  <h2>✨ 陰影與效果</h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+    <div style="position:relative;padding:24px;border-radius:18px;background:#fff;border:1px solid #F2F2F2;box-shadow:6px 6px 16px rgba(0,0,0,0.06), -4px -4px 12px rgba(255,255,255,0.8)">
+      <div style="font-size:14px;font-weight:700;color:#1c2740;margin-bottom:8px">Neumorphism Card</div>
+      <div style="font-size:11px;color:#7b889b;font-family:'SF Mono',monospace;line-height:1.8">
+        box-shadow:<br>
+        6px 6px 16px rgba(0,0,0,0.06),<br>
+        -4px -4px 12px rgba(255,255,255,0.8)<br>
+        border-radius: 18px<br>
+        border: 1px solid #F2F2F2
+      </div>
+    </div>
+    <div style="position:relative;padding:24px;border-radius:18px;background:#E8F2EE;border:1px solid #E8F2EE;box-shadow:0 4px 16px rgba(0,144,97,0.12), 6px 6px 16px rgba(0,0,0,0.04);transform:translateY(-1px)">
+      <div style="font-size:14px;font-weight:700;color:#1c2740;margin-bottom:8px">Hover 效果</div>
+      <div style="font-size:11px;color:#7b889b;font-family:'SF Mono',monospace;line-height:1.8">
+        background: #E8F2EE<br>
+        border-color: #E8F2EE<br>
+        box-shadow:<br>
+        0 4px 16px rgba(0,144,97,0.12),<br>
+        6px 6px 16px rgba(0,0,0,0.04)<br>
+        transform: translateY(-1px)
+      </div>
+    </div>
+    <div style="position:relative;padding:24px;border-radius:10px;background:#009061;box-shadow:0 1px 3px rgba(0,144,97,0.3)">
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px">Primary Button</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.8);font-family:'SF Mono',monospace;line-height:1.8">
+        background: #009061<br>
+        box-shadow:<br>
+        0 1px 3px rgba(0,144,97,0.3)<br>
+        border-radius: 10px
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
