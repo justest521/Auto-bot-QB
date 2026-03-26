@@ -22,6 +22,75 @@ function StatCard({ code, label, value, tone }) {
   );
 }
 
+/* Customer History Modal */
+function CustomerHistoryModal({ history, customerName, onClose }) {
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
+  if (!history) return null;
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
+      <div style={{ ...S.card, width: 680, maxWidth: '92vw', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+        {/* Modal header */}
+        <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{customerName} — 歷史訂單</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3 }}>
+              共 {history.order_count} 筆訂單，累計 <span style={{ ...S.mono, color: '#2563eb', fontWeight: 800 }}>{fmtP(history.total_spent)}</span>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 18, lineHeight: 1 }}>✕</button>
+        </div>
+        {/* Order list */}
+        <div style={{ overflow: 'auto', flex: 1, padding: '12px 22px' }}>
+          {(history.recent_orders || []).map((o, idx) => {
+            const isOpen = expandedOrderId === (o.order_id || idx);
+            const statusColor = o.status === 'confirmed' ? '#16a34a' : o.status === 'pending' ? '#f59e0b' : '#6b7280';
+            return (
+              <div key={o.order_id || idx} style={{ border: '1px solid #e5e7eb', borderRadius: 8, marginBottom: 8, overflow: 'hidden' }}>
+                {/* Order header */}
+                <div style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, background: isOpen ? '#f8fafc' : '#fff' }} onClick={() => setExpandedOrderId(isOpen ? null : (o.order_id || idx))}>
+                  <span style={{ ...S.mono, fontSize: 13, fontWeight: 700, color: '#1f2937' }}>{o.order_no}</span>
+                  <span style={{ fontSize: 11, color: '#6b7280' }}>{o.date}</span>
+                  <span style={{ fontSize: 11, color: statusColor, fontWeight: 600 }}>{o.status === 'confirmed' ? '已確認' : o.status === 'pending' ? '待處理' : o.status}</span>
+                  <span style={{ flex: 1 }} />
+                  <span style={{ ...S.mono, fontSize: 14, fontWeight: 800, color: '#10b981' }}>{fmtP(o.amount)}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{o.items?.length || 0} 品項 {isOpen ? '▲' : '▼'}</span>
+                </div>
+                {/* Order items */}
+                {isOpen && o.items && o.items.length > 0 && (
+                  <div style={{ borderTop: '1px solid #f0f0f0', padding: '8px 14px', background: '#fafbfd' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                          <th style={{ textAlign: 'left', padding: '4px 6px', color: '#6b7280', fontWeight: 600 }}>料號</th>
+                          <th style={{ textAlign: 'left', padding: '4px 6px', color: '#6b7280', fontWeight: 600 }}>品名</th>
+                          <th style={{ textAlign: 'right', padding: '4px 6px', color: '#6b7280', fontWeight: 600 }}>數量</th>
+                          <th style={{ textAlign: 'right', padding: '4px 6px', color: '#6b7280', fontWeight: 600 }}>單價</th>
+                          <th style={{ textAlign: 'right', padding: '4px 6px', color: '#6b7280', fontWeight: 600 }}>小計</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {o.items.map((item, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={{ padding: '4px 6px', ...S.mono, color: '#1f2937' }}>{item.item_number || '-'}</td>
+                            <td style={{ padding: '4px 6px', color: '#374151', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description || '-'}</td>
+                            <td style={{ padding: '4px 6px', textAlign: 'right', ...S.mono }}>{item.quantity || 0}</td>
+                            <td style={{ padding: '4px 6px', textAlign: 'right', ...S.mono }}>{fmtP(item.unit_price)}</td>
+                            <td style={{ padding: '4px 6px', textAlign: 'right', ...S.mono, color: '#10b981', fontWeight: 700 }}>{fmtP(item.subtotal)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Approvals() {
   const [data, setData] = useState({ rows: [], total: 0, pending_count: 0 });
   const [loading, setLoading] = useState(true);
@@ -30,6 +99,7 @@ export default function Approvals() {
   const [noteDialog, setNoteDialog] = useState(null);
   const [note, setNote] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  const [historyModal, setHistoryModal] = useState(null); // { history, customerName }
 
   const load = async (status = statusFilter) => {
     setLoading(true);
@@ -101,6 +171,9 @@ export default function Approvals() {
                   {items.length > 0 && <div style={{ fontSize: 11, color: '#6b7280' }}>{items.length} 品項 {isExpanded ? '▲' : '▼'}</div>}
                 </div>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+                  {a.customer_history && (
+                    <button onClick={() => setHistoryModal({ history: a.customer_history, customerName })} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 11, borderColor: '#2563eb', color: '#2563eb' }}>客戶歷史</button>
+                  )}
                   <button onClick={() => { const pdfType = a.doc_type === 'purchase_order' ? 'purchase_order' : a.doc_type === 'quote' ? 'quote' : a.doc_type === 'sale' ? 'sale' : 'order'; window.open(`/api/pdf?type=${pdfType}&id=${a.doc_id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 11 }}>PDF</button>
                   {a.status === 'pending' && (
                     <>
@@ -140,28 +213,6 @@ export default function Approvals() {
               </div>
             )}
 
-            {/* Customer history */}
-            {isExpanded && a.customer_history && (
-              <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 18px', background: '#f8fafc' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>客戶歷史</div>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>共 {a.customer_history.order_count} 筆訂單</div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#2563eb', ...S.mono }}>{fmtP(a.customer_history.total_spent)}</div>
-                </div>
-                {a.customer_history.recent_orders && a.customer_history.recent_orders.length > 0 && (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {a.customer_history.recent_orders.map((o, idx) => (
-                      <div key={idx} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px', fontSize: 11 }}>
-                        <span style={{ ...S.mono, color: '#1f2937', fontWeight: 600 }}>{o.order_no}</span>
-                        <span style={{ color: '#6b7280', margin: '0 4px' }}>{o.date}</span>
-                        <span style={{ ...S.mono, color: '#10b981', fontWeight: 700 }}>{fmtP(o.amount)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Approved/Rejected info */}
             {a.status !== 'pending' && (
               <div style={{ borderTop: '1px solid #f0f0f0', padding: '10px 18px', background: a.status === 'approved' ? '#f0fdf4' : '#fef2f2', display: 'flex', gap: 12, alignItems: 'center', fontSize: 12 }}>
@@ -175,6 +226,12 @@ export default function Approvals() {
         );
       })}
 
+      {/* Customer History Modal */}
+      {historyModal && (
+        <CustomerHistoryModal history={historyModal.history} customerName={historyModal.customerName} onClose={() => setHistoryModal(null)} />
+      )}
+
+      {/* Reject reason dialog */}
       {noteDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ ...S.card, width: 420, maxWidth: '90vw' }}>
