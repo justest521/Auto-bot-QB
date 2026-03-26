@@ -388,31 +388,146 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
 
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* Combined status card: order + payment + shipping + stock */}
-            <div style={{ ...cardStyle, padding: '16px 20px' }}>
-              <div style={labelStyle}>目前狀態</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
-                <div style={{ textAlign: 'center', padding: '8px 4px', borderRadius: 8, background: '#f8f9fb' }}>
-                  <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginBottom: 4 }}>訂單</div>
-                  <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: `${ORDER_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: ORDER_STATUS_COLOR[statusKey] || '#6b7280' }}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span>
+            {/* Order Progress Timeline */}
+            {(() => {
+              const hasQuote = timeline.some(e => (e.event || '').match(/QT\d+|報價/));
+              const hasApproval = !!approvalData;
+              const hasPO = linkedPOs.length > 0;
+              const hasSale = linkedSales.length > 0;
+              const hasReturn = timeline.some(e => (e.event || '').match(/退貨|退回/));
+              const insufficientCount = items.filter(i => i.stock_status === 'partial').length;
+              const noStockCount = items.filter(i => i.stock_status === 'no_stock').length;
+
+              // Build stages dynamically
+              const stages = [];
+              // 1. 報價
+              if (hasQuote) {
+                stages.push({ key: 'quote', label: '報價', status: 'done', icon: '✓', detail: timeline.find(e => (e.event || '').match(/QT\d+|報價/))?.event?.match(/(QT\d+)/)?.[1] || '' });
+              }
+              // 2. 訂單建立
+              stages.push({ key: 'order', label: '訂單建立', status: 'done', icon: '✓', detail: order.order_no });
+              // 3. 審核
+              if (hasApproval || statusKey === 'confirmed') {
+                const approvalStatus = approvalData?.status;
+                stages.push({
+                  key: 'approval', label: '審核簽核',
+                  status: approvalStatus === 'approved' || statusKey === 'confirmed' ? 'done' : approvalStatus === 'rejected' ? 'rejected' : approvalStatus === 'pending' ? 'current' : 'pending',
+                  icon: approvalStatus === 'approved' || statusKey === 'confirmed' ? '✓' : approvalStatus === 'rejected' ? '✕' : approvalStatus === 'pending' ? '…' : '○',
+                  detail: approvalStatus === 'approved' ? '已核准' : approvalStatus === 'rejected' ? '已駁回' : approvalStatus === 'pending' ? '待審核' : statusKey === 'confirmed' ? '已確認' : '',
+                });
+              }
+              // 4. 採購
+              if (hasPO) {
+                const allReceived = linkedPOs.every(p => p.status === 'received');
+                const anyConfirmed = linkedPOs.some(p => p.status === 'confirmed');
+                stages.push({
+                  key: 'purchase', label: '採購進貨',
+                  status: allReceived ? 'done' : anyConfirmed ? 'current' : 'pending',
+                  icon: allReceived ? '✓' : anyConfirmed ? '…' : '○',
+                  detail: `${linkedPOs.length} 張採購單` + (allReceived ? '（已到貨）' : ''),
+                });
+              }
+              // 5. 庫存
+              stages.push({
+                key: 'stock', label: '庫存確認',
+                status: noStockCount === 0 && insufficientCount === 0 ? 'done' : insufficientCount > 0 ? 'warning' : 'current',
+                icon: noStockCount === 0 && insufficientCount === 0 ? '✓' : '!',
+                detail: noStockCount === 0 && insufficientCount === 0 ? `全部充足 (${items.length}項)` : `充足${sufficientCount} 不足${insufficientCount} 無庫存${noStockCount}`,
+              });
+              // 6. 銷貨轉換
+              if (hasSale || items.some(i => Number(i.sold_qty || 0) > 0)) {
+                const totalQty = items.reduce((s, i) => s + Number(i.qty || 0), 0);
+                const totalSold = items.reduce((s, i) => s + Number(i.sold_qty || 0), 0);
+                const allSold = totalSold >= totalQty && totalQty > 0;
+                stages.push({
+                  key: 'sale', label: '銷貨轉換',
+                  status: allSold ? 'done' : totalSold > 0 ? 'current' : 'pending',
+                  icon: allSold ? '✓' : totalSold > 0 ? '…' : '○',
+                  detail: `${totalSold}/${totalQty} 已轉銷` + (linkedSales.length > 0 ? ` (${linkedSales.length}張)` : ''),
+                });
+              }
+              // 7. 付款
+              stages.push({
+                key: 'payment', label: '付款',
+                status: payKey === 'paid' ? 'done' : payKey === 'partial' ? 'current' : 'pending',
+                icon: payKey === 'paid' ? '✓' : payKey === 'partial' ? '…' : '○',
+                detail: PAY_STATUS_MAP[payKey] || payKey,
+              });
+              // 8. 出貨
+              stages.push({
+                key: 'shipping', label: '出貨',
+                status: shipKey === 'delivered' ? 'done' : shipKey === 'shipped' ? 'current' : 'pending',
+                icon: shipKey === 'delivered' ? '✓' : shipKey === 'shipped' ? '…' : '○',
+                detail: SHIP_STATUS_MAP[shipKey] || shipKey,
+              });
+              // 9. 退貨 (optional)
+              if (hasReturn) {
+                stages.push({ key: 'return', label: '退貨處理', status: 'warning', icon: '!', detail: '有退貨紀錄' });
+              }
+              // 10. 完成
+              const isCompleted = statusKey === 'completed' || (payKey === 'paid' && (shipKey === 'shipped' || shipKey === 'delivered'));
+              stages.push({
+                key: 'complete', label: '完成',
+                status: isCompleted ? 'done' : 'pending',
+                icon: isCompleted ? '✓' : '○',
+                detail: isCompleted ? '訂單完成' : '',
+              });
+
+              // Find current step index
+              const currentIdx = stages.findIndex(s => s.status === 'current' || s.status === 'warning');
+
+              const COLOR_MAP = {
+                done: { dot: '#16a34a', bg: '#dcfce7', text: '#15803d', line: '#16a34a' },
+                current: { dot: '#2563eb', bg: '#dbeafe', text: '#1d4ed8', line: '#93c5fd' },
+                warning: { dot: '#d97706', bg: '#fef3c7', text: '#92400e', line: '#fcd34d' },
+                rejected: { dot: '#dc2626', bg: '#fee2e2', text: '#991b1b', line: '#fca5a5' },
+                pending: { dot: '#d1d5db', bg: '#f3f4f6', text: '#9ca3af', line: '#e5e7eb' },
+              };
+
+              return (
+                <div style={{ ...cardStyle, padding: '16px 20px' }}>
+                  <div style={labelStyle}>訂單進度</div>
+                  <div style={{ position: 'relative', paddingLeft: 20 }}>
+                    {stages.map((s, i) => {
+                      const isLast = i === stages.length - 1;
+                      const c = COLOR_MAP[s.status] || COLOR_MAP.pending;
+                      const isCurrent = s.status === 'current' || s.status === 'warning';
+                      return (
+                        <div key={s.key} style={{ position: 'relative', paddingBottom: isLast ? 0 : 12, minHeight: isLast ? 'auto' : 32 }}>
+                          {/* Connecting line */}
+                          {!isLast && <div style={{ position: 'absolute', left: -12, top: 16, width: 2, bottom: 0, background: c.line }} />}
+                          {/* Dot */}
+                          <div style={{
+                            position: 'absolute', left: -17, top: 2, width: isCurrent ? 12 : 10, height: isCurrent ? 12 : 10,
+                            borderRadius: '50%', background: c.dot, border: `2px solid ${c.bg}`,
+                            boxShadow: isCurrent ? `0 0 0 3px ${c.dot}30` : 'none',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 7, color: '#fff', fontWeight: 800,
+                          }}>{s.status === 'done' ? '' : ''}</div>
+                          {/* Content */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 20 }}>
+                            <span style={{
+                              fontSize: isCurrent ? 13 : 12, fontWeight: isCurrent ? 800 : 600,
+                              color: s.status === 'done' ? '#15803d' : s.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af',
+                            }}>
+                              {s.status === 'done' ? '✓' : s.status === 'rejected' ? '✕' : isCurrent ? '●' : '○'} {s.label}
+                            </span>
+                            {s.detail && (
+                              <span style={{
+                                fontSize: 11, color: c.text, fontWeight: 600,
+                                background: isCurrent || s.status === 'warning' || s.status === 'rejected' ? c.bg : 'transparent',
+                                padding: isCurrent || s.status === 'warning' || s.status === 'rejected' ? '1px 8px' : 0,
+                                borderRadius: 4, ...S.mono,
+                              }}>{s.detail}</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div style={{ textAlign: 'center', padding: '8px 4px', borderRadius: 8, background: '#f8f9fb' }}>
-                  <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginBottom: 4 }}>付款</div>
-                  <span style={{ ...S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : ''), fontSize: 12 }}>{PAY_STATUS_MAP[payKey] || payKey}</span>
-                </div>
-                <div style={{ textAlign: 'center', padding: '8px 4px', borderRadius: 8, background: '#f8f9fb' }}>
-                  <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginBottom: 4 }}>出貨</div>
-                  <span style={{ ...S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : ''), fontSize: 12 }}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 8, background: '#f0fdf4', border: '1px solid #dcfce7' }}>
-                <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>庫存</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#15803d' }}>充足 {sufficientCount}</span>
-                {items.filter(i => i.stock_status === 'partial').length > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: '#854d0e' }}>不足 {items.filter(i => i.stock_status === 'partial').length}</span>}
-                {items.filter(i => i.stock_status === 'no_stock').length > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>無庫存 {items.filter(i => i.stock_status === 'no_stock').length}</span>}
-                <span style={{ marginLeft: 'auto', fontSize: 11, color: '#9ca3af' }}>共 {items.length} 項</span>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Customer card - compact */}
             <div style={{ ...cardStyle, padding: '16px 20px' }}>
