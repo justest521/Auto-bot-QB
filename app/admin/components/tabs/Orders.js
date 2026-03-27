@@ -72,6 +72,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const shortageCount = items.filter(i => i.stock_status !== 'sufficient').length;
 
   const toggleItemSelect = (itemId) => {
+    // 防呆：已有 PO 的品項不可勾選
+    const item = items.find(i => i.id === itemId);
+    if (item && (item.po_ref || item.po_info)) return;
     setSelectedItemIds(prev => {
       const next = new Set(prev);
       if (next.has(itemId)) next.delete(itemId); else next.add(itemId);
@@ -80,7 +83,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   };
 
   const selectAllByStatus = (items, statuses) => {
-    const ids = items.filter(i => statuses.includes(i.stock_status)).map(i => i.id);
+    const ids = items.filter(i => statuses.includes(i.stock_status) && !i.po_ref && !i.po_info).map(i => i.id);
     setSelectedItemIds(new Set(ids));
   };
 
@@ -279,11 +282,12 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             {/* ===== Quick select buttons ===== */}
             <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 16 }}>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                <button onClick={() => setSelectedItemIds(new Set(items.map(i => i.id)))} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11 }}>全選</button>
+                <button onClick={() => setSelectedItemIds(new Set(items.filter(i => !i.po_ref && !i.po_info).map(i => i.id)))} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11 }}>全選</button>
                 <button onClick={() => setSelectedItemIds(new Set())} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11 }}>取消全選</button>
                 {sufficientCount > 0 && <button onClick={() => selectAllByStatus(items, ['sufficient'])} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11, color: '#15803d', borderColor: '#bbf7d0' }}>選有貨 ({sufficientCount})</button>}
                 {shortageCount > 0 && <button onClick={() => selectAllByStatus(items, ['partial', 'no_stock'])} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11, color: '#b91c1c', borderColor: '#fecaca' }}>選缺貨 ({shortageCount})</button>}
                 {selectedItemIds.size > 0 && <span style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, padding: '4px 0' }}>已選 {selectedItemIds.size} 項</span>}
+                {items.filter(i => i.po_ref || i.po_info).length > 0 && <span style={{ fontSize: 11, color: '#f59e0b', fontWeight: 600, padding: '4px 8px', background: '#fffbeb', borderRadius: 4 }}>已有 {items.filter(i => i.po_ref || i.po_info).length} 項已建採購單</span>}
               </div>
             </div>
 
@@ -307,7 +311,11 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     return (
                       <div key={item.id} onClick={() => toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 120px minmax(0,1fr) 75px 60px 60px 80px 70px 70px 80px', gap: 6, padding: '14px 24px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: 'pointer', background: isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff', opacity: hasPO ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && (e.currentTarget.style.background= isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
-                          <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 16, height: 16 }} />
+                          {hasPO ? (
+                            <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af' }}>已採購</span>
+                          ) : (
+                            <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 16, height: 16 }} />
+                          )}
                         </div>
                         <div style={{ color: '#374151', fontWeight: 600, ...S.mono, fontSize: 13 }}>{item.item_number_snapshot}</div>
                         <div style={{ color: '#1f2937', fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description_snapshot || '-'}</div>
