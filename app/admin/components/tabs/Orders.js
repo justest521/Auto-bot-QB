@@ -424,8 +424,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               {items.length > 0 ? (
                 <div>
                   {/* Table header */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 55px 55px 70px 55px 55px 80px minmax(0,140px) 50px', gap: 6, padding: '10px 24px', background: '#f8f9fb', fontSize: 11, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                    <div></div><div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>折扣%</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'center' }}>銷貨</div><div style={{ textAlign: 'center' }}>採購</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 50px 65px 85px minmax(0,150px) 50px', gap: 6, padding: '10px 24px', background: '#f8f9fb', fontSize: 11, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    <div></div><div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
                   </div>
                   {/* Table rows */}
                   {items.map((item) => {
@@ -438,7 +438,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     const rowBg = isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff';
                     return (
                       <div key={item.id}>
-                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 55px 55px 70px 55px 55px 80px minmax(0,140px) 50px', gap: 6, padding: '14px 24px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
+                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 50px 65px 85px minmax(0,150px) 50px', gap: 6, padding: '14px 24px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
                           {cannotEdit ? (
                             <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af' }}>已銷</span>
@@ -464,49 +464,27 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                             item.qty
                           )}
                         </div>
-                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', ...S.mono, fontSize: 13, cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: 4, background: 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
-                          {isEditing ? (
-                            <input type="number" value={editValues.discount_rate} onChange={(e) => setEditValues({ ...editValues, discount_rate: parseFloat(e.target.value) || 0 })} style={inputStyle} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} min="0" max="100" />
-                          ) : (
-                            editValues.discount_rate || item.discount_rate ? `${editValues.discount_rate || item.discount_rate}%` : '—'
-                          )}
-                        </div>
                         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                           <span style={{ fontWeight: 700, color: badge.color, ...S.mono, fontSize: 13 }}>{item.stock_qty}</span>
                           <span style={{ display: 'inline-block', padding: '1px 6px', borderRadius: 8, fontSize: 9, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
                             {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
                           </span>
                         </div>
-                        <div style={{ textAlign: 'center' }}>
-                          {item.sale_info ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                              <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: item.sale_info.status === 'draft' ? '#fef3c7' : item.sale_info.status === 'paid' ? '#dcfce7' : '#dbeafe', color: item.sale_info.status === 'draft' ? '#92400e' : item.sale_info.status === 'paid' ? '#15803d' : '#1d4ed8', border: `1px solid ${item.sale_info.status === 'draft' ? '#fde68a' : item.sale_info.status === 'paid' ? '#bbf7d0' : '#bfdbfe'}` }}>
-                                {item.sale_info.status === 'draft' ? '待審' : item.sale_info.status === 'issued' ? '已開' : item.sale_info.status === 'paid' ? '已收' : item.sale_info.status}
-                              </span>
-                              <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, ...S.mono }}>{item.sale_info.sold_qty}/{item.qty}</span>
-                            </div>
-                          ) : (
-                            <span style={{ fontSize: 11, color: '#d1d5db' }}>—</span>
-                          )}
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                          {item.po_info ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                              <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: item.po_info.status === 'draft' ? '#fef3c7' : item.po_info.status === 'received' ? '#dcfce7' : '#dbeafe', color: item.po_info.status === 'draft' ? '#92400e' : item.po_info.status === 'received' ? '#15803d' : '#1d4ed8', border: `1px solid ${item.po_info.status === 'draft' ? '#fde68a' : item.po_info.status === 'received' ? '#bbf7d0' : '#bfdbfe'}` }}>
-                                {item.po_info.status === 'draft' ? '草稿' : item.po_info.status === 'confirmed' ? '已確認' : item.po_info.status === 'received' ? '已到貨' : item.po_info.status}
-                              </span>
-                              {item.po_ref && <span style={{ fontSize: 9, color: '#6b7280', ...S.mono }}>{item.po_ref}</span>}
-                            </div>
-                          ) : (
-                            <span style={{ fontSize: 11, color: '#d1d5db' }}>—</span>
-                          )}
-                        </div>
                         <div style={{ color: '#059669', fontWeight: 800, textAlign: 'right', ...S.mono, fontSize: 15 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
-                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ fontSize: 13, color: '#6b7280', cursor: cannotEdit || isEditing ? 'default' : 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '2px 4px', borderRadius: 4, background: 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
+                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ fontSize: 12, color: '#6b7280', cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: 4, background: 'transparent', lineHeight: 1.4 }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
                           {isEditing ? (
                             <input type="text" value={editValues.item_note} onChange={(e) => setEditValues({ ...editValues, item_note: e.target.value })} style={{ ...inputStyle, textAlign: 'left' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} placeholder="備註" />
                           ) : (
-                            item.item_note || '—'
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              {(item.discount_rate > 0 || item.sale_info || item.po_info) && (
+                                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                                  {item.discount_rate > 0 && <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#fef3c7', color: '#92400e' }}>折{item.discount_rate}%</span>}
+                                  {item.sale_info && <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#dbeafe', color: '#1d4ed8' }}>已銷{item.sale_info.sold_qty}/{item.qty}</span>}
+                                  {item.po_info && <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#f3e8ff', color: '#7c3aed' }}>已採購</span>}
+                                </div>
+                              )}
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.item_note || '—'}</span>
+                            </div>
                           )}
                         </div>
                         <div style={{ display: 'flex', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
