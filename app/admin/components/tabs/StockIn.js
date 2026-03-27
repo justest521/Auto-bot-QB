@@ -64,7 +64,7 @@ export default function StockIn() {
         <StatCard code="PEND" label="待確認" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
         <StatCard code="CONF" label="已入庫" value={fmt(sm.confirmed)} tone="blue" accent="#16a34a" />
       </div>
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -83,7 +83,7 @@ export default function StockIn() {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有進貨單" /> : data.rows.map(r => (
         <div key={r.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 100px 120px 100px minmax(0,1fr) 100px', gap: 12, alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 100px 120px 100px minmax(0,1fr) 100px', gap: 10, alignItems: 'center' }}>
             <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>SI_NO</div><div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{r.stock_in_no || '-'}</div></div>
             <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>DATE</div><div style={{ fontSize: 13 }}>{fmtDate(r.stock_in_date)}</div></div>
             <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>AMOUNT</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(r.total_amount)}</div></div>
@@ -96,15 +96,15 @@ export default function StockIn() {
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF, dateFrom, dateTo)} />
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setCreateOpen(false)}>
-          <div style={{ width: 'min(620px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 18, padding: '24px 22px 28px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <div style={{ width: 'min(620px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
                 <div style={S.eyebrow}>Stock In</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>新增進貨單</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>新增進貨單</div>
               </div>
               <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>關閉</button>
             </div>
-            <div style={{ ...S.card, marginBottom: 14 }}>
+            <div style={{ ...S.card, marginBottom: 10 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
                 <div><label style={S.label}>廠商 ID</label><input value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))} style={S.input} /></div>
                 <div><label style={S.label}>採購單 ID (選填)</label><input value={form.po_id} onChange={(e) => setForm(p => ({ ...p, po_id: e.target.value }))} style={S.input} /></div>
@@ -129,7 +129,7 @@ export default function StockIn() {
               </div>
               <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0 }])} style={{ ...S.btnGhost, fontSize: 12, marginTop: 8, width: '100%' }}>+ 新增品項</button>
             </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
               <button onClick={handleCreate} style={{ ...S.btnPrimary, flex: 1 }}>建立進貨</button>
               <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, flex: 1 }}>取消</button>
             </div>

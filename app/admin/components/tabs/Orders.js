@@ -766,18 +766,18 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
       {/* ====== Shipment Creation Modal ====== */}
       {showShipForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={() => setShowShipForm(false)}>
-          <div style={{ width: 'min(700px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 18, padding: '24px 22px 28px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <div style={{ width: 'min(700px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
                 <div style={S.eyebrow}>Create Shipment</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>建立出貨 — {order.order_no}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>建立出貨 — {order.order_no}</div>
               </div>
               <button onClick={() => setShowShipForm(false)} style={S.btnGhost}>關閉</button>
             </div>
 
             {/* Ship items selection */}
-            <div style={{ ...cardStyle, marginBottom: 16, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ ...cardStyle, marginBottom: 10, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>選擇出貨品項與數量</span>
                 <span style={{ fontSize: 12, color: '#9ca3af' }}>{Object.values(shipItemQty).filter(q => q > 0).length} / {items.length} 項</span>
               </div>
@@ -799,7 +799,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             </div>
 
             {/* Ship form fields */}
-            <div style={{ ...cardStyle, padding: '18px 20px', marginBottom: 16 }}>
+            <div style={{ ...cardStyle, padding: '10px 16px', marginBottom: 10 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>物流商</label>
@@ -830,18 +830,18 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
       {/* ====== Sale Conversion Modal ====== */}
       {showSaleForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={() => setShowSaleForm(false)}>
-          <div style={{ width: 'min(700px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 18, padding: '24px 22px 28px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <div style={{ width: 'min(700px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
                 <div style={S.eyebrow}>Convert to Sale</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>轉銷貨 — {order.order_no}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>轉銷貨 — {order.order_no}</div>
                 <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>可調整每項出貨數量，未出的數量可之後再轉</div>
               </div>
               <button onClick={() => setShowSaleForm(false)} style={S.btnGhost}>關閉</button>
             </div>
 
-            <div style={{ ...cardStyle, marginBottom: 16, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ ...cardStyle, marginBottom: 10, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>選擇出貨數量</span>
                 <span style={{ fontSize: 14, color: '#9ca3af' }}>{Object.values(saleItemQty).filter(q => Number(q) > 0).length} / {Object.keys(saleItemQty).length} 項</span>
               </div>
@@ -1005,11 +1005,11 @@ export default function Orders({ setTab }) {
     <div>
       <PageLead eyebrow="ORDERS" title="訂單" description="點擊訂單進入詳情，自動比對庫存。有貨可轉銷貨，缺貨可轉採購單。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>{batchIds.size > 0 && <button onClick={handleBatchShip} disabled={batchShipping} style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: batchShipping ? 0.7 : 1 }}>{batchShipping ? '出貨中...' : `批次出貨 (${batchIds.size})`}</button>}<CsvImportButton datasetId="erp_orders" onImported={() => load(1, search, pageSize)} compact /><button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button><button onClick={() => data.table_ready && setShowCreate(true)} disabled={!data.table_ready} style={{ ...S.btnPrimary, opacity: data.table_ready ? 1 : 0.6, cursor: data.table_ready ? 'pointer' : 'not-allowed' }}>+ 新增訂單</button></div>} />
       {actionMessage ? (
-        <div style={{ ...S.card, background: actionMessage.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: actionMessage.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: actionMessage.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 14 }}>
+        <div style={{ ...S.card, background: actionMessage.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: actionMessage.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: actionMessage.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10 }}>
           {actionMessage}
         </div>
       ) : null}
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -1030,14 +1030,14 @@ export default function Orders({ setTab }) {
         </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 erp_orders 資料表。</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
         <StatCard code="OTOT" label="訂單總數" value={fmt(data.total)} tone="blue" />
         <StatCard code="PEND" label="未完成" value={fmt(data.summary?.pending_count)} tone="yellow" />
         <StatCard code="AMT" label="本頁總額" value={fmtP(data.summary?.total_amount)} tone="green" />
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有訂單資料" /> : (
-        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '12px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
             <div><input type="checkbox" checked={batchIds.size > 0 && data.rows.every(r => batchIds.has(r.id))} onChange={(e) => { if (e.target.checked) setBatchIds(new Set(data.rows.map(r => r.id))); else setBatchIds(new Set()); }} style={{ cursor: 'pointer' }} /></div>
             <div>序</div>
             <div>訂單號</div>
@@ -1055,7 +1055,7 @@ export default function Orders({ setTab }) {
             const shipKey = String(row.shipping_status || 'pending').toLowerCase();
 
             return (
-              <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
+              <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div><input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer' }} /></div>
                 <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
                 <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>

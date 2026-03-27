@@ -144,7 +144,7 @@ export default function LineCRM() {
       </div>
 
       {/* Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.625rem', marginBottom: '0.625rem' }}>
         <StatCard
           label="總客戶數"
           value={fmt(totalCustomers)}
@@ -207,7 +207,7 @@ export default function LineCRM() {
       </div>
 
       {/* Customer List */}
-      <div style={{ display: 'grid', gap: '1rem' }}>
+      <div style={{ display: 'grid', gap: '0.625rem' }}>
         {customers.length === 0 ? (
           <EmptyState message="沒有客戶" />
         ) : (
@@ -217,8 +217,9 @@ export default function LineCRM() {
               style={{
                 ...S.card,
                 display: 'flex',
-                gap: '1rem',
+                gap: '0.625rem',
                 alignItems: 'flex-start',
+                marginBottom: '0.625rem',
               }}
             >
               {/* Avatar */}
@@ -243,7 +244,7 @@ export default function LineCRM() {
               {/* Content */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Name and Tags */}
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', marginBottom: '0.625rem', flexWrap: 'wrap' }}>
                   <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: '#111827' }}>
                     {customer.display_name}
                   </h3>
@@ -266,7 +267,7 @@ export default function LineCRM() {
                 </div>
 
                 {/* Stats */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.625rem', fontSize: '0.875rem', color: '#6b7280' }}>
                   <div>
                     <span style={{ display: 'block', fontWeight: '500', color: '#111827' }}>
                       {fmt(customer.order_count || 0)}
@@ -318,8 +319,8 @@ export default function LineCRM() {
           {broadcastStatus && (
             <div
               style={{
-                marginBottom: '1rem',
-                padding: '0.75rem 1rem',
+                marginBottom: '0.625rem',
+                padding: '0.625rem 0.625rem',
                 borderRadius: '0.375rem',
                 backgroundColor: broadcastStatus.type === 'success' ? '#d1fae5' : '#fee2e2',
                 color: broadcastStatus.type === 'success' ? '#065f46' : '#7f1d1d',
@@ -331,8 +332,8 @@ export default function LineCRM() {
           )}
 
           {/* Message Input */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ ...S.label, display: 'block', marginBottom: '0.5rem' }}>
+          <div style={{ marginBottom: '0.625rem' }}>
+            <label style={{ ...S.label, display: 'block', marginBottom: '0.375rem' }}>
               訊息內容
             </label>
             <textarea
@@ -349,11 +350,11 @@ export default function LineCRM() {
           </div>
 
           {/* Tag Filter */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ ...S.label, display: 'block', marginBottom: '0.75rem' }}>
+          <div style={{ marginBottom: '0.625rem' }}>
+            <label style={{ ...S.label, display: 'block', marginBottom: '0.469rem' }}>
               篩選標籤 (留空則發送給全部)
             </label>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
               {availableTags.map(tag => (
                 <label
                   key={tag}
@@ -391,7 +392,7 @@ export default function LineCRM() {
             <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
               將發送給 <span style={{ fontWeight: 'bold', color: '#111827' }}>{fmt(recipientCount)}</span> 位用戶
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.469rem' }}>
               <button
                 style={S.btnGhost}
                 onClick={() => {

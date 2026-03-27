@@ -41,12 +41,12 @@ export default function Inquiries() {
     <div>
       <PageLead eyebrow="Inquiries" title="詢價管理" description="追蹤客戶詢價需求，可轉報價單進入正式交易流程。"
         action={<button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 新增詢價</button>} />
-      <div style={S.statGrid}>
+      <div style={{ ...S.statGrid, gap: 10, marginBottom: 10 }}>
         <StatCard code="OPEN" label="待處理" value={fmt(sm.open)} tone="blue" accent="#f59e0b" />
         <StatCard code="QUOT" label="已報價" value={fmt(sm.quoted)} tone="blue" accent="#3b82f6" />
         <StatCard code="CLSD" label="已結案" value={fmt(sm.closed)} tone="blue" accent="#16a34a" />
       </div>
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋詢價單號或主旨..." style={{ ...S.input, flex: 1 }} />
         <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(1, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 140 }}>
           <option value="">全部狀態</option><option value="open">待處理</option><option value="quoted">已報價</option><option value="closed">已結案</option>
@@ -54,7 +54,7 @@ export default function Inquiries() {
         <button onClick={() => load(1, search, statusF)} style={S.btnPrimary}>搜尋</button>
       </div>
       {loading ? <Loading /> : data.inquiries.length === 0 ? <EmptyState text="目前沒有詢價記錄" /> : data.inquiries.map(inq => (
-        <div key={inq.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
+        <div key={inq.id} style={{ ...S.card, padding: '10px 16px', marginBottom: 10 }}>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px minmax(0,1fr) 80px 100px 140px', gap: 12, alignItems: 'center' }}>
             <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>INQ_NO</div><div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{inq.inquiry_no || '-'}</div></div>
             <div><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{inq.subject || '-'}</div><div style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>{(inq.description || '').slice(0, 80)}{(inq.description || '').length > 80 ? '...' : ''}</div></div>
@@ -71,13 +71,13 @@ export default function Inquiries() {
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF)} />
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>新增詢價</h3>
-            <div style={{ marginBottom: 12 }}><label style={S.label}>客戶 ID (選填)</label><input value={form.customer_id} onChange={(e) => setForm(p => ({ ...p, customer_id: e.target.value }))} style={S.input} /></div>
-            <div style={{ marginBottom: 12 }}><label style={S.label}>主旨 *</label><input value={form.subject} onChange={(e) => setForm(p => ({ ...p, subject: e.target.value }))} style={S.input} /></div>
-            <div style={{ marginBottom: 12 }}><label style={S.label}>說明</label><textarea value={form.description} onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))} style={{ ...S.input, minHeight: 80 }} /></div>
-            <div style={{ marginBottom: 16 }}>
-              <label style={S.label}>優先度</label>
+          <div style={{ ...S.card, width: 440, maxWidth: '90vw', padding: '10px 16px' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>新增詢價</h3>
+            <div style={{ marginBottom: 10 }}><label style={{ ...S.label, marginBottom: 6 }}>客戶 ID (選填)</label><input value={form.customer_id} onChange={(e) => setForm(p => ({ ...p, customer_id: e.target.value }))} style={S.input} /></div>
+            <div style={{ marginBottom: 10 }}><label style={{ ...S.label, marginBottom: 6 }}>主旨 *</label><input value={form.subject} onChange={(e) => setForm(p => ({ ...p, subject: e.target.value }))} style={S.input} /></div>
+            <div style={{ marginBottom: 10 }}><label style={{ ...S.label, marginBottom: 6 }}>說明</label><textarea value={form.description} onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))} style={{ ...S.input, minHeight: 80 }} /></div>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ ...S.label, marginBottom: 6 }}>優先度</label>
               <select value={form.priority} onChange={(e) => setForm(p => ({ ...p, priority: e.target.value }))} style={S.input}>
                 <option value="low">低</option><option value="normal">一般</option><option value="high">高</option><option value="urgent">緊急</option>
               </select>

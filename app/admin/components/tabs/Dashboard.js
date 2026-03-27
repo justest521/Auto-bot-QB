@@ -72,14 +72,14 @@ export default function Dashboard() {
         title="營運儀表板"
         description="集中查看 Quick Buy Bot 的查詢量、客戶互動與熱門產品，整體結構參考經典 admin dashboard 的高資訊密度佈局。"
       />
-      <div style={{ ...S.statGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, minmax(0, 1fr))' : S.statGrid.gridTemplateColumns }}>
+      <div style={{ ...S.statGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, minmax(0, 1fr))' : S.statGrid.gridTemplateColumns, gap: 10, marginBottom: 10 }}>
         <StatCard code="MSG_TD" label="今日查詢" value={fmt(stats?.today_messages)} sub="New orders" tone="blue" />
         <StatCard code="MSG_WK" label="本週查詢" value={fmt(stats?.week_messages)} sub="7-day volume" tone="green" />
         <StatCard code="USR" label="客戶數" value={fmt(stats?.total_customers)} sub="Unique contacts" tone="yellow" />
         <StatCard code="PERF" label="平均回覆" value={fmtMs(stats?.avg_response_ms)} sub="Response time" tone="red" />
       </div>
-      <div style={{ ...S.twoCol, gridTemplateColumns: isTablet ? '1fr' : S.twoCol.gridTemplateColumns }}>
-        <div style={S.card}>
+      <div style={{ ...S.twoCol, gridTemplateColumns: isTablet ? '1fr' : S.twoCol.gridTemplateColumns, gap: 10 }}>
+        <div style={{ ...S.card, marginBottom: 10 }}>
           <PanelHeader title="熱門查詢產品" meta="最近互動中最常被詢問的產品料號" badge={<div style={{ ...S.tag('green') }}>TOP 10</div>} />
           {stats?.top_products?.length > 0 ? stats.top_products.map((p, i) => (
             <div key={p.item_number} style={{ display: 'grid', gridTemplateColumns: '48px 1fr 100px', alignItems: 'center', padding: '11px 0', borderTop: i > 0 ? '1px solid #e6edf5' : 'none' }}>
@@ -89,14 +89,14 @@ export default function Dashboard() {
             </div>
           )) : <EmptyState text="等待客戶使用 Line Bot 後將顯示數據" />}
         </div>
-        <div style={S.card}>
+        <div style={{ ...S.card, marginBottom: 10 }}>
           <PanelHeader title="系統概況" meta="目前部署與營運摘要" badge={<div style={{ ...S.tag('line') }}>LIVE</div>} />
-          <div style={{ display: 'grid', gap: 12 }}>
+          <div style={{ display: 'grid', gap: 10 }}>
             <div style={S.panelMuted}>
               <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>TOTAL_MESSAGES</div>
               <div style={{ fontSize: 28, color: '#111827', fontWeight: 700, ...S.mono }}>{fmt(stats?.total_messages)}</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div style={S.panelMuted}>
                 <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>WEBHOOK</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#10b981' }}>Operational</div>
@@ -109,15 +109,15 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      <div style={{ ...S.twoCol, marginTop: 18, gridTemplateColumns: isTablet ? '1fr' : S.twoCol.gridTemplateColumns }}>
-        <div style={S.card}>
+      <div style={{ ...S.twoCol, marginTop: 10, gridTemplateColumns: isTablet ? '1fr' : S.twoCol.gridTemplateColumns, gap: 10 }}>
+        <div style={{ ...S.card, marginBottom: 10 }}>
           <PanelHeader title="查詢趨勢" meta="模擬營運視圖，呈現近期查詢量與客戶互動波動" badge={<div style={{ ...S.tag('') }}>TREND</div>} />
           <TrendChart monthly={stats?.trend_monthly} />
         </div>
-        <div style={S.card}>
+        <div style={{ ...S.card, marginBottom: 10 }}>
           <PanelHeader title="互動概況" meta="以 dashboard 模組方式呈現主要互動指標" badge={<div style={{ ...S.tag('green') }}>LIVE</div>} />
-          <div style={{ display: 'grid', gap: 14 }}>
-            <div style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12, textAlign: 'center' }}>
+          <div style={{ display: 'grid', gap: 10 }}>
+            <div style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 10, textAlign: 'center' }}>
               <div>
                 <MiniDonut value={interaction.matched_rate} color="#10b981" />
                 <div style={{ marginTop: 8, fontSize: 11, color: '#6b7280', ...S.mono }}>MATCHED</div>
@@ -132,7 +132,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div style={{ ...S.panelMuted, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '14px 16px', borderBottom: '1px solid #dbe6f3', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '10px 16px', borderBottom: '1px solid #dbe6f3', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>最近摘要</div>
                   <div style={{ marginTop: 4, fontSize: 12, color: '#6b7280' }}>快速檢視目前營運狀態</div>
@@ -151,16 +151,16 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      <div style={{ ...S.twoCol, marginTop: 18, gridTemplateColumns: isTablet ? '1fr' : S.twoCol.gridTemplateColumns }}>
-        <div style={S.card}>
+      <div style={{ ...S.twoCol, marginTop: 10, gridTemplateColumns: isTablet ? '1fr' : S.twoCol.gridTemplateColumns, gap: 10 }}>
+        <div style={{ ...S.card, marginBottom: 10 }}>
           <PanelHeader title="成長曲線" meta="以高密度圖表模塊補齊參考圖的 dashboard 視覺語言" badge={<div style={{ ...S.tag('') }}>REPORT</div>} />
           <TrendLineChart daily={stats?.trend_daily} />
         </div>
-        <div style={S.card}>
+        <div style={{ ...S.card, marginBottom: 10 }}>
           <PanelHeader title="待辦與提醒" meta="用於追蹤上線後的營運維護工作" badge={<div style={{ ...S.tag('red') }}>ACTION</div>} />
           <div style={{ display: 'grid', gap: 10 }}>
             {actionItems.map(({ title, desc, color }) => (
-              <div key={title} style={{ ...S.panelMuted, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div key={title} style={{ ...S.panelMuted, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                 <div style={{ width: 10, height: 10, borderRadius: 999, background: color, marginTop: 5, flexShrink: 0 }} />
                 <div>
                   <div style={{ fontSize: 14, color: '#111827', fontWeight: 700 }}>{title}</div>

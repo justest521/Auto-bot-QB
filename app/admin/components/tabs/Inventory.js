@@ -73,17 +73,17 @@ export default function Inventory() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 13 }}>
             <thead><tr style={{ background: '#f3f4f6' }}>
-              {['料號','品名','分類','庫存','安全水位','狀態','操作'].map(h => <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontSize: 12, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #dbe3ee' }}>{h}</th>)}
+              {['料號','品名','分類','庫存','安全水位','狀態','操作'].map(h => <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontSize: 12, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #dbe3ee' }}>{h}</th>)}
             </tr></thead>
             <tbody>{data.items.map(it => (
               <tr key={it.item_number} style={{ borderBottom: '1px solid #edf0f5' }}>
-                <td style={{ padding: '10px 12px', ...S.mono, color: '#3b82f6', fontWeight: 600 }}>{it.item_number}</td>
-                <td style={{ padding: '10px 12px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.description || '-'}</td>
-                <td style={{ padding: '10px 12px', color: '#374151' }}>{it.category || '-'}</td>
-                <td style={{ padding: '10px 12px', fontWeight: 700, color: Number(it.stock_qty || 0) <= 0 ? '#ef4444' : Number(it.stock_qty) <= Number(it.safety_stock) ? '#f59e0b' : '#16a34a' }}>{it.stock_qty ?? 0}</td>
-                <td style={{ padding: '10px 12px', color: '#374151' }}>{it.safety_stock ?? 0}</td>
-                <td style={{ padding: '10px 12px' }}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></td>
-                <td style={{ padding: '10px 12px' }}><button onClick={() => setAdjOpen(it.item_number)} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: 12 }}>異動</button></td>
+                <td style={{ padding: '10px 16px', ...S.mono, color: '#3b82f6', fontWeight: 600 }}>{it.item_number}</td>
+                <td style={{ padding: '10px 16px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.description || '-'}</td>
+                <td style={{ padding: '10px 16px', color: '#374151' }}>{it.category || '-'}</td>
+                <td style={{ padding: '10px 16px', fontWeight: 700, color: Number(it.stock_qty || 0) <= 0 ? '#ef4444' : Number(it.stock_qty) <= Number(it.safety_stock) ? '#f59e0b' : '#16a34a' }}>{it.stock_qty ?? 0}</td>
+                <td style={{ padding: '10px 16px', color: '#374151' }}>{it.safety_stock ?? 0}</td>
+                <td style={{ padding: '10px 16px' }}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></td>
+                <td style={{ padding: '10px 16px' }}><button onClick={() => setAdjOpen(it.item_number)} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: 12 }}>異動</button></td>
               </tr>
             ))}</tbody>
           </table>
@@ -92,21 +92,21 @@ export default function Inventory() {
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, filter)} />
       {adjOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 400, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>庫存異動 — {adjOpen}</h3>
-            <div style={{ marginBottom: 12 }}>
-              <label style={S.label}>異動類型</label>
+          <div style={{ ...S.card, width: 400, maxWidth: '90vw', borderRadius: 14, padding: '16px 18px 20px' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>庫存異動 — {adjOpen}</h3>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ ...S.label, marginBottom: 6 }}>異動類型</label>
               <select value={adjType} onChange={(e) => setAdjType(e.target.value)} style={S.input}>
                 <option value="in">入庫 (增加)</option>
                 <option value="out">出庫 (減少)</option>
               </select>
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={S.label}>數量</label>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ ...S.label, marginBottom: 6 }}>數量</label>
               <input type="number" value={adjQty} onChange={(e) => setAdjQty(e.target.value)} style={S.input} placeholder="輸入數量" min="1" />
             </div>
-            <div style={{ marginBottom: 16 }}>
-              <label style={S.label}>備註</label>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ ...S.label, marginBottom: 6 }}>備註</label>
               <input value={adjNotes} onChange={(e) => setAdjNotes(e.target.value)} style={S.input} placeholder="選填" />
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>

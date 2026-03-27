@@ -100,14 +100,14 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const items = detail?.items || [];
   const totalAmount = items.reduce((sum, item) => sum + (Number(item.line_total) || 0), 0);
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
   const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
       {/* ====== Header ====== */}
-      <div style={{ ...cardStyle, padding: '24px 28px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div style={{ ...cardStyle, padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -129,10 +129,10 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 16, padding: '12px 20px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 10, alignItems: 'start' }}>
           {/* ====== Left: Items ====== */}
           <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
@@ -171,18 +171,18 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
           </div>
 
           {/* ====== Right sidebar ====== */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* 1. PDF button */}
             <button onClick={() => window.open(`/api/pdf?type=po&id=${po.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
 
             {/* 2. Vendor card */}
-            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>廠商資訊</div>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>廠商 ID: {po.vendor_id || '未指定'}</div>
             </div>
 
             {/* 3. Unified record timeline card - combine source order + creation + approval + receiving */}
-            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>採購記錄</div>
               {(() => {
                 const fmtTime = (t) => {
@@ -283,7 +283,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
             {/* 4. Remark card */}
             {po.remark && (
-              <div style={{ ...cardStyle, padding: '16px 20px' }}>
+              <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>備註</div>
                 <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontWeight: 700 }}>{po.remark}</div>
               </div>
@@ -294,8 +294,8 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
       {emailDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>寄送採購單給原廠</h3>
+          <div style={{ ...S.card, width: 440, maxWidth: '90vw', borderRadius: 14, padding: '16px 18px 20px', marginBottom: 0 }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 20 }}>寄送採購單給原廠</h3>
             <p style={{ fontSize: 14, color: '#374151', margin: '0 0 16px' }}>採購單 <b>{po.po_no}</b> 將以 Excel 附件寄出，原廠可透過信件中的按鈕直接回覆接單/出貨。</p>
             <div style={{ marginBottom: 12 }}><label style={S.label}>收件人 Email *</label><input value={emailTo} onChange={(e) => setEmailTo(e.target.value)} style={S.input} placeholder="supplier@example.com" type="email" /></div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
@@ -378,7 +378,7 @@ export default function PurchaseOrders({ setTab }) {
     <div>
       <PageLead eyebrow="Purchase Orders" title="採購單" description="建立對廠商的採購訂單，確認後可轉進貨單入庫。"
         action={<button style={S.btnPrimary}>+ 新增採購單</button>} />
-      {msg && <div style={{ ...S.card, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#dc2626' : '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#dc2626' : '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
       <div style={S.statGrid}>
         <StatCard code="DFT" label="草稿" value={fmt(sm.draft)} tone="blue" />
         <StatCard code="SENT" label="已寄出" value={fmt(sm.sent)} tone="blue" accent="#6366f1" />
@@ -386,7 +386,7 @@ export default function PurchaseOrders({ setTab }) {
         <StatCard code="SHIP" label="已出貨" value={fmt(sm.shipped)} tone="blue" accent="#f59e0b" />
         <StatCard code="RCV" label="已到貨" value={fmt(sm.received)} tone="blue" accent="#16a34a" />
       </div>
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -409,7 +409,7 @@ export default function PurchaseOrders({ setTab }) {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有採購單" /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '40px 150px 130px 80px minmax(0,1fr) 100px' : '40px 150px 130px 80px minmax(0,1fr) 100px 120px 80px', gap: 10, padding: '12px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '40px 150px 130px 80px minmax(0,1fr) 100px' : '40px 150px 130px 80px minmax(0,1fr) 100px 120px 80px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
             <div>序</div>
             <div>採購單號</div>
             <div>日期</div>
@@ -422,7 +422,7 @@ export default function PurchaseOrders({ setTab }) {
           {data.rows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
             return (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '40px 150px 130px 80px minmax(0,1fr) 100px' : '40px 150px 130px 80px minmax(0,1fr) 100px 120px 80px', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '40px 150px 130px 80px minmax(0,1fr) 100px' : '40px 150px 130px 80px minmax(0,1fr) 100px 120px 80px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
                 <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
                 <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.po_no || '-'}</div>
                 <div style={{ fontSize: 13, color: '#374151', ...S.mono }}>{row.po_date?.slice(0, 10) || '-'}</div>

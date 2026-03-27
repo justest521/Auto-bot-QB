@@ -164,7 +164,7 @@ export default function FormalCustomers() {
 
   const listPane = (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginBottom: 10 }}>
         {(() => {
           const ys = data.year_stats || {};
           const gr = ys.growth_rate !== null && ys.growth_rate !== undefined ? Number(ys.growth_rate) : null;
@@ -201,9 +201,9 @@ export default function FormalCustomers() {
               <button
                 key={customer.id}
                 onClick={() => setSelectedCustomerId(customer.id)}
-                style={{ ...S.card, padding: '14px 16px', marginBottom: 0, textAlign: 'left', cursor: 'pointer', background: selectedCustomerId === customer.id ? '#f0f7ff' : '#fff', borderColor: selectedCustomerId === customer.id ? '#93c5fd' : '#e5e7eb' }}
+                style={{ ...S.card, padding: '10px 16px', marginBottom: 0, textAlign: 'left', cursor: 'pointer', background: selectedCustomerId === customer.id ? '#f0f7ff' : '#fff', borderColor: selectedCustomerId === customer.id ? '#93c5fd' : '#e5e7eb' }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 15, color: '#111827', fontWeight: 700 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                     <div style={{ marginTop: 6, fontSize: 12, color: '#374151', lineHeight: 1.7 }}>
@@ -222,7 +222,7 @@ export default function FormalCustomers() {
           </div>
         ) : (
           <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 12, padding: '14px 18px', borderBottom: '1px solid #F2F2F2', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 10, padding: '10px 16px', borderBottom: '1px solid #F2F2F2', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
               <div>公司名稱</div>
               <div>聯絡人</div>
               <div>電話</div>
@@ -234,7 +234,7 @@ export default function FormalCustomers() {
               <button
                 key={customer.id}
                 onClick={() => setSelectedCustomerId(customer.id)}
-                style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 12, padding: '14px 18px', alignItems: 'center', background: selectedCustomerId === customer.id ? '#dcfce7' : idx % 2 === 1 ? '#f3f4f6' : '#fff', borderWidth: '1px 0 0 0', borderStyle: 'solid', borderColor: '#e5e7eb', textAlign: 'left', cursor: 'pointer', width: '100%', ...(dup ? { borderLeft: `4px solid ${dup.groupColor}` } : {}) }}
+                style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 10, padding: '10px 16px', alignItems: 'center', background: selectedCustomerId === customer.id ? '#dcfce7' : idx % 2 === 1 ? '#f3f4f6' : '#fff', borderWidth: '1px 0 0 0', borderStyle: 'solid', borderColor: '#e5e7eb', textAlign: 'left', cursor: 'pointer', width: '100%', ...(dup ? { borderLeft: `4px solid ${dup.groupColor}` } : {}) }}
               >
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -293,7 +293,7 @@ export default function FormalCustomers() {
           <button onClick={() => { setCreating(true); setSelectedCustomerId(''); }} style={S.btnPrimary}>+ 新增客戶</button>
         </div>}
       />
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexDirection: isMobile ? 'column' : 'row', alignItems: 'center' }}>
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -318,10 +318,10 @@ export default function FormalCustomers() {
       )}
       {creating ? (
         <div style={{ ...S.card, maxWidth: 960, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gap: 16 }}>
+          <div style={{ display: 'grid', gap: 10 }}>
             <PanelHeader title="新增客戶" meta="手動建立一筆正式客戶" />
             <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginTop: 4, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>基本資料</div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>客戶簡稱 *</label><input value={createForm.company_name} onChange={(e) => setCreateForm({ ...createForm, company_name: e.target.value })} style={S.input} /></div>
               <div><label style={S.label}>客戶全名</label><input value={createForm.full_name} onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })} style={S.input} /></div>
               <div><label style={S.label}>統一編號</label><input value={createForm.tax_id} onChange={(e) => setCreateForm({ ...createForm, tax_id: e.target.value })} style={S.input} /></div>
@@ -336,7 +336,7 @@ export default function FormalCustomers() {
               <div><label style={S.label}>固定折扣 %</label><input type="number" value={createForm.discount_percent} onChange={(e) => setCreateForm({ ...createForm, discount_percent: e.target.value })} style={S.input} /></div>
             </div>
             <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginTop: 8, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>發票與載具</div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>發票通知手機</label><input value={createForm.invoice_mobile} onChange={(e) => setCreateForm({ ...createForm, invoice_mobile: e.target.value })} style={S.input} /></div>
               <div><label style={S.label}>發票通知 Email</label><input value={createForm.invoice_email} onChange={(e) => setCreateForm({ ...createForm, invoice_email: e.target.value })} style={S.input} /></div>
               <div><label style={S.label}>載具類別</label><input value={createForm.carrier_type} onChange={(e) => setCreateForm({ ...createForm, carrier_type: e.target.value })} style={S.input} /></div>
@@ -345,14 +345,14 @@ export default function FormalCustomers() {
               <div><label style={S.label}>停止往來日</label><input type="date" value={createForm.stop_date} onChange={(e) => setCreateForm({ ...createForm, stop_date: e.target.value })} style={S.input} /></div>
             </div>
             <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginTop: 8, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>結帳與收款</div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>結帳方式</label><select value={createForm.payment_method} onChange={(e) => setCreateForm({ ...createForm, payment_method: e.target.value })} style={S.input}><option value="">請選擇</option><option value="出貨後">出貨後</option><option value="月結">月結</option></select></div>
               <div><label style={S.label}>結帳天數</label><input type="number" value={createForm.payment_days} onChange={(e) => setCreateForm({ ...createForm, payment_days: e.target.value })} style={S.input} /></div>
               <div><label style={S.label}>收款方式</label><select value={createForm.collection_method} onChange={(e) => setCreateForm({ ...createForm, collection_method: e.target.value })} style={S.input}><option value="">請選擇</option><option value="結帳後">結帳後</option><option value="每月">每月</option></select></div>
               <div><label style={S.label}>收款日</label><input type="number" value={createForm.collection_day} onChange={(e) => setCreateForm({ ...createForm, collection_day: e.target.value })} style={S.input} /></div>
             </div>
             <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginTop: 8, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>地址</div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>登記地址</label><input value={createForm.registered_address || createForm.address} onChange={(e) => setCreateForm({ ...createForm, registered_address: e.target.value, address: e.target.value })} style={S.input} /></div>
               <div><label style={S.label}>發票地址</label><input value={createForm.invoice_address} onChange={(e) => setCreateForm({ ...createForm, invoice_address: e.target.value })} style={S.input} /></div>
               <div><label style={S.label}>送貨地址</label><input value={createForm.shipping_address} onChange={(e) => setCreateForm({ ...createForm, shipping_address: e.target.value })} style={S.input} /></div>
@@ -366,13 +366,13 @@ export default function FormalCustomers() {
           </div>
         </div>
       ) : isMobile ? (
-        <div style={{ display: 'grid', gap: 16 }}>
+        <div style={{ display: 'grid', gap: 10 }}>
           {listPane}
           <div style={S.card}>
             {detailLoading ? <Loading /> : !detailCustomer ? <EmptyState text="請先選擇一位正式客戶" /> : (
-              <div style={{ display: 'grid', gap: 16 }}>
+              <div style={{ display: 'grid', gap: 10 }}>
                 <PanelHeader title={detailCustomer.company_name || detailCustomer.name || '客戶檔案'} meta={detailCustomer.customer_code || 'ERP customer'} badge={<div style={S.tag(stageMeta[detailCustomer.customer_stage]?.color || '')}>{stageMeta[detailCustomer.customer_stage]?.label || '詢問名單'}</div>} />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
                   <StatCard code="QUOTE" label="報價" value={fmt(summary.quote_count)} tone="blue" />
                   <StatCard code="ORDER" label="訂單" value={fmt(summary.order_count)} tone="yellow" />
                   <StatCard code="SALE" label="銷貨" value={fmt(summary.sale_count)} tone="green" />
@@ -386,7 +386,7 @@ export default function FormalCustomers() {
         <div style={S.twoCol}>
           <div>{listPane}</div>
           <div style={{ position: 'sticky', top: 80, maxHeight: 'calc(100vh - 96px)', overflowY: 'auto', minWidth: 0 }}>
-            <div style={{ ...S.card, padding: '14px 16px', overflow: 'hidden', wordBreak: 'break-word' }}>
+            <div style={{ ...S.card, padding: '10px 16px', overflow: 'hidden', wordBreak: 'break-word' }}>
               {detailLoading ? <Loading /> : !detailCustomer ? <EmptyState text="請先選擇一位正式客戶" /> : (
                 <div style={{ display: 'grid', gap: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

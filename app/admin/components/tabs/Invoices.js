@@ -110,7 +110,7 @@ export default function Invoices() {
     <div>
       <PageLead eyebrow="INVOICES" title="發票管理" description="管理發票開立、付款狀態追蹤，參考 Odoo 會計模組。"
         action={<button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button>} />
-      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
 
       <div style={S.statGrid}>
         <StatCard code="UNPD" label="未付款" value={fmtP(s.unpaid_amount)} tone="yellow" />
@@ -120,7 +120,7 @@ export default function Invoices() {
       </div>
 
       {/* Unified filter card */}
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -180,8 +180,8 @@ export default function Invoices() {
 
       {payDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 400, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>記錄收款</h3>
+          <div style={{ ...S.card, width: 400, maxWidth: '90vw', borderRadius: 14, padding: '16px 18px 20px' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>記錄收款</h3>
             <div style={{ marginBottom: 12, fontSize: 13, color: '#374151' }}>發票：{payDialog.invoice_no} / 餘額：{fmtP(Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0))}</div>
             <div style={{ marginBottom: 12 }}><label style={S.label}>收款金額</label><input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} style={S.input} /></div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>

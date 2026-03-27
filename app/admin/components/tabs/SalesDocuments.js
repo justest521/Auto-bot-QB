@@ -36,14 +36,14 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const invoice = detail?.invoice;
   const items = detail?.items || [];
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
   const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
       {/* ====== Header ====== */}
-      <div style={{ ...cardStyle, padding: '24px 28px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div style={{ ...cardStyle, padding: '24px 28px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -73,13 +73,13 @@ function SaleDetailView({ sale, onBack, setTab }) {
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 16, padding: '12px 20px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 10, alignItems: 'start' }}>
           {/* ====== Left: Items ====== */}
           <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-            <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
+            <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
               <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>商品明細</span>
               <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
             </div>
@@ -91,7 +91,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 </div>
                 {/* Table rows */}
                 {items.map((item, i) => (
-                  <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 55px 100px 110px', gap: 10, padding: '16px 24px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                  <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 55px 100px 110px', gap: 10, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
                     <div style={{ ...S.mono, fontSize: 14, color: '#374151', paddingTop: 2 }}>{item.item_number || item.item_number_snapshot || '-'}</div>
                     <div style={{ fontWeight: 600, fontSize: 14, color: '#1f2937', lineHeight: 1.4 }}>{item.description || item.description_snapshot || '-'}</div>
                     <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{item.quantity || item.qty || 0}</div>
@@ -302,7 +302,7 @@ export default function SalesDocuments({ setTab }) {
   return (
     <div>
       <PageLead eyebrow="SALES" title="銷貨單" description="查看實際銷貨單、發票號碼與毛利，並可點單號查看完整銷貨單內容。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><CsvImportButton datasetId="qb_sales_history" onImported={() => load(1, search, pageSize)} compact /><button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button></div>} />
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -315,7 +315,7 @@ export default function SalesDocuments({ setTab }) {
         </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 qb_sales_history 或目前資料不可讀。</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
         <StatCard code="STOT" label="銷貨筆數" value={fmt(data.total)} tone="blue" />
         <StatCard code="REV" label="本頁營收" value={fmtP(data.summary?.total)} tone="green" />
         <StatCard code="GP" label="本頁毛利" value={fmtP(data.summary?.gross_profit)} tone="yellow" />

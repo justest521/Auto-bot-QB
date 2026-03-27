@@ -262,13 +262,13 @@ export default function Customers() {
   const formalProfileComplete = detail?.formal_profile_complete ?? (detailCustomer ? isFormalCustomerBound(detailCustomer) : false);
   const currentStage = getCustomerStage(detailCustomer);
   const detailPanel = (
-    <div style={{ ...S.card, padding: '16px 18px', overflow: 'hidden', wordBreak: 'break-word' }}>
+    <div style={{ ...S.card, padding: '10px 16px', overflow: 'hidden', wordBreak: 'break-word' }}>
       {!detailCustomer ? (
         <EmptyState text="選一位客戶後，這裡會顯示客戶檔案與互動摘要" />
       ) : detailLoading ? (
         <Loading />
       ) : (
-        <div style={{ display: 'grid', gap: 14 }}>
+        <div style={{ display: 'grid', gap: 10 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
               <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>{detailCustomer.display_name || '未命名客戶'}</div>
@@ -308,7 +308,7 @@ export default function Customers() {
           </div>
 
           <div style={{ display: 'grid', gap: 10 }}>
-            <div style={{ ...S.panelMuted, display: 'grid', gap: 8 }}>
+            <div style={{ ...S.panelMuted, display: 'grid', gap: 10 }}>
               <div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>CUSTOMER_PROFILE</div>
               <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.8 }}>
                 <div><span style={{ color: '#6b7280', ...S.mono }}>LAST_CONTACT -</span> {fmtDate(detailCustomer.last_contact_at || detailCustomer.created_at)}</div>
@@ -320,7 +320,7 @@ export default function Customers() {
               <div style={{ ...S.panelMuted, background: '#f2fbf6', borderColor: '#c9edd7' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10, marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontSize: 11, color: '#10b981', marginBottom: 8, ...S.mono }}>ERP_PROFILE</div>
+                    <div style={{ fontSize: 11, color: '#10b981', marginBottom: 6, ...S.mono }}>ERP_PROFILE</div>
                     <div style={{ fontSize: 15, color: '#111827', fontWeight: 700 }}>
                       {detailCustomer.linked_customer.company_name || detailCustomer.linked_customer.name || '未命名客戶'}
                     </div>
@@ -361,7 +361,7 @@ export default function Customers() {
                   </div>
                 )}
                 {detail?.customer_stage_ready ? (
-                  <div style={{ marginTop: 10 }}>
+                  <div style={{ marginTop: 6 }}>
                     <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 8, ...S.mono }}>CUSTOMER_STAGE</div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {Object.entries(stageMeta).map(([value, meta]) => (
@@ -389,7 +389,7 @@ export default function Customers() {
                   </div>
                 )}
                 {!formalProfileComplete && (
-                  <div style={{ marginTop: 8, fontSize: 13, color: '#374151', lineHeight: 1.7 }}>
+                  <div style={{ marginTop: 6, fontSize: 13, color: '#374151', lineHeight: 1.7 }}>
                     目前這筆還不是正式客戶。若要視為正式客戶，可把階段改成「正式客戶 / VIP」，並補齊公司、電話、Email 或統編。
                   </div>
                 )}
@@ -425,7 +425,7 @@ export default function Customers() {
                     {lookupResults.length > 0 && (
                       <div style={{ display: 'grid', gap: 10 }}>
                         {lookupResults.map((erpCustomer) => (
-                          <div key={erpCustomer.id} style={{ background: '#fff', border: '1px solid #dbe3ee', borderRadius: 10, padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
+                          <div key={erpCustomer.id} style={{ background: '#fff', border: '1px solid #dbe3ee', borderRadius: 10, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
                             <div>
                               <div style={{ fontSize: 14, color: '#111827', fontWeight: 700 }}>
                                 {erpCustomer.company_name || erpCustomer.name || '未命名客戶'}
@@ -484,21 +484,21 @@ export default function Customers() {
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
       </div>
       {!data.erp_ready && (
-        <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', padding: '14px 16px' }}>
+        <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', padding: '10px 16px', marginBottom: 10 }}>
           目前還找不到 erp_customers 資料表，人工綁定功能需要先把 docs/erp-schema-v1.sql 跑進 Supabase。
         </div>
       )}
       {bindMessage && (
-        <div style={{ ...S.card, background: '#edf9f2', borderColor: '#bdeccb', color: '#127248', padding: '14px 16px' }}>
+        <div style={{ ...S.card, background: '#edf9f2', borderColor: '#bdeccb', color: '#127248', padding: '10px 16px', marginBottom: 10 }}>
           {bindMessage}
         </div>
       )}
       <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>共 {data.total} 位客戶</div>
       {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的客戶資料" /> : (
-        <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : 'minmax(0, 1.25fr) minmax(340px, 0.9fr)', gap: 16, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : 'minmax(0, 1.25fr) minmax(340px, 0.9fr)', gap: 10, alignItems: 'start' }}>
           <div style={S.card}>
             {!isMobile && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 110px 150px 110px', gap: 12, padding: '0 10px 10px', borderBottom: '1px solid #e6edf5', marginBottom: 8, color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 110px 150px 110px', gap: 10, padding: '0 10px 10px', borderBottom: '1px solid #e6edf5', marginBottom: 8, color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
                 <div>客戶</div>
                 <div>狀態</div>
                 <div>ERP</div>
@@ -522,7 +522,7 @@ export default function Customers() {
                       cursor: 'pointer',
                     }}
                   >
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr auto' : 'minmax(0, 1.6fr) 110px 150px 110px', gap: 12, alignItems: 'center' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr auto' : 'minmax(0, 1.6fr) 110px 150px 110px', gap: 10, alignItems: 'center' }}>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
                           <span style={{ fontSize: 15, color: '#111827', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

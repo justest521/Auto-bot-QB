@@ -8,7 +8,7 @@ import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
 const STATUS_MAP = { pending: '待出貨', packed: '已包裝', shipped: '已出貨', delivered: '已送達', returned: '已退回', cancelled: '已取消' };
 const STATUS_COLOR = { pending: '#f59e0b', packed: '#8b5cf6', shipped: '#3b82f6', delivered: '#16a34a', returned: '#ef4444', cancelled: '#6b7280' };
 const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
-const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 };
+const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
 
 // ========== 出貨單明細頁 ==========
 function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
@@ -60,8 +60,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
       {/* Header */}
-      <div style={{ ...cardStyle, padding: '24px 28px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div style={{ ...cardStyle, padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -87,13 +87,13 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#b42318' : '#15803d', marginBottom: 16, padding: '12px 20px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 10, alignItems: 'start' }}>
           {/* Left: Items */}
           <div>
-            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 16 }}>
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>出貨品項</span>
                 <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
@@ -119,7 +119,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
             </div>
 
             {/* Status timeline */}
-            <div style={{ ...cardStyle, padding: '22px 24px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>狀態流程</div>
               <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
                 {['pending', 'shipped', 'delivered'].map((st, i) => {
@@ -146,9 +146,9 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
           </div>
 
           {/* Right sidebar */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* Logistics card */}
-            <div style={{ ...cardStyle, padding: '22px 24px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>物流資訊</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {[
@@ -169,7 +169,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
 
             {/* Order card */}
             {order && (
-              <div style={{ ...cardStyle, padding: '22px 24px' }}>
+              <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>關聯訂單</div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -190,7 +190,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
 
             {/* Customer card */}
             {customer && (
-              <div style={{ ...cardStyle, padding: '22px 24px' }}>
+              <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>客戶資訊</div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -289,14 +289,14 @@ export default function Shipments() {
           <button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 建立出貨</button>
         </div>} />
 
-      <div style={S.statGrid}>
+      <div style={{ ...S.statGrid, gap: 10, marginBottom: 10 }}>
         <StatCard code="PEND" label="待出貨" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
         <StatCard code="SHIP" label="已出貨" value={fmt(sm.shipped)} tone="blue" accent="#3b82f6" />
         <StatCard code="DELV" label="已送達" value={fmt(sm.delivered)} tone="blue" accent="#16a34a" />
       </div>
 
       {/* Filter bar */}
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -320,13 +320,13 @@ export default function Shipments() {
       {loading ? <Loading /> : data.shipments.length === 0 ? <EmptyState text="目前沒有出貨記錄" /> : (
         <div style={{ ...S.card, borderRadius: 14, padding: 0, overflow: 'hidden' }}>
           {/* Table header */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 8, padding: '10px 24px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
             <div>#</div><div>出貨單號</div><div>物流商</div><div>追蹤編號</div><div>出貨日期</div><div>狀態</div><div>操作</div>
           </div>
           {/* Table rows */}
           {data.shipments.map((s, idx) => (
             <div key={s.id} onClick={() => setSelectedShipment(s)}
-              style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 8, padding: '16px 24px', borderTop: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
+              style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
               <div style={{ fontSize: 13, color: '#b0b8c4', fontWeight: 500 }}>{(data.page * (data.limit || pageSize)) + idx + 1}</div>
@@ -356,8 +356,8 @@ export default function Shipments() {
       {/* Create modal */}
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 440, maxWidth: '90vw', borderRadius: 16 }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 16, fontWeight: 700 }}>建立出貨單</h3>
+          <div style={{ ...S.card, width: 440, maxWidth: '90vw', borderRadius: 14, padding: '16px 18px 20px' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 700 }}>建立出貨單</h3>
             {[
               { key: 'order_id', label: '訂單 ID', type: 'text' },
               { key: 'carrier', label: '物流商', type: 'text' },

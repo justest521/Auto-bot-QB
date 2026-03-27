@@ -40,13 +40,13 @@ export default function PurchaseReturns() {
             <button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 建立退出</button>
           </div>
         } />
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋退出單號..." style={{ ...S.input, flex: 1 }} />
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有進貨退出單" /> : data.rows.map(r => (
-        <div key={r.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 100px 120px minmax(0,1fr)', gap: 12, alignItems: 'center' }}>
+        <div key={r.id} style={{ ...S.card, padding: '10px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 100px 120px minmax(0,1fr)', gap: 10, alignItems: 'center' }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{r.return_no || '-'}</div>
             <div style={{ fontSize: 13 }}>{fmtDate(r.return_date)}</div>
             <div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(r.total_amount)}</div>
@@ -57,15 +57,15 @@ export default function PurchaseReturns() {
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search)} />
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setCreateOpen(false)}>
-          <div style={{ width: 'min(620px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 18, padding: '24px 22px 28px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <div style={{ width: 'min(620px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
                 <div style={S.eyebrow}>Purchase Return</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>建立進貨退出</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>建立進貨退出</div>
               </div>
               <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>關閉</button>
             </div>
-            <div style={{ ...S.card, marginBottom: 14 }}>
+            <div style={{ ...S.card, marginBottom: 10 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div><label style={S.label}>廠商 ID</label><input value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))} style={S.input} /></div>
                 <div><label style={S.label}>退貨原因</label><input value={form.reason} onChange={(e) => setForm(p => ({ ...p, reason: e.target.value }))} style={S.input} /></div>
@@ -89,7 +89,7 @@ export default function PurchaseReturns() {
               </div>
               <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_returned: 1, unit_cost: 0, line_total: 0 }])} style={{ ...S.btnGhost, fontSize: 12, marginTop: 8, width: '100%' }}>+ 新增品項</button>
             </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
               <button onClick={handleCreate} style={{ ...S.btnPrimary, flex: 1 }}>建立退出</button>
               <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, flex: 1 }}>取消</button>
             </div>

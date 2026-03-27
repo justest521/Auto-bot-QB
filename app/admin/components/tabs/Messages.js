@@ -55,7 +55,7 @@ export default function Messages() {
   return (
     <div>
       <PageLead eyebrow="Messages" title="AI 對話紀錄" description="集中檢視客戶提問、AI 回覆內容與回覆速度，適合追蹤 bot 的實際對話表現。" />
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -67,9 +67,9 @@ export default function Messages() {
           <button onClick={doSearch} style={{ ...S.btnPrimary, padding: '6px 16px', fontSize: 13 }}>查詢</button>
         </div>
       </div>
-      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>共 {data.total} 筆紀錄</div>
+      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10, ...S.mono }}>共 {data.total} 筆紀錄</div>
       {loading ? <Loading /> : <div ref={tableRef}>{data.messages.map(msg => (
-        <div key={msg.id} onClick={() => setExpanded(expanded === msg.id ? null : msg.id)} style={{ ...S.card, cursor: 'pointer', padding: '14px 18px', transition: 'border-color 0.2s, transform 0.2s', borderColor: expanded === msg.id ? '#93c5fd' : '#e5e7eb' }}>
+        <div key={msg.id} onClick={() => setExpanded(expanded === msg.id ? null : msg.id)} style={{ ...S.card, cursor: 'pointer', padding: '10px 16px', marginBottom: 10, transition: 'border-color 0.2s, transform 0.2s', borderColor: expanded === msg.id ? '#93c5fd' : '#e5e7eb' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={S.tag('green')}>{msg.display_name || '客戶'}</span>
@@ -79,14 +79,14 @@ export default function Messages() {
           </div>
           <div style={{ fontSize: 13, color: '#111827' }}><span style={{ color: '#6b7280' }}>Q: </span>{msg.user_message}</div>
           {expanded === msg.id && (
-            <div style={{ background: '#eff6ff', border: '1px solid #dbe6f3', borderRadius: 10, padding: '14px 16px', marginTop: 10, fontSize: 12, color: '#374151', whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
+            <div style={{ background: '#eff6ff', border: '1px solid #dbe6f3', borderRadius: 10, padding: '10px 16px', marginTop: 10, fontSize: 12, color: '#374151', whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
               <span style={{ color: '#3b82f6', fontSize: 11, ...S.mono }}>AI_RESPONSE</span>
               <div style={{ marginTop: 6, color: '#263246' }}>{msg.ai_response}</div>
             </div>
           )}
         </div>
       ))}</div>}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10 }}>
         {data.page > 1 && <button onClick={() => load(data.page - 1)} style={S.btnGhost}>← 上一頁</button>}
         <span style={{ color: '#666', padding: '8px 0', fontSize: 12, ...S.mono }}>P{data.page}</span>
         {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={S.btnGhost}>下一頁 →</button>}

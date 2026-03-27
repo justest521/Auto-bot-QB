@@ -111,8 +111,8 @@ export default function LineChat() {
       {showList && (
         <div style={{ width: isMobile ? '100%' : 320, borderRight: isMobile ? 'none' : '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', background: '#fff', flexShrink: 0 }}>
           {/* Header */}
-          <div style={{ padding: '18px 16px 14px', borderBottom: '1px solid #e5e7eb' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: LINE_GREEN }}></div>
               <div style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>LINE 聊天</div>
               <div style={{ fontSize: 12, color: '#6b7280', marginLeft: 'auto' }}>{conversations.length} 位用戶</div>
@@ -133,7 +133,7 @@ export default function LineChat() {
                 return (
                   <div key={conv.line_user_id} onClick={() => handleSelect(conv)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', cursor: 'pointer',
                       borderLeft: `3px solid ${isActive ? LINE_GREEN : 'transparent'}`,
                       background: isActive ? '#f0fdf4' : 'transparent',
                       transition: 'background 0.15s',
@@ -178,7 +178,7 @@ export default function LineChat() {
           ) : (
             <>
               {/* Chat Header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e5e7eb', background: '#fff', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: '1px solid #e5e7eb', background: '#fff', flexShrink: 0 }}>
                 {isMobile && (
                   <button onClick={() => setSelected(null)} style={{ ...S.btnGhost, padding: '6px 10px', fontSize: 13 }}>← 返回</button>
                 )}
@@ -192,7 +192,7 @@ export default function LineChat() {
               </div>
 
               {/* Messages Area */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '10px 16px', display: 'flex', flexDirection: 'column' }}>
                 {loadingThread ? <div style={{ textAlign: 'center', padding: 40 }}><Loading /></div> :
                   (!thread?.messages || thread.messages.length === 0) ? (
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 13 }}>尚無訊息</div>
@@ -259,20 +259,20 @@ export default function LineChat() {
               </div>
 
               {/* Reply Input */}
-              <div style={{ padding: '12px 18px', borderTop: '1px solid #e5e7eb', background: '#fff', flexShrink: 0 }}>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <div style={{ padding: '10px 16px', borderTop: '1px solid #e5e7eb', background: '#fff', flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <input
                     value={reply} onChange={e => setReply(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                     placeholder="輸入訊息，Enter 發送..."
                     disabled={sending}
-                    style={{ ...S.input, flex: 1, fontSize: 14, padding: '10px 14px', borderRadius: 20 }}
+                    style={{ ...S.input, flex: 1, fontSize: 14, padding: '8px 12px', borderRadius: 20 }}
                   />
                   <button
                     onClick={handleSend}
                     disabled={!reply.trim() || sending}
                     style={{
-                      ...S.btnPrimary, padding: '10px 20px', borderRadius: 20, fontSize: 14,
+                      ...S.btnPrimary, padding: '8px 14px', borderRadius: 20, fontSize: 14,
                       background: LINE_GREEN, borderColor: LINE_GREEN,
                       opacity: !reply.trim() || sending ? 0.5 : 1,
                     }}

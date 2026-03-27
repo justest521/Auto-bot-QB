@@ -131,14 +131,14 @@ export default function Approvals() {
   return (
     <div>
       <PageLead eyebrow="APPROVALS" title="簽核審批" description="集中管理採購單、報價單等文件的核准流程，參考 Odoo 審批模組。" />
-      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
 
       <div style={S.statGrid}>
         <StatCard code="PEND" label="待審核" value={data.pending_count || 0} tone="yellow" />
         <StatCard code="TOTL" label="全部" value={data.total} tone="blue" />
       </div>
 
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
         {Object.entries(STATUS_MAP).map(([k, v]) => (
           <button key={k} onClick={() => { setStatusFilter(k); load(k); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, borderColor: v.color, background: statusFilter === k ? v.color : '#fff', color: statusFilter === k ? '#fff' : v.color }}>{v.label}</button>
         ))}
@@ -152,8 +152,8 @@ export default function Approvals() {
         return (
           <div key={a.id} style={{ ...S.card, marginBottom: 10, overflow: 'hidden' }}>
             {/* Header row */}
-            <div style={{ padding: '14px 18px', cursor: 'pointer' }} onClick={() => setExpandedId(isExpanded ? null : a.id)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ padding: '10px 16px', cursor: 'pointer' }} onClick={() => setExpandedId(isExpanded ? null : a.id)}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 11 }}>{st.label}</span>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>
@@ -187,7 +187,7 @@ export default function Approvals() {
 
             {/* Item details - collapsible */}
             {isExpanded && items.length > 0 && (
-              <div style={{ borderTop: '1px solid #f0f0f0', padding: '12px 18px', background: '#fafbfd' }}>
+              <div style={{ borderTop: '1px solid #f0f0f0', padding: '10px 16px', background: '#fafbfd' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
@@ -215,7 +215,7 @@ export default function Approvals() {
 
             {/* Approved/Rejected info */}
             {a.status !== 'pending' && (
-              <div style={{ borderTop: '1px solid #f0f0f0', padding: '10px 18px', background: a.status === 'approved' ? '#f0fdf4' : '#fef2f2', display: 'flex', gap: 12, alignItems: 'center', fontSize: 12 }}>
+              <div style={{ borderTop: '1px solid #f0f0f0', padding: '10px 16px', background: a.status === 'approved' ? '#f0fdf4' : '#fef2f2', display: 'flex', gap: 10, alignItems: 'center', fontSize: 12 }}>
                 <span style={{ fontWeight: 700, color: a.status === 'approved' ? '#16a34a' : '#dc2626' }}>{a.status === 'approved' ? '已核准' : '已駁回'}</span>
                 <span style={{ color: '#6b7280' }}>審核人：{a.approved_by || '-'}</span>
                 <span style={{ color: '#6b7280' }}>{a.approved_at?.slice(0, 16).replace('T', ' ')}</span>
@@ -235,8 +235,8 @@ export default function Approvals() {
       {noteDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ ...S.card, width: 420, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>駁回原因</h3>
-            <div style={{ marginBottom: 12 }}><textarea value={note} onChange={e => setNote(e.target.value)} placeholder="請說明駁回原因..." style={{ ...S.input, minHeight: 80 }} /></div>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>駁回原因</h3>
+            <div style={{ marginBottom: 10 }}><textarea value={note} onChange={e => setNote(e.target.value)} placeholder="請說明駁回原因..." style={{ ...S.input, minHeight: 80 }} /></div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => setNoteDialog(null)} style={S.btnGhost}>取消</button>
               <button onClick={() => handleProcess(noteDialog, 'rejected')} style={{ ...S.btnPrimary, background: '#dc2626' }}>確認駁回</button>

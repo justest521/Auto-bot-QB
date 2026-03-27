@@ -76,7 +76,7 @@ export default function Payments() {
         <StatCard code="CONF" label="已確認" value={fmt(sm.confirmed)} tone="blue" accent="#16a34a" />
         <StatCard code="AMT" label="已收金額" value={fmtP(sm.total_confirmed_amount)} tone="blue" />
       </div>
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -95,7 +95,7 @@ export default function Payments() {
       </div>
       {loading ? <Loading /> : data.payments.length === 0 ? <EmptyState text="目前沒有收款記錄" /> : data.payments.map(p => (
         <div key={p.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '140px 100px 120px minmax(0,1fr) 100px', gap: 12, alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '140px 100px 120px minmax(0,1fr) 100px', gap: 10, alignItems: 'center' }}>
             <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>PAY_NO</div><div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{p.payment_number || '-'}</div></div>
             <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>AMOUNT</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(p.amount)}</div></div>
             <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>METHOD</div><div style={{ fontSize: 14 }}>{methodLabel(p.payment_method)}</div></div>
@@ -108,7 +108,7 @@ export default function Payments() {
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>新增收款記錄</h3>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>新增收款記錄</h3>
             {[
               { key: 'order_id', label: '訂單 ID (qb_sales_history)', type: 'text' },
               { key: 'amount', label: '金額', type: 'number' },
@@ -116,12 +116,12 @@ export default function Payments() {
               { key: 'bank_last5', label: '帳號末五碼', type: 'text' },
               { key: 'notes', label: '備註', type: 'text' },
             ].map(f => (
-              <div key={f.key} style={{ marginBottom: 12 }}>
+              <div key={f.key} style={{ marginBottom: 6 }}>
                 <label style={S.label}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={(e) => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} style={S.input} />
               </div>
             ))}
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 6 }}>
               <label style={S.label}>付款方式</label>
               <select value={form.payment_method} onChange={(e) => setForm(prev => ({ ...prev, payment_method: e.target.value }))} style={S.input}>
                 <option value="transfer">匯款</option><option value="cash">現金</option><option value="check">支票</option><option value="card">信用卡</option>

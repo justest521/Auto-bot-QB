@@ -106,12 +106,12 @@ export default function ProductSearch() {
       />
       {saveMessage ? <StatusBanner text={saveMessage} tone="success" /> : null}
       {showAddForm && (
-        <div style={{ ...S.card, borderColor: '#93c5fd', marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <div style={{ ...S.card, borderColor: '#93c5fd', marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>新增商品</div>
             <button onClick={() => setShowAddForm(false)} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 12 }}>取消</button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: 12, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: 10, marginBottom: 10 }}>
             <div><label style={S.label}>品號 *</label><input value={newProduct.item_number} onChange={e => setNewProduct(p => ({ ...p, item_number: e.target.value }))} style={{ ...S.input, ...S.mono }} placeholder="例：FDX71" /></div>
             <div style={{ gridColumn: isMobile ? 'auto' : 'span 3' }}><label style={S.label}>品名 *</label><input value={newProduct.description} onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} style={S.input} placeholder="商品描述" /></div>
             <div><label style={S.label}>牌價</label><input type="number" value={newProduct.tw_retail_price} onChange={e => setNewProduct(p => ({ ...p, tw_retail_price: e.target.value }))} style={{ ...S.input, ...S.mono }} placeholder="0" /></div>
@@ -134,13 +134,13 @@ export default function ProductSearch() {
           }} style={S.btnPrimary}>確認新增</button>
         </div>
       )}
-      <div style={{ ...S.statGrid, marginBottom: 18 }}>
+      <div style={{ ...S.statGrid, marginBottom: 10 }}>
         <div style={S.panelMuted}><div style={S.label}>TOTAL_PRODUCTS</div><div style={{ fontSize: 26, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(summary.total_products)}</div></div>
         <div style={S.panelMuted}><div style={S.label}>CURRENT</div><div style={{ fontSize: 26, fontWeight: 700, color: '#10b981', ...S.mono }}>{fmt(summary.current_products)}</div></div>
         <div style={S.panelMuted}><div style={S.label}>WITH_REPLACEMENT</div><div style={{ fontSize: 26, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{fmt(summary.replacement_products)}</div></div>
         <div style={S.panelMuted}><div style={S.label}>CATEGORIES</div><div style={{ fontSize: 26, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(summary.category_count)}</div></div>
       </div>
-      <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜尋料號或關鍵字... (例: FDX71, wrench)" style={{ ...S.input, flex: 1, ...S.mono }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
         <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ ...S.input, width: isMobile ? '100%' : 180 }}>
           <option value="all">全部分類</option>
@@ -161,7 +161,7 @@ export default function ProductSearch() {
           </div>}
           {products.map(p => (
             <div key={p.item_number}>
-              <div onClick={() => setExpanded(expanded === p.item_number ? null : p.item_number)} style={{ ...S.card, cursor: 'pointer', padding: '10px 16px', marginBottom: 2, display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 0, borderColor: expanded === p.item_number ? '#93c5fd' : '#e5e7eb' }}>
+              <div onClick={() => setExpanded(expanded === p.item_number ? null : p.item_number)} style={{ ...S.card, cursor: 'pointer', padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 0, borderColor: expanded === p.item_number ? '#93c5fd' : '#e5e7eb' }}>
                 <div style={{ width: isMobile ? '100%' : 150, fontWeight: 700, color: '#3b82f6', fontSize: 14, ...S.mono, flexShrink: 0 }}>{p.item_number}</div>
                 <div style={{ width: 36, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {p.image_url ? <a href={`https://shop.snapon.com/product/${p.item_number}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ width: 28, height: 28, borderRadius: 4, overflow: 'hidden', background: '#f9fafb', border: '1px solid #e5e7eb', display: 'block' }}><img src={p.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.style.display = 'none'; }} /></a> : null}
@@ -181,9 +181,9 @@ export default function ProductSearch() {
                 </div>
               </div>
               {expanded === p.item_number && (
-                <div style={{ background: '#eff6ff', border: '1px solid #dbe6f3', borderRadius: 10, padding: '14px 20px', marginBottom: 8, marginTop: -2, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                <div style={{ background: '#eff6ff', border: '1px solid #dbe6f3', borderRadius: 10, padding: '10px 16px', marginBottom: 10, marginTop: -2, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {p.image_url && <a href={`https://shop.snapon.com/product/${p.item_number}`} target="_blank" rel="noopener noreferrer" style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: '#fff', border: '1px solid #e5e7eb', display: 'block', cursor: 'pointer' }}><img src={p.image_url} alt={p.item_number} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 4 }} onError={(e) => { e.target.parentElement.style.display = 'none'; }} /></a>}
-                  <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+                  <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
                   <div><div style={S.label}>US PRICE</div><div style={{ color: '#374151', fontSize: 14, ...S.mono }}>{p.us_price ? `$${Number(p.us_price).toFixed(2)}` : '-'}</div></div>
                   <div><div style={S.label}>牌價</div><div style={{ color: '#111827', fontSize: 14, ...S.mono }}>{fmtP(p.tw_retail_price)}</div></div>
                   <div><div style={S.label}>進貨價</div><div style={{ color: '#f59e0b', fontSize: 14, fontWeight: 700, ...S.mono }}>{fmtP(p.tw_reseller_price)}</div></div>
@@ -203,7 +203,7 @@ export default function ProductSearch() {
               )}
             </div>
           ))}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 10 }}>
             {page > 1 && <button onClick={() => goPage(page - 1)} style={S.btnGhost}>← 上一頁</button>}
             <span style={{ color: '#666', padding: '8px 0', fontSize: 12, ...S.mono }}>P{page}/{totalPages}</span>
             {page < totalPages && <button onClick={() => goPage(page + 1)} style={S.btnGhost}>下一頁 →</button>}

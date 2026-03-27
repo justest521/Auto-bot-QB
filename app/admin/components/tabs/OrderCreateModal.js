@@ -205,23 +205,23 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={onClose}>
-      <div style={{ width: 'min(1280px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 18, padding: '24px 22px 28px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 18 }}>
+      <div style={{ width: 'min(1280px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
           <div>
             <div style={S.eyebrow}>Create Order</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#111827' }}>建立訂單</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>建立訂單</div>
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>直接建立訂單，選擇客戶與商品後即可進入出貨流程。</div>
           </div>
           <button onClick={onClose} style={S.btnGhost}>關閉</button>
         </div>
-        {error ? <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 14 }}>{error}</div> : null}
+        {error ? <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10 }}>{error}</div> : null}
         {!tableReady ? (
-          <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', marginBottom: 14 }}>
+          <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', marginBottom: 10 }}>
             尚未建立 erp_orders / erp_order_items 資料表。
           </div>
         ) : null}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 16 }}>
-          <div style={{ display: 'grid', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 10 }}>
+          <div style={{ display: 'grid', gap: 10 }}>
             {/* 選擇客戶 */}
             <div style={{ ...S.card, minHeight: 180 }}>
               <PanelHeader title="選擇客戶" meta="先綁正式客戶，再建立訂單。" badge={selectedCustomer ? <div style={S.tag('green')}>已選客戶</div> : null} />
@@ -294,7 +294,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
             </div>
 
             {/* 訂單明細 */}
-            <div style={{ ...S.card, minHeight: 200 }}>
+            <div style={{ ...S.card, minHeight: 200, marginBottom: 10 }}>
               <PanelHeader title="訂單明細" meta="用商品搜尋快速加入明細，或直接調整數量與單價。" badge={<div style={S.tag('')}>{fmt(form.items.length)} 項</div>} />
               <div style={{ position: 'relative', marginBottom: 12 }}>
                 <div style={{ display: 'flex', gap: 10 }}>
@@ -339,19 +339,19 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
             </div>
           </div>
 
-          <div style={{ display: 'grid', gap: 14 }}>
+          <div style={{ display: 'grid', gap: 10 }}>
             {/* 訂單抬頭 */}
-            <div style={S.card}>
+            <div style={{ ...S.card, marginBottom: 10 }}>
               <PanelHeader title="訂單抬頭" meta="設定日期與備註。" />
-              <div style={{ display: 'grid', gap: 12 }}>
-                <div><label style={S.label}>訂單日期</label><input type="date" value={form.order_date} onChange={(e) => setForm((current) => ({ ...current, order_date: e.target.value }))} style={S.input} /></div>
-                <div><label style={S.label}>備註</label><textarea value={form.remark} onChange={(e) => setForm((current) => ({ ...current, remark: e.target.value }))} rows={4} style={{ ...S.input, resize: 'vertical' }} /></div>
+              <div style={{ display: 'grid', gap: 10 }}>
+                <div><label style={{ ...S.label, marginBottom: 6 }}>訂單日期</label><input type="date" value={form.order_date} onChange={(e) => setForm((current) => ({ ...current, order_date: e.target.value }))} style={S.input} /></div>
+                <div><label style={{ ...S.label, marginBottom: 6 }}>備註</label><textarea value={form.remark} onChange={(e) => setForm((current) => ({ ...current, remark: e.target.value }))} rows={4} style={{ ...S.input, resize: 'vertical' }} /></div>
               </div>
             </div>
             {/* 金額摘要 */}
-            <div style={S.card}>
+            <div style={{ ...S.card, marginBottom: 10 }}>
               <PanelHeader title="金額摘要" meta="系統會自動算小計、稅額與總額。" />
-              <div style={{ display: 'grid', gap: 12 }}>
+              <div style={{ display: 'grid', gap: 10 }}>
                 <div><label style={S.label}>折扣金額</label><input type="number" min="0" value={form.discount_amount} onChange={(e) => setForm((current) => ({ ...current, discount_amount: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mono }} /></div>
                 <div><label style={S.label}>運費</label><input type="number" min="0" value={form.shipping_fee} onChange={(e) => setForm((current) => ({ ...current, shipping_fee: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mono }} /></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

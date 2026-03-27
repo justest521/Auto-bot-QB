@@ -76,7 +76,7 @@ export default function SalesReturns() {
           </div>
         }
       />
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: rangePreset === key ? '#3b82f6' : '#fff', color: rangePreset === key ? '#fff' : '#4b5563', borderColor: rangePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -98,14 +98,14 @@ export default function SalesReturns() {
       <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>
         共 {fmt(data.total)} 筆單據{dateFrom || dateTo ? ` · ${dateFrom || '...'} → ${dateTo || '...'}` : ''}{statusFilter ? ` · ${statusFilter}` : ''}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
         <StatCard code="AMT" label="未稅金額" value={fmtP(data.summary?.amount)} tone="blue" />
         <StatCard code="TAX" label="稅額" value={fmtP(data.summary?.tax)} tone="yellow" />
         <StatCard code="TOTAL" label="總金額" value={fmtP(data.summary?.total)} tone="green" />
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷退貨資料" /> : isMobile ? data.rows.map((row) => (
-        <div key={row.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, alignItems: 'center' }}>
+        <div key={row.id} style={{ ...S.card, padding: '10px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, alignItems: 'center' }}>
             <div>
               {row.doc_type === 'return' ? (
                 <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
@@ -127,7 +127,7 @@ export default function SalesReturns() {
                 <div><span style={{ color: '#6b7280', ...S.mono }}>INVOICE</span> {row.invoice_no || '-'}</div>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div style={S.panelMuted}>
                 <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>AMOUNT</div>
                 <div style={{ fontSize: 14, color: '#111827', ...S.mono }}>{fmtP(row.amount)}</div>
@@ -141,7 +141,7 @@ export default function SalesReturns() {
         </div>
       )) : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '96px 150px minmax(0,1fr) 110px 120px' : '96px 160px minmax(0,1.2fr) 110px 150px 130px 130px', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '96px 150px minmax(0,1fr) 110px 120px' : '96px 160px minmax(0,1.2fr) 110px 150px 130px 130px', gap: 10, padding: '8px 16px', borderBottom: '1px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
             <div>單別</div>
             <div>單號</div>
             <div>客戶 / 發票</div>
@@ -151,7 +151,7 @@ export default function SalesReturns() {
             {!isTablet && <div style={{ textAlign: 'right' }}>總金額</div>}
           </div>
           {data.rows.map((row) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '96px 150px minmax(0,1fr) 110px 120px' : '96px 160px minmax(0,1.2fr) 110px 150px 130px 130px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '96px 150px minmax(0,1fr) 110px 120px' : '96px 160px minmax(0,1.2fr) 110px 150px 130px 130px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
               <div>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
               {row.doc_type === 'return' ? (
                 <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>

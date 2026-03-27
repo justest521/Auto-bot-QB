@@ -50,8 +50,8 @@ export default function VendorPayments() {
         <StatCard code="AMT" label="已付總額" value={fmtP(sm.total_paid)} tone="blue" />
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有付款記錄" /> : data.rows.map(r => (
-        <div key={r.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 100px 120px 100px minmax(0,1fr) 100px', gap: 12, alignItems: 'center' }}>
+        <div key={r.id} style={{ ...S.card, padding: '10px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '130px 100px 120px 100px minmax(0,1fr) 100px', gap: 10, alignItems: 'center' }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{r.payment_no || '-'}</div>
             <div style={{ fontSize: 13 }}>{fmtDate(r.payment_date)}</div>
             <div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(r.amount)}</div>
@@ -65,9 +65,9 @@ export default function VendorPayments() {
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>新增付款單</h3>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>新增付款單</h3>
             {[{ key: 'vendor_id', label: '廠商 ID', type: 'text' }, { key: 'amount', label: '金額', type: 'number' }, { key: 'payment_date', label: '付款日期', type: 'date' }, { key: 'bank_info', label: '銀行/帳號資訊', type: 'text' }, { key: 'remark', label: '備註', type: 'text' }].map(f => (
-              <div key={f.key} style={{ marginBottom: 12 }}><label style={S.label}>{f.label}</label><input type={f.type} value={form[f.key]} onChange={(e) => setForm(p => ({ ...p, [f.key]: e.target.value }))} style={S.input} /></div>
+              <div key={f.key} style={{ marginBottom: 10 }}><label style={S.label}>{f.label}</label><input type={f.type} value={form[f.key]} onChange={(e) => setForm(p => ({ ...p, [f.key]: e.target.value }))} style={S.input} /></div>
             ))}
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}><button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button><button onClick={handleCreate} style={S.btnPrimary}>建立付款</button></div>
           </div>

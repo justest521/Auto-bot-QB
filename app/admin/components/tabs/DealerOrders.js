@@ -107,7 +107,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
   const d = o.dealer || order.dealer || {};
   const items = detail?.items || [];
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
   const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
 
   // Compute stock summary
@@ -119,8 +119,8 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
       {/* ====== Header ====== */}
-      <div style={{ ...cardStyle, padding: '24px 28px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div style={{ ...cardStyle, padding: '16px 18px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -136,7 +136,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 16, padding: '12px 20px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
@@ -144,7 +144,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
           <div>
             {/* Stock summary */}
             {items.length > 0 && (
-              <div style={{ display: 'flex', gap: 12, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center', ...cardStyle, padding: '16px 20px' }}>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center', ...cardStyle, padding: '10px 16px' }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>庫存核對</div>
                 <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#dcfce7', color: '#15803d' }}>充足 {sufficientCount}</span>
                 {partialCount > 0 && (
@@ -157,22 +157,22 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
             )}
 
             {/* Items card */}
-            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 20 }}>
-              <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
+              <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>訂單明細</span>
                 <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
               </div>
               {items.length > 0 ? (
                 <div>
                   {/* Table header */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 8, padding: '10px 24px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     <div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'center' }}>狀態</div><div style={{ textAlign: 'right' }}>小計</div><div>操作</div>
                   </div>
                   {/* Table rows */}
                   {items.map((item) => {
                     const badge = item.stock_status ? (STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock) : null;
                     return (
-                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 8, padding: '16px 24px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s', alignItems: 'center' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s', alignItems: 'center' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
                         <div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{item.item_number_snapshot || '-'}</div>
                         <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937' }}>{item.description_snapshot || '-'}</div>
                         <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#6b7280' }}>{fmtP(item.unit_price)}</div>
@@ -195,13 +195,13 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
                     );
                   })}
                   {/* Totals */}
-                  <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: '2px solid #d1fae5' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 24 }}>
-                      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
+                  <div style={{ padding: '10px 16px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: '2px solid #d1fae5' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 10 }}>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'baseline' }}>
                         <span style={{ fontSize: 14, color: '#6b7280' }}>小計 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(o.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0))}</strong></span>
                         {o.tax_amount > 0 && <span style={{ fontSize: 14, color: '#6b7280' }}>稅金 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(o.tax_amount)}</strong></span>}
                       </div>
-                      <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 20, textAlign: 'right' }}>
+                      <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 10, textAlign: 'right' }}>
                         <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600, display: 'block', marginBottom: 2 }}>合計</span>
                         <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(o.total_amount || 0)}</span>
                       </div>
@@ -239,12 +239,12 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
           </div>
 
           {/* ====== Right sidebar ====== */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* Dealer card */}
-            <div style={{ ...cardStyle, padding: '22px 24px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>下單人資訊</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 14, lineHeight: 1.3 }}>{d.company_name || d.display_name || '未綁定下單人'}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {[
                   { label: '下單人', value: d.display_name },
                   { label: '角色', value: d.role === 'dealer' ? '經銷' : d.role === 'sales' ? '業務' : d.role === 'tech' ? '技師' : d.role },
@@ -260,7 +260,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
             </div>
 
             {/* Status change card */}
-            <div style={{ ...cardStyle, padding: '22px 24px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>變更狀態</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {Object.entries(STATUS_MAP).map(([k, v]) => (
@@ -270,7 +270,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
             </div>
 
             {/* Remark card */}
-            <div style={{ ...cardStyle, padding: '22px 24px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>備註</div>
               <textarea value={editingRemark} onChange={(e) => setEditingRemark(e.target.value)} style={{ ...S.input, width: '100%', fontSize: 12, minHeight: 80, padding: '12px', borderRadius: 8, fontFamily: 'inherit' }} placeholder="訂單備註" />
               <button onClick={updateOrderRemark} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12, marginTop: 10, width: '100%' }}>儲存備註</button>
@@ -365,8 +365,8 @@ export default function DealerOrders() {
         </div>
       } />
       <ComingSoonBanner tabId="dealer_orders" />
-      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 14 }}>{msg}</div>}
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10 }}>{msg}</div>}
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -390,12 +390,12 @@ export default function DealerOrders() {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="沒有訂單" /> : (
         <div ref={tableRef} style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px', gap: 10, padding: '12px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
             <div><input type="checkbox" checked={selected.length > 0 && selected.length === data.rows.filter((r) => r.status === 'pending').length} onChange={selectAll} /></div>
             <div>訂單號</div><div>下單人</div><div>日期</div><div>狀態</div><div style={{ textAlign: 'right' }}>金額</div>
           </div>
           {data.rows.map((row, idx) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedOrder(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedOrder(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd'}>
               <div onClick={(e) => e.stopPropagation()}>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
               <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
               <div><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: 11, color: '#374151' }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div>

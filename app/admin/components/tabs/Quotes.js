@@ -155,13 +155,13 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
   const isEditable = statusKey === 'draft' || statusKey === 'sent';
   const isDeletable = statusKey === 'draft' || statusKey === 'sent';
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
   const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
       {/* ====== Header ====== */}
-      <div style={{ ...cardStyle, padding: '24px 28px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+      <div style={{ ...cardStyle, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
@@ -183,10 +183,10 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 16, padding: '12px 20px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 10, alignItems: 'start' }}>
           {/* ====== Left: Items ====== */}
           <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
@@ -196,12 +196,12 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             {items.length > 0 ? (
               <div>
                 {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 55px 100px 110px', gap: 10, padding: '10px 24px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 55px 100px 110px', gap: 10, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
                   <div>編號</div><div>品名</div><div style={{ textAlign: 'right' }}>數量</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'right' }}>小計</div>
                 </div>
                 {/* Table rows */}
                 {items.map((item, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 55px 100px 110px', gap: 10, padding: '16px 24px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 55px 100px 110px', gap: 10, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
                     <div style={{ ...S.mono, fontSize: 14, color: '#374151', paddingTop: 2 }}>{item.item_number_snapshot || '-'}</div>
                     <div style={{ fontWeight: 600, fontSize: 14, color: '#1f2937', lineHeight: 1.4 }}>{item.description_snapshot || '-'}</div>
                     <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{item.qty || 0}</div>
@@ -236,7 +236,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             <button onClick={() => window.open(`/api/pdf?type=quote&id=${quote.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
 
             {/* 2. Customer card */}
-            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>客戶資訊</div>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>{c.company_name || c.name || '未綁定客戶'}</div>
               {[
@@ -253,7 +253,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             </div>
 
             {/* 3. Unified record timeline card */}
-            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>合併所有紀錄</div>
               {(() => {
                 const fmtTime = (t) => {
@@ -356,7 +356,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
 
             {/* 4. Remark card */}
             {q.remark && (
-              <div style={{ ...cardStyle, padding: '16px 20px' }}>
+              <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>備註</div>
                 <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontWeight: 700 }}>{q.remark}</div>
               </div>
@@ -490,11 +490,11 @@ export default function Quotes({ setTab }) {
     <div>
       <PageLead eyebrow="QUOTES" title="報價單" description="管理報價單，確認後可轉為訂單進入銷售流程。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button><button onClick={() => data.table_ready && setShowCreate(true)} disabled={!data.table_ready} style={{ ...S.btnPrimary, opacity: data.table_ready ? 1 : 0.6, cursor: data.table_ready ? 'pointer' : 'not-allowed' }}>+ 新增報價單</button></div>} />
       {actionMessage ? (
-        <div style={{ ...S.card, background: actionMessage.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: actionMessage.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: actionMessage.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 14 }}>
+        <div style={{ ...S.card, background: actionMessage.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: actionMessage.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: actionMessage.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10 }}>
           {actionMessage}
         </div>
       ) : null}
-      <div style={{ ...S.card, marginBottom: 16, padding: '14px 18px' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
@@ -514,14 +514,14 @@ export default function Quotes({ setTab }) {
         </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 erp_quotes 資料表。</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
         <StatCard code="QTOT" label="報價總數" value={fmt(data.total)} tone="blue" />
         <StatCard code="OPEN" label="待處理" value={fmt(data.summary?.open_count)} tone="yellow" />
         <StatCard code="AMT" label="本頁總額" value={fmtP(data.summary?.total_amount)} tone="green" />
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有報價單資料" /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 130px minmax(0,1fr) 100px 100px' : '50px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px', gap: 10, padding: '12px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 130px minmax(0,1fr) 100px 100px' : '50px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
             <div>序</div>
             <div>單號</div>
             <div>客戶</div>
@@ -537,7 +537,7 @@ export default function Quotes({ setTab }) {
             const isEditable = statusKey === 'draft' || statusKey === 'sent';
             const isDeletable = statusKey === 'draft' || statusKey === 'sent';
             return (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 130px minmax(0,1fr) 100px 100px' : '50px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px', gap: 10, padding: '12px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedQuote(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 130px minmax(0,1fr) 100px 100px' : '50px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedQuote(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
                 <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
                 <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.quote_no || '-'}</div>
                 <div style={{ minWidth: 0 }}>

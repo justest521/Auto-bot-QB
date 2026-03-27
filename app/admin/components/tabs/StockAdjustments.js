@@ -40,7 +40,7 @@ export default function StockAdjustments() {
           </div>
         } />
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有調整記錄" /> : data.rows.map(r => (
-        <div key={r.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
+        <div key={r.id} style={{ ...S.card, padding: '10px 16px', marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div><span style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{r.adjustment_no}</span><span style={{ marginLeft: 12, fontSize: 13, color: '#374151' }}>{fmtDate(r.adjustment_date)}</span></div>
             <div style={{ fontSize: 13, color: '#374151' }}>{r.reason || '-'}</div>
@@ -49,15 +49,15 @@ export default function StockAdjustments() {
       ))}
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setCreateOpen(false)}>
-          <div style={{ width: 'min(580px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 18, padding: '24px 22px 28px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <div style={{ width: 'min(580px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
                 <div style={S.eyebrow}>Stock Adjustment</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>新增調整單</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>新增調整單</div>
               </div>
               <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>關閉</button>
             </div>
-            <div style={{ ...S.card, marginBottom: 14 }}>
+            <div style={{ ...S.card, marginBottom: 10 }}>
               <div><label style={S.label}>調整原因</label><input value={form.reason} onChange={(e) => setForm(p => ({ ...p, reason: e.target.value }))} style={S.input} /></div>
             </div>
             <div style={{ ...S.card }}>
@@ -76,7 +76,7 @@ export default function StockAdjustments() {
               </div>
               <button onClick={() => setItems(p => [...p, { item_number: '', description: '', adjust_qty: 0 }])} style={{ ...S.btnGhost, fontSize: 12, marginTop: 8, width: '100%' }}>+ 新增品項</button>
             </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
               <button onClick={handleCreate} style={{ ...S.btnPrimary, flex: 1 }}>確認調整</button>
               <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, flex: 1 }}>取消</button>
             </div>

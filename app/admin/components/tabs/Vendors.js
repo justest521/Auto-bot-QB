@@ -78,16 +78,16 @@ export default function Vendors() {
         }
       />
       <ComingSoonBanner tabId="vendors" />
-      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#dc2626' : '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#dc2626' : '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋廠商名稱、代號或聯絡人..." style={{ ...S.input, flex: 1 }} />
         <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
       </div>
-      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 erp_vendors 資料表。</div>}
+      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', marginBottom: 10 }}>尚未建立 erp_vendors 資料表。</div>}
       <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>共 {fmt(data.total)} 筆廠商</div>
       {loading ? <Loading /> : data.vendors.length === 0 ? <EmptyState text="目前沒有廠商資料" /> : data.vendors.map((vendor) => (
-        <div key={vendor.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '160px minmax(0, 1fr) 160px', gap: 12, alignItems: 'start' }}>
+        <div key={vendor.id} style={{ ...S.card, padding: '10px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '160px minmax(0, 1fr) 160px', gap: 10, alignItems: 'start' }}>
             <div>
               <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>VENDOR_CODE</div>
               <div style={{ fontSize: 14, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{vendor.vendor_code || '-'}</div>
@@ -119,9 +119,9 @@ export default function Vendors() {
       {/* ===== Create Vendor Modal ===== */}
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 580, maxWidth: '92vw', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h3 style={{ margin: '0 0 18px', fontSize: 17, fontWeight: 700, color: '#111827' }}>新增廠商</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+          <div style={{ ...S.card, width: 580, maxWidth: '92vw', maxHeight: '90vh', overflowY: 'auto', borderRadius: 14, padding: '16px 18px 20px' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 700, color: '#111827' }}>新增廠商</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>廠商名稱 *</label><input value={form.vendor_name} onChange={e => setForm(p => ({ ...p, vendor_name: e.target.value }))} style={S.input} placeholder="例：三陽工業" /></div>
               <div><label style={S.label}>廠商代號</label><input value={form.vendor_code} onChange={e => setForm(p => ({ ...p, vendor_code: e.target.value }))} style={S.input} placeholder="自動產生" /></div>
               <div><label style={S.label}>聯絡人</label><input value={form.contact_name} onChange={e => setForm(p => ({ ...p, contact_name: e.target.value }))} style={S.input} /></div>
@@ -135,7 +135,7 @@ export default function Vendors() {
               <div><label style={S.label}>付款條件</label><input value={form.payment_terms} onChange={e => setForm(p => ({ ...p, payment_terms: e.target.value }))} style={S.input} placeholder="例：月結30天" /></div>
               <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}><label style={S.label}>備註</label><input value={form.remark} onChange={e => setForm(p => ({ ...p, remark: e.target.value }))} style={S.input} /></div>
             </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 10 }}>
               <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button>
               <button onClick={handleCreate} disabled={saving} style={{ ...S.btnPrimary, opacity: saving ? 0.6 : 1 }}>{saving ? '儲存中...' : '建立廠商'}</button>
             </div>
