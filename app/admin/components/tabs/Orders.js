@@ -154,13 +154,13 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const searchTimeoutRef = useRef(null);
   const searchProducts = (keyword, setResults) => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    if (!keyword || keyword.length < 1) { setResults([]); return; }
+    if (!keyword || keyword.length < 2) { setResults([]); return; }
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const res = await apiGet({ action: 'products', search: keyword, page: 1, limit: 8 });
+        const res = await apiGet({ action: 'products', q: keyword, page: 1, limit: 8 });
         setResults(res.rows || []);
       } catch (_) { setResults([]); }
-    }, 300);
+    }, 400);
   };
 
   const refreshOrderData = async () => {
@@ -520,8 +520,10 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                             <button onClick={() => { setReplacingItemId(null); setReplaceSearch(''); setReplaceResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 11 }}>取消</button>
                           </div>
                           <div style={{ position: 'relative' }}>
-                            <input type="text" placeholder="搜尋新料號或品名..." value={replaceSearch} autoFocus
+                            <input type="text" placeholder="輸入 2 字以上搜尋料號或品名..." value={replaceSearch}
+                              ref={el => { if (el && replacingItemId === item.id && !el.dataset.focused) { el.focus(); el.dataset.focused = '1'; } }}
                               onChange={e => { setReplaceSearch(e.target.value); searchProducts(e.target.value, setReplaceResults); }}
+                              onKeyDown={e => { if (e.key === 'Escape') { setReplacingItemId(null); setReplaceSearch(''); setReplaceResults([]); } }}
                               style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
                             />
                             {replaceResults.length > 0 && (
@@ -559,9 +561,10 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                       </div>
                       <div style={{ position: 'relative' }}>
                         <input
-                          type="text" placeholder="搜尋料號或品名..." value={addSearch}
+                          type="text" placeholder="輸入 2 字以上搜尋料號或品名..." value={addSearch}
+                          ref={el => { if (el && showAddItem && !el.dataset.focused) { el.focus(); el.dataset.focused = '1'; } }}
                           onChange={e => { setAddSearch(e.target.value); searchProducts(e.target.value, setAddResults); }}
-                          autoFocus
+                          onKeyDown={e => { if (e.key === 'Escape') { setShowAddItem(false); setAddSearch(''); setAddResults([]); } }}
                           style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
                         />
                         {addResults.length > 0 && (
