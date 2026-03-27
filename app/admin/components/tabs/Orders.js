@@ -362,7 +362,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
     }
   };
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
   const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
   const isConverted = shipKey === 'shipped' || shipKey === 'delivered';
   const canConvert = approvalData?.status === 'approved';
@@ -635,9 +635,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
 
             {/* 2. Customer card */}
-            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>客戶資訊</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
               {[
                 { label: '電話', value: order.customer?.phone, mono: true },
                 { label: '信箱', value: order.customer?.email, mono: true },
@@ -650,7 +650,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             </div>
 
             {/* 3. Combined Order Record — progress + sales + POs + timeline */}
-            <div style={{ ...cardStyle, padding: '16px 20px' }}>
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>訂單記錄</div>
               {(() => {
                 const fmtTime = (t) => { if (!t) return ''; const d = new Date(t); if (isNaN(d.getTime())) return typeof t === 'string' ? t.slice(0, 10) : ''; const pad = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
@@ -754,7 +754,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
 
             {/* 4. Remark card */}
             {order.remark && (
-              <div style={{ ...cardStyle, padding: '16px 20px' }}>
+              <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>備註</div>
                 <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontWeight: 700 }}>{order.remark}</div>
               </div>
