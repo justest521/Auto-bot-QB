@@ -56,12 +56,14 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
     (async () => {
       setLoading(true);
       try {
-        const result = await apiGet({ action: 'order_items_with_stock', order_id: order.id });
+        const [result, approvalResult] = await Promise.all([
+          apiGet({ action: 'order_items_with_stock', order_id: order.id }),
+          apiGet({ action: 'approvals', doc_type: 'order' }),
+        ]);
         setItems(result.items || []);
         setLinkedSales(result.linked_sales || []);
         setLinkedPOs(result.linked_pos || []);
         setTimeline(result.timeline || []);
-        const approvalResult = await apiGet({ action: 'approvals', doc_type: 'order' });
         const map = {};
         (approvalResult.rows || []).forEach(a => {
           if (!map[a.doc_id] || new Date(a.created_at) > new Date(map[a.doc_id].created_at)) {
