@@ -424,8 +424,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               {items.length > 0 ? (
                 <div>
                   {/* Table header */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 55px 55px 55px 70px 55px 55px 80px minmax(0,120px) 50px', gap: 6, padding: '10px 24px', background: '#f8f9fb', fontSize: 11, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                    <div></div><div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>折扣%</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'center' }}>狀態</div><div style={{ textAlign: 'center' }}>銷貨</div><div style={{ textAlign: 'center' }}>採購</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 55px 55px 70px 55px 55px 80px minmax(0,140px) 50px', gap: 6, padding: '10px 24px', background: '#f8f9fb', fontSize: 11, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    <div></div><div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>折扣%</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'center' }}>銷貨</div><div style={{ textAlign: 'center' }}>採購</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
                   </div>
                   {/* Table rows */}
                   {items.map((item) => {
@@ -438,7 +438,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     const rowBg = isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff';
                     return (
                       <div key={item.id}>
-                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 55px 55px 55px 70px 55px 55px 80px minmax(0,120px) 50px', gap: 6, padding: '14px 24px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
+                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 55px 55px 70px 55px 55px 80px minmax(0,140px) 50px', gap: 6, padding: '14px 24px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
                           {cannotEdit ? (
                             <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af' }}>已銷</span>
@@ -471,9 +471,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                             editValues.discount_rate || item.discount_rate ? `${editValues.discount_rate || item.discount_rate}%` : '—'
                           )}
                         </div>
-                        <div style={{ textAlign: 'center', fontWeight: 600, color: item.stock_qty > 0 ? '#15803d' : '#b91c1c', ...S.mono, fontSize: 13 }}>{item.stock_qty}</div>
-                        <div style={{ textAlign: 'center' }}>
-                          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
+                        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <span style={{ fontWeight: 700, color: badge.color, ...S.mono, fontSize: 13 }}>{item.stock_qty}</span>
+                          <span style={{ display: 'inline-block', padding: '1px 6px', borderRadius: 8, fontSize: 9, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
                             {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
                           </span>
                         </div>
