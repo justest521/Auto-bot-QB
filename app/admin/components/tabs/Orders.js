@@ -34,6 +34,15 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const [timeline, setTimeline] = useState([]);
   const [showSaleForm, setShowSaleForm] = useState(false);
   const [saleItemQty, setSaleItemQty] = useState({});
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [editValues, setEditValues] = useState({});
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [addSearch, setAddSearch] = useState('');
+  const [addResults, setAddResults] = useState([]);
+  const [addSearching, setAddSearching] = useState(false);
+  const [replacingItemId, setReplacingItemId] = useState(null);
+  const [replaceSearch, setReplaceSearch] = useState('');
+  const [replaceResults, setReplaceResults] = useState([]);
 
   const statusKey = String(order.status || 'draft').toLowerCase();
   const payKey = String(order.payment_status || 'unpaid').toLowerCase();
@@ -85,6 +94,110 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const selectAllByStatus = (items, statuses) => {
     const ids = items.filter(i => statuses.includes(i.stock_status) && !i.po_ref && !i.po_info).map(i => i.id);
     setSelectedItemIds(new Set(ids));
+  };
+
+  const startEditItem = (item, e) => {
+    e.stopPropagation();
+    if (item.sale_ref) return;
+    setEditingItemId(item.id);
+    setEditValues({
+      qty: item.qty,
+      unit_price: item.unit_price,
+      discount_rate: item.discount_rate || 0,
+      item_note: item.item_note || '',
+    });
+  };
+
+  const cancelEdit = (e) => {
+    if (e) e.stopPropagation();
+    setEditingItemId(null);
+    setEditValues({});
+  };
+
+  const saveEditItem = async (e) => {
+    if (e) e.stopPropagation();
+    setMsg('');
+    try {
+      await apiPost({ action: 'update_order_item', item_id: editingItemId, ...editValues });
+      setEditingItemId(null);
+      setEditValues({});
+      const refreshed = await apiGet({ action: 'order_items_with_stock', order_id: order.id });
+      setItems(refreshed.items || []);
+      setLinkedSales(refreshed.linked_sales || []);
+      setLinkedPOs(refreshed.linked_pos || []);
+      setTimeline(refreshed.timeline || []);
+      onRefresh?.();
+      setMsg('品項已更新');
+    } catch (error) {
+      setMsg(error.message || '更新失敗');
+    }
+  };
+
+  const deleteItem = async (itemId, e) => {
+    if (e) e.stopPropagation();
+    if (!confirm('確定刪除此品項？')) return;
+    try {
+      await apiPost({ action: 'delete_order_item', item_id: itemId });
+      const refreshed = await apiGet({ action: 'order_items_with_stock', order_id: order.id });
+      setItems(refreshed.items || []);
+      setLinkedSales(refreshed.linked_sales || []);
+      setLinkedPOs(refreshed.linked_pos || []);
+      setTimeline(refreshed.timeline || []);
+      onRefresh?.();
+      setMsg('品項已刪除');
+    } catch (error) {
+      setMsg(error.message || '刪除失敗');
+    }
+  };
+
+  // 產品搜尋 (add/replace 共用)
+  const searchTimeoutRef = useRef(null);
+  const searchProducts = (keyword, setResults) => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (!keyword || keyword.length < 1) { setResults([]); return; }
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await apiGet({ action: 'products', search: keyword, page: 1, limit: 8 });
+        setResults(res.rows || []);
+      } catch (_) { setResults([]); }
+    }, 300);
+  };
+
+  const refreshOrderData = async () => {
+    const refreshed = await apiGet({ action: 'order_items_with_stock', order_id: order.id });
+    setItems(refreshed.items || []);
+    setLinkedSales(refreshed.linked_sales || []);
+    setLinkedPOs(refreshed.linked_pos || []);
+    setTimeline(refreshed.timeline || []);
+    onRefresh?.();
+  };
+
+  const handleAddItem = async (product) => {
+    setMsg('');
+    try {
+      await apiPost({ action: 'add_order_item', order_id: order.id, item_number: product.item_number });
+      await refreshOrderData();
+      setShowAddItem(false);
+      setAddSearch('');
+      setAddResults([]);
+      setMsg(`已新增 ${product.item_number}`);
+    } catch (error) {
+      setMsg(error.message || '新增失敗');
+    }
+  };
+
+  const handleReplaceItem = async (itemId, newProduct) => {
+    setMsg('');
+    try {
+      await apiPost({ action: 'replace_order_item', item_id: itemId, new_item_number: newProduct.item_number });
+      await refreshOrderData();
+      setReplacingItemId(null);
+      setReplaceSearch('');
+      setReplaceResults([]);
+      setMsg(`已替換為 ${newProduct.item_number}`);
+    } catch (error) {
+      setMsg(error.message || '替換失敗');
+    }
   };
 
   const convertToSale = async () => {
@@ -300,18 +413,25 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               {items.length > 0 ? (
                 <div>
                   {/* Table header */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '32px 120px minmax(0,1fr) 75px 60px 60px 80px 70px 70px 80px', gap: 6, padding: '10px 24px', background: '#f8f9fb', fontSize: 11, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                    <div></div><div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>訂購數</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'center' }}>庫存狀態</div><div style={{ textAlign: 'center' }}>銷貨</div><div style={{ textAlign: 'center' }}>採購</div><div style={{ textAlign: 'right' }}>小計</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 55px 55px 55px 70px 55px 55px 80px minmax(0,120px) 50px', gap: 6, padding: '10px 24px', background: '#f8f9fb', fontSize: 11, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    <div></div><div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>折扣%</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'center' }}>狀態</div><div style={{ textAlign: 'center' }}>銷貨</div><div style={{ textAlign: 'center' }}>採購</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
                   </div>
                   {/* Table rows */}
                   {items.map((item) => {
                     const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
                     const isChecked = selectedItemIds.has(item.id);
                     const hasPO = !!(item.po_ref || item.po_info);
+                    const isEditing = editingItemId === item.id;
+                    const cannotEdit = !!item.sale_ref;
+                    const inputStyle = { width: '100%', padding: '2px 4px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12, textAlign: 'center', outline: 'none' };
+                    const rowBg = isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff';
                     return (
-                      <div key={item.id} onClick={() => toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 120px minmax(0,1fr) 75px 60px 60px 80px 70px 70px 80px', gap: 6, padding: '14px 24px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: 'pointer', background: isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff', opacity: hasPO ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && (e.currentTarget.style.background= isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
+                      <div key={item.id}>
+                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 55px 55px 55px 70px 55px 55px 80px minmax(0,120px) 50px', gap: 6, padding: '14px 24px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
-                          {hasPO ? (
+                          {cannotEdit ? (
+                            <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af' }}>已銷</span>
+                          ) : hasPO ? (
                             <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af' }}>已採購</span>
                           ) : (
                             <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 16, height: 16 }} />
@@ -319,8 +439,27 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                         </div>
                         <div style={{ color: '#374151', fontWeight: 600, ...S.mono, fontSize: 13 }}>{item.item_number_snapshot}</div>
                         <div style={{ color: '#1f2937', fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description_snapshot || '-'}</div>
-                        <div style={{ color: '#6b7280', textAlign: 'right', ...S.mono, fontSize: 13 }}>{fmtP(item.unit_price)}</div>
-                        <div style={{ textAlign: 'center', fontWeight: 600, ...S.mono, fontSize: 13 }}>{item.qty}</div>
+                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ color: '#6b7280', textAlign: 'right', ...S.mono, fontSize: 13, cursor: cannotEdit || isEditing ? 'default' : 'pointer', transition: 'background 0.1s', padding: '2px 4px', borderRadius: 4, background: !cannotEdit && !isEditing ? 'transparent' : 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
+                          {isEditing ? (
+                            <input type="number" value={editValues.unit_price} onChange={(e) => setEditValues({ ...editValues, unit_price: parseFloat(e.target.value) || 0 })} style={inputStyle} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
+                          ) : (
+                            fmtP(item.unit_price)
+                          )}
+                        </div>
+                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', fontWeight: 600, ...S.mono, fontSize: 13, cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: 4, background: 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
+                          {isEditing ? (
+                            <input type="number" value={editValues.qty} onChange={(e) => setEditValues({ ...editValues, qty: parseInt(e.target.value) || 0 })} style={inputStyle} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
+                          ) : (
+                            item.qty
+                          )}
+                        </div>
+                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', ...S.mono, fontSize: 13, cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: 4, background: 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
+                          {isEditing ? (
+                            <input type="number" value={editValues.discount_rate} onChange={(e) => setEditValues({ ...editValues, discount_rate: parseFloat(e.target.value) || 0 })} style={inputStyle} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} min="0" max="100" />
+                          ) : (
+                            editValues.discount_rate || item.discount_rate ? `${editValues.discount_rate || item.discount_rate}%` : '—'
+                          )}
+                        </div>
                         <div style={{ textAlign: 'center', fontWeight: 600, color: item.stock_qty > 0 ? '#15803d' : '#b91c1c', ...S.mono, fontSize: 13 }}>{item.stock_qty}</div>
                         <div style={{ textAlign: 'center' }}>
                           <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
@@ -352,9 +491,98 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                           )}
                         </div>
                         <div style={{ color: '#059669', fontWeight: 800, textAlign: 'right', ...S.mono, fontSize: 15 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
+                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ fontSize: 13, color: '#6b7280', cursor: cannotEdit || isEditing ? 'default' : 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '2px 4px', borderRadius: 4, background: 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
+                          {isEditing ? (
+                            <input type="text" value={editValues.item_note} onChange={(e) => setEditValues({ ...editValues, item_note: e.target.value })} style={{ ...inputStyle, textAlign: 'left' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} placeholder="備註" />
+                          ) : (
+                            item.item_note || '—'
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
+                          {isEditing ? (
+                            <>
+                              <button onClick={saveEditItem} style={{ width: 20, height: 20, borderRadius: 4, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</button>
+                              <button onClick={cancelEdit} style={{ width: 20, height: 20, borderRadius: 4, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                            </>
+                          ) : (
+                            <>
+                              {!cannotEdit && <button onClick={(e) => startEditItem(item, e)} title="編輯" style={{ width: 20, height: 20, borderRadius: 4, border: '1px solid #d1d5db', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 11, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✎</button>}
+                              {!cannotEdit && !hasPO && <button onClick={(e) => { e.stopPropagation(); setReplacingItemId(replacingItemId === item.id ? null : item.id); setReplaceSearch(''); setReplaceResults([]); }} title="替換" style={{ width: 20, height: 20, borderRadius: 4, border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontSize: 11, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⇄</button>}
+                              {!cannotEdit && !hasPO && <button onClick={(e) => deleteItem(item.id, e)} title="刪除" style={{ width: 20, height: 20, borderRadius: 4, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: 11, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {replacingItemId === item.id && (
+                        <div style={{ padding: '10px 24px 14px', background: '#f5f3ff', borderTop: '1px solid #e9d5ff' }} onClick={e => e.stopPropagation()}>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed' }}>替換 {item.item_number_snapshot} →</span>
+                            <button onClick={() => { setReplacingItemId(null); setReplaceSearch(''); setReplaceResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 11 }}>取消</button>
+                          </div>
+                          <div style={{ position: 'relative' }}>
+                            <input type="text" placeholder="搜尋新料號或品名..." value={replaceSearch} autoFocus
+                              onChange={e => { setReplaceSearch(e.target.value); searchProducts(e.target.value, setReplaceResults); }}
+                              style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
+                            />
+                            {replaceResults.length > 0 && (
+                              <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 200, overflowY: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
+                                {replaceResults.map(p => (
+                                  <div key={p.id || p.item_number} onClick={() => handleReplaceItem(item.id, p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }} onMouseEnter={e => e.currentTarget.style.background='#f5f3ff'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                                    <div>
+                                      <span style={{ fontWeight: 700, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
+                                      <span style={{ color: '#6b7280' }}>{p.description || ''}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#9ca3af' }}>
+                                      <span>{fmtP(p.tw_retail_price || 0)}</span>
+                                      <span>庫存 {p.stock_qty || 0}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       </div>
                     );
                   })}
+                  {/* Add Item Row */}
+                  {!showAddItem ? (
+                    <div style={{ padding: '10px 24px', borderTop: '1px dashed #e5e7eb' }}>
+                      <button onClick={() => setShowAddItem(true)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 12, color: '#3b82f6', borderColor: '#bfdbfe' }}>＋ 新增品項</button>
+                    </div>
+                  ) : (
+                    <div style={{ padding: '14px 24px', borderTop: '1px dashed #e5e7eb', background: '#f0f9ff' }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#1d4ed8' }}>新增品項</span>
+                        <button onClick={() => { setShowAddItem(false); setAddSearch(''); setAddResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 11 }}>取消</button>
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="text" placeholder="搜尋料號或品名..." value={addSearch}
+                          onChange={e => { setAddSearch(e.target.value); searchProducts(e.target.value, setAddResults); }}
+                          autoFocus
+                          style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
+                        />
+                        {addResults.length > 0 && (
+                          <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 240, overflowY: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
+                            {addResults.map(p => (
+                              <div key={p.id || p.item_number} onClick={() => handleAddItem(p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }} onMouseEnter={e => e.currentTarget.style.background='#f0f7ff'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                                <div>
+                                  <span style={{ fontWeight: 700, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
+                                  <span style={{ color: '#6b7280' }}>{p.description || ''}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#9ca3af' }}>
+                                  <span>{fmtP(p.tw_retail_price || 0)}</span>
+                                  <span>庫存 {p.stock_qty || 0}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   {/* Totals - matching Quotes style */}
                   <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: '2px solid #d1fae5' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 24 }}>
