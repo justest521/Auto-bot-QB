@@ -166,7 +166,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
     if (!keyword || keyword.length < 2) { setResults([]); return; }
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const res = await apiGet({ action: 'products', q: keyword, page: 1, limit: 8 });
+        const res = await apiGet({ action: 'products', q: keyword, page: 1, limit: 8, lite: 1 });
         setResults(res.rows || res.products || []);
       } catch (_) { setResults([]); }
     }, 400);

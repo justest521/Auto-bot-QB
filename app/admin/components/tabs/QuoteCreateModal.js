@@ -155,7 +155,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
     if (!q) { setProductResults([]); return; }
     setProductLoading(true);
     try {
-      const result = await apiGet({ action: 'products', q, category: 'all', page: '1', limit: '10' });
+      const result = await apiGet({ action: 'products', q, category: 'all', page: '1', limit: '10', lite: 1 });
       setProductResults(result.products || []);
     } finally {
       setProductLoading(false);
