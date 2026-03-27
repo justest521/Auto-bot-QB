@@ -389,12 +389,12 @@ export default function PurchaseOrders({ setTab }) {
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(1, search, e.target.value); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px' }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />
+          <span style={{ color: '#6b7280', fontSize: 14 }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />
+          <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(1, search, e.target.value); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="draft">草稿</option>
             <option value="sent">已寄出</option>
@@ -403,8 +403,8 @@ export default function PurchaseOrders({ setTab }) {
             <option value="received">已到貨</option>
             <option value="rejected">退回</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋採購單號..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋採購單號..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 14, padding: '6px 10px' }} />
+          <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 14 }}>查詢</button>
         </div>
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有採購單" /> : (
@@ -425,9 +425,9 @@ export default function PurchaseOrders({ setTab }) {
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '40px 150px 130px 80px minmax(0,1fr) 100px' : '40px 150px 130px 80px minmax(0,1fr) 100px 120px 80px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
                 <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
                 <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.po_no || '-'}</div>
-                <div style={{ fontSize: 13, color: '#374151', ...S.mono }}>{row.po_date?.slice(0, 10) || '-'}</div>
+                <div style={{ fontSize: 12, color: '#374151', ...S.mono }}>{row.po_date?.slice(0, 10) || '-'}</div>
                 <div><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
-                <div style={{ fontSize: 13, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</div>
+                <div style={{ fontSize: 14, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</div>
                 <div style={{ fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
                 {!isTablet && <div style={{ fontSize: 12, color: '#6b7280' }}>{row.vendor_id || '-'}</div>}
                 <div style={{ fontSize: 12, color: '#9ca3af', textAlign: 'right' }}>→</div>

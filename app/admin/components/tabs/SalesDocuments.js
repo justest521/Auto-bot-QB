@@ -305,13 +305,13 @@ export default function SalesDocuments({ setTab }) {
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋銷貨單號、客戶、業務或發票..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 13 }}>查詢</button>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />
+          <span style={{ color: '#6b7280', fontSize: 14 }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋銷貨單號、客戶、業務或發票..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 14, padding: '6px 10px' }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 14 }}>查詢</button>
         </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 qb_sales_history 或目前資料不可讀。</div>}
@@ -340,8 +340,8 @@ export default function SalesDocuments({ setTab }) {
                 <div style={{ fontSize: 14, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
                 <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2, ...S.mono }}>{row.invoice_number ? `INV ${row.invoice_number}` : ''}</div>
               </div>
-              <div style={{ fontSize: 13, color: '#374151', ...S.mono }}>{row.sale_date || '-'}</div>
-              {!isTablet && <div style={{ fontSize: 13, color: '#374151' }}>{row.sales_person || '-'}</div>}
+              <div style={{ fontSize: 12, color: '#374151', ...S.mono }}>{row.sale_date || '-'}</div>
+              {!isTablet && <div style={{ fontSize: 12, color: '#374151' }}>{row.sales_person || '-'}</div>}
               {!isTablet && <div style={{ fontSize: 14, color: '#111827', textAlign: 'right', ...S.mono }}>{fmtP(row.subtotal)}</div>}
               {!isTablet && <div style={{ fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total)}</div>}
               {!isTablet && <div style={{ textAlign: 'right' }}>
