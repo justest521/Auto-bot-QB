@@ -424,8 +424,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               {items.length > 0 ? (
                 <div>
                   {/* Table header */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 50px 65px 85px minmax(0,150px) 50px', gap: 6, padding: '10px 10px 10px 10px', background: '#f8f9fb', fontSize: 11, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                    <div></div><div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '32px minmax(0,1fr) 80px 50px 65px 85px minmax(0,150px) 50px', gap: 6, padding: '10px 10px 10px 10px', background: '#f8f9fb', fontSize: 11, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    <div></div><div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
                   </div>
                   {/* Table rows */}
                   {items.map((item) => {
@@ -438,7 +438,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     const rowBg = isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff';
                     return (
                       <div key={item.id}>
-                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 110px minmax(0,1fr) 80px 50px 65px 85px minmax(0,150px) 50px', gap: 6, padding: '14px 10px 14px 10px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
+                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px minmax(0,1fr) 80px 50px 65px 85px minmax(0,150px) 50px', gap: 6, padding: '14px 10px 14px 10px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
                           {cannotEdit ? (
                             <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af' }}>已銷</span>
@@ -448,8 +448,10 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                             <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 16, height: 16 }} />
                           )}
                         </div>
-                        <div style={{ color: '#374151', fontWeight: 600, ...S.mono, fontSize: 13 }}>{item.item_number_snapshot}</div>
-                        <div style={{ color: '#1f2937', fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description_snapshot || '-'}</div>
+                        <div style={{ position: 'relative', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${item.item_number_snapshot} — ${item.description_snapshot || ''}`}>
+                          <span style={{ color: '#374151', fontWeight: 600, ...S.mono, fontSize: 13 }}>{item.item_number_snapshot}</span>
+                          <span style={{ color: '#9ca3af', fontSize: 12, marginLeft: 6 }}>{item.description_snapshot || '-'}</span>
+                        </div>
                         <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ color: '#6b7280', textAlign: 'right', ...S.mono, fontSize: 13, cursor: cannotEdit || isEditing ? 'default' : 'pointer', transition: 'background 0.1s', padding: '2px 4px', borderRadius: 4, background: !cannotEdit && !isEditing ? 'transparent' : 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
                           {isEditing ? (
                             <input type="number" value={editValues.unit_price} onChange={(e) => setEditValues({ ...editValues, unit_price: parseFloat(e.target.value) || 0 })} style={inputStyle} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
