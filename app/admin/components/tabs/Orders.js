@@ -445,7 +445,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                           ) : hasPO ? (
                             <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af' }}>已採購</span>
                           ) : (
-                            <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 22, height: 22, borderRadius: 5 }} />
+                            <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                           )}
                         </div>
                         <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', fontWeight: 600, ...S.mono, fontSize: 14 }} title={`${item.item_number_snapshot} — ${item.description_snapshot || ''}`}>
@@ -491,14 +491,14 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                         <div style={{ display: 'flex', gap: 5, justifyContent: 'center', alignItems: 'center' }}>
                           {isEditing ? (
                             <>
-                              <button onClick={saveEditItem} style={{ width: 22, height: 22, borderRadius: 5, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</button>
-                              <button onClick={cancelEdit} style={{ width: 22, height: 22, borderRadius: 5, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                              <button onClick={saveEditItem} style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</button>
+                              <button onClick={cancelEdit} style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                             </>
                           ) : (
                             <>
-                              {!cannotEdit && <button onClick={(e) => startEditItem(item, e)} title="編輯" style={{ width: 22, height: 22, borderRadius: 5, border: '1px solid #d1d5db', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✎</button>}
-                              {!cannotEdit && !hasPO && <button onClick={(e) => { e.stopPropagation(); setReplacingItemId(replacingItemId === item.id ? null : item.id); setReplaceSearch(''); setReplaceResults([]); }} title="替換" style={{ width: 22, height: 22, borderRadius: 5, border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⇄</button>}
-                              {!cannotEdit && !hasPO && <button onClick={(e) => deleteItem(item.id, e)} title="刪除" style={{ width: 22, height: 22, borderRadius: 5, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>}
+                              {!cannotEdit && <button onClick={(e) => startEditItem(item, e)} title="編輯" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #d1d5db', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✎</button>}
+                              {!cannotEdit && !hasPO && <button onClick={(e) => { e.stopPropagation(); setReplacingItemId(replacingItemId === item.id ? null : item.id); setReplaceSearch(''); setReplaceResults([]); }} title="替換" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⇄</button>}
+                              {!cannotEdit && !hasPO && <button onClick={(e) => deleteItem(item.id, e)} title="刪除" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>}
                             </>
                           )}
                         </div>
