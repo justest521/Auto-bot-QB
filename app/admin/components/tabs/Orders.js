@@ -404,7 +404,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
           {/* ====== Left: Items with Stock Check ====== */}
           <div>
             {/* ===== Quick select buttons ===== */}
-            <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 16 }}>
+            <div style={{ ...cardStyle, padding: '10px 16px', marginBottom: 16, minHeight: 44, display: 'flex', alignItems: 'center' }}>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <button onClick={() => setSelectedItemIds(new Set(items.filter(i => !i.po_ref && !i.po_info).map(i => i.id)))} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12 }}>全選</button>
                 <button onClick={() => setSelectedItemIds(new Set())} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12 }}>取消全選</button>
