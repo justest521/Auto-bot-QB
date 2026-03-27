@@ -416,7 +416,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             </div>
 
             {/* ===== Items table ===== */}
-            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 16 }}>
+            <div style={{ ...cardStyle, padding: 0, overflow: 'visible', marginBottom: 16 }}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>商品明細</span>
                 <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
