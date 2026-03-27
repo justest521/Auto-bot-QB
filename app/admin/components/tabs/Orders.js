@@ -372,7 +372,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
       {/* ====== Header ====== */}
-      <div style={{ ...cardStyle, padding: '16px 24px', borderRadius: 10, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ ...cardStyle, padding: '16px 24px', borderRadius: 10, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
@@ -400,11 +400,11 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
       {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 16, padding: '12px 20px', fontSize: 14 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 10, alignItems: 'start' }}>
           {/* ====== Left: Items with Stock Check ====== */}
           <div>
             {/* ===== Quick select buttons ===== */}
-            <div style={{ padding: '6px 12px', marginBottom: 14, border: '1px solid #e5e7eb', borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center' }}>
+            <div style={{ padding: '6px 12px', marginBottom: 10, border: '1px solid #e5e7eb', borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center' }}>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <button onClick={() => setSelectedItemIds(new Set(items.filter(i => !i.po_ref && !i.po_info).map(i => i.id)))} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12 }}>全選</button>
                 <button onClick={() => setSelectedItemIds(new Set())} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12 }}>取消全選</button>
@@ -416,7 +416,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             </div>
 
             {/* ===== Items table ===== */}
-            <div style={{ ...cardStyle, padding: 0, overflow: 'visible', marginBottom: 16 }}>
+            <div style={{ ...cardStyle, padding: 0, overflow: 'visible', marginBottom: 10 }}>
               <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>商品明細</span>
                 <span style={{ fontSize: 12, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
