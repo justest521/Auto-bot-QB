@@ -117,19 +117,28 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const saveEditItem = async (e) => {
     if (e) e.stopPropagation();
     setMsg('');
+    const savedId = editingItemId;
+    const savedValues = { ...editValues };
+    // 樂觀更新：先即時更新本地 state
+    setItems(prev => prev.map(item => {
+      if (item.id !== savedId) return item;
+      const newQty = savedValues.qty !== undefined ? Number(savedValues.qty) : Number(item.qty);
+      const newPrice = savedValues.unit_price !== undefined ? Number(savedValues.unit_price) : Number(item.unit_price);
+      const dr = savedValues.discount_rate !== undefined ? Number(savedValues.discount_rate) : Number(item.discount_rate || 0);
+      const discounted = dr > 0 ? Math.round(newPrice * (1 - dr / 100)) : newPrice;
+      return { ...item, qty: newQty, unit_price: newPrice, discount_rate: dr, item_note: savedValues.item_note ?? item.item_note, line_total: newQty * discounted };
+    }));
+    setEditingItemId(null);
+    setEditValues({});
     try {
-      await apiPost({ action: 'update_order_item', item_id: editingItemId, ...editValues });
-      setEditingItemId(null);
-      setEditValues({});
-      const refreshed = await apiGet({ action: 'order_items_with_stock', order_id: order.id });
-      setItems(refreshed.items || []);
-      setLinkedSales(refreshed.linked_sales || []);
-      setLinkedPOs(refreshed.linked_pos || []);
-      setTimeline(refreshed.timeline || []);
+      await apiPost({ action: 'update_order_item', item_id: savedId, ...savedValues });
+      // 背景 refresh 拿到最新庫存等資料
+      refreshOrderData();
       onRefresh?.();
-      setMsg('品項已更新');
     } catch (error) {
       setMsg(error.message || '更新失敗');
+      // 失敗時重新載入正確資料
+      refreshOrderData();
     }
   };
 
