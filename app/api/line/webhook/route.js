@@ -4,6 +4,7 @@ import { handleCustomerMessage, handleImageMessage } from '@/lib/ai-handler';
 import { webhookLimiter } from '@/lib/security/rate-limit';
 
 export const dynamic = 'force-dynamic';
+export const preferredRegion = 'sin1';
 
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;

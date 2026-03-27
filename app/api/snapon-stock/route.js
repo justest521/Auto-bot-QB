@@ -1,5 +1,6 @@
 // app/api/snapon-stock/route.js — Check Snap-on US stock via their internal API
 export const dynamic = 'force-dynamic';
+export const preferredRegion = 'sin1';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);

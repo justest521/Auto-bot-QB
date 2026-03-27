@@ -7,6 +7,7 @@ import { sanitizeBody } from '@/lib/security/sanitize';
 import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
+export const preferredRegion = 'sin1'; // 新加坡，靠近 Supabase (ap-southeast-1)
 
 export async function GET(request) {
   const rl = adminLimiter(request);

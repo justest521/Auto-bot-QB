@@ -1,5 +1,6 @@
 // app/api/pdf/route.js — 報價單 / 訂單 / 銷貨單 可列印 HTML (Print → PDF)
 export const dynamic = 'force-dynamic';
+export const preferredRegion = 'sin1';
 
 import { createClient } from '@supabase/supabase-js';
 

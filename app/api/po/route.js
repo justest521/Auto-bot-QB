@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+export const preferredRegion = 'sin1';
 
 import { supabase } from '@/lib/supabase';
 import crypto from 'crypto';
