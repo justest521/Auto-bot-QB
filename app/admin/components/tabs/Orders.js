@@ -167,7 +167,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const res = await apiGet({ action: 'products', q: keyword, page: 1, limit: 8 });
-        setResults(res.rows || []);
+        setResults(res.rows || res.products || []);
       } catch (_) { setResults([]); }
     }, 400);
   };
