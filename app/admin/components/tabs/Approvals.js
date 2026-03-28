@@ -50,7 +50,7 @@ function CustomerHistoryModal({ history, customerName, onClose }) {
                 <div style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, background: isOpen ? '#f8fafc' : '#fff' }} onClick={() => setExpandedOrderId(isOpen ? null : (o.order_id || idx))}>
                   <span style={{ ...S.mono, fontSize: 13, fontWeight: 700, color: '#1f2937' }}>{o.order_no}</span>
                   <span style={{ fontSize: 11, color: '#6b7280' }}>{o.date}</span>
-                  <span style={{ fontSize: 11, color: statusColor, fontWeight: 600 }}>{o.status === 'confirmed' ? '已確認' : o.status === 'pending' ? '待處理' : o.status}</span>
+                  <span style={{ fontSize: 11, color: statusColor, fontWeight: 600 }}>{o.status === 'confirmed' ? '已核准' : o.status === 'pending' ? '待處理' : o.status}</span>
                   <span style={{ flex: 1 }} />
                   <span style={{ ...S.mono, fontSize: 14, fontWeight: 800, color: '#10b981' }}>{fmtP(o.amount)}</span>
                   <span style={{ fontSize: 11, color: '#9ca3af' }}>{o.items?.length || 0} 品項 {isOpen ? '▲' : '▼'}</span>

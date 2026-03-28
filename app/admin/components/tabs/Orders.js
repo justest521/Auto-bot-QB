@@ -47,7 +47,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const statusKey = String(order.status || 'draft').toLowerCase();
   const payKey = String(order.payment_status || 'unpaid').toLowerCase();
   const shipKey = String(order.shipping_status || 'pending').toLowerCase();
-  const ORDER_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', confirmed: '已確認', processing: '出貨中', completed: '已完成', rejected: '已駁回', shipped: '已出貨', cancelled: '已取消', pending: '待確認', purchasing: '採購中' };
+  const ORDER_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', confirmed: '已核准', processing: '出貨中', completed: '已完成', rejected: '已駁回', shipped: '已出貨', cancelled: '已取消', pending: '待確認', purchasing: '採購中' };
   const ORDER_STATUS_COLOR = { draft: '#6b7280', pending_approval: '#f59e0b', confirmed: '#16a34a', processing: '#3b82f6', completed: '#059669', rejected: '#ef4444', shipped: '#059669', cancelled: '#ef4444', pending: '#f59e0b', purchasing: '#8b5cf6' };
   const PAY_STATUS_MAP = { unpaid: '未付款', partial: '部分付款', paid: '已付款' };
   const SHIP_STATUS_MAP = { pending: '待出貨', shipped: '已出貨', delivered: '已送達' };
@@ -673,7 +673,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 const entries = [];
                 const saleStatusMap = { draft: '草稿', issued: '已開立', paid: '已收款', void: '作廢' };
                 const saleColorMap = { draft: '#f59e0b', issued: '#3b82f6', paid: '#16a34a', void: '#ef4444' };
-                const poStatusMap = { draft: '草稿', pending_approval: '待審核', confirmed: '已確認', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
+                const poStatusMap = { draft: '草稿', pending_approval: '待審核', confirmed: '已核准', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
                 const poColorMap = { draft: '#f59e0b', pending_approval: '#f59e0b', confirmed: '#3b82f6', received: '#16a34a', rejected: '#ef4444', cancelled: '#ef4444' };
 
                 // Progress stages as entries
@@ -940,7 +940,7 @@ export default function Orders({ setTab }) {
     load();
   };
 
-  const ORDER_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', confirmed: '已確認', processing: '出貨中', completed: '已完成', rejected: '已駁回', shipped: '已出貨', cancelled: '已取消', pending: '待確認', purchasing: '採購中' };
+  const ORDER_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', confirmed: '已核准', processing: '出貨中', completed: '已完成', rejected: '已駁回', shipped: '已出貨', cancelled: '已取消', pending: '待確認', purchasing: '採購中' };
   const PAY_STATUS_MAP = { unpaid: '未付款', partial: '部分付款', paid: '已付款' };
   const SHIP_STATUS_MAP = { pending: '待出貨', shipped: '已出貨', delivered: '已送達' };
 
@@ -1043,7 +1043,7 @@ export default function Orders({ setTab }) {
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="draft">草稿</option>
-            <option value="confirmed">已確認</option>
+            <option value="confirmed">已核准</option>
             <option value="shipped">已出貨</option>
             <option value="completed">完成</option>
             <option value="cancelled">已取消</option>

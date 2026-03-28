@@ -38,7 +38,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const [savingVendor, setSavingVendor] = useState(false);
 
   const statusKey = String(po.status || 'draft').toLowerCase();
-  const PO_STATUS_MAP = { draft: '草稿', sent: '已寄出', confirmed: '已確認', shipped: '已出貨', received: '已到貨', rejected: '退回', cancelled: '已取消' };
+  const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
   const PO_STATUS_COLOR = { draft: '#6b7280', sent: '#3b82f6', confirmed: '#16a34a', shipped: '#f59e0b', received: '#10b981', rejected: '#ef4444', cancelled: '#9ca3af' };
   const isEditable = statusKey === 'draft' || statusKey === 'sent';
   const isApproved = approvalData?.status === 'approved';
@@ -159,7 +159,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
     if (!confirm(`確定確認採購單 ${po.po_no || ''}？`)) return;
     try {
       await apiPost({ action: 'confirm_purchase_order', po_id: po.id });
-      setMsg('已確認');
+      setMsg('已核准');
       onRefresh?.();
     } catch (e) {
       setMsg(e.message || '確認失敗');
@@ -951,7 +951,7 @@ export default function PurchaseOrders({ setTab }) {
   const [selectedPO, setSelectedPO] = useState(null);
   const [showCreatePO, setShowCreatePO] = useState(false);
 
-  const PO_STATUS_MAP = { draft: '草稿', sent: '已寄出', confirmed: '已確認', shipped: '已出貨', received: '已到貨', rejected: '退回', cancelled: '已取消' };
+  const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
   const PO_STATUS_COLOR = { draft: 'default', sent: 'blue', confirmed: 'green', shipped: 'yellow', received: 'green', rejected: 'red', cancelled: 'gray' };
 
   const load = useCallback(async (page = 1, q = search, st = statusF) => {
@@ -1009,7 +1009,7 @@ export default function PurchaseOrders({ setTab }) {
       <div style={S.statGrid}>
         <StatCard code="DFT" label="草稿" value={fmt(sm.draft)} tone="blue" />
         <StatCard code="SENT" label="已寄出" value={fmt(sm.sent)} tone="blue" accent="#6366f1" />
-        <StatCard code="CNF" label="已確認" value={fmt(sm.confirmed)} tone="blue" accent="#3b82f6" />
+        <StatCard code="CNF" label="已核准" value={fmt(sm.confirmed)} tone="blue" accent="#3b82f6" />
         <StatCard code="SHIP" label="已出貨" value={fmt(sm.shipped)} tone="blue" accent="#f59e0b" />
         <StatCard code="RCV" label="已到貨" value={fmt(sm.received)} tone="blue" accent="#16a34a" />
       </div>
@@ -1025,7 +1025,7 @@ export default function PurchaseOrders({ setTab }) {
             <option value="">全部狀態</option>
             <option value="draft">草稿</option>
             <option value="sent">已寄出</option>
-            <option value="confirmed">已確認</option>
+            <option value="confirmed">已核准</option>
             <option value="shipped">已出貨</option>
             <option value="received">已到貨</option>
             <option value="rejected">退回</option>
