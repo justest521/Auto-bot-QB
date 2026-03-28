@@ -773,32 +773,52 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
 
             {/* 4. Payment registration card */}
             {payKey !== 'paid' && statusKey !== 'draft' && statusKey !== 'pending_approval' && statusKey !== 'rejected' && (
-              <div style={{ ...cardStyle, padding: '10px 16px' }}>
-                <div style={labelStyle}>登記付款</div>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
-                  <select value={payMethod} onChange={e => setPayMethod(e.target.value)} style={{ ...S.input, fontSize: 13, padding: '6px 8px', width: 90 }}>
-                    <option value="transfer">匯款</option>
-                    <option value="cash">現金</option>
-                    <option value="check">支票</option>
-                    <option value="credit_card">信用卡</option>
-                    <option value="other">其他</option>
-                  </select>
-                  <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} placeholder={`應付 ${(order.total_amount || 0).toLocaleString()}`} style={{ ...S.input, ...S.mono, fontSize: 13, padding: '6px 8px', flex: 1 }} min="1" />
-                  <button disabled={payProcessing || !payAmount} onClick={async () => {
-                    if (!payAmount || Number(payAmount) <= 0) return;
-                    setPayProcessing(true);
-                    try {
-                      const res = await apiPost({ action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod });
-                      setMsg(res.message || '付款已登記');
-                      setPayAmount('');
-                      onRefresh?.();
-                    } catch (err) { setMsg(err.message || '付款登記失敗'); }
-                    setPayProcessing(false);
-                  }} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: payProcessing ? '#94a3b8' : '#2563eb', color: '#fff', fontSize: 13, fontWeight: 700, cursor: payProcessing || !payAmount ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', opacity: !payAmount ? 0.5 : 1 }}>
-                    {payProcessing ? '...' : '登記'}
-                  </button>
+              <div style={{ ...cardStyle, padding: '16px 20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#111827' }}>登記付款</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>應收 <span style={{ fontWeight: 700, color: '#111827', ...S.mono }}>NT${(order.total_amount || 0).toLocaleString()}</span></div>
                 </div>
-                <button onClick={() => setPayAmount(String(order.total_amount || 0))} style={{ fontSize: 11, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>快速填入全額 NT${(order.total_amount || 0).toLocaleString()}</button>
+                {/* Payment method buttons */}
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', marginBottom: 6 }}>付款方式</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {[{ v: 'transfer', l: '匯款' }, { v: 'cash', l: '現金' }, { v: 'check', l: '支票' }, { v: 'credit_card', l: '信用卡' }, { v: 'line_pay', l: 'LINE Pay' }, { v: 'other', l: '其他' }].map(m => (
+                      <button key={m.v} type="button" onClick={() => setPayMethod(m.v)}
+                        style={{ padding: '6px 14px', borderRadius: 8, border: payMethod === m.v ? '2px solid #3b82f6' : '1px solid #e5e7eb', background: payMethod === m.v ? '#eff6ff' : '#fff', fontSize: 13, fontWeight: payMethod === m.v ? 700 : 500, color: payMethod === m.v ? '#1d4ed8' : '#6b7280', cursor: 'pointer', transition: 'all 0.12s' }}>
+                        {m.l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Amount input */}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', marginBottom: 6 }}>收款金額</div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#9ca3af', fontWeight: 600 }}>NT$</span>
+                      <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} placeholder="0" style={{ ...S.mono, fontSize: 16, fontWeight: 700, padding: '10px 12px 10px 42px', borderRadius: 10, border: '1.5px solid #e5e7eb', width: '100%', outline: 'none', background: '#f9fafb' }} min="1" onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
+                    </div>
+                    <button disabled={payProcessing || !payAmount} onClick={async () => {
+                      if (!payAmount || Number(payAmount) <= 0) return;
+                      setPayProcessing(true);
+                      try {
+                        const res = await apiPost({ action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod });
+                        setMsg(res.message || '付款已登記');
+                        setPayAmount('');
+                        onRefresh?.();
+                      } catch (err) { setMsg(err.message || '付款登記失敗'); }
+                      setPayProcessing(false);
+                    }} style={{ padding: '10px 22px', borderRadius: 10, border: 'none', background: payProcessing ? '#94a3b8' : !payAmount ? '#cbd5e1' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: payProcessing || !payAmount ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', boxShadow: payAmount ? '0 2px 8px rgba(37,99,235,0.25)' : 'none', transition: 'all 0.15s' }}>
+                      {payProcessing ? '登記中...' : '確認收款'}
+                    </button>
+                  </div>
+                </div>
+                {/* Quick fill buttons */}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button onClick={() => setPayAmount(String(order.total_amount || 0))} style={{ fontSize: 12, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>全額 NT${(order.total_amount || 0).toLocaleString()}</button>
+                  {order.total_amount > 0 && <button onClick={() => setPayAmount(String(Math.round(order.total_amount / 2)))} style={{ fontSize: 12, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>50% NT${Math.round((order.total_amount || 0) / 2).toLocaleString()}</button>}
+                  {order.total_amount > 0 && <button onClick={() => setPayAmount(String(Math.round(order.total_amount * 0.3)))} style={{ fontSize: 12, color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>訂金 30% NT${Math.round((order.total_amount || 0) * 0.3).toLocaleString()}</button>}
+                </div>
               </div>
             )}
 
