@@ -779,78 +779,67 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               })()}
             </div>
 
-            {/* 4. Payment registration card */}
+            {/* 4. Payment registration card — compact */}
             {payKey !== 'paid' && statusKey !== 'draft' && statusKey !== 'pending_approval' && statusKey !== 'rejected' && (
-              <div style={{ ...cardStyle, padding: '16px 20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: '#111827' }}>登記付款</div>
-                  <div style={{ fontSize: 12, color: '#6b7280' }}>應收 <span style={{ fontWeight: 700, color: '#111827', ...S.mono }}>NT${(order.total_amount || 0).toLocaleString()}</span></div>
+              <div style={{ ...cardStyle, padding: '12px 16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#111827' }}>登記付款</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>應收 <b style={{ color: '#111827' }}>NT${(order.total_amount || 0).toLocaleString()}</b></div>
                 </div>
-                {/* Payment type selection */}
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', marginBottom: 6 }}>收款類型</div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {[{ v: 'deposit', l: '訂金', icon: '💰' }, { v: 'partial', l: '部分收款', icon: '📋' }, { v: 'full', l: '全額收款', icon: '✅' }, { v: 'balance', l: '尾款', icon: '🏁' }].map(t => (
-                      <button key={t.v} type="button" onClick={() => {
-                        setPayType(t.v);
-                        if (t.v === 'full') setPayAmount(String(order.total_amount || 0));
-                        else if (t.v === 'deposit') setPayAmount(String(Math.round((order.total_amount || 0) * 0.3)));
-                        else if (t.v === 'balance') setPayAmount(String(Math.max(0, (order.total_amount || 0) - totalPaidAmount)));
-                      }}
-                        style={{ padding: '7px 14px', borderRadius: 8, border: payType === t.v ? '2px solid #3b82f6' : '1px solid #e5e7eb', background: payType === t.v ? '#eff6ff' : '#fff', fontSize: 13, fontWeight: payType === t.v ? 700 : 500, color: payType === t.v ? '#1d4ed8' : '#6b7280', cursor: 'pointer', transition: 'all 0.12s' }}>
-                        {t.icon} {t.l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {/* Payment method buttons */}
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', marginBottom: 6 }}>付款方式</div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {[{ v: 'transfer', l: '匯款' }, { v: 'cash', l: '現金' }, { v: 'check', l: '支票' }, { v: 'credit_card', l: '信用卡' }, { v: 'line_pay', l: 'LINE Pay' }, { v: 'other', l: '其他' }].map(m => (
-                      <button key={m.v} type="button" onClick={() => setPayMethod(m.v)}
-                        style={{ padding: '6px 14px', borderRadius: 8, border: payMethod === m.v ? '2px solid #3b82f6' : '1px solid #e5e7eb', background: payMethod === m.v ? '#eff6ff' : '#fff', fontSize: 13, fontWeight: payMethod === m.v ? 700 : 500, color: payMethod === m.v ? '#1d4ed8' : '#6b7280', cursor: 'pointer', transition: 'all 0.12s' }}>
-                        {m.l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {/* Amount input */}
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', marginBottom: 6 }}>收款金額</div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <div style={{ position: 'relative', flex: 1 }}>
-                      <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#9ca3af', fontWeight: 600 }}>NT$</span>
-                      <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} placeholder="0" style={{ ...S.mono, fontSize: 16, fontWeight: 700, padding: '10px 12px 10px 42px', borderRadius: 10, border: '1.5px solid #e5e7eb', width: '100%', outline: 'none', background: '#f9fafb' }} min="1" onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
-                    </div>
-                    <button disabled={payProcessing || !payAmount} onClick={async () => {
-                      if (!payAmount || Number(payAmount) <= 0) return;
-                      setPayProcessing(true);
-                      try {
-                        const res = await apiPost({ action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod, payment_type: payType });
-                        setMsg(res.message || '付款已登記');
-                        setPayAmount('');
-                        onRefresh?.();
-                      } catch (err) { setMsg(err.message || '付款登記失敗'); }
-                      setPayProcessing(false);
-                    }} style={{ padding: '10px 22px', borderRadius: 10, border: 'none', background: payProcessing ? '#94a3b8' : !payAmount ? '#cbd5e1' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: payProcessing || !payAmount ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', boxShadow: payAmount ? '0 2px 8px rgba(37,99,235,0.25)' : 'none', transition: 'all 0.15s' }}>
-                      {payProcessing ? '登記中...' : '確認收款'}
-                    </button>
-                  </div>
-                </div>
-                {/* Paid summary if partial */}
                 {totalPaidAmount > 0 && (
-                  <div style={{ background: '#f0fdf4', borderRadius: 8, padding: '8px 12px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <div style={{ background: '#f0fdf4', borderRadius: 6, padding: '5px 10px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
                     <span style={{ color: '#15803d', fontWeight: 600 }}>已收 NT${totalPaidAmount.toLocaleString()}</span>
                     <span style={{ color: '#dc2626', fontWeight: 700 }}>尚欠 NT${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}</span>
                   </div>
                 )}
-                {/* Quick fill buttons */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button onClick={() => { setPayType('full'); setPayAmount(String(order.total_amount || 0)); }} style={{ fontSize: 12, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>全額 NT${(order.total_amount || 0).toLocaleString()}</button>
-                  {order.total_amount > 0 && <button onClick={() => { setPayType('partial'); setPayAmount(String(Math.round(order.total_amount / 2))); }} style={{ fontSize: 12, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>50% NT${Math.round((order.total_amount || 0) / 2).toLocaleString()}</button>}
-                  {order.total_amount > 0 && <button onClick={() => { setPayType('deposit'); setPayAmount(String(Math.round(order.total_amount * 0.3))); }} style={{ fontSize: 12, color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>訂金 30% NT${Math.round((order.total_amount || 0) * 0.3).toLocaleString()}</button>}
-                  {totalPaidAmount > 0 && <button onClick={() => { setPayType('balance'); setPayAmount(String(Math.max(0, (order.total_amount || 0) - totalPaidAmount))); }} style={{ fontSize: 12, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>尾款 NT${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}</button>}
+                {/* Row 1: Type + Method in one line */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <select value={payType} onChange={e => {
+                    const t = e.target.value; setPayType(t);
+                    if (t === 'full') setPayAmount(String(order.total_amount || 0));
+                    else if (t === 'deposit') setPayAmount(String(Math.round((order.total_amount || 0) * 0.3)));
+                    else if (t === 'balance') setPayAmount(String(Math.max(0, (order.total_amount || 0) - totalPaidAmount)));
+                  }} style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#374151', background: '#f9fafb', cursor: 'pointer' }}>
+                    <option value="deposit">訂金</option>
+                    <option value="partial">部分收款</option>
+                    <option value="full">全額收款</option>
+                    <option value="balance">尾款</option>
+                  </select>
+                  <select value={payMethod} onChange={e => setPayMethod(e.target.value)} style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', background: '#f9fafb', cursor: 'pointer' }}>
+                    <option value="transfer">匯款</option>
+                    <option value="cash">現金</option>
+                    <option value="check">支票</option>
+                    <option value="credit_card">信用卡</option>
+                    <option value="line_pay">LINE Pay</option>
+                    <option value="other">其他</option>
+                  </select>
+                </div>
+                {/* Row 2: Amount + Submit */}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>NT$</span>
+                    <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} placeholder="0" style={{ ...S.mono, fontSize: 15, fontWeight: 700, padding: '8px 10px 8px 36px', borderRadius: 8, border: '1.5px solid #e5e7eb', width: '100%', outline: 'none', background: '#f9fafb' }} min="1" onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
+                  </div>
+                  <button disabled={payProcessing || !payAmount} onClick={async () => {
+                    if (!payAmount || Number(payAmount) <= 0) return;
+                    setPayProcessing(true);
+                    try {
+                      const res = await apiPost({ action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod, payment_type: payType });
+                      setMsg(res.message || '付款已登記');
+                      setPayAmount('');
+                      onRefresh?.();
+                    } catch (err) { setMsg(err.message || '付款登記失敗'); }
+                    setPayProcessing(false);
+                  }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: payProcessing ? '#94a3b8' : !payAmount ? '#cbd5e1' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: payProcessing || !payAmount ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', boxShadow: payAmount ? '0 2px 6px rgba(37,99,235,0.2)' : 'none' }}>
+                    {payProcessing ? '...' : '確認收款'}
+                  </button>
+                </div>
+                {/* Quick fill row */}
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <button onClick={() => { setPayType('full'); setPayAmount(String(order.total_amount || 0)); }} style={{ fontSize: 11, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 5, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>全額</button>
+                  <button onClick={() => { setPayType('partial'); setPayAmount(String(Math.round((order.total_amount || 0) / 2))); }} style={{ fontSize: 11, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 5, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>50%</button>
+                  <button onClick={() => { setPayType('deposit'); setPayAmount(String(Math.round((order.total_amount || 0) * 0.3))); }} style={{ fontSize: 11, color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 5, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>訂金30%</button>
+                  {totalPaidAmount > 0 && <button onClick={() => { setPayType('balance'); setPayAmount(String(Math.max(0, (order.total_amount || 0) - totalPaidAmount))); }} style={{ fontSize: 11, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 5, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>尾款</button>}
                 </div>
               </div>
             )}
