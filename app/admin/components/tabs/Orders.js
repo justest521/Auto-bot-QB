@@ -410,14 +410,12 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {!isConverted && canConvert && <button onClick={() => { const allIds = new Set(items.map(i => i.id)); setSelectedItemIds(allIds); openSaleForm(); }} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #16a34a, #15803d)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(22,163,74,0.25)' }}>轉銷貨</button>}
-          {isConverted && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>已轉銷貨</span>}
-          {!canConvert && !isConverted && isPending && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8' }}>審核中</span>}
-          {!canConvert && !isConverted && !isPending && <button onClick={submitForApproval} disabled={convertingId === order.id} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: isRejected ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: convertingId === order.id ? 0.7 : 1, transition: 'all 0.15s', boxShadow: isRejected ? '0 2px 8px rgba(239,68,68,0.25)' : '0 2px 8px rgba(37,99,235,0.25)' }}>{convertingId === order.id ? '送審中...' : isRejected ? '重新送審' : '送審'}</button>}
-          {canConvert && <button onClick={() => { initShipQty(); setShowShipForm(true); }} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>建立出貨</button>}
-          {canConvert && <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>PDF</button>}
-          {order.customer?.line_user_id && <button onClick={notifyOrderViaLine} disabled={!!processingAction} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #86efac', background: '#f0fdf4', fontSize: 13, fontWeight: 600, color: '#16a34a', cursor: 'pointer', opacity: processingAction === 'line' ? 0.6 : 1 }}>LINE</button>}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', textAlign: 'right' }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
+            {order.customer?.phone && <div style={{ fontSize: 12, color: '#6b7280', ...S.mono, marginTop: 2 }}>{order.customer.phone}</div>}
+          </div>
+          {order.customer?.line_user_id && <button onClick={notifyOrderViaLine} disabled={!!processingAction} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #86efac', background: '#f0fdf4', fontSize: 12, fontWeight: 600, color: '#16a34a', cursor: 'pointer', opacity: processingAction === 'line' ? 0.6 : 1 }}>LINE</button>}
         </div>
       </div>
 
@@ -642,6 +640,12 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 {processingAction === 'po' ? '處理中...' : `勾選項目 → 轉採購單${selectedItemIds.size > 0 ? ` (${selectedItemIds.size}項)` : ''}`}
               </button>
               )}
+              {/* 送審 / 建立出貨 / PDF — moved from top bar */}
+              {!canConvert && !isConverted && !isPending && (statusKey === 'draft' || statusKey === 'rejected') && (
+                <button onClick={submitForApproval} disabled={convertingId === order.id} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: isRejected ? '#ef4444' : '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: convertingId === order.id ? 0.7 : 1 }}>{convertingId === order.id ? '送審中...' : isRejected ? '重新送審' : '送審'}</button>
+              )}
+              {canConvert && <button onClick={() => { initShipQty(); setShowShipForm(true); }} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>建立出貨</button>}
+              <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>PDF</button>
             </div>
             )}
           </div>
