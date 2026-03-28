@@ -653,22 +653,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             {/* 1. PDF button */}
             <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
 
-            {/* 2. Customer card */}
-            <div style={{ ...cardStyle, padding: '10px 16px' }}>
-              <div style={labelStyle}>客戶資訊</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
-              {[
-                { label: '電話', value: order.customer?.phone, mono: true },
-                { label: '信箱', value: order.customer?.email, mono: true },
-              ].filter(f => f.value).map((f, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
-                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...(f.mono ? S.mono : {}), overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.value}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* 3. Combined Order Record — progress + sales + POs + timeline */}
+            {/* 2. Combined Order Record — progress + sales + POs + timeline */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>訂單記錄</div>
               {(() => {
