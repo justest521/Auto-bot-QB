@@ -1103,6 +1103,17 @@ export default function Orders({ setTab }) {
   // Focus on a specific order if navigated from another page
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Direct open: jump straight to detail view
+    const directOrder = window.localStorage.getItem('qb_order_direct_open');
+    if (directOrder) {
+      try {
+        const order = JSON.parse(directOrder);
+        if (order?.id) setSelectedOrder(order);
+      } catch (_) {}
+      window.localStorage.removeItem('qb_order_direct_open');
+      return;
+    }
+    // Search focus: filter the list
     const focusedOrder = window.localStorage.getItem(ORDER_FOCUS_KEY);
     if (!focusedOrder) return;
     setSearch(focusedOrder);

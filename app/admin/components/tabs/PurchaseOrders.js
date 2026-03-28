@@ -1141,6 +1141,17 @@ export default function PurchaseOrders({ setTab }) {
   // Focus on a specific PO if navigated from another page
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Direct open: jump straight to detail view
+    const directPO = window.localStorage.getItem('qb_po_direct_open');
+    if (directPO) {
+      try {
+        const po = JSON.parse(directPO);
+        if (po?.id) setSelectedPO(po);
+      } catch (_) {}
+      window.localStorage.removeItem('qb_po_direct_open');
+      return;
+    }
+    // Search focus: filter the list
     const focusedPO = window.localStorage.getItem(PO_FOCUS_KEY);
     if (!focusedPO) return;
     setSearch(focusedPO);

@@ -6,7 +6,9 @@ import { fmt, fmtP, fmtDate } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
 
 const PO_FOCUS_KEY = 'qb_purchase_order_focus';
+const PO_DIRECT_KEY = 'qb_po_direct_open';
 const ORDER_FOCUS_KEY = 'qb_order_focus';
+const ORDER_DIRECT_KEY = 'qb_order_direct_open';
 
 const STATUS_BADGE = {
   waiting:  { label: '等待到貨', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
@@ -158,7 +160,7 @@ export default function ProcurementCenter({ setTab }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {row.po_list.map(po => (
                             <div key={po.po_id} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 10px', background: '#fff', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, cursor: 'pointer' }}
-                              onClick={e => { e.stopPropagation(); window.localStorage.setItem(PO_FOCUS_KEY, po.po_no); setTab?.('purchase_orders'); }}
+                              onClick={e => { e.stopPropagation(); window.localStorage.setItem(PO_DIRECT_KEY, JSON.stringify({ id: po.po_id, po_no: po.po_no, status: po.status, po_date: po.po_date, vendor_id: po.vendor_id })); setTab?.('purchase_orders'); }}
                               onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'}
                               onMouseLeave={e => e.currentTarget.style.borderColor = '#e5e7eb'}
                             >
@@ -181,14 +183,14 @@ export default function ProcurementCenter({ setTab }) {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                             {waiting.map((wo, i) => (
                               <div key={wo.order_id || i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 10px', background: '#fff', borderRadius: 6, border: '1px solid #e9d5ff', fontSize: 12, cursor: 'pointer' }}
-                                onClick={e => { e.stopPropagation(); if (wo.order_id) { window.localStorage.setItem(ORDER_FOCUS_KEY, wo.order_id); setTab?.('orders'); } }}
+                                onClick={e => { e.stopPropagation(); if (wo.order_id) { window.localStorage.setItem(ORDER_DIRECT_KEY, JSON.stringify({ id: wo.order_id, order_no: wo.order_no })); setTab?.('orders'); } }}
                                 onMouseEnter={e => e.currentTarget.style.borderColor = '#7c3aed'}
                                 onMouseLeave={e => e.currentTarget.style.borderColor = '#e9d5ff'}
                               >
                                 <span style={{ fontWeight: 700, color: '#7c3aed', ...S.mono, minWidth: 70 }}>{wo.order_no || '-'}</span>
                                 <span style={{ color: '#374151' }}>{wo.customer_name}</span>
                                 <span style={{ ...S.mono, fontWeight: 700, color: '#b45309' }}>需 {wo.qty_needed}</span>
-                                <span style={{ color: '#9ca3af', marginLeft: 'auto', ...S.mono }}>{wo.order_date ? fmtDate(wo.order_date) : ''}</span>
+                                <span style={{ color: '#9ca3af', marginLeft: 'auto', ...S.mono }}>{wo.order_date ? wo.order_date.slice(0, 10) : ''}</span>
                                 <span style={{ fontSize: 10, color: '#6b7280' }}>#{i + 1}</span>
                               </div>
                             ))}
