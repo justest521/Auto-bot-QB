@@ -47,8 +47,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const statusKey = String(order.status || 'draft').toLowerCase();
   const payKey = String(order.payment_status || 'unpaid').toLowerCase();
   const shipKey = String(order.shipping_status || 'pending').toLowerCase();
-  const ORDER_STATUS_MAP = { pending: '待確認', draft: '草稿', confirmed: '已確認', processing: '處理中', shipped: '已出貨', completed: '完成', cancelled: '已取消' };
-  const ORDER_STATUS_COLOR = { pending: '#f59e0b', draft: '#6b7280', confirmed: '#16a34a', processing: '#3b82f6', shipped: '#059669', completed: '#6b7280', cancelled: '#ef4444' };
+  const ORDER_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', confirmed: '已確認', processing: '出貨中', completed: '已完成', rejected: '已駁回', shipped: '已出貨', cancelled: '已取消', pending: '待確認', purchasing: '採購中' };
+  const ORDER_STATUS_COLOR = { draft: '#6b7280', pending_approval: '#f59e0b', confirmed: '#16a34a', processing: '#3b82f6', completed: '#059669', rejected: '#ef4444', shipped: '#059669', cancelled: '#ef4444', pending: '#f59e0b', purchasing: '#8b5cf6' };
   const PAY_STATUS_MAP = { unpaid: '未付款', partial: '部分付款', paid: '已付款' };
   const SHIP_STATUS_MAP = { pending: '待出貨', shipped: '已出貨', delivered: '已送達' };
 
@@ -673,8 +673,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 const entries = [];
                 const saleStatusMap = { draft: '草稿', issued: '已開立', paid: '已收款', void: '作廢' };
                 const saleColorMap = { draft: '#f59e0b', issued: '#3b82f6', paid: '#16a34a', void: '#ef4444' };
-                const poStatusMap = { draft: '草稿', confirmed: '已確認', received: '已到貨', cancelled: '已取消' };
-                const poColorMap = { draft: '#f59e0b', confirmed: '#3b82f6', received: '#16a34a', cancelled: '#ef4444' };
+                const poStatusMap = { draft: '草稿', pending_approval: '待審核', confirmed: '已確認', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
+                const poColorMap = { draft: '#f59e0b', pending_approval: '#f59e0b', confirmed: '#3b82f6', received: '#16a34a', rejected: '#ef4444', cancelled: '#ef4444' };
 
                 // Progress stages as entries
                 const hasQuote = timeline.some(e => (e.event || '').match(/QT\d+|報價/));
@@ -940,7 +940,7 @@ export default function Orders({ setTab }) {
     load();
   };
 
-  const ORDER_STATUS_MAP = { pending: '待確認', draft: '草稿', confirmed: '已確認', processing: '處理中', shipped: '已出貨', completed: '完成', cancelled: '已取消' };
+  const ORDER_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', confirmed: '已確認', processing: '出貨中', completed: '已完成', rejected: '已駁回', shipped: '已出貨', cancelled: '已取消', pending: '待確認', purchasing: '採購中' };
   const PAY_STATUS_MAP = { unpaid: '未付款', partial: '部分付款', paid: '已付款' };
   const SHIP_STATUS_MAP = { pending: '待出貨', shipped: '已出貨', delivered: '已送達' };
 
@@ -1086,7 +1086,7 @@ export default function Orders({ setTab }) {
                   <div style={{ fontSize: 14, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</div>
                 </div>
                 <div style={{ fontSize: 12, color: '#374151', ...S.mono }}>{row.order_date || '-'}</div>
-                <div><span style={S.tag(statusKey === 'confirmed' ? 'green' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
+                <div><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
                 {!isTablet && <div><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : '')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
                 {!isTablet && <div><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : '')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
                 {!isTablet && <div style={{ fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>}

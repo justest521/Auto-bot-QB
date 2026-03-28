@@ -89,7 +89,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {/* 方案 A：銷貨免審，顯示自動核准標籤 */}
-          {approvalData?.status === 'approved' && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>{approvalData?.reviewed_by === 'system' ? '自動核准' : '已核准'}</span>}
+          {approvalData?.status === 'approved' && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>{approvalData?.approved_by === 'system' ? '自動核准' : '已核准'}</span>}
           {/* 銷貨免審 — 建立出貨不需等審核 */}
           <button onClick={async () => {
             if (!confirm('確定從此銷貨單建立出貨？')) return;
@@ -100,8 +100,13 @@ function SaleDetailView({ sale, onBack, setTab }) {
             } catch (e) { setMsg(e.message || '建立出貨失敗'); }
             finally { setShipping(false); }
           }} disabled={shipping} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
-          {/* 銷貨免審 — PDF 不需等審核 */}
-          <button onClick={() => window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank')} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>PDF</button>
+          {/* PDF：列印前提醒發票號碼 */}
+          <button onClick={() => {
+            if (!invoiceNumber && !s.invoice_number) {
+              if (!confirm('尚未填寫發票號碼，是否仍要列印？\n（建議先填寫發票號碼以便入帳）')) return;
+            }
+            window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank');
+          }} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>PDF</button>
         </div>
       </div>
 
@@ -162,7 +167,13 @@ function SaleDetailView({ sale, onBack, setTab }) {
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* 1. PDF button — 銷貨免審，直接可用 */}
-            <button onClick={() => window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+            <button onClick={() => {
+              if (!invoiceNumber && !s.invoice_number) {
+                if (!confirm('尚未填寫發票號碼，是否仍要列印？\n（建議先填寫發票號碼以便入帳）')) return;
+              }
+              window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank');
+            }} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+            {!invoiceNumber && !s.invoice_number && <div style={{ padding: '6px 10px', borderRadius: 6, background: '#fef3c7', color: '#92400e', fontSize: 11, textAlign: 'center', border: '1px solid #fde68a' }}>請填寫發票號碼以利入帳</div>}
 
             {/* 2. Customer card */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
@@ -214,7 +225,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 // 審核狀態 — 銷貨免審（方案 A），顯示自動核准
                 if (approvalData) {
                   const apSt = approvalData.status;
-                  const isAutoApproved = approvalData.reviewed_by === 'system';
+                  const isAutoApproved = approvalData.approved_by === 'system';
                   const apDot = apSt === 'approved' ? '#16a34a' : apSt === 'rejected' ? '#dc2626' : apSt === 'pending' ? '#2563eb' : '#d1d5db';
                   const apText = apSt === 'approved' ? (isAutoApproved ? '自動核准（訂單已審）' : '已核准') : apSt === 'rejected' ? '已駁回' : apSt === 'pending' ? '待審核' : apSt;
                   entries.push({ dot: apDot, label: '審核簽核', detail: apText, time: approvalData.reviewed_at || approvalData.created_at, status: apSt === 'approved' ? 'done' : apSt === 'pending' ? 'current' : apSt === 'rejected' ? 'rejected' : 'pending' });
