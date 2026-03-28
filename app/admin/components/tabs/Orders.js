@@ -644,8 +644,6 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               {!canConvert && !isConverted && !isPending && (statusKey === 'draft' || statusKey === 'rejected') && (
                 <button onClick={submitForApproval} disabled={convertingId === order.id} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: isRejected ? '#ef4444' : '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: convertingId === order.id ? 0.7 : 1 }}>{convertingId === order.id ? '送審中...' : isRejected ? '重新送審' : '送審'}</button>
               )}
-              {canConvert && <button onClick={() => { initShipQty(); setShowShipForm(true); }} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>建立出貨</button>}
-              <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>PDF</button>
             </div>
             )}
           </div>
