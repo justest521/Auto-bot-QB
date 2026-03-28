@@ -74,6 +74,8 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
   const [editingSales, setEditingSales] = useState(false);
   const [convertingOrder, setConvertingOrder] = useState(false);
   const [localStatus, setLocalStatus] = useState(null);
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [editNoteValue, setEditNoteValue] = useState('');
 
   const statusKey = String(localStatus || quote.status || 'draft').toLowerCase();
   const QUOTE_STATUS_MAP = { draft: '草稿', sent: '已發送', approved: '已核准', converted: '已轉單', closed: '已結案' };
@@ -155,6 +157,15 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
   const isEditable = statusKey === 'draft' || statusKey === 'sent';
   const isDeletable = statusKey === 'draft' || statusKey === 'sent';
 
+  const saveItemNote = async (itemId) => {
+    try {
+      await apiPost({ action: 'update_quote_item', item_id: itemId, item_note: editNoteValue });
+      const result = await apiGet({ action: 'quote_detail', quote_id: quote.id });
+      setDetail(result);
+    } catch (e) { setMsg(e.message || '更新失敗'); }
+    setEditingNoteId(null);
+  };
+
   const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
   const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
 
@@ -206,7 +217,13 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                     <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#6b7280' }}>{fmtP(item.unit_price)}</div>
                     <div style={{ textAlign: 'center', ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{item.qty || 0}</div>
                     <div style={{ textAlign: 'right', ...S.mono, fontWeight: 800, color: '#059669', fontSize: 14 }}>{fmtP(item.line_total)}</div>
-                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: '#6b7280' }}>{item.item_note || '—'}</div>
+                    <div style={{ fontSize: 13, color: '#6b7280', cursor: 'pointer', padding: '2px 4px', borderRadius: 4 }} onClick={() => { setEditingNoteId(item.id); setEditNoteValue(item.item_note || ''); }} onMouseEnter={e => editingNoteId !== item.id && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={e => editingNoteId !== item.id && (e.currentTarget.style.background = 'transparent')}>
+                      {editingNoteId === item.id ? (
+                        <input type="text" autoFocus value={editNoteValue} onChange={e => setEditNoteValue(e.target.value)} onBlur={() => saveItemNote(item.id)} onKeyDown={e => { if (e.key === 'Enter') saveItemNote(item.id); if (e.key === 'Escape') setEditingNoteId(null); }} style={{ width: '100%', border: '1px solid #d1d5db', borderRadius: 4, padding: '2px 6px', fontSize: 13, outline: 'none' }} onClick={e => e.stopPropagation()} />
+                      ) : (
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{item.item_note || '—'}</span>
+                      )}
+                    </div>
                   </div>
                 ))}
                 {/* Totals */}
