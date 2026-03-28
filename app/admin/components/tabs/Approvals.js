@@ -185,33 +185,66 @@ export default function Approvals() {
               </div>
             </div>
 
-            {/* Item details - collapsible */}
-            {isExpanded && items.length > 0 && (
-              <div style={{ borderTop: '1px solid #f0f0f0', padding: '10px 16px', background: '#fafbfd' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <th style={{ textAlign: 'left', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>料號</th>
-                      <th style={{ textAlign: 'left', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>品名</th>
-                      <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>數量</th>
-                      <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>單價</th>
-                      <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>小計</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((item, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '6px 8px', ...S.mono, color: '#1f2937' }}>{item.item_number || '-'}</td>
-                        <td style={{ padding: '6px 8px', color: '#374151', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description || '-'}</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono }}>{item.quantity || 0}</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono }}>{fmtP(item.unit_price)}</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, color: '#10b981', fontWeight: 700 }}>{fmtP(item.subtotal)}</td>
+            {/* Item details - collapsible with cost/profit analysis */}
+            {isExpanded && items.length > 0 && (() => {
+              const hasCost = items.some(i => i.cost_price > 0);
+              const isPO = a.doc_type === 'purchase_order';
+              const totalSell = items.reduce((s, i) => s + Number(i.subtotal || 0), 0);
+              const totalCost = items.reduce((s, i) => s + (Number(i.cost_price || 0) * Number(i.quantity || 0)), 0);
+              const totalProfit = totalSell - totalCost;
+              const marginPct = totalSell > 0 ? ((totalProfit / totalSell) * 100).toFixed(1) : '0.0';
+              return (
+                <div style={{ borderTop: '1px solid #f0f0f0', padding: '10px 16px', background: '#fafbfd' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        <th style={{ textAlign: 'left', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>料號</th>
+                        <th style={{ textAlign: 'left', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>品名</th>
+                        <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>數量</th>
+                        <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>{isPO ? '採購價' : '售價'}</th>
+                        {hasCost && !isPO && <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>成本</th>}
+                        <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>小計</th>
+                        {hasCost && !isPO && <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>毛利</th>}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    </thead>
+                    <tbody>
+                      {items.map((item, idx) => {
+                        const qty = Number(item.quantity || 0);
+                        const sell = Number(item.subtotal || 0);
+                        const cost = Number(item.cost_price || 0);
+                        const profit = sell - (cost * qty);
+                        const itemMargin = sell > 0 ? ((profit / sell) * 100).toFixed(0) : '-';
+                        return (
+                          <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={{ padding: '6px 8px', ...S.mono, color: '#1f2937' }}>{item.item_number || '-'}</td>
+                            <td style={{ padding: '6px 8px', color: '#374151', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description || '-'}</td>
+                            <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono }}>{qty}</td>
+                            <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono }}>{fmtP(item.unit_price)}</td>
+                            {hasCost && !isPO && <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, color: '#6b7280', fontSize: 11 }}>{fmtP(cost)}</td>}
+                            <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, color: '#10b981', fontWeight: 700 }}>{fmtP(sell)}</td>
+                            {hasCost && !isPO && <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, color: profit >= 0 ? '#16a34a' : '#dc2626', fontWeight: 600, fontSize: 11 }}>{fmtP(profit)} <span style={{ fontSize: 10, color: '#9ca3af' }}>({itemMargin}%)</span></td>}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {/* Profit summary bar */}
+                  {hasCost && !isPO && (
+                    <div style={{ marginTop: 10, padding: '10px 12px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', border: '1px solid #bbf7d0', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#374151' }}>
+                        <span>售價合計 <strong style={{ ...S.mono, color: '#111827' }}>{fmtP(totalSell)}</strong></span>
+                        <span>成本合計 <strong style={{ ...S.mono, color: '#6b7280' }}>{fmtP(totalCost)}</strong></span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 12, alignItems: 'baseline' }}>
+                        <span style={{ fontSize: 12, color: '#374151' }}>毛利</span>
+                        <span style={{ ...S.mono, fontSize: 18, fontWeight: 800, color: totalProfit >= 0 ? '#16a34a' : '#dc2626' }}>{fmtP(totalProfit)}</span>
+                        <span style={{ ...S.mono, fontSize: 14, fontWeight: 700, color: totalProfit >= 0 ? '#16a34a' : '#dc2626', background: totalProfit >= 0 ? '#dcfce7' : '#fee2e2', padding: '2px 8px', borderRadius: 4 }}>{marginPct}%</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Approved/Rejected info */}
             {a.status !== 'pending' && (
