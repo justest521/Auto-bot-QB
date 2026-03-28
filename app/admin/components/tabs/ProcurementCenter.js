@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate } from '@/lib/admin/helpers';
-import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
+import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 
 const PO_FOCUS_KEY = 'qb_purchase_order_focus';
 const PO_DIRECT_KEY = 'qb_po_direct_open';
@@ -62,42 +62,30 @@ export default function ProcurementCenter({ setTab }) {
     <div>
       <PageLead eyebrow="Procurement Center" title="採購中心" description="所有採購品項的到貨、配貨總覽" />
 
-      {/* Summary cards */}
-      <div style={S.statGrid}>
-        <StatCard code="ALL" label="品項數" value={fmt(sm.total_items)} tone="blue" />
-        <StatCard code="WAIT" label="等待到貨" value={fmt(sm.waiting)} tone="blue" accent="#dc2626" />
-        <StatCard code="PART" label="部分到貨" value={fmt(sm.partial)} tone="blue" accent="#f59e0b" />
-        <StatCard code="DONE" label="已齊" value={fmt(sm.complete)} tone="blue" accent="#16a34a" />
-      </div>
-
-      {/* Progress overview bar */}
-      {sm.total_ordered > 0 && (
-        <div style={{ ...S.card, marginBottom: 10, padding: '12px 16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>整體到貨進度</span>
-            <span style={{ fontSize: 13, ...S.mono, color: '#6b7280' }}>
-              {fmt(sm.total_received)} / {fmt(sm.total_ordered)} 件
-              <span style={{ marginLeft: 8, fontWeight: 700, color: '#2563eb' }}>{Math.round((sm.total_received / sm.total_ordered) * 100)}%</span>
-            </span>
+      {/* Row 1: Progress + summary chips  |  Row 2: Filters + search */}
+      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Row 1 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>到貨進度</span>
+          <div style={{ flex: 1, minWidth: 120, height: 7, borderRadius: 4, background: '#e5e7eb' }}>
+            {sm.total_ordered > 0 && <div style={{ width: `${Math.min(Math.round((sm.total_received / sm.total_ordered) * 100), 100)}%`, height: '100%', borderRadius: 4, background: 'linear-gradient(90deg, #3b82f6, #16a34a)', transition: 'width 0.5s' }} />}
           </div>
-          <div style={{ width: '100%', height: 8, borderRadius: 4, background: '#e5e7eb' }}>
-            <div style={{ width: `${Math.min(Math.round((sm.total_received / sm.total_ordered) * 100), 100)}%`, height: '100%', borderRadius: 4, background: 'linear-gradient(90deg, #3b82f6, #16a34a)', transition: 'width 0.5s' }} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-            <span style={{ fontSize: 12, color: '#9ca3af' }}>採購總金額 <strong style={{ ...S.mono, color: '#1d4ed8' }}>{fmtP(sm.total_cost)}</strong></span>
-          </div>
+          <span style={{ fontSize: 12, ...S.mono, color: '#6b7280', whiteSpace: 'nowrap' }}>{fmt(sm.total_received)}/{fmt(sm.total_ordered)} 件 <strong style={{ color: '#2563eb' }}>{sm.total_ordered > 0 ? Math.round((sm.total_received / sm.total_ordered) * 100) : 0}%</strong></span>
+          <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>|</span>
+          <span style={{ fontSize: 12, color: '#dc2626', fontWeight: 600, whiteSpace: 'nowrap' }}>待到 {fmt(sm.waiting)}</span>
+          <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600, whiteSpace: 'nowrap' }}>部分 {fmt(sm.partial)}</span>
+          <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600, whiteSpace: 'nowrap' }}>已齊 {fmt(sm.complete)}</span>
+          <span style={{ fontSize: 11, color: '#9ca3af', whiteSpace: 'nowrap' }}>|</span>
+          <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>總額 <strong style={{ ...S.mono, color: '#1d4ed8' }}>{fmtP(sm.total_cost)}</strong></span>
         </div>
-      )}
-
-      {/* Filters */}
-      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* Row 2 */}
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           {[['', '全部'], ['waiting', '等待到貨'], ['partial', '部分到貨'], ['complete', '已齊']].map(([key, label]) => (
-            <button key={key} onClick={() => { setStatusF(key); load(1, search, key); }} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: statusF === key ? '#3b82f6' : '#fff', color: statusF === key ? '#fff' : '#4b5563', borderColor: statusF === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => { setStatusF(key); load(1, search, key); }} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: 12, background: statusF === key ? '#3b82f6' : '#fff', color: statusF === key ? '#fff' : '#4b5563', borderColor: statusF === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
           ))}
           <div style={{ flex: 1 }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋料號或品名..." style={{ ...S.input, minWidth: 180, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '6px 16px', fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋料號或品名..." style={{ ...S.input, maxWidth: 220, fontSize: 12, padding: '5px 10px' }} />
+          <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '5px 14px', fontSize: 12 }}>查詢</button>
         </div>
       </div>
 
