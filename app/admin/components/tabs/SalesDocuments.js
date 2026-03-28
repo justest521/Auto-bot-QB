@@ -15,6 +15,8 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
   const [shipping, setShipping] = useState(false);
+  const [showShipForm, setShowShipForm] = useState(false);
+  const [shipForm, setShipForm] = useState({ carrier: '', tracking_no: '', remark: '' });
   const [timeline, setTimeline] = useState([]);
   const [approvalData, setApprovalData] = useState(null);
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -90,16 +92,8 @@ function SaleDetailView({ sale, onBack, setTab }) {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {/* 方案 A：銷貨免審，顯示自動核准標籤 */}
           {approvalData?.status === 'approved' && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>{approvalData?.approved_by === 'system' ? '自動核准' : '已核准'}</span>}
-          {/* 銷貨免審 — 建立出貨不需等審核 */}
-          <button onClick={async () => {
-            if (!confirm('確定從此銷貨單建立出貨？')) return;
-            setShipping(true); setMsg('');
-            try {
-              const result = await apiPost({ action: 'create_shipment', sale_id: sale.id, items: (detail?.items || []).map(i => ({ order_item_id: i.id, qty_shipped: i.quantity || i.qty || 1 })) });
-              setMsg(`已建立出貨單 ${result.shipment?.shipment_no || ''}`);
-            } catch (e) { setMsg(e.message || '建立出貨失敗'); }
-            finally { setShipping(false); }
-          }} disabled={shipping} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
+          {/* 銷貨免審 — 建立出貨 */}
+          <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
           {/* PDF：列印前提醒發票號碼 */}
           <button onClick={() => {
             if (!invoiceNumber && !s.invoice_number) {
@@ -300,6 +294,61 @@ function SaleDetailView({ sale, onBack, setTab }) {
                   } catch (err) { setMsg(err.message || '備註更新失敗'); }
                 }}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====== Shipment Creation Modal ====== */}
+      {showShipForm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowShipForm(false)}>
+          <div style={{ width: 'min(520px, 94vw)', background: '#fff', borderRadius: 16, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', maxHeight: '80vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: '#111827' }}>建立出貨單</div>
+              <button onClick={() => setShowShipForm(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#9ca3af', cursor: 'pointer', lineHeight: 1 }}>×</button>
+            </div>
+            {/* Form */}
+            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' }}>物流商 / 運送方式</label>
+                <input value={shipForm.carrier} onChange={e => setShipForm(p => ({ ...p, carrier: e.target.value }))} placeholder="例：黑貓宅急便、自行配送" style={{ padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' }}>貨運單號</label>
+                <input value={shipForm.tracking_no} onChange={e => setShipForm(p => ({ ...p, tracking_no: e.target.value }))} placeholder="輸入追蹤號碼" style={{ padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' }}>備註</label>
+                <textarea value={shipForm.remark} onChange={e => setShipForm(p => ({ ...p, remark: e.target.value }))} placeholder="出貨備註（選填）" rows={2} style={{ padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
+              </div>
+              {/* Items preview */}
+              <div style={{ background: '#f9fafb', borderRadius: 10, padding: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 8 }}>出貨品項</div>
+                {(s.items || []).map((it, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#374151', padding: '4px 0', borderBottom: i < (s.items||[]).length - 1 ? '1px solid #f0f2f5' : 'none' }}>
+                    <span style={{ flex: 1 }}>{it.product_name || it.product_id}</span>
+                    <span style={{ width: 60, textAlign: 'right', fontWeight: 600 }}>×{it.quantity}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Submit */}
+            <div style={{ padding: '14px 24px 20px', borderTop: '1px solid #f0f2f5', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button onClick={() => setShowShipForm(false)} style={{ padding: '9px 20px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#6b7280', cursor: 'pointer' }}>取消</button>
+              <button disabled={shipping} onClick={async () => {
+                setShipping(true);
+                try {
+                  await apiPost({ action: 'create_shipment', sale_id: s.id, carrier: shipForm.carrier, tracking_no: shipForm.tracking_no, remark: shipForm.remark });
+                  setMsg('出貨單已建立');
+                  setShowShipForm(false);
+                  setShipForm({ carrier: '', tracking_no: '', remark: '' });
+                  onRefresh?.();
+                } catch (err) { setMsg(err.message || '建立出貨失敗'); }
+                setShipping(false);
+              }} style={{ padding: '9px 24px', borderRadius: 8, border: 'none', background: shipping ? '#94a3b8' : 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: shipping ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>
+                {shipping ? '建立中...' : '確認出貨'}
+              </button>
             </div>
           </div>
         </div>
