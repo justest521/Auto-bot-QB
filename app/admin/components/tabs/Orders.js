@@ -694,6 +694,27 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 // Order created
                 const orderEv = timeline.find(e => (e.event || '').match(/建立訂單/));
                 entries.push({ dot: '#16a34a', label: '訂單建立', ref: order.order_no, time: orderEv?.time || order.created_at, status: 'done' });
+                // Approval status — based on order.status lifecycle
+                if (statusKey !== 'draft') {
+                  const approvalSteps = [];
+                  // 送審
+                  if (['pending_approval', 'confirmed', 'processing', 'completed'].includes(statusKey)) {
+                    const submitEv = timeline.find(e => (e.event || '').match(/送審/));
+                    approvalSteps.push({ dot: '#16a34a', label: '送審', detail: '已送審', time: submitEv?.time, status: 'done' });
+                  }
+                  // 審核結果
+                  if (statusKey === 'pending_approval') {
+                    approvalSteps.push({ dot: '#f59e0b', label: '審核', detail: '待審核', status: 'current' });
+                  } else if (statusKey === 'rejected') {
+                    const rejEv = timeline.find(e => (e.event || '').match(/駁回/));
+                    approvalSteps.push({ dot: '#dc2626', label: '送審', detail: '已送審', status: 'done' });
+                    approvalSteps.push({ dot: '#dc2626', label: '審核', detail: '已駁回', time: rejEv?.time, status: 'rejected' });
+                  } else if (['confirmed', 'processing', 'completed'].includes(statusKey)) {
+                    const appEv = timeline.find(e => (e.event || '').match(/核准|審核/));
+                    approvalSteps.push({ dot: '#16a34a', label: '審核', ref: order.order_no, detail: '已核准', time: appEv?.time, status: 'done' });
+                  }
+                  approvalSteps.forEach(s => entries.push(s));
+                }
                 // POs
                 linkedPOs.forEach(po => {
                   const pk = String(po.status || 'draft').toLowerCase();
@@ -711,13 +732,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   const saleBadges = items.filter(i => i.sale_info).map(i => ({ text: `已銷${i.sale_info.sold_qty}/${i.qty}`, item: i.item_number_snapshot }));
                   entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: saleStatusMap[sk] || sk, detailColor: sc, time: sale.sale_date, status: sk === 'paid' ? 'done' : 'current', badges: saleBadges });
                 });
-                // Approval (after POs and Sales) — show if there's an actual approval record
-                if (approvalData) {
-                  const as = approvalData.status;
-                  const dotColor = as === 'approved' ? '#16a34a' : as === 'rejected' ? '#dc2626' : as === 'pending' ? '#2563eb' : '#d1d5db';
-                  const statusText = as === 'approved' ? '已核准' : as === 'rejected' ? '已駁回' : as === 'pending' ? '待審核' : as;
-                  const docLabel = approvalData.doc_type === 'sale' ? '銷貨簽核' : approvalData.doc_type === 'purchase_order' ? '採購簽核' : '審核簽核';
-                  entries.push({ dot: dotColor, label: docLabel, ref: approvalData.doc_no, detail: statusText, time: approvalData.approved_at || approvalData.created_at, status: as === 'approved' ? 'done' : as === 'pending' ? 'current' : as === 'rejected' ? 'rejected' : 'pending' });
+                // Sale approval note (銷貨免審)
+                if (approvalData && approvalData.doc_type === 'sale') {
+                  entries.push({ dot: '#16a34a', label: '審核', detail: '免審（銷貨自動通過）', time: approvalData.approved_at, status: 'done' });
                 }
                 // Payment — show each payment record, or status summary
                 if (orderPayments.length > 0) {
