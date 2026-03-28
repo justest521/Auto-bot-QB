@@ -190,7 +190,7 @@ export default function ProcurementCenter({ setTab }) {
                                 <span style={{ fontWeight: 700, color: '#7c3aed', ...S.mono, minWidth: 70 }}>{wo.order_no || '-'}</span>
                                 <span style={{ color: '#374151' }}>{wo.customer_name}</span>
                                 <span style={{ ...S.mono, fontWeight: 700, color: '#b45309' }}>需 {wo.qty_needed}</span>
-                                <span style={{ color: '#9ca3af', marginLeft: 'auto', ...S.mono }}>{wo.order_date ? wo.order_date.slice(0, 10) : ''}</span>
+                                <span style={{ color: '#9ca3af', marginLeft: 'auto', ...S.mono }}>{wo.created_at ? fmtDate(wo.created_at) : wo.order_date ? wo.order_date.slice(0, 10) : ''}</span>
                                 <span style={{ fontSize: 10, color: '#6b7280' }}>#{i + 1}</span>
                               </div>
                             ))}
