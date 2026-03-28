@@ -25,6 +25,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const [selectedItemIds, setSelectedItemIds] = useState(new Set());
   const [processingAction, setProcessingAction] = useState('');
   const [approvalData, setApprovalData] = useState(null);
+  const [orderPayments, setOrderPayments] = useState([]);
   const [convertingId, setConvertingId] = useState('');
   const [showShipForm, setShowShipForm] = useState(false);
   const [shipForm, setShipForm] = useState({ carrier: '', tracking_no: '', remark: '', notify_line: true });
@@ -45,6 +46,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const [replaceResults, setReplaceResults] = useState([]);
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState('transfer');
+  const [payType, setPayType] = useState('full');
   const [payProcessing, setPayProcessing] = useState(false);
 
   const statusKey = String(order.status || 'draft').toLowerCase();
@@ -54,6 +56,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const ORDER_STATUS_COLOR = { draft: '#6b7280', pending_approval: '#f59e0b', confirmed: '#16a34a', processing: '#3b82f6', completed: '#059669', rejected: '#ef4444', shipped: '#059669', cancelled: '#ef4444', pending: '#f59e0b', purchasing: '#8b5cf6' };
   const PAY_STATUS_MAP = { unpaid: '未付款', partial: '部分付款', paid: '已付款' };
   const SHIP_STATUS_MAP = { pending: '待出貨', shipped: '已出貨', delivered: '已送達' };
+  const totalPaidAmount = orderPayments.filter(p => p.status === 'confirmed').reduce((s, p) => s + Number(p.amount || 0), 0);
 
   useEffect(() => {
     (async () => {
@@ -84,6 +87,11 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
           }
         }
         setApprovalData(foundApproval);
+        // Fetch payment records for this order
+        try {
+          const payRes = await apiGet({ action: 'payments', search: order.order_no || order.id });
+          setOrderPayments((payRes.payments || []).filter(p => String(p.erp_order_id) === String(order.id)));
+        } catch (_) { /* ignore */ }
       } catch (e) {
         setMsg(e.message || '無法取得訂單明細');
       } finally {
@@ -778,6 +786,23 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   <div style={{ fontSize: 15, fontWeight: 800, color: '#111827' }}>登記付款</div>
                   <div style={{ fontSize: 12, color: '#6b7280' }}>應收 <span style={{ fontWeight: 700, color: '#111827', ...S.mono }}>NT${(order.total_amount || 0).toLocaleString()}</span></div>
                 </div>
+                {/* Payment type selection */}
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', marginBottom: 6 }}>收款類型</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {[{ v: 'deposit', l: '訂金', icon: '💰' }, { v: 'partial', l: '部分收款', icon: '📋' }, { v: 'full', l: '全額收款', icon: '✅' }, { v: 'balance', l: '尾款', icon: '🏁' }].map(t => (
+                      <button key={t.v} type="button" onClick={() => {
+                        setPayType(t.v);
+                        if (t.v === 'full') setPayAmount(String(order.total_amount || 0));
+                        else if (t.v === 'deposit') setPayAmount(String(Math.round((order.total_amount || 0) * 0.3)));
+                        else if (t.v === 'balance') setPayAmount(String(Math.max(0, (order.total_amount || 0) - totalPaidAmount)));
+                      }}
+                        style={{ padding: '7px 14px', borderRadius: 8, border: payType === t.v ? '2px solid #3b82f6' : '1px solid #e5e7eb', background: payType === t.v ? '#eff6ff' : '#fff', fontSize: 13, fontWeight: payType === t.v ? 700 : 500, color: payType === t.v ? '#1d4ed8' : '#6b7280', cursor: 'pointer', transition: 'all 0.12s' }}>
+                        {t.icon} {t.l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 {/* Payment method buttons */}
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', marginBottom: 6 }}>付款方式</div>
@@ -802,7 +827,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                       if (!payAmount || Number(payAmount) <= 0) return;
                       setPayProcessing(true);
                       try {
-                        const res = await apiPost({ action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod });
+                        const res = await apiPost({ action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod, payment_type: payType });
                         setMsg(res.message || '付款已登記');
                         setPayAmount('');
                         onRefresh?.();
@@ -813,11 +838,19 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     </button>
                   </div>
                 </div>
+                {/* Paid summary if partial */}
+                {totalPaidAmount > 0 && (
+                  <div style={{ background: '#f0fdf4', borderRadius: 8, padding: '8px 12px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    <span style={{ color: '#15803d', fontWeight: 600 }}>已收 NT${totalPaidAmount.toLocaleString()}</span>
+                    <span style={{ color: '#dc2626', fontWeight: 700 }}>尚欠 NT${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}</span>
+                  </div>
+                )}
                 {/* Quick fill buttons */}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button onClick={() => setPayAmount(String(order.total_amount || 0))} style={{ fontSize: 12, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>全額 NT${(order.total_amount || 0).toLocaleString()}</button>
-                  {order.total_amount > 0 && <button onClick={() => setPayAmount(String(Math.round(order.total_amount / 2)))} style={{ fontSize: 12, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>50% NT${Math.round((order.total_amount || 0) / 2).toLocaleString()}</button>}
-                  {order.total_amount > 0 && <button onClick={() => setPayAmount(String(Math.round(order.total_amount * 0.3)))} style={{ fontSize: 12, color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>訂金 30% NT${Math.round((order.total_amount || 0) * 0.3).toLocaleString()}</button>}
+                  <button onClick={() => { setPayType('full'); setPayAmount(String(order.total_amount || 0)); }} style={{ fontSize: 12, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>全額 NT${(order.total_amount || 0).toLocaleString()}</button>
+                  {order.total_amount > 0 && <button onClick={() => { setPayType('partial'); setPayAmount(String(Math.round(order.total_amount / 2))); }} style={{ fontSize: 12, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>50% NT${Math.round((order.total_amount || 0) / 2).toLocaleString()}</button>}
+                  {order.total_amount > 0 && <button onClick={() => { setPayType('deposit'); setPayAmount(String(Math.round(order.total_amount * 0.3))); }} style={{ fontSize: 12, color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>訂金 30% NT${Math.round((order.total_amount || 0) * 0.3).toLocaleString()}</button>}
+                  {totalPaidAmount > 0 && <button onClick={() => { setPayType('balance'); setPayAmount(String(Math.max(0, (order.total_amount || 0) - totalPaidAmount))); }} style={{ fontSize: 12, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>尾款 NT${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}</button>}
                 </div>
               </div>
             )}
