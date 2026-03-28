@@ -312,7 +312,15 @@ function SaleDetailView({ sale, onBack, setTab }) {
             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' }}>物流商 / 運送方式</label>
-                <input value={shipForm.carrier} onChange={e => setShipForm(p => ({ ...p, carrier: e.target.value }))} placeholder="例：黑貓宅急便、自行配送" style={{ padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none' }} />
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+                  {['黑貓宅急便', '新竹物流', '嘉里大榮', '郵局包裹', '自行配送', '貨運', '超商取貨'].map(c => (
+                    <button key={c} type="button" onClick={() => setShipForm(p => ({ ...p, carrier: c }))}
+                      style={{ padding: '5px 12px', borderRadius: 6, border: shipForm.carrier === c ? '2px solid #f59e0b' : '1px solid #e5e7eb', background: shipForm.carrier === c ? '#fffbeb' : '#fff', fontSize: 12, fontWeight: shipForm.carrier === c ? 700 : 500, color: shipForm.carrier === c ? '#92400e' : '#6b7280', cursor: 'pointer', transition: 'all 0.12s' }}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+                <input value={shipForm.carrier} onChange={e => setShipForm(p => ({ ...p, carrier: e.target.value }))} placeholder="或輸入其他物流商..." style={{ padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none' }} />
               </div>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' }}>貨運單號</label>
@@ -325,10 +333,10 @@ function SaleDetailView({ sale, onBack, setTab }) {
               {/* Items preview */}
               <div style={{ background: '#f9fafb', borderRadius: 10, padding: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 8 }}>出貨品項</div>
-                {(s.items || []).map((it, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#374151', padding: '4px 0', borderBottom: i < (s.items||[]).length - 1 ? '1px solid #f0f2f5' : 'none' }}>
-                    <span style={{ flex: 1 }}>{it.product_name || it.product_id}</span>
-                    <span style={{ width: 60, textAlign: 'right', fontWeight: 600 }}>×{it.quantity}</span>
+                {items.map((it, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#374151', padding: '4px 0', borderBottom: i < items.length - 1 ? '1px solid #f0f2f5' : 'none' }}>
+                    <span style={{ flex: 1 }}>{it.product_name || it.item_number || it.product_id}</span>
+                    <span style={{ width: 60, textAlign: 'right', fontWeight: 600 }}>×{it.quantity || it.qty}</span>
                   </div>
                 ))}
               </div>
