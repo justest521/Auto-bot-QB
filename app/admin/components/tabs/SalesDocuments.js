@@ -269,10 +269,15 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 // 付款狀態
                 entries.push({ dot: statusKey === 'paid' ? '#16a34a' : '#d1d5db', label: '付款', detail: { draft: '草稿', issued: '未付款', paid: '已收款', void: '作廢' }[statusKey] || statusKey, status: statusKey === 'paid' ? 'done' : statusKey === 'issued' ? 'pending' : statusKey === 'void' ? 'rejected' : 'pending' });
 
-                // 其他timeline事件
+                // 出貨紀錄 — from shipments state, with clickable ref
+                shipments.forEach(sh => {
+                  entries.push({ dot: '#16a34a', label: '出貨', ref: sh.shipment_no, refType: 'shipment', detail: sh.carrier ? `${sh.carrier}${sh.tracking_no ? ` #${sh.tracking_no}` : ''}` : '已出貨', time: sh.created_at, status: 'done' });
+                });
+
+                // 其他timeline事件 (exclude shipments since we handle them above)
                 timeline?.forEach(ev => {
                   const eventText = ev.event || '';
-                  if (!eventText.match(/銷貨|審核|approval|批准/i) && eventText.trim()) {
+                  if (!eventText.match(/銷貨|審核|approval|批准|出貨單/i) && eventText.trim()) {
                     const dotColor = ev.status === 'done' ? '#16a34a' : ev.status === 'pending' ? '#f59e0b' : ev.status === 'rejected' ? '#ef4444' : '#d1d5db';
                     entries.push({ dot: dotColor, label: eventText, time: ev.time, status: ev.status || 'pending' });
                   }
@@ -289,12 +294,14 @@ function SaleDetailView({ sale, onBack, setTab }) {
                           <div style={{ position: 'absolute', left: -14, top: 3, width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8, borderRadius: '50%', background: e.dot, border: '2px solid #fff', boxShadow: isCurrent ? `0 0 0 3px ${e.dot}25` : `0 0 0 1.5px ${e.dot}30` }} />
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', lineHeight: 1.3 }}>
                             <span style={{ fontSize: 12, fontWeight: 700, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
-                            {e.ref && (
-                              <span style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => {
-                                if (e.refType === 'sale') { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
-                                else if (e.refType === 'invoice') { /* handle invoice click if needed */ }
-                              }}>{e.ref}</span>
-                            )}
+                            {e.ref && (() => {
+                              const clickHandler = e.refType === 'sale' ? () => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
+                                : e.refType === 'shipment' ? () => { window.localStorage.setItem('qb_shipment_focus', e.ref); setTab?.('shipments'); }
+                                : e.refType === 'payment' ? () => { setTab?.('收款管理'); }
+                                : e.refType === 'order' ? () => { window.localStorage.setItem(ORDER_FOCUS_KEY, e.ref); setTab?.('orders'); }
+                                : null;
+                              return <span style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
+                            })()}
                             {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.detailColor || (e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af'), background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
                           </div>
                           {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}

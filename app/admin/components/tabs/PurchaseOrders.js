@@ -313,6 +313,25 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
     }
   };
 
+  const [convertingStockIn, setConvertingStockIn] = useState(false);
+  const handleConvertToStockIn = async () => {
+    if (!confirm(`確定將採購單 ${po.po_no} 轉為進貨單？`)) return;
+    setConvertingStockIn(true); setMsg('');
+    try {
+      const stockInItems = items.map(it => ({
+        item_number: it.item_number || it.item_number_snapshot,
+        description: it.description || it.description_snapshot || '',
+        qty_received: Number(it.qty || it.quantity || 1),
+        unit_cost: Number(it.unit_cost || it.unit_price || 0),
+        line_total: Number(it.line_total || (it.unit_cost || it.unit_price || 0) * (it.qty || it.quantity || 1)),
+      }));
+      const res = await apiPost({ action: 'create_stock_in', po_id: po.id, vendor_id: po.vendor_id || null, remark: `從採購單 ${po.po_no} 轉入`, items: stockInItems });
+      setMsg(`已建立進貨單（${res.count || stockInItems.length} 項）`);
+      await refreshPOData();
+    } catch (err) { setMsg(err.message || '轉進貨失敗'); }
+    setConvertingStockIn(false);
+  };
+
   const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
   const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
 
@@ -346,7 +365,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
           {isRejected && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#fee2e2', color: '#dc2626' }}>已駁回</span>}
           {/* 核准後才能寄給原廠 */}
           {canSend && <button onClick={handleSendEmail} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(79,70,229,0.25)' }}>寄給原廠</button>}
-          {(statusKey === 'confirmed' || statusKey === 'shipped') && <button style={{ padding: '9px 22px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>轉進貨</button>}
+          {(statusKey === 'confirmed' || statusKey === 'shipped') && <button onClick={handleConvertToStockIn} disabled={convertingStockIn} style={{ padding: '9px 22px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: convertingStockIn ? 'not-allowed' : 'pointer', opacity: convertingStockIn ? 0.7 : 1, transition: 'all 0.15s' }}>{convertingStockIn ? '轉換中...' : '轉進貨'}</button>}
           <button onClick={handleExport} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>匯出</button>
         </div>
       </div>

@@ -45,18 +45,24 @@ export default function CompanySettings({ apiGet, apiPost }) {
     try {
       const reader = new FileReader();
       reader.onload = async () => {
-        const base64 = reader.result.split(',')[1];
-        const res = await apiPost({
-          action: 'upload_company_logo',
-          file_data: base64,
-          file_name: file.name,
-          content_type: file.type,
-        });
-        setSettings(prev => ({ ...prev, logo_url: res.logo_url + '?t=' + Date.now() }));
-        setMsg('Logo 已上傳');
-        setTimeout(() => setMsg(''), 2000);
-        setUploading(false);
+        try {
+          const base64 = reader.result.split(',')[1];
+          const res = await apiPost({
+            action: 'upload_company_logo',
+            file_data: base64,
+            file_name: file.name,
+            content_type: file.type,
+          });
+          setSettings(prev => ({ ...prev, logo_url: res.logo_url + '?t=' + Date.now() }));
+          setMsg('Logo 已上傳');
+          setTimeout(() => setMsg(''), 2000);
+        } catch (err) {
+          setMsg(err.message || '上傳失敗');
+        } finally {
+          setUploading(false);
+        }
       };
+      reader.onerror = () => { setMsg('讀取檔案失敗'); setUploading(false); };
       reader.readAsDataURL(file);
     } catch (err) {
       setMsg(err.message || '上傳失敗');

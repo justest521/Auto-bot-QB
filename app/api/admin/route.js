@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1'; // 新加坡，靠近 Supabase (ap-southeast-1)
+export const maxDuration = 30; // seconds
 
 export async function GET(request) {
   const rl = adminLimiter(request);
@@ -105,11 +106,18 @@ export async function POST(request) {
   }
 
   const bodyStr = JSON.stringify(rawBody);
-  if (bodyStr.length > 1_048_576) {
+  const isFileUpload = rawBody?.action === 'upload_company_logo';
+  const maxSize = isFileUpload ? 5_242_880 : 1_048_576; // 5MB for file uploads, 1MB otherwise
+  if (bodyStr.length > maxSize) {
     return Response.json({ error: 'Payload too large' }, { status: 413 });
   }
 
+  // Preserve raw binary fields before sanitization
+  const rawFileData = rawBody?.file_data;
   const body = sanitizeBody(rawBody);
+  if (rawFileData && body.action === 'upload_company_logo') {
+    body.file_data = rawFileData; // Restore unsanitized base64 data
+  }
   const { action } = body;
 
   // ── Public POST actions (login flow, no auth) ──
