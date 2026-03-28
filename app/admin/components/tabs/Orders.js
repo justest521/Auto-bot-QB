@@ -391,6 +391,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const canConvert = ['confirmed', 'processing'].includes(orderStatus);
   const isPending = orderStatus === 'pending_approval';
   const isRejected = orderStatus === 'rejected';
+  const isLocked = isPending; // 審核中鎖定所有操作
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
@@ -424,9 +425,18 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
       {loading ? <Loading /> : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 10, alignItems: 'start' }}>
           {/* ====== Left: Items with Stock Check ====== */}
-          <div>
+          <div style={{ position: 'relative' }}>
+            {/* 審核中鎖定遮罩 */}
+            {isLocked && (
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(243,244,246,0.6)', zIndex: 10, borderRadius: 14, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 60 }}>
+                <div style={{ background: '#fff', padding: '12px 24px', borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', border: '1px solid #fde68a', textAlign: 'center' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>訂單審核中</div>
+                  <div style={{ fontSize: 12, color: '#b45309', marginTop: 4 }}>審核完成後才能進行操作</div>
+                </div>
+              </div>
+            )}
             {/* ===== Quick select buttons ===== */}
-            <div style={{ padding: '6px 12px', marginBottom: 10, border: '1px solid #e5e7eb', borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center' }}>
+            <div style={{ padding: '6px 12px', marginBottom: 10, border: '1px solid #e5e7eb', borderRadius: 12, background: isLocked ? '#f9fafb' : '#fff', display: 'flex', alignItems: 'center', opacity: isLocked ? 0.5 : 1 }}>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <button onClick={() => setSelectedItemIds(new Set(items.filter(i => !i.po_ref && !i.po_info).map(i => i.id)))} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12 }}>全選</button>
                 <button onClick={() => setSelectedItemIds(new Set())} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12 }}>取消全選</button>
@@ -438,7 +448,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             </div>
 
             {/* ===== Items table ===== */}
-            <div style={{ ...cardStyle, padding: 0, overflow: 'visible', marginBottom: 10 }}>
+            <div style={{ ...cardStyle, padding: 0, overflow: 'visible', marginBottom: 10, opacity: isLocked ? 0.5 : 1, pointerEvents: isLocked ? 'none' : 'auto' }}>
               <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>商品明細</span>
                 <span style={{ fontSize: 12, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
