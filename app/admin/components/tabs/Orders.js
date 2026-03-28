@@ -43,6 +43,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const [replacingItemId, setReplacingItemId] = useState(null);
   const [replaceSearch, setReplaceSearch] = useState('');
   const [replaceResults, setReplaceResults] = useState([]);
+  const [payAmount, setPayAmount] = useState('');
+  const [payMethod, setPayMethod] = useState('transfer');
+  const [payProcessing, setPayProcessing] = useState(false);
 
   const statusKey = String(order.status || 'draft').toLowerCase();
   const payKey = String(order.payment_status || 'unpaid').toLowerCase();
@@ -764,7 +767,38 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               })()}
             </div>
 
-            {/* 4. Remark card — editable */}
+            {/* 4. Payment registration card */}
+            {payKey !== 'paid' && statusKey !== 'draft' && statusKey !== 'pending_approval' && statusKey !== 'rejected' && (
+              <div style={{ ...cardStyle, padding: '10px 16px' }}>
+                <div style={labelStyle}>登記付款</div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
+                  <select value={payMethod} onChange={e => setPayMethod(e.target.value)} style={{ ...S.input, fontSize: 13, padding: '6px 8px', width: 90 }}>
+                    <option value="transfer">匯款</option>
+                    <option value="cash">現金</option>
+                    <option value="check">支票</option>
+                    <option value="credit_card">信用卡</option>
+                    <option value="other">其他</option>
+                  </select>
+                  <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} placeholder={`應付 ${(order.total_amount || 0).toLocaleString()}`} style={{ ...S.input, ...S.mono, fontSize: 13, padding: '6px 8px', flex: 1 }} min="1" />
+                  <button disabled={payProcessing || !payAmount} onClick={async () => {
+                    if (!payAmount || Number(payAmount) <= 0) return;
+                    setPayProcessing(true);
+                    try {
+                      const res = await apiPost({ action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod });
+                      setMsg(res.message || '付款已登記');
+                      setPayAmount('');
+                      onRefresh?.();
+                    } catch (err) { setMsg(err.message || '付款登記失敗'); }
+                    setPayProcessing(false);
+                  }} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: payProcessing ? '#94a3b8' : '#2563eb', color: '#fff', fontSize: 13, fontWeight: 700, cursor: payProcessing || !payAmount ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', opacity: !payAmount ? 0.5 : 1 }}>
+                    {payProcessing ? '...' : '登記'}
+                  </button>
+                </div>
+                <button onClick={() => setPayAmount(String(order.total_amount || 0))} style={{ fontSize: 11, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>快速填入全額 NT${(order.total_amount || 0).toLocaleString()}</button>
+              </div>
+            )}
+
+            {/* 5. Remark card — editable */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>備註</div>
               <textarea
