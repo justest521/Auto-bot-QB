@@ -56,21 +56,31 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
     (async () => {
       setLoading(true);
       try {
-        const [result, approvalResult] = await Promise.all([
-          apiGet({ action: 'order_items_with_stock', order_id: order.id }),
-          apiGet({ action: 'approvals', doc_type: 'order' }),
-        ]);
+        const result = await apiGet({ action: 'order_items_with_stock', order_id: order.id });
         setItems(result.items || []);
         setLinkedSales(result.linked_sales || []);
         setLinkedPOs(result.linked_pos || []);
         setTimeline(result.timeline || []);
-        const map = {};
-        (approvalResult.rows || []).forEach(a => {
-          if (!map[a.doc_id] || new Date(a.created_at) > new Date(map[a.doc_id].created_at)) {
-            map[a.doc_id] = a;
-          }
+        // Fetch approvals for both order and related sales
+        const [orderApprovalRes, saleApprovalRes] = await Promise.all([
+          apiGet({ action: 'approvals', doc_type: 'order' }),
+          apiGet({ action: 'approvals', doc_type: 'sale' }),
+        ]);
+        // Find approval: first check order-level, then check linked sale-level
+        const orderMap = {};
+        (orderApprovalRes.rows || []).forEach(a => {
+          if (!orderMap[a.doc_id] || new Date(a.created_at) > new Date(orderMap[a.doc_id].created_at)) orderMap[a.doc_id] = a;
         });
-        setApprovalData(map[order.id] || null);
+        let foundApproval = orderMap[order.id] || null;
+        if (!foundApproval) {
+          const saleIds = new Set((result.linked_sales || []).map(s => String(s.id)));
+          const saleApprovals = (saleApprovalRes.rows || []).filter(a => saleIds.has(String(a.doc_id)));
+          if (saleApprovals.length > 0) {
+            saleApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            foundApproval = saleApprovals[0];
+          }
+        }
+        setApprovalData(foundApproval);
       } catch (e) {
         setMsg(e.message || '無法取得訂單明細');
       } finally {
@@ -698,12 +708,13 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   const saleBadges = items.filter(i => i.sale_info).map(i => ({ text: `已銷${i.sale_info.sold_qty}/${i.qty}`, item: i.item_number_snapshot }));
                   entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: saleStatusMap[sk] || sk, detailColor: sc, time: sale.sale_date, status: sk === 'paid' ? 'done' : 'current', badges: saleBadges });
                 });
-                // Approval (after POs and Sales) — only show if there's an actual approval record
+                // Approval (after POs and Sales) — show if there's an actual approval record
                 if (approvalData) {
                   const as = approvalData.status;
                   const dotColor = as === 'approved' ? '#16a34a' : as === 'rejected' ? '#dc2626' : as === 'pending' ? '#2563eb' : '#d1d5db';
                   const statusText = as === 'approved' ? '已核准' : as === 'rejected' ? '已駁回' : as === 'pending' ? '待審核' : as;
-                  entries.push({ dot: dotColor, label: '審核簽核', detail: statusText, time: approvalData.approved_at || approvalData.created_at, status: as === 'approved' ? 'done' : as === 'pending' ? 'current' : as === 'rejected' ? 'rejected' : 'pending' });
+                  const docLabel = approvalData.doc_type === 'sale' ? '銷貨簽核' : approvalData.doc_type === 'purchase_order' ? '採購簽核' : '審核簽核';
+                  entries.push({ dot: dotColor, label: docLabel, ref: approvalData.doc_no, detail: statusText, time: approvalData.approved_at || approvalData.created_at, status: as === 'approved' ? 'done' : as === 'pending' ? 'current' : as === 'rejected' ? 'rejected' : 'pending' });
                 }
                 // Payment
                 entries.push({ dot: payKey === 'paid' ? '#16a34a' : payKey === 'partial' ? '#2563eb' : '#d1d5db', label: '付款', detail: PAY_STATUS_MAP[payKey] || payKey, status: payKey === 'paid' ? 'done' : payKey === 'partial' ? 'current' : 'pending' });
