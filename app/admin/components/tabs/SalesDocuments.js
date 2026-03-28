@@ -90,13 +90,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          {approvalData?.status === 'approved' && <span style={{ padding: '6px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>{approvalData?.approved_by === 'system' ? '自動核准' : '已核准'}</span>}
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{s.customer_name || sale.customer_name || ''}</div>
-            {s.sales_person && <div style={{ fontSize: 11, color: '#9ca3af' }}>業務：{s.sales_person}</div>}
-          </div>
-        </div>
+        {approvalData?.status === 'approved' && <span style={{ padding: '6px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>{approvalData?.approved_by === 'system' ? '自動核准' : '已核准'}</span>}
       </div>
 
       {msg && <div style={{ ...cardStyle, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
@@ -153,32 +147,51 @@ function SaleDetailView({ sale, onBack, setTab }) {
             ) : (
               <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無品項明細</div>
             )}
-            {/* Action bar below items */}
-            <div style={{ display: 'flex', gap: 8, padding: '10px 0', flexWrap: 'wrap' }}>
-              <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
-              <button onClick={() => {
-                if (!invoiceNumber && !s.invoice_number) {
-                  if (!confirm('尚未填寫發票號碼，是否仍要列印？\n（建議先填寫發票號碼以便入帳）')) return;
-                }
-                window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank');
-              }} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>下載 PDF</button>
+            {/* Action bar below items — same style as Orders page */}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', padding: '10px 0' }}>
+              {shipments.length > 0 && (
+                <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}>
+                  已建立出貨單 {shipments.map(sh => sh.shipment_no).join(', ')}
+                </span>
+              )}
+              <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
             </div>
           </div>
 
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* 1. 發票資訊 — 日期 + 號碼 + 可編輯 */}
+            {/* 1. PDF button — same as Orders page */}
+            <button onClick={() => {
+              if (!invoiceNumber && !s.invoice_number) {
+                if (!confirm('尚未填寫發票號碼，是否仍要列印？\n（建議先填寫發票號碼以便入帳）')) return;
+              }
+              window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank');
+            }} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+
+            {/* 2. 客戶資訊 */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
-              <div style={labelStyle}>發票資訊</div>
+              <div style={labelStyle}>客戶資訊</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{s.customer_name || sale.customer_name || '未命名客戶'}</div>
               {[
-                { label: '銷貨日期', value: s.sale_date || sale.sale_date },
-                { label: '發票號碼', value: s.invoice_number || invoiceNumber },
+                { label: '業務', value: s.sales_person || sale.sales_person },
+                { label: '銷貨日期', value: s.sale_date || sale.sale_date, mono: true },
               ].filter(f => f.value).map((f, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
                   <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
-                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...S.mono }}>{f.value}</span>
+                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...(f.mono ? S.mono : {}) }}>{f.value}</span>
                 </div>
               ))}
+            </div>
+
+            {/* 3. 發票資訊 — 號碼 + 可編輯 */}
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+              <div style={labelStyle}>發票資訊</div>
+              {(s.invoice_number || invoiceNumber) && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>發票號碼</span>
+                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...S.mono }}>{s.invoice_number || invoiceNumber}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 6 }}>
                 <input
                   type="text" placeholder="輸入發票號碼..."
