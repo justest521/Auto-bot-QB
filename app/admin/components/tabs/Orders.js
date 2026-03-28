@@ -476,16 +476,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                           {isEditing ? (
                             <input type="text" value={editValues.item_note} onChange={(e) => setEditValues({ ...editValues, item_note: e.target.value })} style={{ ...inputStyle, textAlign: 'left' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} placeholder="備註" />
                           ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                              {(item.discount_rate > 0 || item.sale_info || item.po_info) && (
-                                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                                  {item.discount_rate > 0 && <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#fef3c7', color: '#92400e' }}>折{item.discount_rate}%</span>}
-                                  {item.sale_info && <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#dbeafe', color: '#1d4ed8' }}>已銷{item.sale_info.sold_qty}/{item.qty}</span>}
-                                  {item.po_info && <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#f3e8ff', color: '#7c3aed' }}>已採購</span>}
-                                </div>
-                              )}
-                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.item_note || '—'}</span>
-                            </div>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{item.item_note || '—'}</span>
                           )}
                         </div>
                         <div style={{ display: 'flex', gap: 5, justifyContent: 'center', alignItems: 'center' }}>
@@ -701,7 +692,11 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 linkedPOs.forEach(po => {
                   const pk = String(po.status || 'draft').toLowerCase();
                   const pc = poColorMap[pk] || '#6b7280';
-                  entries.push({ dot: pc, label: '採購', ref: po.po_no, refType: 'po', detail: poStatusMap[pk] || pk, detailColor: pc, time: po.po_date, status: pk === 'received' ? 'done' : 'current' });
+                  const poItems = items.filter(i => i.po_info || (i.po_ref && i.po_ref === po.id));
+                  const poItemText = poItems.length > 0 ? poItems.map(i => i.item_number_snapshot).join(', ') : '';
+                  const detailParts = [poStatusMap[pk] || pk];
+                  if (poItemText) detailParts.push(poItemText);
+                  entries.push({ dot: pc, label: '採購', ref: po.po_no, refType: 'po', detail: detailParts.join(' · '), detailColor: pc, time: po.po_date, status: pk === 'received' ? 'done' : 'current' });
                 });
                 // Stock
                 const stockOk = noStockCount === 0 && insufficientCount === 0;
@@ -710,7 +705,13 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 linkedSales.forEach(sale => {
                   const sk = String(sale.status || 'draft').toLowerCase();
                   const sc = saleColorMap[sk] || '#6b7280';
-                  entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: `${saleStatusMap[sk] || sk} · ${sale.total_qty != null ? sale.total_qty + '件' : ''} · NT$${Number(sale.total || 0).toLocaleString()}`, detailColor: sc, time: sale.sale_date, status: sk === 'paid' ? 'done' : 'current' });
+                  const saleItems = items.filter(i => i.sale_info);
+                  const saleItemText = saleItems.length > 0 ? saleItems.map(i => `${i.item_number_snapshot}(${i.sale_info?.sold_qty || 0}/${i.qty})`).join(', ') : '';
+                  const detailParts = [saleStatusMap[sk] || sk];
+                  if (sale.total_qty != null) detailParts.push(sale.total_qty + '件');
+                  detailParts.push('NT$' + Number(sale.total || 0).toLocaleString());
+                  if (saleItemText) detailParts.push(saleItemText);
+                  entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: detailParts.join(' · '), detailColor: sc, time: sale.sale_date, status: sk === 'paid' ? 'done' : 'current' });
                 });
                 // Payment
                 entries.push({ dot: payKey === 'paid' ? '#16a34a' : payKey === 'partial' ? '#2563eb' : '#d1d5db', label: '付款', detail: PAY_STATUS_MAP[payKey] || payKey, status: payKey === 'paid' ? 'done' : payKey === 'partial' ? 'current' : 'pending' });
