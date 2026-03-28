@@ -28,18 +28,34 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const [replaceSearch, setReplaceSearch] = useState('');
   const [replaceResults, setReplaceResults] = useState([]);
 
+  const [approvalData, setApprovalData] = useState(null);
+  const [submittingApproval, setSubmittingApproval] = useState(false);
+
   const statusKey = String(po.status || 'draft').toLowerCase();
   const PO_STATUS_MAP = { draft: '草稿', sent: '已寄出', confirmed: '已確認', shipped: '已出貨', received: '已到貨', rejected: '退回', cancelled: '已取消' };
   const PO_STATUS_COLOR = { draft: '#6b7280', sent: '#3b82f6', confirmed: '#16a34a', shipped: '#f59e0b', received: '#10b981', rejected: '#ef4444', cancelled: '#9ca3af' };
   const isEditable = statusKey === 'draft' || statusKey === 'sent';
+  const isApproved = approvalData?.status === 'approved';
+  const isPending = approvalData?.status === 'pending';
+  const isRejected = approvalData?.status === 'rejected';
+  const canSend = isApproved; // 只有核准後才能寄給原廠
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const result = await apiGet({ action: 'po_items', po_id: po.id });
+        const [result, approvalRes] = await Promise.all([
+          apiGet({ action: 'po_items', po_id: po.id }),
+          apiGet({ action: 'approvals', doc_type: 'purchase_order' }),
+        ]);
         setDetail(result);
         setTimeline(result.timeline || []);
+        // Find approval for this PO
+        const poApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(po.id));
+        if (poApprovals.length > 0) {
+          poApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          setApprovalData(poApprovals[0]);
+        }
       } catch (e) {
         setMsg(e.message || '無法取得採購單明細');
       } finally {
@@ -47,6 +63,25 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       }
     })();
   }, [po.id]);
+
+  const submitForApproval = async () => {
+    if (!confirm(`確定送審採購單 ${po.po_no}？`)) return;
+    setSubmittingApproval(true); setMsg('');
+    try {
+      const remark = `採購單 ${po.po_no}，含 ${items.length} 項`;
+      await apiPost({ action: 'submit_approval', doc_type: 'purchase_order', doc_id: po.id, doc_no: po.po_no, requested_by: 'admin', amount: totalAmount || po.total_amount, remark });
+      setMsg('已送審');
+      // Refresh approval data
+      const approvalRes = await apiGet({ action: 'approvals', doc_type: 'purchase_order' });
+      const poApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(po.id));
+      if (poApprovals.length > 0) {
+        poApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        setApprovalData(poApprovals[0]);
+      }
+      onRefresh?.();
+    } catch (e) { setMsg(e.message || '送審失敗'); }
+    finally { setSubmittingApproval(false); }
+  };
 
   const handleConfirm = async () => {
     if (!confirm(`確定確認採購單 ${po.po_no || ''}？`)) return;
@@ -228,9 +263,18 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {po.status === 'draft' && <button onClick={handleConfirm} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(37,99,235,0.25)' }}>確認</button>}
-          {(po.status === 'draft' || po.status === 'confirmed') && <button onClick={handleSendEmail} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(79,70,229,0.25)' }}>寄給原廠</button>}
-          {(po.status === 'confirmed' || po.status === 'shipped') && <button style={{ padding: '9px 22px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>轉進貨</button>}
+          {/* 送審 / 審核中 / 已駁回重送 */}
+          {!isApproved && statusKey === 'draft' && (
+            <button onClick={submitForApproval} disabled={submittingApproval || isPending}
+              style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: isPending ? '#94a3b8' : isRejected ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: isPending ? 'default' : 'pointer', opacity: submittingApproval ? 0.7 : 1, transition: 'all 0.15s', boxShadow: isPending ? 'none' : '0 2px 8px rgba(37,99,235,0.25)' }}>
+              {submittingApproval ? '送審中...' : isPending ? '審核中' : isRejected ? '重送審' : '送審'}
+            </button>
+          )}
+          {isPending && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8' }}>待審核</span>}
+          {isRejected && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#fee2e2', color: '#dc2626' }}>已駁回</span>}
+          {/* 核准後才能寄給原廠 */}
+          {canSend && <button onClick={handleSendEmail} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(79,70,229,0.25)' }}>寄給原廠</button>}
+          {(statusKey === 'confirmed' || statusKey === 'shipped') && <button style={{ padding: '9px 22px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>轉進貨</button>}
           <button onClick={handleExport} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>匯出</button>
         </div>
       </div>
