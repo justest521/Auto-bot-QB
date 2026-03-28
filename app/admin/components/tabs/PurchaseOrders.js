@@ -607,14 +607,17 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                 // PO created
                 entries.push({ dot: '#3b82f6', label: '採購建立', ref: po.po_no, time: po.po_date, status: 'done' });
 
-                // Approval status
-                const approvalEv = timeline.find(e => (e.event || '').match(/審核|確認/));
-                if (statusKey === 'confirmed' || statusKey === 'shipped' || statusKey === 'received') {
-                  entries.push({ dot: '#16a34a', label: '已審核', detail: '已確認', time: approvalEv?.time, status: 'done' });
-                } else if (statusKey === 'sent') {
-                  entries.push({ dot: '#2563eb', label: '待審核', detail: '待確認', time: approvalEv?.time, status: 'current' });
-                } else if (statusKey === 'rejected') {
-                  entries.push({ dot: '#ef4444', label: '審核', detail: '已駁回', time: approvalEv?.time, status: 'rejected' });
+                // Approval status — use real approvalData
+                if (approvalData) {
+                  const aStatus = approvalData.status;
+                  const aTime = approvalData.reviewed_at || approvalData.created_at;
+                  if (aStatus === 'approved') {
+                    entries.push({ dot: '#16a34a', label: '採購簽核', detail: '已核准', time: aTime, status: 'done' });
+                  } else if (aStatus === 'pending') {
+                    entries.push({ dot: '#f59e0b', label: '採購簽核', detail: '待審核', time: approvalData.created_at, status: 'current' });
+                  } else if (aStatus === 'rejected') {
+                    entries.push({ dot: '#ef4444', label: '採購簽核', detail: '已駁回', time: aTime, status: 'rejected' });
+                  }
                 }
 
                 // Receiving status
