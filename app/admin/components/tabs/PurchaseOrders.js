@@ -711,6 +711,230 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   );
 }
 
+// ========== 新增採購單 Modal ==========
+function CreatePOModal({ onClose, onCreated }) {
+  const [vendorSearch, setVendorSearch] = useState('');
+  const [allVendors, setAllVendors] = useState([]);
+  const [vendorLoading, setVendorLoading] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [remark, setRemark] = useState('');
+  const [productSearch, setProductSearch] = useState('');
+  const [productResults, setProductResults] = useState([]);
+  const [items, setItems] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const searchRef = useRef(null);
+
+  useEffect(() => {
+    (async () => {
+      setVendorLoading(true);
+      try {
+        const res = await apiGet({ action: 'vendors', search: '', limit: 200 });
+        setAllVendors(res.vendors || []);
+      } catch (_) {}
+      finally { setVendorLoading(false); }
+    })();
+  }, []);
+
+  const filteredVendors = (() => {
+    if (!vendorSearch.trim()) return allVendors;
+    const kw = vendorSearch.trim().toLowerCase();
+    return allVendors.filter(v => {
+      const fields = [v.vendor_name, v.vendor_code, v.contact_name].filter(Boolean).join(' ').toLowerCase();
+      return fields.includes(kw);
+    });
+  })();
+
+  const searchProducts = (keyword) => {
+    setProductSearch(keyword);
+    if (searchRef.current) clearTimeout(searchRef.current);
+    if (!keyword || keyword.length < 2) { setProductResults([]); return; }
+    searchRef.current = setTimeout(async () => {
+      try {
+        const res = await apiGet({ action: 'products', q: keyword, page: 1, limit: 8, lite: 1 });
+        setProductResults(res.rows || res.products || []);
+      } catch (_) { setProductResults([]); }
+    }, 400);
+  };
+
+  const addItem = (product) => {
+    if (items.some(i => i.item_number === product.item_number)) return;
+    const cost = Number(product.tw_reseller_price || product.cost_price || 0);
+    setItems(prev => [...prev, {
+      item_number: product.item_number,
+      description: product.description || product.product_name || '',
+      qty: 1,
+      unit_cost: cost,
+      line_total: cost,
+    }]);
+    setProductSearch('');
+    setProductResults([]);
+  };
+
+  const updateItem = (idx, field, value) => {
+    setItems(prev => prev.map((item, i) => {
+      if (i !== idx) return item;
+      const updated = { ...item, [field]: value };
+      if (field === 'qty' || field === 'unit_cost') {
+        updated.line_total = Number(updated.qty || 0) * Number(updated.unit_cost || 0);
+      }
+      return updated;
+    }));
+  };
+
+  const removeItem = (idx) => setItems(prev => prev.filter((_, i) => i !== idx));
+
+  const totalAmount = items.reduce((s, i) => s + Number(i.line_total || 0), 0);
+
+  const handleCreate = async () => {
+    if (items.length === 0) { setError('請至少加入一個品項'); return; }
+    setSaving(true); setError('');
+    try {
+      await apiPost({
+        action: 'create_purchase_order',
+        vendor_id: selectedVendor?.id || null,
+        remark,
+        items,
+      });
+      onCreated?.();
+    } catch (e) { setError(e.message || '建立失敗'); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={onClose}>
+      <div style={{ width: 'min(960px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+          <div>
+            <div style={S.eyebrow}>Create Purchase Order</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>新增採購單</div>
+          </div>
+          <button onClick={onClose} style={S.btnGhost}>關閉</button>
+        </div>
+        {error && <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10 }}>{error}</div>}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+          {/* Vendor selection */}
+          <div style={S.card}>
+            <div style={{ padding: '12px 16px' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>選擇廠商</div>
+              {selectedVendor ? (
+                <div style={{ padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{selectedVendor.vendor_name}</div>
+                    {selectedVendor.contact_name && <div style={{ fontSize: 11, color: '#6b7280' }}>{selectedVendor.contact_name}</div>}
+                  </div>
+                  <span onClick={() => setSelectedVendor(null)} style={{ fontSize: 16, cursor: 'pointer', color: '#9ca3af' }}>×</span>
+                </div>
+              ) : (
+                <div>
+                  <input placeholder="搜尋廠商..." value={vendorSearch} onChange={e => setVendorSearch(e.target.value)} style={{ ...S.input, fontSize: 13, marginBottom: 6 }} />
+                  <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff' }}>
+                    {vendorLoading ? <div style={{ padding: 10, textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>載入中...</div> :
+                      filteredVendors.length > 0 ? filteredVendors.map(v => (
+                        <div key={v.id} onClick={() => { setSelectedVendor(v); setVendorSearch(''); }}
+                          style={{ padding: '6px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: 13 }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                          <span style={{ fontWeight: 600 }}>{v.vendor_name}</span>
+                          <span style={{ fontSize: 10, color: '#9ca3af', marginLeft: 8 }}>{v.vendor_code}</span>
+                        </div>
+                      )) : <div style={{ padding: 10, textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>無廠商資料</div>
+                    }
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Remark */}
+          <div style={S.card}>
+            <div style={{ padding: '12px 16px' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>備註</div>
+              <textarea value={remark} onChange={e => setRemark(e.target.value)} placeholder="輸入備註..." rows={4} style={{ ...S.input, resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Items */}
+        <div style={{ ...S.card, marginBottom: 12 }}>
+          <div style={{ padding: '12px 16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>採購明細</div>
+              <span style={{ fontSize: 12, color: '#6b7280' }}>{items.length} 項</span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <input placeholder="搜尋料號或品名..." value={productSearch} onChange={e => searchProducts(e.target.value)} style={{ ...S.input, flex: 1, fontSize: 13 }} />
+            </div>
+            {productResults.length > 0 && (
+              <div style={{ maxHeight: 180, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff', marginBottom: 10 }}>
+                {productResults.map(p => (
+                  <div key={p.item_number} onClick={() => addItem(p)}
+                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: 13, display: 'flex', justifyContent: 'space-between' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                    <div>
+                      <span style={{ ...S.mono, fontWeight: 700, color: '#2563eb' }}>{p.item_number}</span>
+                      <span style={{ marginLeft: 8, color: '#374151' }}>{p.description || p.product_name || ''}</span>
+                    </div>
+                    <span style={{ ...S.mono, color: '#6b7280', fontSize: 12 }}>{fmtP(p.tw_reseller_price || 0)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {items.length > 0 ? (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                    <th style={{ textAlign: 'left', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>料號</th>
+                    <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600, width: 70 }}>數量</th>
+                    <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600, width: 100 }}>單價</th>
+                    <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>小計</th>
+                    <th style={{ width: 30 }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '6px 8px' }}>
+                        <div style={{ ...S.mono, fontWeight: 700, color: '#1f2937' }}>{item.item_number}</div>
+                        <div style={{ fontSize: 11, color: '#6b7280' }}>{item.description}</div>
+                      </td>
+                      <td style={{ padding: '6px 8px', textAlign: 'right' }}>
+                        <input type="number" value={item.qty} min={1} onChange={e => updateItem(idx, 'qty', Number(e.target.value) || 1)} style={{ ...S.input, width: 60, textAlign: 'right', fontSize: 13, padding: '3px 6px' }} />
+                      </td>
+                      <td style={{ padding: '6px 8px', textAlign: 'right' }}>
+                        <input type="number" value={item.unit_cost} min={0} onChange={e => updateItem(idx, 'unit_cost', Number(e.target.value) || 0)} style={{ ...S.input, width: 90, textAlign: 'right', fontSize: 13, padding: '3px 6px' }} />
+                      </td>
+                      <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, fontWeight: 700, color: '#10b981' }}>{fmtP(item.line_total)}</td>
+                      <td style={{ padding: '6px 8px', textAlign: 'center' }}>
+                        <span onClick={() => removeItem(idx)} style={{ cursor: 'pointer', color: '#ef4444', fontSize: 16 }}>×</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div style={{ textAlign: 'center', padding: 20, color: '#9ca3af', fontSize: 13 }}>搜尋商品加入採購明細</div>
+            )}
+            {items.length > 0 && (
+              <div style={{ padding: '10px 8px', borderTop: '2px solid #bfdbfe', display: 'flex', justifyContent: 'flex-end', gap: 16, alignItems: 'baseline', marginTop: 4 }}>
+                <span style={{ fontSize: 13, color: '#6b7280' }}>{items.length} 項</span>
+                <span style={{ fontSize: 12, color: '#2563eb', fontWeight: 600 }}>採購合計</span>
+                <span style={{ ...S.mono, fontSize: 20, fontWeight: 900, color: '#1d4ed8' }}>{fmtP(totalAmount)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button onClick={handleCreate} disabled={saving || items.length === 0} style={{ ...S.btnPrimary, width: '100%', padding: '12px', fontSize: 15, fontWeight: 700, opacity: saving || items.length === 0 ? 0.5 : 1 }}>
+          {saving ? '建立中...' : '建立採購單'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ========== 採購單主元件 ==========
 export default function PurchaseOrders({ setTab }) {
   const width = useViewportWidth();
@@ -725,6 +949,7 @@ export default function PurchaseOrders({ setTab }) {
   const [datePreset, setDatePreset] = useState('month');
   const [msg, setMsg] = useState('');
   const [selectedPO, setSelectedPO] = useState(null);
+  const [showCreatePO, setShowCreatePO] = useState(false);
 
   const PO_STATUS_MAP = { draft: '草稿', sent: '已寄出', confirmed: '已確認', shipped: '已出貨', received: '已到貨', rejected: '退回', cancelled: '已取消' };
   const PO_STATUS_COLOR = { draft: 'default', sent: 'blue', confirmed: 'green', shipped: 'yellow', received: 'green', rejected: 'red', cancelled: 'gray' };
@@ -779,7 +1004,7 @@ export default function PurchaseOrders({ setTab }) {
   return (
     <div>
       <PageLead eyebrow="Purchase Orders" title="採購單" description="建立對廠商的採購訂單，確認後可轉進貨單入庫。"
-        action={<button style={S.btnPrimary}>+ 新增採購單</button>} />
+        action={<button onClick={() => setShowCreatePO(true)} style={S.btnPrimary}>+ 新增採購單</button>} />
       {msg && <div style={{ ...S.card, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#dc2626' : '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
       <div style={S.statGrid}>
         <StatCard code="DFT" label="草稿" value={fmt(sm.draft)} tone="blue" />
@@ -839,6 +1064,9 @@ export default function PurchaseOrders({ setTab }) {
         </div>
       )}
       <Pager page={data.page || 1} limit={data.limit || 30} total={data.total || 0} onPageChange={(p) => load(p, search, statusF)} />
+
+      {/* Create PO Modal */}
+      {showCreatePO && <CreatePOModal onClose={() => setShowCreatePO(false)} onCreated={() => { setShowCreatePO(false); load(); }} />}
     </div>
   );
 }
