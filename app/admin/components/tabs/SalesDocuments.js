@@ -16,25 +16,47 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const [msg, setMsg] = useState('');
   const [shipping, setShipping] = useState(false);
   const [timeline, setTimeline] = useState([]);
+  const [approvalData, setApprovalData] = useState(null);
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [savingInvoice, setSavingInvoice] = useState(false);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const result = await apiGet({ action: 'sale_detail', slip_number: sale.slip_number });
+        const [result, approvalRes] = await Promise.all([
+          apiGet({ action: 'sale_detail', slip_number: sale.slip_number }),
+          apiGet({ action: 'approvals', doc_type: 'sale' }),
+        ]);
         setDetail(result);
         setTimeline(result.timeline || []);
+        setInvoiceNumber(result.sale?.invoice_number || sale.invoice_number || '');
+        // Find approval for this sale
+        const saleApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(sale.id));
+        if (saleApprovals.length > 0) {
+          saleApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          setApprovalData(saleApprovals[0]);
+        }
       } catch (e) {
         setMsg(e.message || '無法取得銷貨單明細');
       } finally {
         setLoading(false);
       }
     })();
-  }, [sale.slip_number]);
+  }, [sale.slip_number, sale.id]);
 
   const s = detail?.sale || sale;
   const invoice = detail?.invoice;
   const items = detail?.items || [];
+
+  const saveInvoice = async () => {
+    setSavingInvoice(true); setMsg('');
+    try {
+      await apiPost({ action: 'update_sale_invoice', sale_id: sale.id, invoice_number: invoiceNumber.trim() });
+      setMsg('發票號碼已儲存');
+    } catch (e) { setMsg(e.message || '儲存失敗'); }
+    finally { setSavingInvoice(false); }
+  };
 
   const STOCK_BADGE = {
     sufficient: { label: '充足', color: '#15803d', bg: '#dcfce7', border: '#bbf7d0' },
@@ -66,16 +88,26 @@ function SaleDetailView({ sale, onBack, setTab }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <button onClick={async () => {
-            if (!confirm('確定從此銷貨單建立出貨？')) return;
-            setShipping(true); setMsg('');
-            try {
-              const result = await apiPost({ action: 'create_shipment', sale_id: sale.id, items: (detail?.items || []).map(i => ({ order_item_id: i.id, qty_shipped: i.quantity || i.qty || 1 })) });
-              setMsg(`已建立出貨單 ${result.shipment?.shipment_no || ''}`);
-            } catch (e) { setMsg(e.message || '建立出貨失敗'); }
-            finally { setShipping(false); }
-          }} disabled={shipping} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
-          <button onClick={() => window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank')} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>PDF</button>
+          {/* Approval status badges */}
+          {approvalData?.status === 'pending' && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8' }}>待審核</span>}
+          {approvalData?.status === 'rejected' && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#fee2e2', color: '#dc2626' }}>已駁回</span>}
+          {approvalData?.status === 'approved' && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>已核准</span>}
+          {/* 核准後才能建立出貨 */}
+          {approvalData?.status === 'approved' && (
+            <button onClick={async () => {
+              if (!confirm('確定從此銷貨單建立出貨？')) return;
+              setShipping(true); setMsg('');
+              try {
+                const result = await apiPost({ action: 'create_shipment', sale_id: sale.id, items: (detail?.items || []).map(i => ({ order_item_id: i.id, qty_shipped: i.quantity || i.qty || 1 })) });
+                setMsg(`已建立出貨單 ${result.shipment?.shipment_no || ''}`);
+              } catch (e) { setMsg(e.message || '建立出貨失敗'); }
+              finally { setShipping(false); }
+            }} disabled={shipping} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
+          )}
+          {/* 核准後才能列印 PDF */}
+          {approvalData?.status === 'approved' && (
+            <button onClick={() => window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank')} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>PDF</button>
+          )}
         </div>
       </div>
 
@@ -135,8 +167,14 @@ function SaleDetailView({ sale, onBack, setTab }) {
 
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* 1. PDF button */}
-            <button onClick={() => window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+            {/* 1. PDF button — only after approval */}
+            {approvalData?.status === 'approved' ? (
+              <button onClick={() => window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+            ) : (
+              <div style={{ ...cardStyle, padding: '10px 16px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+                {approvalData?.status === 'pending' ? '等待審核中，核准後可操作' : approvalData?.status === 'rejected' ? '已駁回，請修正後重新送審' : '尚未送審'}
+              </div>
+            )}
 
             {/* 2. Customer card */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
@@ -154,6 +192,25 @@ function SaleDetailView({ sale, onBack, setTab }) {
               ))}
             </div>
 
+            {/* 2.5 Invoice Number — editable after approval */}
+            {approvalData?.status === 'approved' && (
+              <div style={{ ...cardStyle, padding: '10px 16px' }}>
+                <div style={labelStyle}>發票資訊</div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    type="text" placeholder="輸入發票號碼..."
+                    value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)}
+                    style={{ flex: 1, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none', ...S.mono }}
+                    onKeyDown={e => { if (e.key === 'Enter') saveInvoice(); }}
+                  />
+                  <button onClick={saveInvoice} disabled={savingInvoice}
+                    style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12, opacity: savingInvoice ? 0.7 : 1 }}>
+                    {savingInvoice ? '...' : '儲存'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* 3. Unified Sales Record Timeline */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>銷貨紀錄</div>
@@ -168,10 +225,14 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 // 銷貨建立
                 entries.push({ dot: '#16a34a', label: '銷貨建立', ref: s.slip_number, refType: 'sale', time: s.sale_date, status: 'done' });
 
-                // 審核狀態（如果有timeline中的審核信息）
-                const approvalEv = timeline?.find(e => (e.event || '').match(/審核|approval|批准/i));
-                if (approvalEv || statusKey !== 'draft') {
-                  entries.push({ dot: statusKey === 'draft' ? '#f59e0b' : '#16a34a', label: '審核', detail: saleStatusMap[statusKey] || statusKey, status: statusKey === 'issued' || statusKey === 'paid' ? 'done' : statusKey === 'void' ? 'rejected' : 'pending' });
+                // 審核狀態 — from actual approval record
+                if (approvalData) {
+                  const apSt = approvalData.status;
+                  const apDot = apSt === 'approved' ? '#16a34a' : apSt === 'rejected' ? '#dc2626' : apSt === 'pending' ? '#2563eb' : '#d1d5db';
+                  const apText = apSt === 'approved' ? '已核准' : apSt === 'rejected' ? '已駁回' : apSt === 'pending' ? '待審核' : apSt;
+                  entries.push({ dot: apDot, label: '審核簽核', detail: apText, time: approvalData.approved_at || approvalData.created_at, status: apSt === 'approved' ? 'done' : apSt === 'pending' ? 'current' : apSt === 'rejected' ? 'rejected' : 'pending' });
+                } else if (statusKey !== 'draft') {
+                  entries.push({ dot: '#16a34a', label: '審核', detail: saleStatusMap[statusKey] || statusKey, status: 'done' });
                 }
 
                 // 發票
