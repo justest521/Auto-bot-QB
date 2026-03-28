@@ -145,13 +145,13 @@ export default function Approvals() {
         ))}
       </div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-        {[['', '全部類型'], ['order', '訂單'], ['sale', '銷貨單'], ['purchase_order', '採購單']].map(([k, label]) => (
+        {[['', '全部類型'], ['order', '訂單'], ['purchase_order', '採購單']].map(([k, label]) => (
           <button key={k} onClick={() => setTypeFilter(k)} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, background: typeFilter === k ? '#374151' : '#fff', color: typeFilter === k ? '#fff' : '#6b7280', borderColor: typeFilter === k ? '#374151' : '#e5e7eb' }}>{label}</button>
         ))}
       </div>
 
       {loading ? <Loading /> : (() => {
-        const filtered = (data.rows || []).filter(a => !typeFilter || a.doc_type === typeFilter);
+        const filtered = (data.rows || []).filter(a => a.doc_type !== 'sale').filter(a => !typeFilter || a.doc_type === typeFilter);
         return filtered.length === 0 ? <EmptyState text="沒有審批記錄" /> : filtered.map(a => {
         const st = STATUS_MAP[a.status] || STATUS_MAP.pending;
         const customerName = a.customer?.company_name || a.customer?.name || a.vendor?.company_name || a.vendor?.name || '';
@@ -209,6 +209,7 @@ export default function Approvals() {
                         <th style={{ textAlign: 'left', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>料號</th>
                         <th style={{ textAlign: 'left', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>品名</th>
                         <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>數量</th>
+                        {!isPO && <th style={{ textAlign: 'center', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>庫存</th>}
                         <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>{isPO ? '採購價' : '售價'}</th>
                         {hasCost && !isPO && <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>成本</th>}
                         <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>小計</th>
@@ -227,6 +228,11 @@ export default function Approvals() {
                             <td style={{ padding: '6px 8px', ...S.mono, color: '#1f2937' }}>{item.item_number || '-'}</td>
                             <td style={{ padding: '6px 8px', color: '#374151', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description || '-'}</td>
                             <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono }}>{qty}</td>
+                            {!isPO && <td style={{ padding: '6px 8px', textAlign: 'center' }}>
+                              {item.stock_qty != null ? (
+                                <span style={{ ...S.mono, fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: item.stock_status === 'sufficient' ? '#dcfce7' : item.stock_status === 'partial' ? '#fef3c7' : '#fee2e2', color: item.stock_status === 'sufficient' ? '#15803d' : item.stock_status === 'partial' ? '#92400e' : '#dc2626' }}>{item.stock_qty} {item.stock_status === 'sufficient' ? '充足' : item.stock_status === 'partial' ? '不足' : '無庫存'}</span>
+                              ) : <span style={{ color: '#d1d5db', fontSize: 11 }}>—</span>}
+                            </td>}
                             <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono }}>{fmtP(item.unit_price)}</td>
                             {hasCost && !isPO && <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, color: '#6b7280', fontSize: 11 }}>{fmtP(cost)}</td>}
                             <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, color: '#10b981', fontWeight: 700 }}>{fmtP(sell)}</td>
