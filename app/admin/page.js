@@ -58,19 +58,19 @@ import CompanySettings from './components/tabs/CompanySettings';
 
 // ── SECTIONS ──
 const SECTION_ICONS = {
-  'ERP 總覽': '\u25C9',
-  'ERP 主檔資料': '\u2630',
-  'ERP 採購進貨': '\u2B07',
-  'ERP 銷售出貨': '\u2B06',
-  'ERP 倉儲管理': '\u2338',
-  'ERP 分析報表': '\u2637',
-  'CRM 客戶管線': '\u2764',
-  'ERP 財務會計': '\u2696',
-  'ERP 審批簽核': '\u2611',
-  '客服工單': '\u260E',
-  '經銷商入口': '\u263A',
-  'LINE 與系統': '\u269B',
-  '系統管理': '\u2699',
+  'ERP 總覽': { icon: '\u25C9', bg: '#ede9fe', fg: '#7c3aed' },
+  'ERP 主檔資料': { icon: '\u2630', bg: '#e0f2fe', fg: '#0284c7' },
+  'ERP 採購進貨': { icon: '\u2B07', bg: '#fef3c7', fg: '#d97706' },
+  'ERP 銷售出貨': { icon: '\u2B06', bg: '#dcfce7', fg: '#16a34a' },
+  'ERP 倉儲管理': { icon: '\u2338', bg: '#f3e8ff', fg: '#9333ea' },
+  'ERP 分析報表': { icon: '\u2637', bg: '#fce7f3', fg: '#db2777' },
+  'CRM 客戶管線': { icon: '\u2764', bg: '#fce7f3', fg: '#ec4899' },
+  'ERP 財務會計': { icon: '\u2696', bg: '#ccfbf1', fg: '#0d9488' },
+  'ERP 審批簽核': { icon: '\u2611', bg: '#ede9fe', fg: '#7c3aed' },
+  '客服工單': { icon: '\u260E', bg: '#cffafe', fg: '#0891b2' },
+  '經銷商入口': { icon: '\u263A', bg: '#ede9fe', fg: '#8b5cf6' },
+  'LINE 與系統': { icon: '\u269B', bg: '#dcfce7', fg: '#06c755' },
+  '系統管理': { icon: '\u2699', bg: '#f3f4f6', fg: '#374151' },
 };
 
 const SECTIONS = [
@@ -568,6 +568,8 @@ export default function AdminPage() {
         .qb-sb::-webkit-scrollbar{width:3px}
         .qb-sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
         .qb-sb::-webkit-scrollbar-track{background:transparent}
+        .qb-sb-section-hdr:hover{background:#f3f4f6!important}
+        .qb-sb-item:hover{background:#f3f4f6!important}
         input:focus,select:focus,textarea:focus{border-color:#16a34a!important;box-shadow:0 0 0 3px rgba(22,163,74,0.08)!important}
         .qb-card-hover:hover{background:#E8F2EE!important;border-color:#E8F2EE!important;box-shadow:0 4px 16px rgba(22,163,74,0.12), 6px 6px 16px rgba(0,0,0,0.04)!important;transform:translateY(-1px)}
         .qb-card-hover{transition:all 0.25s ease;cursor:pointer}
@@ -581,40 +583,40 @@ export default function AdminPage() {
       <div style={{ ...S.shell, flexDirection: isTablet ? 'column' : 'row' }}>
         {/* ===== SIDEBAR ===== */}
         <div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 68 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
-          <div style={{ padding: '0 16px 16px', borderBottom: '1px solid #F2F2F2', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ padding: '0 14px 12px', borderBottom: '1px solid #e5e7eb', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
               {companySettings?.logo_url ? (
-                <img src={companySettings.logo_url} alt="Logo" style={{ width: 38, height: 38, minWidth: 38, borderRadius: 12, objectFit: 'contain', background: '#f3f4f6' }} />
+                <img src={companySettings.logo_url} alt="Logo" style={{ width: 34, height: 34, minWidth: 34, borderRadius: 10, objectFit: 'contain', background: '#f3f4f6' }} />
               ) : (
-                <div style={{ width: 38, height: 38, minWidth: 38, borderRadius: 12, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 14, ...S.mono }}>QB</div>
+                <div style={{ width: 34, height: 34, minWidth: 34, borderRadius: 10, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 13, ...S.mono }}>QB</div>
               )}
               {!sidebarCollapsed && <div style={{ whiteSpace: 'nowrap', minWidth: 0 }}>
-                <div style={{ color: '#111827', fontSize: 15, fontWeight: 700, letterSpacing: -0.2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{companySettings?.company_name || 'Auto-bot QB'}</div>
-                <div style={{ color: '#6b7280', fontSize: 11 }}>ERP Console</div>
+                <div style={{ color: '#111827', fontSize: 14, fontWeight: 700, letterSpacing: -0.2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{companySettings?.company_name || 'Auto-bot QB'}</div>
+                <div style={{ color: '#9ca3af', fontSize: 10 }}>ERP Console</div>
               </div>}
             </div>
-            {!isTablet && <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: 16, padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s' }} title={sidebarCollapsed ? '展開' : '收合'}>{sidebarCollapsed ? '\u276F' : '\u276E'}</button>}
+            {!isTablet && <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 14, padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s' }} title={sidebarCollapsed ? '展開' : '收合'}>{sidebarCollapsed ? '›' : '‹'}</button>}
           </div>
 
           {!sidebarCollapsed && (
-            <div style={{ padding: '4px 14px 10px' }}>
-              <input className="qb-sb-search" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} placeholder="搜尋功能..." style={{ width: '100%', background: '#f3f4f6', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 12px', color: '#111827', fontSize: 13, outline: 'none', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' }} />
+            <div style={{ padding: '4px 14px 8px' }}>
+              <input className="qb-sb-search" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} placeholder="🔍 搜尋功能..." style={{ width: '100%', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: '7px 12px', color: '#111827', fontSize: 12, outline: 'none', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' }} />
             </div>
           )}
 
           {!sidebarCollapsed && favs.length > 0 && !sidebarSearch && (
             <div>
-              <div style={{ padding: '10px 16px 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 11, color: '#f59e0b' }}>{'\u2605'}</span>
-                <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, letterSpacing: 0.5 }}>我的最愛</span>
+              <div style={{ padding: '8px 16px 4px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 12, color: '#f59e0b' }}>{'\u2605'}</span>
+                <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>我的最愛</span>
               </div>
               {SECTIONS.flatMap((s) => s.tabs).filter((t) => favs.includes(t.id) && hasTab(t.id)).map((t) => (
-                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#16a34a' : '#374151', background: tab === t.id ? '#dcfce7' : 'transparent', borderRadius: 8, margin: '1px 8px', transition: 'all 0.15s', fontWeight: tab === t.id ? 600 : 400 }}>
-                  <span style={{ fontSize: 9, color: tab === t.id ? '#16a34a' : '#6b7280', ...S.mono, width: 34, flexShrink: 0 }}>{t.code}</span>
+                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '7px 12px 7px 20px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#16a34a' : '#4b5563', background: tab === t.id ? '#dcfce7' : 'transparent', borderRadius: 8, margin: '1px 8px', transition: 'all 0.15s', fontWeight: tab === t.id ? 600 : 400 }}>
+                  <span style={{ fontSize: 9, color: tab === t.id ? '#16a34a' : '#9ca3af', ...S.mono, width: 30, flexShrink: 0 }}>{t.code}</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                 </div>
               ))}
-              <div style={{ height: 1, background: '#E8F2EE', margin: '8px 16px' }} />
+              <div style={{ height: 1, background: '#e5e7eb', margin: '6px 16px' }} />
             </div>
           )}
 
@@ -626,37 +628,36 @@ export default function AdminPage() {
               : permSections;
             return filteredSections.map((section, si) => {
               const isCollapsed = !sq && collapsed[section.title];
-              const sectionIcon = SECTION_ICONS[section.title] || '\u25CB';
+              const iconCfg = SECTION_ICONS[section.title] || { icon: '○', bg: '#f3f4f6', fg: '#6b7280' };
               const hasActiveTab = section.tabs.some((t) => t.id === tab);
               return (
                 <div key={section.title}>
-                  <div className="qb-sb-section-hdr" onClick={() => !sidebarCollapsed && toggleCollapsed(section.title)} style={{ padding: sidebarCollapsed ? '10px 0' : '10px 16px 8px 12px', borderTop: 'none', marginTop: si > 0 ? 4 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 8, transition: 'background 0.12s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? 0 : '0 4px', background: hasActiveTab ? '#f3f4f6' : 'transparent' }}>
-                    <span style={{ fontSize: 15, color: hasActiveTab ? (section.accent || '#16a34a') : '#6b7280', transition: 'color 0.2s', minWidth: sidebarCollapsed ? 'auto' : 18, textAlign: 'center' }}>{sectionIcon}</span>
+                  <div className="qb-sb-section-hdr" onClick={() => !sidebarCollapsed && toggleCollapsed(section.title)} style={{ padding: sidebarCollapsed ? '10px 0' : '8px 12px', marginTop: si > 0 ? 2 : 0, cursor: sidebarCollapsed ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 10, borderRadius: 8, transition: 'background 0.15s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? 0 : '1px 8px', background: hasActiveTab ? '#f0fdf4' : 'transparent' }}>
+                    <span style={{ width: 28, height: 28, minWidth: 28, borderRadius: 8, background: hasActiveTab ? iconCfg.bg : '#f3f4f6', color: hasActiveTab ? iconCfg.fg : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, transition: 'all 0.2s' }}>{iconCfg.icon}</span>
                     {!sidebarCollapsed && <>
-                      <span style={{ fontSize: 14, color: hasActiveTab ? '#111827' : '#6b7280', fontWeight: 600, letterSpacing: 0.1, flex: 1 }}>{section.title}</span>
-                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
-                      <span style={{ fontSize: 10, color: '#d1d5db', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', width: 20, textAlign: 'center', flexShrink: 0 }}>{'\u25BE'}</span>
+                      <span style={{ fontSize: 13, color: hasActiveTab ? '#111827' : '#6b7280', fontWeight: 600, letterSpacing: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>
+                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
+                      <span style={{ fontSize: 11, color: '#9ca3af', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', width: 16, textAlign: 'center', flexShrink: 0 }}>›</span>
                     </>}
                   </div>
                   {!sidebarCollapsed && !isCollapsed && (
-                    <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', padding: '0 8px' }}>
+                    <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', padding: '2px 8px 4px' }}>
                       {section.tabs.map((t) => {
                         const isActive = tab === t.id;
                         return (
-                        <div key={t.id} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '9px 14px 9px 20px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#16a34a' : '#374151', background: isActive ? '#dcfce7' : 'transparent', borderRadius: 10, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? 600 : 400 }}>
-                          <span style={{ fontSize: 10, color: isActive ? '#6ee7b7' : '#d1d5db', flexShrink: 0 }}>{'\u2514'}</span>
+                        <div key={t.id} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '7px 12px 7px 42px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#16a34a' : '#4b5563', background: isActive ? '#dcfce7' : 'transparent', borderRadius: 8, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? 600 : 400, borderLeft: isActive ? '3px solid #16a34a' : '3px solid transparent' }}>
                           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
                           {pendingBadges[t.id] > 0 && (
-                            <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{pendingBadges[t.id]}</span>
+                            <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{pendingBadges[t.id]}</span>
                           )}
-                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#d1d5db', cursor: 'pointer', width: 20, textAlign: 'center', flexShrink: 0 }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
+                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#d1d5db', cursor: 'pointer', width: 18, textAlign: 'center', flexShrink: 0 }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
                         </div>
                         );
                       })}
                     </div>
                   )}
                   {sidebarCollapsed && section.tabs.map((t) => (
-                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '8px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#16a34a' : '#6b7280', background: tab === t.id ? '#dcfce7' : 'transparent', borderRadius: 8, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0, position: 'relative', margin: '1px 6px' }}>{t.code}{pendingBadges[t.id] > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />}</div>
+                    <div key={t.id} onClick={() => setTab(t.id)} title={t.label} style={{ padding: '6px 0', cursor: 'pointer', textAlign: 'center', color: tab === t.id ? '#16a34a' : '#6b7280', background: tab === t.id ? '#dcfce7' : 'transparent', borderRadius: 8, fontSize: 9, ...S.mono, transition: 'all 0.15s', letterSpacing: 0, position: 'relative', margin: '1px 6px' }}>{t.code}{pendingBadges[t.id] > 0 && <span style={{ position: 'absolute', top: 3, right: 3, width: 7, height: 7, borderRadius: '50%', background: '#ef4444' }} />}</div>
                   ))}
                 </div>
               );
@@ -664,20 +665,19 @@ export default function AdminPage() {
           })()}
 
           {!sidebarCollapsed && (
-            <div style={{ padding: '16px 16px 0', borderTop: '1px solid #F2F2F2', marginTop: 8 }}>
-              <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, marginBottom: 8, letterSpacing: 0.5 }}>SYSTEM</div>
-              <div style={{ background: '#fdfdfe', border: '1px solid #F2F2F2', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#6b7280', display: 'grid', gap: 6, marginBottom: 10 }}>
+            <div style={{ padding: '12px 14px 0', borderTop: '1px solid #e5e7eb', marginTop: 6 }}>
+              <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', fontSize: 11, color: '#6b7280', display: 'grid', gap: 5, marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>產品</span><span style={{ color: '#111827', fontWeight: 600, ...S.mono }}>{sidebarStats?.products?.toLocaleString?.() ?? '...'}</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>對話</span><span style={{ color: '#111827', fontWeight: 600, ...S.mono }}>{sidebarStats?.chats?.toLocaleString?.() ?? '...'}</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Webhook</span><span style={{ color: '#16a34a', fontWeight: 600, ...S.mono }}>ON</span></div>
               </div>
               {currentUser && (
-                <div style={{ background: '#f9fafb', border: '1px solid #F2F2F2', borderRadius: 12, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.display_name || currentUser.username}</div>
-                    <div style={{ fontSize: 10, color: '#6b7280' }}>{currentUser.role_label || currentUser.role}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.display_name || currentUser.username}</div>
+                    <div style={{ fontSize: 10, color: '#9ca3af' }}>{currentUser.role_label || currentUser.role}</div>
                   </div>
-                  <button onClick={logout} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '5px 12px', fontSize: 11, color: '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; }}>登出</button>
+                  <button onClick={logout} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '4px 10px', fontSize: 11, color: '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; }}>登出</button>
                 </div>
               )}
             </div>
