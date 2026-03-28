@@ -86,16 +86,17 @@ function SaleDetailView({ sale, onBack, setTab }) {
             {items.length > 0 ? (
               <div>
                 {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px,1fr) 120px 60px 130px', gap: 6, padding: '6px 10px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                  <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'right' }}>小計</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px,1fr) 100px 60px 110px minmax(0,1fr)', gap: 6, padding: '6px 10px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div>
                 </div>
                 {/* Table rows */}
                 {items.map((item, i) => (
-                  <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: 'minmax(140px,1fr) 120px 60px 130px', gap: 6, padding: '14px 10px 14px 10px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                  <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: 'minmax(140px,1fr) 100px 60px 110px minmax(0,1fr)', gap: 6, padding: '14px 10px 14px 10px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
                     <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', fontWeight: 600, ...S.mono, fontSize: 14 }} title={`${item.item_number || item.item_number_snapshot || '-'} — ${item.description || item.description_snapshot || ''}`}>{item.item_number || item.item_number_snapshot || '-'}</div>
                     <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#6b7280' }}>{fmtP(item.unit_price)}</div>
                     <div style={{ textAlign: 'center', ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{item.quantity || item.qty || 0}</div>
                     <div style={{ textAlign: 'right', ...S.mono, fontWeight: 800, color: '#059669', fontSize: 14 }}>{fmtP(item.subtotal || item.line_total || (item.unit_price * (item.quantity || item.qty || 0)))}</div>
+                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: '#6b7280' }}>{item.item_note || '—'}</div>
                   </div>
                 ))}
                 {/* Totals */}
