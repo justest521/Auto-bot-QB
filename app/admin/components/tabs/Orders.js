@@ -274,7 +274,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
     setMsg('');
     try {
       const result = await apiPost({ action: 'instock_to_sale', order_id: order.id, items: saleItems });
-      setMsg(`已建立銷貨草稿 ${result.sale?.slip_number || ''} (${result.processed_count} 項)，待審核`);
+      setMsg(`已建立銷貨單 ${result.sale?.slip_number || ''} (${result.processed_count} 項)，已自動核准`);
       setSelectedItemIds(new Set());
       setShowSaleForm(false);
       const refreshed = await apiGet({ action: 'order_items_with_stock', order_id: order.id });
@@ -400,7 +400,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {!isConverted && canConvert && <button onClick={() => { const allIds = new Set(items.map(i => i.id)); setSelectedItemIds(allIds); openSaleForm(); }} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #16a34a, #15803d)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(22,163,74,0.25)' }}>轉銷貨</button>}
           {isConverted && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>已轉銷貨</span>}
-          {!canConvert && !isConverted && <button onClick={submitForApproval} disabled={convertingId === order.id} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: convertingId === order.id ? 0.7 : 1, transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(37,99,235,0.25)' }}>{convertingId === order.id ? '送審中...' : isPending ? '審核中' : isRejected ? '重送審' : '送審'}</button>}
+          {!canConvert && !isConverted && isPending && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8' }}>審核中</span>}
+          {!canConvert && !isConverted && !isPending && <button onClick={submitForApproval} disabled={convertingId === order.id} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: isRejected ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: convertingId === order.id ? 0.7 : 1, transition: 'all 0.15s', boxShadow: isRejected ? '0 2px 8px rgba(239,68,68,0.25)' : '0 2px 8px rgba(37,99,235,0.25)' }}>{convertingId === order.id ? '送審中...' : isRejected ? '重新送審' : '送審'}</button>}
           {canConvert && <button onClick={() => { initShipQty(); setShowShipForm(true); }} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>建立出貨</button>}
           {canConvert && <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>PDF</button>}
           {order.customer?.line_user_id && <button onClick={notifyOrderViaLine} disabled={!!processingAction} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #86efac', background: '#f0fdf4', fontSize: 13, fontWeight: 600, color: '#16a34a', cursor: 'pointer', opacity: processingAction === 'line' ? 0.6 : 1 }}>LINE</button>}
@@ -603,7 +604,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
               {linkedSales.length > 0 && (
               <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}>
-                已建立銷貨單 {linkedSales.map(s => s.slip_number).join(', ')}（{linkedSales.some(s => s.status === 'draft') ? '待審核' : '已核准'}）
+                已建立銷貨單 {linkedSales.map(s => s.slip_number).join(', ')}（自動核准）
               </span>
               )}
               {isPending ? (
@@ -614,7 +615,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 disabled={!!processingAction || selectedItemIds.size === 0}
                 style={{ ...S.btnPrimary, padding: '8px 18px', fontSize: 13, background: selectedItemIds.size > 0 ? '#16a34a' : '#9ca3af', borderColor: selectedItemIds.size > 0 ? '#16a34a' : '#9ca3af', opacity: processingAction ? 0.6 : 1 }}
               >
-                {processingAction === 'sale' ? '處理中...' : `勾選項目 → 送審轉銷貨${selectedItemIds.size > 0 ? ` (${selectedItemIds.size}項)` : ''}`}
+                {processingAction === 'sale' ? '處理中...' : `勾選項目 → 轉銷貨${selectedItemIds.size > 0 ? ` (${selectedItemIds.size}項)` : ''}`}
               </button>
               )}
               {!isPending && (
@@ -892,7 +893,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 合計：<strong style={{ color: '#059669', ...S.mono }}>{Object.entries(saleItemQty).reduce((s, [id, q]) => { const it = items.find(i => i.id === id); return s + (it ? Number(it.unit_price || 0) * Number(q || 0) : 0); }, 0).toLocaleString('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 })}</strong>
               </div>
               <button onClick={confirmSaleConversion} disabled={processingAction === 'sale'} style={{ ...S.btnPrimary, padding: '12px 28px', fontSize: 15, fontWeight: 700, background: 'linear-gradient(135deg, #16a34a, #15803d)', opacity: processingAction === 'sale' ? 0.7 : 1 }}>
-                {processingAction === 'sale' ? '處理中...' : `確認送審轉銷貨 (${Object.values(saleItemQty).filter(q => Number(q) > 0).length} 項)`}
+                {processingAction === 'sale' ? '處理中...' : `確認轉銷貨 (${Object.values(saleItemQty).filter(q => Number(q) > 0).length} 項)`}
               </button>
             </div>
           </div>
