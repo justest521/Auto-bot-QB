@@ -349,6 +349,7 @@ export default function AdminPage() {
   const [pendingBadges, setPendingBadges] = useState({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarSearch, setSidebarSearch] = useState('');
+  const [companySettings, setCompanySettings] = useState(null);
   // headerAction is rendered via portal from PageLead into HEADER_ACTION_PORTAL_ID div
   const { favs, toggle: toggleFav, isFav } = useFavorites();
   const { collapsed, toggle: toggleCollapsed } = useCollapsed();
@@ -382,8 +383,10 @@ export default function AdminPage() {
           Promise.all([
             apiGet({ action: 'products', limit: '1' }).catch(() => null),
             apiGet({ action: 'chat_history_stats' }).catch(() => null),
-          ]).then(([prodRes, chatRes]) => {
+            apiGet({ action: 'company_settings' }).catch(() => null),
+          ]).then(([prodRes, chatRes, csRes]) => {
             setSidebarStats({ products: prodRes?.total ?? '-', chats: chatRes?.total ?? '-' });
+            if (csRes?.settings) setCompanySettings(csRes.settings);
           });
         })
         .catch((error) => {
@@ -446,6 +449,7 @@ export default function AdminPage() {
       setLoginStep('credentials');
       setLoginPassword('');
       setOtpCode('');
+      apiGet({ action: 'company_settings' }).then(r => { if (r?.settings) setCompanySettings(r.settings); }).catch(() => {});
     } catch (error) {
       setAuthError(error.message);
     } finally {
@@ -579,9 +583,13 @@ export default function AdminPage() {
         <div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 68 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
           <div style={{ padding: '0 16px 16px', borderBottom: '1px solid #F2F2F2', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
-              <div style={{ width: 38, height: 38, minWidth: 38, borderRadius: 12, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 14, ...S.mono }}>QB</div>
-              {!sidebarCollapsed && <div style={{ whiteSpace: 'nowrap' }}>
-                <div style={{ color: '#111827', fontSize: 15, fontWeight: 700, letterSpacing: -0.2 }}>Auto-bot QB</div>
+              {companySettings?.logo_url ? (
+                <img src={companySettings.logo_url} alt="Logo" style={{ width: 38, height: 38, minWidth: 38, borderRadius: 12, objectFit: 'contain', background: '#f3f4f6' }} />
+              ) : (
+                <div style={{ width: 38, height: 38, minWidth: 38, borderRadius: 12, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 14, ...S.mono }}>QB</div>
+              )}
+              {!sidebarCollapsed && <div style={{ whiteSpace: 'nowrap', minWidth: 0 }}>
+                <div style={{ color: '#111827', fontSize: 15, fontWeight: 700, letterSpacing: -0.2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{companySettings?.company_name || 'Auto-bot QB'}</div>
                 <div style={{ color: '#6b7280', fontSize: 11 }}>ERP Console</div>
               </div>}
             </div>
