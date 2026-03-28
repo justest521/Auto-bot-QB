@@ -194,6 +194,57 @@ const SECTIONS = [
   },
 ];
 
+// Tab metadata for header display (eyebrow + title + description)
+const TAB_META = {
+  flowchart: { eyebrow: 'Flowchart', title: '系統流程圖' },
+  env_health: { eyebrow: 'Environment', title: 'ERP 環境檢查', desc: '檢查資料庫表與模組就緒狀態。' },
+  report_center: { eyebrow: 'A1 Mapping', title: '進銷存報表中心', desc: '用鼎新 A1 邏輯整理 ERP 模組報表。' },
+  dashboard: { eyebrow: 'Dashboard', title: '營運儀表板', desc: '查詢量、客戶互動與熱門產品。' },
+  customers: { eyebrow: 'Customers', title: '正式客戶', desc: '正式客戶主檔，支援編輯與銷售記錄。' },
+  products: { eyebrow: 'Product Master', title: '商品主檔', desc: '維護商品狀態、分類、替代型號與價格。' },
+  vendors: { eyebrow: 'Vendors', title: '廠商主檔', desc: '供應商主檔、聯絡窗口與統編資訊。' },
+  line_customers: { eyebrow: 'Customers', title: '客戶綜合管理', desc: 'LINE 客戶與正式客戶綜合查看。' },
+  purchase_orders: { eyebrow: 'Purchase Orders', title: '採購單', desc: '建立對廠商的採購訂單，確認後可轉進貨單入庫。' },
+  stock_in: { eyebrow: 'Stock In', title: '進貨單', desc: '記錄廠商進貨入庫，確認後自動增加庫存。' },
+  purchase_returns: { eyebrow: 'Purchase Returns', title: '進貨退出', desc: '將已進貨商品退回廠商，自動扣減庫存。' },
+  vendor_payments: { eyebrow: 'Vendor Payments', title: '付款單', desc: '管理對廠商的付款記錄。' },
+  quotes: { eyebrow: 'Quotes', title: '報價單', desc: '管理報價單，確認後可轉為訂單。' },
+  orders: { eyebrow: 'Orders', title: '訂單', desc: '自動比對庫存，有貨可轉銷貨，缺貨可轉採購。' },
+  sales_documents: { eyebrow: 'Sales', title: '銷貨單', desc: '查看銷貨單、發票號碼與毛利。' },
+  shipments: { eyebrow: 'Shipments', title: '出貨管理', desc: '追蹤訂單出貨進度與物流資訊。' },
+  returns: { eyebrow: 'Returns', title: '退貨管理', desc: '管理客戶退貨申請、審核與庫存回補。' },
+  payments: { eyebrow: 'Payments', title: '收款管理', desc: '記錄客戶付款，自動更新訂單進度。' },
+  promotions: { eyebrow: 'Campaigns', title: '活動管理', desc: '建立促銷活動與優惠檔期。' },
+  pricing: { eyebrow: 'Pricing', title: '報價規則', desc: '調整折扣、免運門檻與提示文字。' },
+  parts_exchange: { eyebrow: 'Parts Exchange', title: '零件交易所' },
+  equipment_lease: { eyebrow: 'Equipment Lease', title: '設備租賃' },
+  inventory: { eyebrow: 'Inventory', title: '庫存管理', desc: '即時掌握庫存量與安全庫存水位。' },
+  stock_alerts: { eyebrow: 'Stock Alerts', title: '庫存警示', desc: '低於安全庫存的商品一覽。' },
+  reorder: { eyebrow: 'Reorder', title: '補貨建議', desc: '根據安全庫存自動產生補貨建議。' },
+  stocktake: { eyebrow: 'Stocktake', title: '盤點精靈', desc: '建立盤點單並調整庫存差異。' },
+  stock_adjustments: { eyebrow: 'Adjustments', title: '調整單', desc: '手動調整商品庫存數量。' },
+  psi_report: { eyebrow: 'PSI Report', title: '進銷存報表', desc: '銷貨、進貨、退貨金額彙總。' },
+  financial_report: { eyebrow: 'Financial', title: '財務報表', desc: '應收帳款、應付帳款與淨現金流。' },
+  sales_returns: { eyebrow: 'Returns', title: '銷退貨彙總', desc: '銷貨與退貨單據彙總。' },
+  profit_analysis: { eyebrow: 'Profit', title: '利潤分析', desc: '銷貨利潤、成本與毛利分析。' },
+  ai_forecast: { eyebrow: 'AI Forecast', title: 'AI 預測' },
+  imports: { eyebrow: 'Import', title: '資料匯入', desc: '匯入 CSV 或 Excel 資料。' },
+  crm_leads: { eyebrow: 'CRM Pipeline', title: '商機管線', desc: '追蹤線索到成交的完整流程。' },
+  invoices: { eyebrow: 'Invoices', title: '發票管理', desc: '管理發票開立與付款狀態追蹤。' },
+  approvals: { eyebrow: 'Approvals', title: '簽核審批', desc: '集中管理文件的核准流程。' },
+  tickets: { eyebrow: 'Helpdesk', title: '客服工單', desc: '客服工單管理。' },
+  dealer_users: { eyebrow: 'Dealer Users', title: '經銷商帳號', desc: '管理帳號、角色與權限。' },
+  dealer_orders: { eyebrow: 'Dealer Orders', title: '經銷商訂單', desc: '經銷商訂單管理。' },
+  announcements: { eyebrow: 'Announcements', title: '公告管理', desc: '發布公告給經銷商/業務/技師。' },
+  line_chat: { eyebrow: 'LINE Chat', title: '聊天視窗' },
+  line_crm: { eyebrow: 'LINE CRM', title: '客戶標籤管理', desc: '管理 LINE 客戶標籤與自動分類。' },
+  messages: { eyebrow: 'Messages', title: 'AI 對話紀錄', desc: '檢視客戶提問與 AI 回覆表現。' },
+  ai_prompt: { eyebrow: 'Prompt', title: 'AI Prompt 設定', desc: '調整 Bot 回覆風格與客服 SOP。' },
+  chat_history: { eyebrow: 'LINE Archive', title: '歷史對話', desc: '檢視匯入的 LINE 對話資料。' },
+  user_management: { eyebrow: 'Users', title: '使用者管理', desc: '管理後台使用者帳號與權限。' },
+  company_settings: { eyebrow: 'Settings', title: '公司設定', desc: '設定公司資訊與 Logo。' },
+};
+
 const TAB_COMPONENTS = {
   flowchart: Flowchart,
   env_health: EnvHealth,
@@ -601,11 +652,25 @@ export default function AdminPage() {
           {!sidebarCollapsed && (
             <div style={{ padding: '16px 16px 0', borderTop: '1px solid #F2F2F2', marginTop: 8 }}>
               <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, marginBottom: 8, letterSpacing: 0.5 }}>SYSTEM</div>
-              <div style={{ background: '#fdfdfe', border: '1px solid #F2F2F2', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#6b7280', display: 'grid', gap: 6 }}>
+              <div style={{ background: '#fdfdfe', border: '1px solid #F2F2F2', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#6b7280', display: 'grid', gap: 6, marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>產品</span><span style={{ color: '#111827', fontWeight: 600, ...S.mono }}>{sidebarStats?.products?.toLocaleString?.() ?? '...'}</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>對話</span><span style={{ color: '#111827', fontWeight: 600, ...S.mono }}>{sidebarStats?.chats?.toLocaleString?.() ?? '...'}</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Webhook</span><span style={{ color: '#16a34a', fontWeight: 600, ...S.mono }}>ON</span></div>
               </div>
+              {currentUser && (
+                <div style={{ background: '#f9fafb', border: '1px solid #F2F2F2', borderRadius: 12, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.display_name || currentUser.username}</div>
+                    <div style={{ fontSize: 10, color: '#6b7280' }}>{currentUser.role_label || currentUser.role}</div>
+                  </div>
+                  <button onClick={logout} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '5px 12px', fontSize: 11, color: '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; }}>登出</button>
+                </div>
+              )}
+            </div>
+          )}
+          {sidebarCollapsed && currentUser && (
+            <div style={{ padding: '8px 6px', borderTop: '1px solid #F2F2F2', marginTop: 8, textAlign: 'center' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#16a34a', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px', cursor: 'pointer' }} title={`${currentUser.display_name || currentUser.username} — 點擊登出`} onClick={logout}>{(currentUser.display_name || currentUser.username || '?')[0].toUpperCase()}</div>
             </div>
           )}
         </div>
@@ -613,16 +678,12 @@ export default function AdminPage() {
         {/* ===== MAIN CONTENT ===== */}
         <div style={S.main}>
           <div style={S.header}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <div>
-                <div style={{ color: '#111827', fontWeight: 700, fontSize: 16 }}>Auto-bot QB 管理後台</div>
-                {!isMobile && <div style={{ color: '#6b7280', fontSize: 12 }}>ERP · CRM · LINE Bot</div>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+              <div style={{ minWidth: 0 }}>
+                {TAB_META[tab]?.eyebrow && <div style={{ fontSize: 10, color: '#16a34a', fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', ...S.mono, marginBottom: 2 }}>{TAB_META[tab].eyebrow}</div>}
+                <div style={{ color: '#111827', fontWeight: 700, fontSize: 17, letterSpacing: -0.3 }}>{TAB_META[tab]?.title || tab}</div>
+                {!isMobile && TAB_META[tab]?.desc && <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{TAB_META[tab].desc}</div>}
               </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              {!isMobile && <div style={{ fontSize: 11, color: '#6b7280', ...S.mono, background: '#f3f4f6', padding: '5px 12px', borderRadius: 8, fontWeight: 500 }}>{tab}</div>}
-              {currentUser && !isMobile && <div style={{ fontSize: 12, color: '#374151', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ fontWeight: 600 }}>{currentUser.display_name || currentUser.username}</span><span style={{ fontSize: 10, color: '#6b7280', background: '#f3f4f6', padding: '2px 8px', borderRadius: 6 }}>{currentUser.role_label || currentUser.role}</span></div>}
-              <button onClick={logout} style={{ ...S.btnGhost, padding: '7px 14px', fontSize: 12, borderRadius: 8 }}>登出</button>
             </div>
           </div>
 

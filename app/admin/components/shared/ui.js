@@ -195,14 +195,12 @@ export function StatusBanner({ text, tone = 'neutral' }) {
 }
 
 export function PageLead({ eyebrow, title, description, action }) {
+  // Title/eyebrow/description now rendered in the global header bar (page.js)
+  // PageLead only renders the action buttons row if present
+  if (!action) return null;
   return (
-    <div style={S.pageLead}>
-      <div>
-        {eyebrow && <div style={S.eyebrow}>{eyebrow}</div>}
-        <div style={S.pageTitle}>{title}</div>
-        {description && <div style={S.pageDesc}>{description}</div>}
-      </div>
-      {action ? <div>{action}</div> : null}
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+      <div>{action}</div>
     </div>
   );
 }
