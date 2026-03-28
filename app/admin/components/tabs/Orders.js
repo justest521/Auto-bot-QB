@@ -653,7 +653,22 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             {/* 1. PDF button */}
             <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
 
-            {/* 2. Combined Order Record — progress + sales + POs + timeline */}
+            {/* 2. 客戶資訊 */}
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+              <div style={labelStyle}>客戶資訊</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
+              {[
+                { label: '電話', value: order.customer?.phone },
+                { label: '訂單日期', value: order.order_date, mono: true },
+              ].filter(f => f.value).map((f, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
+                  <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
+                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...(f.mono ? S.mono : {}) }}>{f.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* 3. Combined Order Record — progress + sales + POs + timeline */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>訂單記錄</div>
               {(() => {
@@ -743,7 +758,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   orderPayments.forEach(p => {
                     const tl = typeLabels[p.payment_type] || '收款';
                     const ml = methodLabels[p.payment_method] || p.payment_method;
-                    entries.push({ dot: '#16a34a', label: `付款`, ref: p.payment_number, detail: `${tl} NT$${Number(p.amount || 0).toLocaleString()}（${ml}）`, time: p.confirmed_at || p.created_at, status: 'done' });
+                    entries.push({ dot: '#16a34a', label: `付款`, ref: p.payment_number, refType: 'payment', detail: `${tl} NT$${Number(p.amount || 0).toLocaleString()}（${ml}）`, time: p.confirmed_at || p.created_at, status: 'done' });
                   });
                   if (payKey !== 'paid') {
                     entries.push({ dot: '#2563eb', label: '付款', detail: `${PAY_STATUS_MAP[payKey]}，尚欠 NT$${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}`, status: 'current' });
@@ -775,6 +790,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                               const clickHandler = e.refType === 'sale' ? () => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
                                 : e.refType === 'po' ? () => { window.localStorage.setItem(PO_FOCUS_KEY, e.ref); setTab?.('purchase_orders'); }
                                 : e.refType === 'quote' ? () => { window.localStorage.setItem('qb_quote_focus', e.ref); setTab?.('quotes'); }
+                                : e.refType === 'payment' ? () => { setTab?.('收款管理'); }
+                                : e.refType === 'shipment' ? () => { window.localStorage.setItem('qb_shipment_focus', e.ref); setTab?.('shipments'); }
                                 : null;
                               return <span style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
                             })()}
