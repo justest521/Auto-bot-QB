@@ -408,6 +408,21 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
         )}
       </div>
     )}
+    {/* Totals */}
+    {items.length > 0 && (
+      <div style={{ padding: '14px 16px', background: 'linear-gradient(135deg, #eff6ff, #eef2ff)', borderTop: '2px solid #bfdbfe' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 24 }}>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
+            <span style={{ fontSize: 14, color: '#6b7280' }}>小計 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(totalAmount)}</strong></span>
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>({items.length} 項)</span>
+          </div>
+          <div style={{ borderLeft: '2px solid #93c5fd', paddingLeft: 20, textAlign: 'right' }}>
+            <span style={{ fontSize: 12, color: '#2563eb', fontWeight: 600, display: 'block', marginBottom: 2 }}>採購合計</span>
+            <span style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#1d4ed8', letterSpacing: -1 }}>{fmtP(totalAmount)}</span>
+          </div>
+        </div>
+      </div>
+    )}
   </div>
 ) : (
   <EmptyState text="尚無品項" />
