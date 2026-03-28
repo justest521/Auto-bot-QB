@@ -77,17 +77,27 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
     };
   });
 
+  // Only clear error when reopening — keep all other state (customer, items, form) intact
   useEffect(() => {
-    if (!open) return;
-    // Reset all state when modal opens
-    setError('');
+    if (open) setError('');
+  }, [open]);
+
+  // Full reset — call after successful creation
+  const resetAll = () => {
     setCustomerSearch('');
     setCustomerResults([]);
     setShowNewCustomer(false);
     setSelectedCustomer(null);
+    setNewCustomer({ name: '', company_name: '', phone: '', email: '', tax_id: '' });
     setProductSearch('');
     setProductResults([]);
-  }, [open]);
+    setError('');
+    const today = getPresetDateRange('today').from;
+    const validDate = new Date(todayInTaipei());
+    validDate.setMonth(validDate.getMonth() + 1);
+    const validUntil = toDateInputValue(validDate);
+    setForm({ quote_date: today, valid_until: validUntil, status: 'draft', remark: '', discount_amount: 0, shipping_fee: 0, tax_excluded: true, items: [] });
+  };
 
   const searchCustomers = async (term) => {
     const q = (term !== undefined ? term : customerSearch).trim();
@@ -234,6 +244,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
         tax_excluded: form.tax_excluded,
         items: form.items,
       });
+      resetAll();
       onCreated?.();
       onClose?.();
     } catch (err) {
@@ -254,7 +265,10 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
             <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>建立報價單</div>
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>先建立基本報價單，之後就能往訂單與銷貨流程接。</div>
           </div>
-          <button onClick={onClose} style={S.btnGhost}>關閉</button>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {(selectedCustomer || form.items.length > 0) && <button onClick={() => { if (confirm('確定清除所有已填資料？')) resetAll(); }} style={{ ...S.btnGhost, fontSize: 12, color: '#ef4444', borderColor: '#fecaca' }}>清除</button>}
+            <button onClick={onClose} style={S.btnGhost}>關閉</button>
+          </div>
         </div>
         {error ? <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10 }}>{error}</div> : null}
         {!tableReady ? (
