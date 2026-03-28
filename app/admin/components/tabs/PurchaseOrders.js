@@ -31,6 +31,14 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const [approvalData, setApprovalData] = useState(null);
   const [submittingApproval, setSubmittingApproval] = useState(false);
 
+  // Vendor selection states
+  const [vendorInfo, setVendorInfo] = useState(null);
+  const [vendorSearch, setVendorSearch] = useState('');
+  const [vendorResults, setVendorResults] = useState([]);
+  const [showVendorPicker, setShowVendorPicker] = useState(false);
+  const [savingVendor, setSavingVendor] = useState(false);
+  const vendorSearchRef = useRef(null);
+
   const statusKey = String(po.status || 'draft').toLowerCase();
   const PO_STATUS_MAP = { draft: '草稿', sent: '已寄出', confirmed: '已確認', shipped: '已出貨', received: '已到貨', rejected: '退回', cancelled: '已取消' };
   const PO_STATUS_COLOR = { draft: '#6b7280', sent: '#3b82f6', confirmed: '#16a34a', shipped: '#f59e0b', received: '#10b981', rejected: '#ef4444', cancelled: '#9ca3af' };
@@ -44,10 +52,16 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
     (async () => {
       setLoading(true);
       try {
-        const [result, approvalRes] = await Promise.all([
+        const fetches = [
           apiGet({ action: 'po_items', po_id: po.id }),
           apiGet({ action: 'approvals', doc_type: 'purchase_order' }),
-        ]);
+        ];
+        // If PO has vendor_id, fetch vendor info
+        if (po.vendor_id) {
+          fetches.push(apiGet({ action: 'vendors', search: '', limit: 100 }));
+        }
+        const results = await Promise.all(fetches);
+        const [result, approvalRes] = results;
         setDetail(result);
         setTimeline(result.timeline || []);
         // Find approval for this PO
@@ -55,6 +69,11 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
         if (poApprovals.length > 0) {
           poApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
           setApprovalData(poApprovals[0]);
+        }
+        // Set vendor info if available
+        if (po.vendor_id && results[2]) {
+          const v = (results[2].vendors || []).find(v => String(v.id) === String(po.vendor_id));
+          if (v) setVendorInfo(v);
         }
       } catch (e) {
         setMsg(e.message || '無法取得採購單明細');
@@ -81,6 +100,45 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       onRefresh?.();
     } catch (e) { setMsg(e.message || '送審失敗'); }
     finally { setSubmittingApproval(false); }
+  };
+
+  // Vendor search
+  const searchVendors = (keyword) => {
+    setVendorSearch(keyword);
+    if (vendorSearchRef.current) clearTimeout(vendorSearchRef.current);
+    if (!keyword || keyword.length < 1) { setVendorResults([]); return; }
+    vendorSearchRef.current = setTimeout(async () => {
+      try {
+        const res = await apiGet({ action: 'vendors', search: keyword, limit: 10 });
+        setVendorResults(res.vendors || []);
+      } catch (_) { setVendorResults([]); }
+    }, 300);
+  };
+
+  const selectVendor = async (vendor) => {
+    setSavingVendor(true); setMsg('');
+    try {
+      await apiPost({ action: 'update_po_vendor', po_id: po.id, vendor_id: vendor.id });
+      setVendorInfo(vendor);
+      setShowVendorPicker(false);
+      setVendorSearch('');
+      setVendorResults([]);
+      setMsg('廠商已更新');
+      onRefresh?.();
+    } catch (e) { setMsg(e.message || '更新廠商失敗'); }
+    finally { setSavingVendor(false); }
+  };
+
+  const clearVendor = async () => {
+    if (!confirm('確定移除廠商？')) return;
+    setSavingVendor(true); setMsg('');
+    try {
+      await apiPost({ action: 'update_po_vendor', po_id: po.id, vendor_id: null });
+      setVendorInfo(null);
+      setMsg('已移除廠商');
+      onRefresh?.();
+    } catch (e) { setMsg(e.message || '移除廠商失敗'); }
+    finally { setSavingVendor(false); }
   };
 
   const handleConfirm = async () => {
@@ -436,8 +494,61 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
             {/* 2. Vendor card */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
-              <div style={labelStyle}>廠商資訊</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>廠商 ID: {po.vendor_id || '未指定'}</div>
+              <div style={{ ...labelStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>廠商資訊</span>
+                {vendorInfo && isEditable && (
+                  <span onClick={clearVendor} style={{ fontSize: 11, color: '#ef4444', cursor: 'pointer' }}>移除</span>
+                )}
+              </div>
+              {vendorInfo ? (
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 4 }}>{vendorInfo.vendor_name || vendorInfo.company_name || '未命名'}</div>
+                  {vendorInfo.vendor_code && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>編號: {vendorInfo.vendor_code}</div>}
+                  {vendorInfo.contact_name && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>聯絡人: {vendorInfo.contact_name}</div>}
+                  {vendorInfo.phone && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>電話: {vendorInfo.phone}</div>}
+                  {vendorInfo.mobile && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>手機: {vendorInfo.mobile}</div>}
+                  {vendorInfo.email && <div style={{ fontSize: 12, color: '#2563eb', marginBottom: 2 }}>{vendorInfo.email}</div>}
+                  {vendorInfo.address && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>{vendorInfo.address}</div>}
+                  {isEditable && (
+                    <button onClick={() => setShowVendorPicker(true)} style={{ ...S.btnGhost, fontSize: 12, padding: '3px 10px', marginTop: 6, color: '#6b7280', borderColor: '#d1d5db' }}>更換廠商</button>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 8 }}>未指定廠商</div>
+                  {isEditable && (
+                    <button onClick={() => setShowVendorPicker(true)} style={{ ...S.btnGhost, fontSize: 13, padding: '6px 14px', color: '#3b82f6', borderColor: '#93c5fd', width: '100%', justifyContent: 'center' }}>＋ 選擇廠商</button>
+                  )}
+                </div>
+              )}
+              {/* Vendor picker overlay */}
+              {showVendorPicker && (
+                <div style={{ marginTop: 8, padding: '8px 0' }}>
+                  <input
+                    autoFocus
+                    placeholder="搜尋廠商名稱或編號..."
+                    value={vendorSearch}
+                    onChange={e => searchVendors(e.target.value)}
+                    style={{ ...S.input, fontSize: 13, padding: '6px 10px', width: '100%', marginBottom: 6 }}
+                  />
+                  {vendorResults.length > 0 && (
+                    <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff' }}>
+                      {vendorResults.map(v => (
+                        <div key={v.id} onClick={() => selectVendor(v)} style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                          <div>
+                            <div style={{ fontWeight: 600, color: '#111827' }}>{v.vendor_name}</div>
+                            {v.contact_name && <div style={{ fontSize: 11, color: '#6b7280' }}>{v.contact_name}</div>}
+                          </div>
+                          <span style={{ fontSize: 11, color: '#9ca3af' }}>{v.vendor_code}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button onClick={() => { setShowVendorPicker(false); setVendorSearch(''); setVendorResults([]); }} style={{ ...S.btnGhost, fontSize: 12, padding: '3px 10px', marginTop: 6, color: '#6b7280', width: '100%', justifyContent: 'center' }}>取消</button>
+                </div>
+              )}
             </div>
 
             {/* 3. Unified record timeline card - combine source order + creation + approval + receiving */}
