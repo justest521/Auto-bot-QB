@@ -969,6 +969,13 @@ export default function PurchaseOrders({ setTab }) {
   const [msg, setMsg] = useState('');
   const [selectedPO, setSelectedPO] = useState(null);
   const [showCreatePO, setShowCreatePO] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+
+  const toggleSelect = (id) => setSelectedIds(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const toggleSelectAll = () => {
+    if (selectedIds.size === data.rows.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(data.rows.map(r => r.id)));
+  };
 
   const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
   const PO_STATUS_COLOR = { draft: 'default', sent: 'blue', confirmed: 'green', shipped: 'yellow', received: 'green', rejected: 'red', cancelled: 'gray' };
@@ -1023,7 +1030,19 @@ export default function PurchaseOrders({ setTab }) {
   return (
     <div>
       <PageLead eyebrow="Purchase Orders" title="採購單" description="建立對廠商的採購訂單，確認後可轉進貨單入庫。"
-        action={<button onClick={() => setShowCreatePO(true)} style={S.btnPrimary}>+ 新增採購單</button>} />
+        action={<div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => {
+            const rows = selectedIds.size > 0 ? data.rows.filter(r => selectedIds.has(r.id)) : data.rows;
+            const header = ['採購單號', '日期', '狀態', '廠商名稱', '金額', '備註'];
+            const csvRows = rows.map(r => [r.po_no, r.po_date?.slice(0, 10) || '', PO_STATUS_MAP[String(r.status || '').toLowerCase()] || r.status, r.vendor?.vendor_name || '', r.total_amount || 0, (r.remark || '').replace(/,/g, '，')]);
+            const bom = '\uFEFF';
+            const csv = bom + [header, ...csvRows].map(r => r.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `採購單_${dateFrom || 'all'}_${dateTo || 'all'}.csv`; a.click(); URL.revokeObjectURL(url);
+          }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: 14 }}>匯出{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}</button>
+          <button onClick={() => setShowCreatePO(true)} style={S.btnPrimary}>+ 新增採購單</button>
+        </div>} />
       {msg && <div style={{ ...S.card, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#dc2626' : '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
       <div style={S.statGrid}>
         <StatCard code="DFT" label="草稿" value={fmt(sm.draft)} tone="blue" />
@@ -1055,7 +1074,8 @@ export default function PurchaseOrders({ setTab }) {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有採購單" /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '40px 150px 130px 80px minmax(0,1fr) 100px' : '40px 150px 130px 80px minmax(0,1fr) 100px 120px 80px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 6, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
+            <div><input type="checkbox" checked={data.rows.length > 0 && selectedIds.size === data.rows.length} onChange={toggleSelectAll} style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
             <div>序</div>
             <div>採購單號</div>
             <div>日期</div>
@@ -1068,7 +1088,8 @@ export default function PurchaseOrders({ setTab }) {
           {data.rows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
             return (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '40px 150px 130px 80px minmax(0,1fr) 100px' : '40px 150px 130px 80px minmax(0,1fr) 100px 120px 80px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 6, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
+                <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
                 <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
                 <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.po_no || '-'}</div>
                 <div style={{ fontSize: 12, color: '#374151', ...S.mono }}>{row.po_date?.slice(0, 10) || '-'}</div>
