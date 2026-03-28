@@ -563,13 +563,24 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
               })()}
             </div>
 
-            {/* 4. Remark card */}
-            {q.remark && (
-              <div style={{ ...cardStyle, padding: '10px 16px' }}>
-                <div style={labelStyle}>備註</div>
-                <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontWeight: 700 }}>{q.remark}</div>
-              </div>
-            )}
+            {/* 4. Remark card — editable */}
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+              <div style={labelStyle}>備註</div>
+              <textarea
+                defaultValue={q.remark || ''}
+                placeholder="輸入備註..."
+                rows={3}
+                style={{ width: '100%', fontSize: 13, color: '#374151', lineHeight: 1.6, border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit' }}
+                onBlur={async (e) => {
+                  const val = e.target.value.trim();
+                  if (val === (q.remark || '').trim()) return;
+                  try {
+                    await apiPost({ action: 'update_quote', quote_id: q.id, remark: val });
+                    onRefresh?.();
+                  } catch (err) { setMsg(err.message || '備註更新失敗'); }
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

@@ -283,13 +283,24 @@ function SaleDetailView({ sale, onBack, setTab }) {
               })()}
             </div>
 
-            {/* 4. Remark card */}
-            {s.remark && (
-              <div style={{ ...cardStyle, padding: '10px 16px' }}>
-                <div style={labelStyle}>備註</div>
-                <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontWeight: 700 }}>{s.remark}</div>
-              </div>
-            )}
+            {/* 4. Remark card — editable */}
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+              <div style={labelStyle}>備註</div>
+              <textarea
+                defaultValue={s.remark || ''}
+                placeholder="輸入備註..."
+                rows={3}
+                style={{ width: '100%', fontSize: 13, color: '#374151', lineHeight: 1.6, border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit' }}
+                onBlur={async (e) => {
+                  const val = e.target.value.trim();
+                  if (val === (s.remark || '').trim()) return;
+                  try {
+                    await apiPost({ action: 'update_sale_invoice', sale_id: s.id, remark: val });
+                    onRefresh?.();
+                  } catch (err) { setMsg(err.message || '備註更新失敗'); }
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
