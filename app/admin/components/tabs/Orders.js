@@ -89,8 +89,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
         setApprovalData(foundApproval);
         // Fetch payment records for this order
         try {
-          const payRes = await apiGet({ action: 'payments', search: order.order_no || order.id });
-          setOrderPayments((payRes.payments || []).filter(p => String(p.erp_order_id) === String(order.id)));
+          const payRes = await apiGet({ action: 'order_payments', order_id: order.id });
+          setOrderPayments(payRes.payments || []);
         } catch (_) { /* ignore */ }
       } catch (e) {
         setMsg(e.message || '無法取得訂單明細');
@@ -732,8 +732,21 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   const docLabel = approvalData.doc_type === 'sale' ? '銷貨簽核' : approvalData.doc_type === 'purchase_order' ? '採購簽核' : '審核簽核';
                   entries.push({ dot: dotColor, label: docLabel, ref: approvalData.doc_no, detail: statusText, time: approvalData.approved_at || approvalData.created_at, status: as === 'approved' ? 'done' : as === 'pending' ? 'current' : as === 'rejected' ? 'rejected' : 'pending' });
                 }
-                // Payment
-                entries.push({ dot: payKey === 'paid' ? '#16a34a' : payKey === 'partial' ? '#2563eb' : '#d1d5db', label: '付款', detail: PAY_STATUS_MAP[payKey] || payKey, status: payKey === 'paid' ? 'done' : payKey === 'partial' ? 'current' : 'pending' });
+                // Payment — show each payment record, or status summary
+                if (orderPayments.length > 0) {
+                  const typeLabels = { deposit: '訂金', partial: '部分收款', full: '全額收款', balance: '尾款' };
+                  const methodLabels = { transfer: '匯款', cash: '現金', check: '支票', credit_card: '信用卡', line_pay: 'LINE Pay', other: '其他' };
+                  orderPayments.forEach(p => {
+                    const tl = typeLabels[p.payment_type] || '收款';
+                    const ml = methodLabels[p.payment_method] || p.payment_method;
+                    entries.push({ dot: '#16a34a', label: `付款`, ref: p.payment_number, detail: `${tl} NT$${Number(p.amount || 0).toLocaleString()}（${ml}）`, time: p.confirmed_at || p.created_at, status: 'done' });
+                  });
+                  if (payKey !== 'paid') {
+                    entries.push({ dot: '#2563eb', label: '付款', detail: `${PAY_STATUS_MAP[payKey]}，尚欠 NT$${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}`, status: 'current' });
+                  }
+                } else {
+                  entries.push({ dot: payKey === 'paid' ? '#16a34a' : '#d1d5db', label: '付款', detail: PAY_STATUS_MAP[payKey] || payKey, status: payKey === 'paid' ? 'done' : 'pending' });
+                }
                 // Shipping
                 entries.push({ dot: (shipKey === 'shipped' || shipKey === 'delivered') ? '#16a34a' : '#d1d5db', label: '出貨', detail: SHIP_STATUS_MAP[shipKey] || shipKey, status: (shipKey === 'shipped' || shipKey === 'delivered') ? 'done' : 'pending' });
                 // Completion
@@ -827,6 +840,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                       const res = await apiPost({ action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod, payment_type: payType });
                       setMsg(res.message || '付款已登記');
                       setPayAmount('');
+                      // Refresh payment list locally
+                      try { const pr = await apiGet({ action: 'order_payments', order_id: order.id }); setOrderPayments(pr.payments || []); } catch(_){}
                       onRefresh?.();
                     } catch (err) { setMsg(err.message || '付款登記失敗'); }
                     setPayProcessing(false);
