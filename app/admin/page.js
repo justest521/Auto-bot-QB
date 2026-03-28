@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { API, ADMIN_TOKEN_KEY, apiGet, apiPost } from '@/lib/admin/api';
 import { useViewportWidth } from '@/lib/admin/helpers';
@@ -320,17 +320,40 @@ function useFavorites() {
 }
 
 function useCollapsed() {
+  // Accordion mode: default all collapsed; only one section open at a time
+  const allCollapsed = Object.fromEntries(SECTIONS.map(s => [s.title, true]));
   const [collapsed, setCollapsed] = useState(() => {
-    try { return JSON.parse(window.localStorage.getItem(COLLAPSED_STORAGE_KEY) || '{}'); } catch { return {}; }
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(COLLAPSED_STORAGE_KEY) || '{}');
+      // Migrate: ensure all sections default to collapsed
+      const merged = { ...allCollapsed };
+      for (const k of Object.keys(saved)) { if (k in merged) merged[k] = saved[k]; }
+      return merged;
+    } catch { return allCollapsed; }
   });
   const toggle = (title) => {
     setCollapsed((prev) => {
-      const next = { ...prev, [title]: !prev[title] };
+      const wasCollapsed = prev[title];
+      // Accordion: close all, then open the clicked one (if it was closed)
+      const next = { ...allCollapsed, [title]: !wasCollapsed };
       try { window.localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(next)); } catch {}
       return next;
     });
   };
-  return { collapsed, toggle };
+  const collapseAll = () => {
+    setCollapsed(() => {
+      try { window.localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(allCollapsed)); } catch {}
+      return allCollapsed;
+    });
+  };
+  const expandSection = (title) => {
+    setCollapsed(() => {
+      const next = { ...allCollapsed, [title]: false };
+      try { window.localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+  return { collapsed, toggle, collapseAll, expandSection };
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -344,7 +367,7 @@ export default function AdminPage() {
   const [isAuthed, setIsAuthed] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
-  const [tab, setTab] = useState('report_center');
+  const [tab, setTabRaw] = useState('report_center');
   const [sidebarStats, setSidebarStats] = useState(null);
   const [pendingBadges, setPendingBadges] = useState({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -352,7 +375,18 @@ export default function AdminPage() {
   const [companySettings, setCompanySettings] = useState(null);
   // headerAction is rendered via portal from PageLead into HEADER_ACTION_PORTAL_ID div
   const { favs, toggle: toggleFav, isFav } = useFavorites();
-  const { collapsed, toggle: toggleCollapsed } = useCollapsed();
+  const { collapsed, toggle: toggleCollapsed, collapseAll, expandSection } = useCollapsed();
+  // Wrapped setTab: auto-expand the parent section (accordion)
+  const setTab = useCallback((tabId) => {
+    setTabRaw(tabId);
+    const parentSection = SECTIONS.find(s => s.tabs.some(t => t.id === tabId));
+    if (parentSection) expandSection(parentSection.title);
+  }, [expandSection]);
+  // On mount: expand the section of the default tab
+  useEffect(() => {
+    const parentSection = SECTIONS.find(s => s.tabs.some(t => t.id === tab));
+    if (parentSection) expandSection(parentSection.title);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const ActiveTab = TAB_COMPONENTS[tab] || Dashboard;
 
   // ── New auth states ──
@@ -586,9 +620,9 @@ export default function AdminPage() {
           <div style={{ padding: '0 14px 12px', borderBottom: '1px solid #e5e7eb', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
               {companySettings?.logo_url ? (
-                <img src={companySettings.logo_url} alt="Logo" style={{ width: 34, height: 34, minWidth: 34, borderRadius: 10, objectFit: 'contain', background: '#f3f4f6' }} />
+                <img src={companySettings.logo_url} alt="Logo" onClick={collapseAll} style={{ width: 34, height: 34, minWidth: 34, borderRadius: 10, objectFit: 'contain', background: '#f3f4f6', cursor: 'pointer' }} title="收合全部" />
               ) : (
-                <div style={{ width: 34, height: 34, minWidth: 34, borderRadius: 10, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 13, ...S.mono }}>QB</div>
+                <div onClick={collapseAll} style={{ width: 34, height: 34, minWidth: 34, borderRadius: 10, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', ...S.mono }} title="收合全部">QB</div>
               )}
               {!sidebarCollapsed && <div style={{ whiteSpace: 'nowrap', minWidth: 0 }}>
                 <div style={{ color: '#111827', fontSize: 14, fontWeight: 700, letterSpacing: -0.2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{companySettings?.company_name || 'Auto-bot QB'}</div>
