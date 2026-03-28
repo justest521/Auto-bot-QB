@@ -1031,15 +1031,44 @@ export default function PurchaseOrders({ setTab }) {
     <div>
       <PageLead eyebrow="Purchase Orders" title="採購單" description="建立對廠商的採購訂單，確認後可轉進貨單入庫。"
         action={<div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => {
+          <button onClick={async () => {
             const rows = selectedIds.size > 0 ? data.rows.filter(r => selectedIds.has(r.id)) : data.rows;
-            const header = ['採購單號', '日期', '狀態', '廠商名稱', '金額', '備註'];
-            const csvRows = rows.map(r => [r.po_no, r.po_date?.slice(0, 10) || '', PO_STATUS_MAP[String(r.status || '').toLowerCase()] || r.status, r.vendor?.vendor_name || '', r.total_amount || 0, (r.remark || '').replace(/,/g, '，')]);
-            const bom = '\uFEFF';
-            const csv = bom + [header, ...csvRows].map(r => r.join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `採購單_${dateFrom || 'all'}_${dateTo || 'all'}.csv`; a.click(); URL.revokeObjectURL(url);
+            if (!rows.length) { setMsg('沒有可匯出的資料'); return; }
+            setMsg('匯出中...');
+            try {
+              // Fetch items for each PO
+              const allDetails = await Promise.all(rows.map(r => apiGet({ action: 'po_items', po_id: r.id }).catch(() => ({ items: [] }))));
+              const header = ['採購單號', '日期', '狀態', '廠商名稱', '料號', '品名', '數量', '單價', '小計', '採購單合計', '備註'];
+              const csvRows = [];
+              rows.forEach((r, ri) => {
+                const items = allDetails[ri]?.items || [];
+                const statusLabel = PO_STATUS_MAP[String(r.status || '').toLowerCase()] || r.status;
+                const vendorName = r.vendor?.vendor_name || '';
+                const remark = (r.remark || '').replace(/,/g, '，').replace(/\n/g, ' ');
+                if (items.length === 0) {
+                  csvRows.push([r.po_no, r.po_date?.slice(0, 10) || '', statusLabel, vendorName, '', '', '', '', '', r.total_amount || 0, remark]);
+                } else {
+                  items.forEach((it, ii) => {
+                    csvRows.push([
+                      ii === 0 ? r.po_no : '', ii === 0 ? (r.po_date?.slice(0, 10) || '') : '', ii === 0 ? statusLabel : '', ii === 0 ? vendorName : '',
+                      it.item_number || it.item_number_snapshot || '', (it.description || it.description_snapshot || '').replace(/,/g, '，'),
+                      it.qty || it.quantity || 0, it.unit_cost || it.unit_price || 0, it.line_total || 0,
+                      ii === 0 ? (r.total_amount || 0) : '', ii === 0 ? remark : '',
+                    ]);
+                  });
+                }
+              });
+              // Grand total row
+              const grandTotal = rows.reduce((s, r) => s + Number(r.total_amount || 0), 0);
+              csvRows.push(['', '', '', '', '', '', '', '', '', grandTotal, '合計']);
+              const bom = '\uFEFF';
+              const csv = bom + [header, ...csvRows].map(r => r.join(',')).join('\n');
+              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a'); a.href = url; a.download = `採購單_${dateFrom || 'all'}_${dateTo || 'all'}.csv`; a.click(); URL.revokeObjectURL(url);
+              setMsg('已匯出');
+              setTimeout(() => setMsg(''), 2000);
+            } catch (e) { setMsg('匯出失敗: ' + (e.message || '')); }
           }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: 14 }}>匯出{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}</button>
           <button onClick={() => setShowCreatePO(true)} style={S.btnPrimary}>+ 新增採購單</button>
         </div>} />
