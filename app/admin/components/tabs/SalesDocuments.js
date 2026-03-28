@@ -20,6 +20,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const [timeline, setTimeline] = useState([]);
   const [approvalData, setApprovalData] = useState(null);
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [invoiceDate, setInvoiceDate] = useState('');
   const [savingInvoice, setSavingInvoice] = useState(false);
   const [shipments, setShipments] = useState([]);
 
@@ -34,6 +35,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
       setTimeline(result.timeline || []);
       setShipments(result.shipments || []);
       setInvoiceNumber(result.sale?.invoice_number || sale.invoice_number || '');
+      setInvoiceDate(result.sale?.invoice_date || result.invoice?.invoice_date || result.sale?.sale_date || sale.sale_date || '');
       const saleApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(sale.id));
       if (saleApprovals.length > 0) {
         saleApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -55,8 +57,9 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const saveInvoice = async () => {
     setSavingInvoice(true); setMsg('');
     try {
-      await apiPost({ action: 'update_sale_invoice', sale_id: sale.id, invoice_number: invoiceNumber.trim() });
-      setMsg('發票號碼已儲存');
+      await apiPost({ action: 'update_sale_invoice', sale_id: sale.id, invoice_number: invoiceNumber.trim(), invoice_date: invoiceDate || undefined });
+      setMsg('發票資訊已儲存');
+      loadDetail();
     } catch (e) { setMsg(e.message || '儲存失敗'); }
     finally { setSavingInvoice(false); }
   };
@@ -97,7 +100,8 @@ function SaleDetailView({ sale, onBack, setTab }) {
 
       {loading ? <Loading /> : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 10, alignItems: 'start' }}>
-          {/* ====== Left: Items ====== */}
+          {/* ====== Left column ====== */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
               <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>商品明細</span>
@@ -147,15 +151,16 @@ function SaleDetailView({ sale, onBack, setTab }) {
             ) : (
               <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無品項明細</div>
             )}
-            {/* Action bar below items — same style as Orders page */}
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', padding: '10px 0' }}>
-              {shipments.length > 0 && (
-                <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}>
-                  已建立出貨單 {shipments.map(sh => sh.shipment_no).join(', ')}
-                </span>
-              )}
-              <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
-            </div>
+          </div>
+          {/* Action bar below items — outside the card */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            {shipments.length > 0 && (
+              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}>
+                已建立出貨單 {shipments.map(sh => sh.shipment_no).join(', ')}
+              </span>
+            )}
+            <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
+          </div>
           </div>
 
           {/* ====== Right sidebar ====== */}
@@ -183,30 +188,24 @@ function SaleDetailView({ sale, onBack, setTab }) {
               ))}
             </div>
 
-            {/* 3. 發票資訊 — 日期 + 號碼 + 可編輯 */}
+            {/* 3. 發票資訊 — 日期可選 + 號碼即時編輯 */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>發票資訊</div>
-              {[
-                { label: '發票日期', value: invoice?.invoice_date || s.sale_date || sale.sale_date },
-                { label: '發票號碼', value: s.invoice_number || invoiceNumber },
-              ].filter(f => f.value).map((f, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
-                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...S.mono }}>{f.value}</span>
-                </div>
-              ))}
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 6 }}>
-                <input
-                  type="text" placeholder="輸入發票號碼..."
-                  value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)}
-                  style={{ flex: 1, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none', ...S.mono }}
-                  onKeyDown={e => { if (e.key === 'Enter') saveInvoice(); }}
-                />
-                <button onClick={saveInvoice} disabled={savingInvoice}
-                  style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12, opacity: savingInvoice ? 0.7 : 1 }}>
-                  {savingInvoice ? '...' : '儲存'}
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap' }}>發票日期</span>
+                <input type="date" value={invoiceDate?.slice(0, 10) || ''} onChange={e => setInvoiceDate(e.target.value)}
+                  style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none', ...S.mono, color: '#374151', textAlign: 'right' }} />
               </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap' }}>發票號碼</span>
+                <input type="text" placeholder="輸入發票號碼..." value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') saveInvoice(); }}
+                  style={{ flex: 1, padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none', ...S.mono, textAlign: 'right', maxWidth: 180 }} />
+              </div>
+              <button onClick={saveInvoice} disabled={savingInvoice}
+                style={{ ...S.btnPrimary, width: '100%', padding: '7px 14px', fontSize: 12, opacity: savingInvoice ? 0.7 : 1, marginTop: 4 }}>
+                {savingInvoice ? '儲存中...' : '儲存發票資訊'}
+              </button>
               {!invoiceNumber && !s.invoice_number && <div style={{ padding: '4px 8px', borderRadius: 6, background: '#fef3c7', color: '#92400e', fontSize: 11, textAlign: 'center', border: '1px solid #fde68a', marginTop: 6 }}>請填寫發票號碼以利入帳</div>}
             </div>
 
