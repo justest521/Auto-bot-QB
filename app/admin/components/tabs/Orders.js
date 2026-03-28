@@ -1048,6 +1048,7 @@ export default function Orders({ setTab }) {
       if (statusFilter) params.status = statusFilter;
       const result = await apiGet(params);
       setData(result);
+      return result;
     } finally {
       setLoading(false);
     }
@@ -1113,7 +1114,14 @@ export default function Orders({ setTab }) {
       <OrderDetailView
         order={selectedOrder}
         onBack={() => setSelectedOrder(null)}
-        onRefresh={() => load()}
+        onRefresh={async () => {
+          const result = await load();
+          // Update selectedOrder with fresh data from the reloaded list
+          if (result?.rows) {
+            const fresh = result.rows.find(r => r.id === selectedOrder.id);
+            if (fresh) setSelectedOrder(fresh);
+          }
+        }}
         setTab={setTab}
       />
     );
