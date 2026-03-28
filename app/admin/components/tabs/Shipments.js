@@ -7,8 +7,8 @@ import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
 
 const STATUS_MAP = { pending: '待出貨', packed: '已包裝', shipped: '已出貨', delivered: '已送達', returned: '已退回', cancelled: '已取消' };
 const STATUS_COLOR = { pending: '#f59e0b', packed: '#8b5cf6', shipped: '#3b82f6', delivered: '#16a34a', returned: '#ef4444', cancelled: '#6b7280' };
-const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
-const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
+const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
+const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
 
 // ========== 出貨單明細頁 ==========
 function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
@@ -320,13 +320,13 @@ export default function Shipments() {
       {loading ? <Loading /> : data.shipments.length === 0 ? <EmptyState text="目前沒有出貨記錄" /> : (
         <div style={{ ...S.card, borderRadius: 14, padding: 0, overflow: 'hidden' }}>
           {/* Table header */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 10, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 10, padding: '6px 14px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
             <div>#</div><div>出貨單號</div><div>物流商</div><div>追蹤編號</div><div>出貨日期</div><div>狀態</div><div>操作</div>
           </div>
           {/* Table rows */}
           {data.shipments.map((s, idx) => (
             <div key={s.id} onClick={() => setSelectedShipment(s)}
-              style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 10, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
+              style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 10, padding: '8px 14px', borderTop: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
               <div style={{ fontSize: 13, color: '#b0b8c4', fontWeight: 500 }}>{(data.page * (data.limit || pageSize)) + idx + 1}</div>

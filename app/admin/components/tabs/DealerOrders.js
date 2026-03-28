@@ -107,8 +107,8 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
   const d = o.dealer || order.dealer || {};
   const items = detail?.items || [];
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
-  const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+  const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
 
   // Compute stock summary
   const sufficientCount = items.filter(i => i.stock_status === 'sufficient').length;

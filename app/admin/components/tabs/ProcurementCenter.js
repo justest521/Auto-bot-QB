@@ -93,7 +93,7 @@ export default function ProcurementCenter({ setTab }) {
       {loading ? <Loading /> : data.rows?.length === 0 ? <EmptyState text="目前沒有採購中的品項" /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
           {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '130px minmax(0,1fr) 70px 70px 70px 80px 80px 70px 90px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '130px minmax(0,1fr) 70px 70px 70px 80px 80px 70px 90px', gap: 10, padding: '6px 14px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
             <div>料號</div>
             <div>品名</div>
             <div style={{ textAlign: 'center' }}>已採</div>
@@ -116,7 +116,7 @@ export default function ProcurementCenter({ setTab }) {
                 {/* Main row */}
                 <div
                   onClick={() => toggleExpand(row.item_number)}
-                  style={{ display: 'grid', gridTemplateColumns: '130px minmax(0,1fr) 70px 70px 70px 80px 80px 70px 90px', gap: 10, padding: '10px 16px', borderTop: idx > 0 ? '1px solid #f0f2f5' : 'none', alignItems: 'center', cursor: 'pointer', background: isExpanded ? '#f8fafc' : idx % 2 === 0 ? '#fff' : '#fafbfd', transition: 'background 0.15s' }}
+                  style={{ display: 'grid', gridTemplateColumns: '130px minmax(0,1fr) 70px 70px 70px 80px 80px 70px 90px', gap: 10, padding: '8px 14px', borderTop: idx > 0 ? '1px solid #f0f2f5' : 'none', alignItems: 'center', cursor: 'pointer', background: isExpanded ? '#f8fafc' : idx % 2 === 0 ? '#fff' : '#fafbfd', transition: 'background 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
                   onMouseLeave={e => e.currentTarget.style.background = isExpanded ? '#f8fafc' : idx % 2 === 0 ? '#fff' : '#fafbfd'}
                 >

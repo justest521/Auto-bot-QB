@@ -105,7 +105,7 @@ export default function LineChat() {
   };
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 64px)', background: '#fff', borderRadius: 14, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 52px)', background: '#fff', borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
 
       {/* ===== Left: Conversation List ===== */}
       {showList && (

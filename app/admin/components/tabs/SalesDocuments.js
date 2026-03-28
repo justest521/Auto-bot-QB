@@ -70,8 +70,8 @@ function SaleDetailView({ sale, onBack, setTab }) {
     no_stock: { label: '無庫存', color: '#dc2626', bg: '#fee2e2', border: '#fecaca' },
   };
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
-  const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+  const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
@@ -502,7 +502,7 @@ export default function SalesDocuments({ setTab }) {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷貨單資料" /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 160px minmax(0,1fr) 100px' : '50px 170px minmax(0,1.3fr) 120px 120px 120px 120px 120px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 160px minmax(0,1fr) 100px' : '50px 170px minmax(0,1.3fr) 120px 120px 120px 120px 120px', gap: 10, padding: '6px 14px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
             <div>序</div>
             <div>銷貨單號</div>
             <div>客戶 / 發票</div>
@@ -513,7 +513,7 @@ export default function SalesDocuments({ setTab }) {
             {!isTablet && <div style={{ textAlign: 'right' }}>毛利</div>}
           </div>
           {data.rows.map((row, idx) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 160px minmax(0,1fr) 100px' : '50px 170px minmax(0,1.3fr) 120px 120px 120px 120px 120px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedSale(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 160px minmax(0,1fr) 100px' : '50px 170px minmax(0,1.3fr) 120px 120px 120px 120px 120px', gap: 10, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedSale(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
               <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
               <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.slip_number || '-'}</div>
               <div style={{ minWidth: 0 }}>

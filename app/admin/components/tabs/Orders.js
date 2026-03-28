@@ -383,8 +383,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
     }
   };
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
-  const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+  const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
   const isConverted = shipKey === 'shipped' || shipKey === 'delivered';
   // 用訂單本身的 status 判斷，不再依賴 erp_approvals 表
   const orderStatus = order.status || 'draft';
@@ -1224,7 +1224,7 @@ export default function Orders({ setTab }) {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有訂單資料" /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '6px 14px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
             <div><input type="checkbox" checked={batchIds.size > 0 && data.rows.every(r => batchIds.has(r.id))} onChange={(e) => { if (e.target.checked) setBatchIds(new Set(data.rows.map(r => r.id))); else setBatchIds(new Set()); }} style={{ cursor: 'pointer' }} /></div>
             <div>序</div>
             <div>訂單號</div>
@@ -1242,7 +1242,7 @@ export default function Orders({ setTab }) {
             const shipKey = String(row.shipping_status || 'pending').toLowerCase();
 
             return (
-              <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
+              <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div><input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer' }} /></div>
                 <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
                 <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>

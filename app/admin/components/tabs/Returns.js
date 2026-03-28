@@ -7,8 +7,8 @@ import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
 
 const STATUS_MAP = { pending: '待審核', approved: '已核准', rejected: '已拒絕', refunded: '已退款' };
 const STATUS_COLOR = { pending: '#f59e0b', approved: '#16a34a', rejected: '#ef4444', refunded: '#3b82f6' };
-const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
-const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
+const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
+const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
 
 // ========== 退貨單明細頁 ==========
 function ReturnDetailView({ ret: initRet, onBack, onRefresh }) {
@@ -344,12 +344,12 @@ export default function Returns() {
       {/* Table */}
       {loading ? <Loading /> : data.returns.length === 0 ? <EmptyState text="目前沒有退貨記錄" /> : (
         <div style={{ ...S.card, borderRadius: 14, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px minmax(0,1fr) 110px 100px 100px 140px', gap: 10, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px minmax(0,1fr) 110px 100px 100px 140px', gap: 10, padding: '6px 14px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
             <div>#</div><div>退貨單號</div><div>原因</div><div style={{ textAlign: 'right' }}>退款金額</div><div>日期</div><div>狀態</div><div>操作</div>
           </div>
           {data.returns.map((r, idx) => (
             <div key={r.id} onClick={() => setSelectedReturn(r)}
-              style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px minmax(0,1fr) 110px 100px 100px 140px', gap: 10, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
+              style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px minmax(0,1fr) 110px 100px 100px 140px', gap: 10, padding: '8px 14px', borderTop: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
               <div style={{ fontSize: 13, color: '#b0b8c4', fontWeight: 500 }}>{(data.page * (data.limit || 30)) + idx + 1}</div>
