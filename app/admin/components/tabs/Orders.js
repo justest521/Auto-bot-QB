@@ -681,13 +681,6 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 // Order created
                 const orderEv = timeline.find(e => (e.event || '').match(/建立訂單/));
                 entries.push({ dot: '#16a34a', label: '訂單建立', ref: order.order_no, time: orderEv?.time || order.created_at, status: 'done' });
-                // Approval
-                if (approvalData || statusKey === 'confirmed') {
-                  const as = approvalData?.status;
-                  const dotColor = (as === 'approved' || statusKey === 'confirmed') ? '#16a34a' : as === 'rejected' ? '#dc2626' : as === 'pending' ? '#2563eb' : '#d1d5db';
-                  const statusText = as === 'approved' ? '已核准' : as === 'rejected' ? '已駁回' : as === 'pending' ? '待審核' : '已確認';
-                  entries.push({ dot: dotColor, label: '審核簽核', detail: statusText, time: approvalData?.approved_at || approvalData?.created_at, status: as === 'approved' || statusKey === 'confirmed' ? 'done' : as === 'pending' ? 'current' : as === 'rejected' ? 'rejected' : 'pending' });
-                }
                 // POs
                 linkedPOs.forEach(po => {
                   const pk = String(po.status || 'draft').toLowerCase();
@@ -705,6 +698,13 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   const saleBadges = items.filter(i => i.sale_info).map(i => ({ text: `已銷${i.sale_info.sold_qty}/${i.qty}`, item: i.item_number_snapshot }));
                   entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: saleStatusMap[sk] || sk, detailColor: sc, time: sale.sale_date, status: sk === 'paid' ? 'done' : 'current', badges: saleBadges });
                 });
+                // Approval (after POs and Sales)
+                if (approvalData || statusKey === 'confirmed') {
+                  const as = approvalData?.status;
+                  const dotColor = (as === 'approved' || statusKey === 'confirmed') ? '#16a34a' : as === 'rejected' ? '#dc2626' : as === 'pending' ? '#2563eb' : '#d1d5db';
+                  const statusText = as === 'approved' ? '已核准' : as === 'rejected' ? '已駁回' : as === 'pending' ? '待審核' : '已確認';
+                  entries.push({ dot: dotColor, label: '審核簽核', detail: statusText, time: approvalData?.approved_at || approvalData?.created_at, status: as === 'approved' || statusKey === 'confirmed' ? 'done' : as === 'pending' ? 'current' : as === 'rejected' ? 'rejected' : 'pending' });
+                }
                 // Payment
                 entries.push({ dot: payKey === 'paid' ? '#16a34a' : payKey === 'partial' ? '#2563eb' : '#d1d5db', label: '付款', detail: PAY_STATUS_MAP[payKey] || payKey, status: payKey === 'paid' ? 'done' : payKey === 'partial' ? 'current' : 'pending' });
                 // Shipping
