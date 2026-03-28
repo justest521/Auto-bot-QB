@@ -21,31 +21,32 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const [approvalData, setApprovalData] = useState(null);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [savingInvoice, setSavingInvoice] = useState(false);
+  const [shipments, setShipments] = useState([]);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const [result, approvalRes] = await Promise.all([
-          apiGet({ action: 'sale_detail', slip_number: sale.slip_number }),
-          apiGet({ action: 'approvals', doc_type: 'sale' }),
-        ]);
-        setDetail(result);
-        setTimeline(result.timeline || []);
-        setInvoiceNumber(result.sale?.invoice_number || sale.invoice_number || '');
-        // Find approval for this sale
-        const saleApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(sale.id));
-        if (saleApprovals.length > 0) {
-          saleApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-          setApprovalData(saleApprovals[0]);
-        }
-      } catch (e) {
-        setMsg(e.message || '無法取得銷貨單明細');
-      } finally {
-        setLoading(false);
+  const loadDetail = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [result, approvalRes] = await Promise.all([
+        apiGet({ action: 'sale_detail', slip_number: sale.slip_number }),
+        apiGet({ action: 'approvals', doc_type: 'sale' }),
+      ]);
+      setDetail(result);
+      setTimeline(result.timeline || []);
+      setShipments(result.shipments || []);
+      setInvoiceNumber(result.sale?.invoice_number || sale.invoice_number || '');
+      const saleApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(sale.id));
+      if (saleApprovals.length > 0) {
+        saleApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        setApprovalData(saleApprovals[0]);
       }
-    })();
+    } catch (e) {
+      setMsg(e.message || '無法取得銷貨單明細');
+    } finally {
+      setLoading(false);
+    }
   }, [sale.slip_number, sale.id]);
+
+  useEffect(() => { loadDetail(); }, [loadDetail]);
 
   const s = detail?.sale || sale;
   const invoice = detail?.invoice;
@@ -89,18 +90,12 @@ function SaleDetailView({ sale, onBack, setTab }) {
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* 方案 A：銷貨免審，顯示自動核准標籤 */}
-          {approvalData?.status === 'approved' && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>{approvalData?.approved_by === 'system' ? '自動核准' : '已核准'}</span>}
-          {/* 銷貨免審 — 建立出貨 */}
-          <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
-          {/* PDF：列印前提醒發票號碼 */}
-          <button onClick={() => {
-            if (!invoiceNumber && !s.invoice_number) {
-              if (!confirm('尚未填寫發票號碼，是否仍要列印？\n（建議先填寫發票號碼以便入帳）')) return;
-            }
-            window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank');
-          }} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>PDF</button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {approvalData?.status === 'approved' && <span style={{ padding: '6px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>{approvalData?.approved_by === 'system' ? '自動核准' : '已核准'}</span>}
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{s.customer_name || sale.customer_name || ''}</div>
+            {s.sales_person && <div style={{ fontSize: 11, color: '#9ca3af' }}>業務：{s.sales_person}</div>}
+          </div>
         </div>
       </div>
 
@@ -158,39 +153,33 @@ function SaleDetailView({ sale, onBack, setTab }) {
             ) : (
               <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無品項明細</div>
             )}
+            {/* Action bar below items */}
+            <div style={{ display: 'flex', gap: 8, padding: '10px 0', flexWrap: 'wrap' }}>
+              <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
+              <button onClick={() => {
+                if (!invoiceNumber && !s.invoice_number) {
+                  if (!confirm('尚未填寫發票號碼，是否仍要列印？\n（建議先填寫發票號碼以便入帳）')) return;
+                }
+                window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank');
+              }} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>下載 PDF</button>
+            </div>
           </div>
 
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* 1. PDF button — 銷貨免審，直接可用 */}
-            <button onClick={() => {
-              if (!invoiceNumber && !s.invoice_number) {
-                if (!confirm('尚未填寫發票號碼，是否仍要列印？\n（建議先填寫發票號碼以便入帳）')) return;
-              }
-              window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank');
-            }} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
-            {!invoiceNumber && !s.invoice_number && <div style={{ padding: '6px 10px', borderRadius: 6, background: '#fef3c7', color: '#92400e', fontSize: 11, textAlign: 'center', border: '1px solid #fde68a' }}>請填寫發票號碼以利入帳</div>}
-
-            {/* 2. Customer card */}
+            {/* 1. 發票資訊 — 日期 + 號碼 + 可編輯 */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
-              <div style={labelStyle}>客戶資訊</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>{s.customer_name || sale.customer_name || '未命名客戶'}</div>
+              <div style={labelStyle}>發票資訊</div>
               {[
-                { label: '業務', value: s.sales_person || sale.sales_person },
-                { label: '發票號碼', value: s.invoice_number, mono: true },
-                { label: '銷貨日期', value: s.sale_date || sale.sale_date, mono: true },
+                { label: '銷貨日期', value: s.sale_date || sale.sale_date },
+                { label: '發票號碼', value: s.invoice_number || invoiceNumber },
               ].filter(f => f.value).map((f, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
                   <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
-                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...(f.mono ? S.mono : {}), overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.value}</span>
+                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...S.mono }}>{f.value}</span>
                 </div>
               ))}
-            </div>
-
-            {/* 2.5 Invoice Number — 銷貨免審，直接可編輯 */}
-            <div style={{ ...cardStyle, padding: '10px 16px' }}>
-              <div style={labelStyle}>發票資訊</div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 6 }}>
                 <input
                   type="text" placeholder="輸入發票號碼..."
                   value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)}
@@ -202,6 +191,31 @@ function SaleDetailView({ sale, onBack, setTab }) {
                   {savingInvoice ? '...' : '儲存'}
                 </button>
               </div>
+              {!invoiceNumber && !s.invoice_number && <div style={{ padding: '4px 8px', borderRadius: 6, background: '#fef3c7', color: '#92400e', fontSize: 11, textAlign: 'center', border: '1px solid #fde68a', marginTop: 6 }}>請填寫發票號碼以利入帳</div>}
+            </div>
+
+            {/* 2. 運送資訊 — 顯示出貨紀錄，或提示尚未出貨 */}
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+              <div style={labelStyle}>運送資訊</div>
+              {shipments.length > 0 ? shipments.map((sh, i) => (
+                <div key={sh.id || i} style={{ marginBottom: i < shipments.length - 1 ? 10 : 0 }}>
+                  {[
+                    { label: '出貨單號', value: sh.shipment_no },
+                    { label: '物流商', value: sh.carrier },
+                    { label: '貨運單號', value: sh.tracking_no },
+                    { label: '出貨日期', value: sh.ship_date },
+                    { label: '狀態', value: sh.status === 'shipped' ? '已出貨' : sh.status === 'delivered' ? '已送達' : sh.status },
+                  ].filter(f => f.value).map((f, fi) => (
+                    <div key={fi} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
+                      <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
+                      <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...S.mono }}>{f.value}</span>
+                    </div>
+                  ))}
+                  {sh.remark && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{sh.remark}</div>}
+                </div>
+              )) : (
+                <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '8px 0' }}>尚未建立出貨</div>
+              )}
             </div>
 
             {/* 3. Unified Sales Record Timeline */}
@@ -290,7 +304,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                   if (val === (s.remark || '').trim()) return;
                   try {
                     await apiPost({ action: 'update_sale_invoice', sale_id: s.id, remark: val });
-                    onRefresh?.();
+                    loadDetail();
                   } catch (err) { setMsg(err.message || '備註更新失敗'); }
                 }}
               />
@@ -351,7 +365,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                   setMsg('出貨單已建立');
                   setShowShipForm(false);
                   setShipForm({ carrier: '', tracking_no: '', remark: '' });
-                  onRefresh?.();
+                  loadDetail();
                 } catch (err) { setMsg(err.message || '建立出貨失敗'); }
                 setShipping(false);
               }} style={{ padding: '9px 24px', borderRadius: 8, border: 'none', background: shipping ? '#94a3b8' : 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: shipping ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>
