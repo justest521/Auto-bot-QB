@@ -95,6 +95,7 @@ export default function Approvals() {
   const [data, setData] = useState({ rows: [], total: 0, pending_count: 0 });
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('pending');
+  const [typeFilter, setTypeFilter] = useState('');
   const [msg, setMsg] = useState('');
   const [noteDialog, setNoteDialog] = useState(null);
   const [note, setNote] = useState('');
@@ -138,13 +139,20 @@ export default function Approvals() {
         <StatCard code="TOTL" label="全部" value={data.total} tone="blue" />
       </div>
 
-      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
         {Object.entries(STATUS_MAP).map(([k, v]) => (
           <button key={k} onClick={() => { setStatusFilter(k); load(k); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, borderColor: v.color, background: statusFilter === k ? v.color : '#fff', color: statusFilter === k ? '#fff' : v.color }}>{v.label}</button>
         ))}
       </div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+        {[['', '全部類型'], ['order', '訂單'], ['sale', '銷貨單'], ['purchase_order', '採購單']].map(([k, label]) => (
+          <button key={k} onClick={() => setTypeFilter(k)} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, background: typeFilter === k ? '#374151' : '#fff', color: typeFilter === k ? '#fff' : '#6b7280', borderColor: typeFilter === k ? '#374151' : '#e5e7eb' }}>{label}</button>
+        ))}
+      </div>
 
-      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有審批記錄" /> : (data.rows || []).map(a => {
+      {loading ? <Loading /> : (() => {
+        const filtered = (data.rows || []).filter(a => !typeFilter || a.doc_type === typeFilter);
+        return filtered.length === 0 ? <EmptyState text="沒有審批記錄" /> : filtered.map(a => {
         const st = STATUS_MAP[a.status] || STATUS_MAP.pending;
         const customerName = a.customer?.company_name || a.customer?.name || a.vendor?.company_name || a.vendor?.name || '';
         const isExpanded = expandedId === a.id;
@@ -257,7 +265,8 @@ export default function Approvals() {
             )}
           </div>
         );
-      })}
+      });
+      })()}
 
       {/* Customer History Modal */}
       {historyModal && (
