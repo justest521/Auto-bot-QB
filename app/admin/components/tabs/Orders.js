@@ -378,9 +378,11 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 };
   const cardStyle = { ...S.card, borderRadius: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
   const isConverted = shipKey === 'shipped' || shipKey === 'delivered';
-  const canConvert = approvalData?.status === 'approved';
-  const isPending = approvalData?.status === 'pending';
-  const isRejected = approvalData?.status === 'rejected';
+  // 用訂單本身的 status 判斷，不再依賴 erp_approvals 表
+  const orderStatus = order.status || 'draft';
+  const canConvert = ['confirmed', 'processing'].includes(orderStatus);
+  const isPending = orderStatus === 'pending_approval';
+  const isRejected = orderStatus === 'rejected';
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
