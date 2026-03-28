@@ -550,14 +550,14 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                   ) : (
                     <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff' }}>
                       {filteredVendors.length > 0 ? filteredVendors.map(v => (
-                        <div key={v.id} onClick={() => selectVendor(v)} style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                        <div key={v.id} onClick={() => selectVendor(v)} style={{ padding: '9px 12px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                           onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
                           onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-                          <div>
-                            <div style={{ fontWeight: 600, color: '#111827' }}>{v.vendor_name}</div>
-                            {v.contact_name && <div style={{ fontSize: 11, color: '#6b7280' }}>{v.contact_name}</div>}
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', lineHeight: 1.3 }}>{v.vendor_name}</div>
+                            {v.contact_name && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{v.contact_name}</div>}
                           </div>
-                          <span style={{ fontSize: 11, color: '#9ca3af' }}>{v.vendor_code}</span>
+                          <span style={{ fontSize: 10, color: '#c0c4cc', fontFamily: 'monospace', flexShrink: 0, marginLeft: 8 }}>{v.vendor_code}</span>
                         </div>
                       )) : (
                         <div style={{ textAlign: 'center', padding: 12, fontSize: 12, color: '#9ca3af' }}>{vendorSearch ? '找不到符合的廠商' : '尚無廠商資料'}</div>
