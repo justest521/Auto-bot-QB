@@ -158,7 +158,7 @@ export default function ProcurementCenter({ setTab }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {row.po_list.map(po => (
                             <div key={po.po_id} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 10px', background: '#fff', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, cursor: 'pointer' }}
-                              onClick={e => { e.stopPropagation(); sessionStorage.setItem(PO_FOCUS_KEY, po.po_no); setTab?.('purchase_orders'); }}
+                              onClick={e => { e.stopPropagation(); window.localStorage.setItem(PO_FOCUS_KEY, po.po_no); setTab?.('purchase_orders'); }}
                               onMouseEnter={e => e.currentTarget.style.borderColor = '#3b82f6'}
                               onMouseLeave={e => e.currentTarget.style.borderColor = '#e5e7eb'}
                             >
@@ -181,7 +181,7 @@ export default function ProcurementCenter({ setTab }) {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                             {waiting.map((wo, i) => (
                               <div key={wo.order_id || i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 10px', background: '#fff', borderRadius: 6, border: '1px solid #e9d5ff', fontSize: 12, cursor: 'pointer' }}
-                                onClick={e => { e.stopPropagation(); if (wo.order_id) { sessionStorage.setItem(ORDER_FOCUS_KEY, wo.order_id); setTab?.('orders'); } }}
+                                onClick={e => { e.stopPropagation(); if (wo.order_id) { window.localStorage.setItem(ORDER_FOCUS_KEY, wo.order_id); setTab?.('orders'); } }}
                                 onMouseEnter={e => e.currentTarget.style.borderColor = '#7c3aed'}
                                 onMouseLeave={e => e.currentTarget.style.borderColor = '#e9d5ff'}
                               >

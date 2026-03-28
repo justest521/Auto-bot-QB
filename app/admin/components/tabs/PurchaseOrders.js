@@ -621,7 +621,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                             {waitingOrders.map((wo, idx) => (
                               <div key={wo.order_id || idx} style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: 12, padding: '3px 8px', borderRadius: 4, background: '#fff', border: '1px solid #e9d5ff' }}>
-                                <span style={{ fontWeight: 600, color: '#7c3aed', cursor: 'pointer' }} onClick={() => { if (wo.order_id) { sessionStorage.setItem(ORDER_FOCUS_KEY, wo.order_id); setTab?.('orders'); } }}>{wo.order_no || '-'}</span>
+                                <span style={{ fontWeight: 600, color: '#7c3aed', cursor: 'pointer' }} onClick={() => { if (wo.order_id) { window.localStorage.setItem(ORDER_FOCUS_KEY, wo.order_id); setTab?.('orders'); } }}>{wo.order_no || '-'}</span>
                                 <span style={{ color: '#6b7280' }}>{wo.customer_name || ''}</span>
                                 <span style={{ ...S.mono, color: '#374151' }}>需 {wo.qty_needed}</span>
                                 <span style={{ fontSize: 11, color: '#9ca3af' }}>{wo.order_date ? fmtDate(wo.order_date) : ''}</span>
