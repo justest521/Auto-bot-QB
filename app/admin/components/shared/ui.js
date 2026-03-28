@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, useCsvImport, IMPORT_DATASETS } from '@/lib/admin/helpers';
@@ -194,15 +195,29 @@ export function StatusBanner({ text, tone = 'neutral' }) {
   return <div style={{ ...S.card, padding: '14px 16px', ...(toneMap[tone] || toneMap.neutral) }}>{text}</div>;
 }
 
+// Portal target ID for header actions
+export const HEADER_ACTION_PORTAL_ID = 'qb-header-action-portal';
+
 export function PageLead({ eyebrow, title, description, action }) {
   // Title/eyebrow/description now rendered in the global header bar (page.js)
-  // PageLead only renders the action buttons row if present
+  // Action buttons are portaled into the header bar
+  const [portalTarget, setPortalTarget] = useState(null);
+
+  useEffect(() => {
+    const el = document.getElementById(HEADER_ACTION_PORTAL_ID);
+    if (el) setPortalTarget(el);
+    return () => {
+      // Clear portal content on unmount
+      const el2 = document.getElementById(HEADER_ACTION_PORTAL_ID);
+      if (el2) el2.innerHTML = '';
+    };
+  }, []);
+
+  // Use React portal to render action buttons into the header
   if (!action) return null;
-  return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-      <div>{action}</div>
-    </div>
-  );
+  if (!portalTarget) return null;
+
+  return createPortal(action, portalTarget);
 }
 
 // ── CategoryComboBox: 分類選擇/新增（帶模糊搜尋提示） ──

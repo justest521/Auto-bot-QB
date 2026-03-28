@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { API, ADMIN_TOKEN_KEY, apiGet, apiPost } from '@/lib/admin/api';
 import { useViewportWidth } from '@/lib/admin/helpers';
+import { HEADER_ACTION_PORTAL_ID } from './components/shared/ui';
 
 // ── Tab Components ──
 import EnvHealth from './components/tabs/EnvHealth';
@@ -348,6 +349,7 @@ export default function AdminPage() {
   const [pendingBadges, setPendingBadges] = useState({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarSearch, setSidebarSearch] = useState('');
+  // headerAction is rendered via portal from PageLead into HEADER_ACTION_PORTAL_ID div
   const { favs, toggle: toggleFav, isFav } = useFavorites();
   const { collapsed, toggle: toggleCollapsed } = useCollapsed();
   const ActiveTab = TAB_COMPONENTS[tab] || Dashboard;
@@ -689,6 +691,7 @@ export default function AdminPage() {
                 {!isMobile && TAB_META[tab]?.desc && <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{TAB_META[tab].desc}</div>}
               </div>
             </div>
+            <div id={HEADER_ACTION_PORTAL_ID} style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }} />
           </div>
 
           <div className="qb-content" style={{ ...S.content, padding: isMobile ? '18px 14px 30px' : isTablet ? '22px 18px 34px' : S.content.padding }}>
