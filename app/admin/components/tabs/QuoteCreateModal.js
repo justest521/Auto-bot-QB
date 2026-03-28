@@ -231,6 +231,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
         remark: form.remark,
         discount_amount: Number(form.discount_amount || 0),
         shipping_fee: Number(form.shipping_fee || 0),
+        tax_excluded: form.tax_excluded,
         items: form.items,
       });
       onCreated?.();

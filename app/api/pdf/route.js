@@ -149,7 +149,7 @@ export async function GET(req) {
           <div class="row"><span>小計</span><span>${fmtP(quote.subtotal)}</span></div>
           <div class="row"><span>折扣</span><span>-${fmtP(quote.discount_amount)}</span></div>
           <div class="row"><span>運費</span><span>${fmtP(quote.shipping_fee)}</span></div>
-          <div class="row"><span>稅額 (5%)</span><span>${fmtP(quote.tax_amount)}</span></div>
+          ${Number(quote.tax_amount) > 0 ? `<div class="row"><span>稅額 (${Number(quote.tax_rate || 5)}%)</span><span>${fmtP(quote.tax_amount)}</span></div>` : ''}
           <div class="row total"><span>合計</span><span>${fmtP(quote.total_amount)}</span></div>
         </div>
         <div class="signatures">
