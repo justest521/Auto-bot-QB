@@ -183,15 +183,18 @@ function SaleDetailView({ sale, onBack, setTab }) {
               ))}
             </div>
 
-            {/* 3. 發票資訊 — 號碼 + 可編輯 */}
+            {/* 3. 發票資訊 — 日期 + 號碼 + 可編輯 */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>發票資訊</div>
-              {(s.invoice_number || invoiceNumber) && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>發票號碼</span>
-                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...S.mono }}>{s.invoice_number || invoiceNumber}</span>
+              {[
+                { label: '發票日期', value: invoice?.invoice_date || s.sale_date || sale.sale_date },
+                { label: '發票號碼', value: s.invoice_number || invoiceNumber },
+              ].filter(f => f.value).map((f, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
+                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...S.mono }}>{f.value}</span>
                 </div>
-              )}
+              ))}
               <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 6 }}>
                 <input
                   type="text" placeholder="輸入發票號碼..."
