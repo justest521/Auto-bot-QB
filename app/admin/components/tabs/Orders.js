@@ -692,11 +692,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 linkedPOs.forEach(po => {
                   const pk = String(po.status || 'draft').toLowerCase();
                   const pc = poColorMap[pk] || '#6b7280';
-                  const poItems = items.filter(i => i.po_info || (i.po_ref && i.po_ref === po.id));
-                  const poItemText = poItems.length > 0 ? poItems.map(i => i.item_number_snapshot).join(', ') : '';
-                  const detailParts = [poStatusMap[pk] || pk];
-                  if (poItemText) detailParts.push(poItemText);
-                  entries.push({ dot: pc, label: '採購', ref: po.po_no, refType: 'po', detail: detailParts.join(' · '), detailColor: pc, time: po.po_date, status: pk === 'received' ? 'done' : 'current' });
+                  const poItemBadges = items.filter(i => i.po_info).map(i => ({ text: `已採購`, item: i.item_number_snapshot }));
+                  entries.push({ dot: pc, label: '採購', ref: po.po_no, refType: 'po', detail: poStatusMap[pk] || pk, detailColor: pc, time: po.po_date, status: pk === 'received' ? 'done' : 'current', badges: poItemBadges });
                 });
                 // Stock
                 const stockOk = noStockCount === 0 && insufficientCount === 0;
@@ -705,13 +702,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 linkedSales.forEach(sale => {
                   const sk = String(sale.status || 'draft').toLowerCase();
                   const sc = saleColorMap[sk] || '#6b7280';
-                  const saleItems = items.filter(i => i.sale_info);
-                  const saleItemText = saleItems.length > 0 ? saleItems.map(i => `${i.item_number_snapshot}(${i.sale_info?.sold_qty || 0}/${i.qty})`).join(', ') : '';
-                  const detailParts = [saleStatusMap[sk] || sk];
-                  if (sale.total_qty != null) detailParts.push(sale.total_qty + '件');
-                  detailParts.push('NT$' + Number(sale.total || 0).toLocaleString());
-                  if (saleItemText) detailParts.push(saleItemText);
-                  entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: detailParts.join(' · '), detailColor: sc, time: sale.sale_date, status: sk === 'paid' ? 'done' : 'current' });
+                  const saleBadges = items.filter(i => i.sale_info).map(i => ({ text: `已銷${i.sale_info.sold_qty}/${i.qty}`, item: i.item_number_snapshot }));
+                  entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: saleStatusMap[sk] || sk, detailColor: sc, time: sale.sale_date, status: sk === 'paid' ? 'done' : 'current', badges: saleBadges });
                 });
                 // Payment
                 entries.push({ dot: payKey === 'paid' ? '#16a34a' : payKey === 'partial' ? '#2563eb' : '#d1d5db', label: '付款', detail: PAY_STATUS_MAP[payKey] || payKey, status: payKey === 'paid' ? 'done' : payKey === 'partial' ? 'current' : 'pending' });
@@ -744,6 +736,13 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                             })()}
                             {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.detailColor || (e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af'), background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
                           </div>
+                          {e.badges && e.badges.length > 0 && (
+                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 3 }}>
+                              {e.badges.map((b, bi) => (
+                                <span key={bi} style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: e.label === '銷貨' ? '#dbeafe' : '#f3e8ff', color: e.label === '銷貨' ? '#1d4ed8' : '#7c3aed', fontWeight: 600 }}>{b.item} {b.text}</span>
+                              ))}
+                            </div>
+                          )}
                           {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
                         </div>
                       );
