@@ -31,6 +31,7 @@ import Returns from './components/tabs/Returns';
 import AIPrompt from './components/tabs/AIPrompt';
 import ChatHistory from './components/tabs/ChatHistory';
 import PurchaseOrders from './components/tabs/PurchaseOrders';
+import ProcurementCenter from './components/tabs/ProcurementCenter';
 import StockIn from './components/tabs/StockIn';
 import PurchaseReturns from './components/tabs/PurchaseReturns';
 import VendorPayments from './components/tabs/VendorPayments';
@@ -94,6 +95,7 @@ const SECTIONS = [
     title: 'ERP 採購進貨',
     tabs: [
       { id: 'purchase_orders', label: '採購單', code: 'PO' },
+      { id: 'procurement_center', label: '採購中心', code: 'PC' },
       { id: 'stock_in', label: '進貨單', code: 'SI' },
       { id: 'purchase_returns', label: '進貨退出', code: 'PRTN' },
       { id: 'vendor_payments', label: '付款單', code: 'VP' },
@@ -205,6 +207,7 @@ const TAB_META = {
   vendors: { eyebrow: 'Vendors', title: '廠商主檔', desc: '供應商主檔、聯絡窗口與統編資訊。' },
   line_customers: { eyebrow: 'Customers', title: '客戶綜合管理', desc: 'LINE 客戶與正式客戶綜合查看。' },
   purchase_orders: { eyebrow: 'Purchase Orders', title: '採購單', desc: '建立對廠商的採購訂單，確認後可轉進貨單入庫。' },
+  procurement_center: { eyebrow: 'Procurement Center', title: '採購中心', desc: '所有採購品項到貨進度、配貨建議總覽。' },
   stock_in: { eyebrow: 'Stock In', title: '進貨單', desc: '記錄廠商進貨入庫，確認後自動增加庫存。' },
   purchase_returns: { eyebrow: 'Purchase Returns', title: '進貨退出', desc: '將已進貨商品退回廠商，自動扣減庫存。' },
   vendor_payments: { eyebrow: 'Vendor Payments', title: '付款單', desc: '管理對廠商的付款記錄。' },
@@ -273,6 +276,7 @@ const TAB_COMPONENTS = {
   ai_prompt: AIPrompt,
   chat_history: ChatHistory,
   purchase_orders: PurchaseOrders,
+  procurement_center: ProcurementCenter,
   stock_in: StockIn,
   purchase_returns: PurchaseReturns,
   vendor_payments: VendorPayments,

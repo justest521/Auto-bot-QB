@@ -28,6 +28,12 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const [replaceSearch, setReplaceSearch] = useState('');
   const [replaceResults, setReplaceResults] = useState([]);
 
+  // Receiving states
+  const [showReceiving, setShowReceiving] = useState(false);
+  const [receivingQtys, setReceivingQtys] = useState({});
+  const [submittingReceive, setSubmittingReceive] = useState(false);
+  const [allocationData, setAllocationData] = useState({});
+
   const [approvalData, setApprovalData] = useState(null);
   const [submittingApproval, setSubmittingApproval] = useState(false);
 
@@ -241,6 +247,39 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
     onRefresh?.();
   };
 
+  // === Receiving (收貨) functions ===
+  const openReceiving = () => {
+    const qtys = {};
+    items.forEach(it => { qtys[it.id] = 0; });
+    setReceivingQtys(qtys);
+    setShowReceiving(true);
+    setAllocationData({});
+  };
+
+  const submitReceiving = async () => {
+    const receiveItems = Object.entries(receivingQtys)
+      .filter(([, qty]) => qty > 0)
+      .map(([po_item_id, qty_this_time]) => ({ po_item_id, qty_this_time: Number(qty_this_time) }));
+    if (receiveItems.length === 0) { setMsg('請輸入至少一個品項的到貨數量'); return; }
+    setSubmittingReceive(true); setMsg('');
+    try {
+      await apiPost({ action: 'receive_po_items', po_id: po.id, items: receiveItems });
+      setMsg('收貨完成，庫存已更新');
+      setShowReceiving(false);
+      await refreshPOData();
+    } catch (e) { setMsg(e.message || '收貨失敗'); }
+    finally { setSubmittingReceive(false); }
+  };
+
+  const loadAllocation = async (item_number) => {
+    try {
+      const res = await apiGet({ action: 'po_item_allocation', item_number });
+      setAllocationData(prev => ({ ...prev, [item_number]: res.waiting_orders || [] }));
+    } catch (_) {}
+  };
+
+  const canReceive = ['confirmed', 'shipped', 'sent'].includes(statusKey);
+
   const startEditItem = (item, e) => {
     e.stopPropagation();
     setEditingItemId(item.id);
@@ -383,8 +422,8 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 {items.length > 0 ? (
   <div>
     {/* Table header */}
-    <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '6px 10px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-      <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
+    <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '6px 10px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+      <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>到貨</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
     </div>
     {items.map((item) => {
       const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
@@ -393,7 +432,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       const rowBg = isEditing ? '#fffbeb' : '#fff';
       return (
         <div key={item.id || item.item_number}>
-        <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '14px 10px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
+        <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '14px 10px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
           <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', fontWeight: 600, ...S.mono, fontSize: 14 }} title={`${item.item_number || '-'} — ${item.description || ''}`}>
             {item.item_number || '-'}
           </div>
@@ -406,6 +445,23 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
             {isEditing ? (
               <input type="number" value={editValues.qty} onChange={e => setEditValues({ ...editValues, qty: parseInt(e.target.value) || 0 })} style={inputStyle} onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
             ) : item.qty || 0}
+          </div>
+          {/* 到貨進度 */}
+          <div style={{ textAlign: 'center' }}>
+            {(() => {
+              const received = Number(item.qty_received) || 0;
+              const total = Number(item.qty) || 1;
+              const pct = Math.min(Math.round((received / total) * 100), 100);
+              const done = received >= total;
+              return (
+                <div title={`已到 ${received} / ${total}`}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: done ? '#16a34a' : received > 0 ? '#f59e0b' : '#9ca3af', ...S.mono }}>{received}/{total}</div>
+                  <div style={{ width: '100%', height: 4, borderRadius: 2, background: '#e5e7eb', marginTop: 2 }}>
+                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: 2, background: done ? '#16a34a' : received > 0 ? '#f59e0b' : '#e5e7eb', transition: 'width 0.3s' }} />
+                  </div>
+                </div>
+              );
+            })()}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <span style={{ fontWeight: 700, color: badge.color, ...S.mono, fontSize: 12 }}>{item.stock_qty ?? '—'}</span>
@@ -520,10 +576,95 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 )}
           </div>
 
+          {/* ====== Receiving Panel ====== */}
+          {showReceiving && (
+            <div style={{ gridColumn: '1 / -1', background: '#fff', borderRadius: 12, border: '2px solid #059669', padding: 20, boxShadow: '0 4px 16px rgba(5,150,105,0.12)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <div>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#059669' }}>📦 收貨登記</span>
+                  <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>輸入本次到貨數量</span>
+                </div>
+                <button onClick={() => setShowReceiving(false)} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 12 }}>取消</button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '6px 10px', background: '#f0fdf4', fontSize: 12, fontWeight: 700, color: '#6b7280', borderRadius: 8, marginBottom: 8 }}>
+                <div>料號</div><div>品名</div><div style={{ textAlign: 'center' }}>訂購</div><div style={{ textAlign: 'center' }}>已到</div><div style={{ textAlign: 'center' }}>本次到貨</div>
+              </div>
+              {items.map(item => {
+                const received = Number(item.qty_received) || 0;
+                const remaining = (Number(item.qty) || 0) - received;
+                const waitingOrders = allocationData[item.item_number] || null;
+                return (
+                  <div key={item.id}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '8px 10px', borderBottom: waitingOrders ? 'none' : '1px solid #f0f2f5', alignItems: 'center', fontSize: 13 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontWeight: 600, ...S.mono }}>{item.item_number}</span>
+                        <button onClick={() => { if (waitingOrders) { setAllocationData(prev => { const n = { ...prev }; delete n[item.item_number]; return n; }); } else { loadAllocation(item.item_number); } }} title="查看配貨建議 (FIFO)" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #c7d2fe', background: waitingOrders ? '#eef2ff' : '#fff', color: '#6366f1', cursor: 'pointer', fontSize: 10, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>⇄</button>
+                      </div>
+                      <div style={{ color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description || '-'}</div>
+                      <div style={{ textAlign: 'center', ...S.mono }}>{item.qty || 0}</div>
+                      <div style={{ textAlign: 'center', ...S.mono, color: received > 0 ? '#059669' : '#9ca3af' }}>{received}</div>
+                      <div style={{ textAlign: 'center' }}>
+                        {remaining > 0 ? (
+                          <input type="number" min="0" max={remaining} value={receivingQtys[item.id] || ''} onChange={e => setReceivingQtys(prev => ({ ...prev, [item.id]: Math.min(Number(e.target.value) || 0, remaining) }))} style={{ width: 60, padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, textAlign: 'center', ...S.mono }} placeholder="0" />
+                        ) : (
+                          <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>已齊</span>
+                        )}
+                      </div>
+                    </div>
+                    {/* FIFO allocation suggestion */}
+                    {waitingOrders && (
+                      <div style={{ padding: '6px 10px 10px 20px', background: '#f5f3ff', borderBottom: '1px solid #f0f2f5', borderRadius: '0 0 6px 6px' }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', marginBottom: 4 }}>配貨建議 (先訂先出)</div>
+                        {waitingOrders.length === 0 ? (
+                          <div style={{ fontSize: 12, color: '#9ca3af' }}>目前無待出貨訂單需要此品項</div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            {waitingOrders.map((wo, idx) => (
+                              <div key={wo.order_id || idx} style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: 12, padding: '3px 8px', borderRadius: 4, background: '#fff', border: '1px solid #e9d5ff' }}>
+                                <span style={{ fontWeight: 600, color: '#7c3aed', cursor: 'pointer' }} onClick={() => { if (wo.order_id) { sessionStorage.setItem(ORDER_FOCUS_KEY, wo.order_id); setTab?.('orders'); } }}>{wo.order_no || '-'}</span>
+                                <span style={{ color: '#6b7280' }}>{wo.customer_name || ''}</span>
+                                <span style={{ ...S.mono, color: '#374151' }}>需 {wo.qty_needed}</span>
+                                <span style={{ fontSize: 11, color: '#9ca3af' }}>{wo.order_date ? fmtDate(wo.order_date) : ''}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {/* Quick fill + allocation */}
+              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                <button onClick={() => {
+                  const qtys = {};
+                  items.forEach(it => {
+                    const remaining = (Number(it.qty) || 0) - (Number(it.qty_received) || 0);
+                    qtys[it.id] = Math.max(remaining, 0);
+                  });
+                  setReceivingQtys(qtys);
+                }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 12, color: '#059669', borderColor: '#86efac' }}>全部到齊</button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setShowReceiving(false)} style={{ ...S.btnGhost, padding: '8px 20px', fontSize: 13 }}>取消</button>
+                  <button onClick={submitReceiving} disabled={submittingReceive} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: submittingReceive ? '#94a3b8' : '#059669', color: '#fff', fontSize: 14, fontWeight: 700, cursor: submittingReceive ? 'not-allowed' : 'pointer' }}>
+                    {submittingReceive ? '處理中...' : '確認收貨'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* 1. PDF button */}
             <button onClick={() => window.open(`/api/pdf?type=po&id=${po.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+
+            {/* Receive goods button */}
+            {canReceive && (
+              <button onClick={openReceiving} style={{ width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 700, border: 'none', borderRadius: 8, background: showReceiving ? '#94a3b8' : '#059669', color: '#fff', cursor: 'pointer' }}>
+                📦 收貨登記
+              </button>
+            )}
 
             {/* 2. Vendor card */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
@@ -970,6 +1111,7 @@ export default function PurchaseOrders({ setTab }) {
   const [selectedPO, setSelectedPO] = useState(null);
   const [showCreatePO, setShowCreatePO] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [exportFilter, setExportFilter] = useState('');
 
   const toggleSelect = (id) => setSelectedIds(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
   const toggleSelectAll = () => {
@@ -1066,7 +1208,12 @@ export default function PurchaseOrders({ setTab }) {
               const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a'); a.href = url; a.download = `採購單_${dateFrom || 'all'}_${dateTo || 'all'}.csv`; a.click(); URL.revokeObjectURL(url);
-              setMsg('已匯出');
+              // Mark as exported
+              const exportedIds = rows.map(r => r.id);
+              await apiPost({ action: 'mark_po_exported', po_ids: exportedIds }).catch(() => {});
+              await load(data.page, search, statusF);
+              setSelectedIds(new Set());
+              setMsg('已匯出並標記');
               setTimeout(() => setMsg(''), 2000);
             } catch (e) { setMsg('匯出失敗: ' + (e.message || '')); }
           }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: 14 }}>匯出{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}</button>
@@ -1097,14 +1244,21 @@ export default function PurchaseOrders({ setTab }) {
             <option value="received">已到貨</option>
             <option value="rejected">退回</option>
           </select>
+          <select value={exportFilter || ''} onChange={(e) => { setExportFilter(e.target.value); }} style={{ ...S.input, width: 120, fontSize: 14, padding: '6px 10px' }}>
+            <option value="">全部</option>
+            <option value="exported">已匯出</option>
+            <option value="not_exported">未匯出</option>
+          </select>
           <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋採購單號..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 14, padding: '6px 10px' }} />
           <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 14 }}>查詢</button>
         </div>
       </div>
-      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有採購單" /> : (
+      {(() => {
+        const filteredRows = exportFilter ? data.rows.filter(r => exportFilter === 'exported' ? !!r.exported_at : !r.exported_at) : data.rows;
+        return loading ? <Loading /> : filteredRows.length === 0 ? <EmptyState text={exportFilter ? '無符合篩選的採購單' : '目前沒有採購單'} /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
           <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 6, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
-            <div><input type="checkbox" checked={data.rows.length > 0 && selectedIds.size === data.rows.length} onChange={toggleSelectAll} style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
+            <div><input type="checkbox" checked={filteredRows.length > 0 && selectedIds.size === filteredRows.length} onChange={() => { if (selectedIds.size === filteredRows.length) setSelectedIds(new Set()); else setSelectedIds(new Set(filteredRows.map(r => r.id))); }} style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
             <div>序</div>
             <div>採購單號</div>
             <div>日期</div>
@@ -1114,13 +1268,13 @@ export default function PurchaseOrders({ setTab }) {
             {!isTablet && <div>廠商名稱</div>}
             <div style={{ textAlign: 'right' }}>操作</div>
           </div>
-          {data.rows.map((row, idx) => {
+          {filteredRows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
             return (
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 6, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
                 <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
-                <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.po_no || '-'}</div>
+                <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono, display: 'flex', alignItems: 'center', gap: 4 }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}</div>
                 <div style={{ fontSize: 12, color: '#374151', ...S.mono }}>{row.po_date?.slice(0, 10) || '-'}</div>
                 <div><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
                 <div style={{ fontSize: 14, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</div>
@@ -1131,7 +1285,8 @@ export default function PurchaseOrders({ setTab }) {
             );
           })}
         </div>
-      )}
+      );
+      })()}
       <Pager page={data.page || 1} limit={data.limit || 30} total={data.total || 0} onPageChange={(p) => load(p, search, statusF)} />
 
       {/* Create PO Modal */}
