@@ -539,14 +539,13 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                   });
                 }
 
-                // Add current status based on quote status
-                const statusColor = QUOTE_STATUS_COLOR[statusKey] || '#6b7280';
-                const statusText = QUOTE_STATUS_MAP[statusKey] || statusKey;
+                // Add current status based on quote status (skip if timeline already has a matching event)
+                const hasConvertEvent = entries.some(e => e.label === '轉訂單' && e.ref);
                 if (statusKey === 'sent') {
                   entries.push({ dot: '#3b82f6', label: '已發送', detail: '等待客戶回應', status: 'current' });
                 } else if (statusKey === 'approved') {
                   entries.push({ dot: '#16a34a', label: '已核准', detail: '客戶已核准', status: 'done' });
-                } else if (statusKey === 'converted') {
+                } else if (statusKey === 'converted' && !hasConvertEvent) {
                   entries.push({ dot: '#059669', label: '轉訂單', detail: '已轉為訂單', status: 'done' });
                 } else if (statusKey === 'closed') {
                   entries.push({ dot: '#9ca3af', label: '已結案', detail: '報價已結案', status: 'pending' });
