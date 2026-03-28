@@ -34,10 +34,8 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   // Vendor selection states
   const [vendorInfo, setVendorInfo] = useState(null);
   const [vendorSearch, setVendorSearch] = useState('');
-  const [vendorResults, setVendorResults] = useState([]);
   const [showVendorPicker, setShowVendorPicker] = useState(false);
   const [savingVendor, setSavingVendor] = useState(false);
-  const vendorSearchRef = useRef(null);
 
   const statusKey = String(po.status || 'draft').toLowerCase();
   const PO_STATUS_MAP = { draft: '草稿', sent: '已寄出', confirmed: '已確認', shipped: '已出貨', received: '已到貨', rejected: '退回', cancelled: '已取消' };
@@ -102,18 +100,35 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
     finally { setSubmittingApproval(false); }
   };
 
-  // Vendor search
-  const searchVendors = (keyword) => {
-    setVendorSearch(keyword);
-    if (vendorSearchRef.current) clearTimeout(vendorSearchRef.current);
-    if (!keyword || keyword.length < 1) { setVendorResults([]); return; }
-    vendorSearchRef.current = setTimeout(async () => {
+  // Vendor: load all vendors when picker opens, filter locally
+  const [allVendors, setAllVendors] = useState([]);
+  const [vendorLoading, setVendorLoading] = useState(false);
+
+  const openVendorPicker = async () => {
+    setShowVendorPicker(true);
+    setVendorSearch('');
+    if (allVendors.length === 0) {
+      setVendorLoading(true);
       try {
-        const res = await apiGet({ action: 'vendors', search: keyword, limit: 10 });
-        setVendorResults(res.vendors || []);
-      } catch (_) { setVendorResults([]); }
-    }, 300);
+        const res = await apiGet({ action: 'vendors', search: '', limit: 200 });
+        setAllVendors(res.vendors || []);
+      } catch (_) { setAllVendors([]); }
+      finally { setVendorLoading(false); }
+    }
   };
+
+  // Fuzzy filter: match any part of vendor_name, vendor_code, contact_name
+  const filteredVendors = (() => {
+    if (!vendorSearch.trim()) return allVendors;
+    const kw = vendorSearch.trim().toLowerCase();
+    return allVendors.filter(v => {
+      const fields = [v.vendor_name, v.vendor_code, v.contact_name, v.phone, v.mobile, v.email].filter(Boolean).join(' ').toLowerCase();
+      // fuzzy: every character of keyword appears in order
+      let idx = 0;
+      for (const ch of kw) { idx = fields.indexOf(ch, idx); if (idx === -1) return false; idx++; }
+      return true;
+    });
+  })();
 
   const selectVendor = async (vendor) => {
     setSavingVendor(true); setMsg('');
@@ -122,7 +137,6 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       setVendorInfo(vendor);
       setShowVendorPicker(false);
       setVendorSearch('');
-      setVendorResults([]);
       setMsg('廠商已更新');
       onRefresh?.();
     } catch (e) { setMsg(e.message || '更新廠商失敗'); }
@@ -510,14 +524,14 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                   {vendorInfo.email && <div style={{ fontSize: 12, color: '#2563eb', marginBottom: 2 }}>{vendorInfo.email}</div>}
                   {vendorInfo.address && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>{vendorInfo.address}</div>}
                   {isEditable && (
-                    <button onClick={() => setShowVendorPicker(true)} style={{ ...S.btnGhost, fontSize: 12, padding: '3px 10px', marginTop: 6, color: '#6b7280', borderColor: '#d1d5db' }}>更換廠商</button>
+                    <button onClick={openVendorPicker} style={{ ...S.btnGhost, fontSize: 12, padding: '3px 10px', marginTop: 6, color: '#6b7280', borderColor: '#d1d5db' }}>更換廠商</button>
                   )}
                 </div>
               ) : (
                 <div>
                   <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 8 }}>未指定廠商</div>
                   {isEditable && (
-                    <button onClick={() => setShowVendorPicker(true)} style={{ ...S.btnGhost, fontSize: 13, padding: '6px 14px', color: '#3b82f6', borderColor: '#93c5fd', width: '100%', justifyContent: 'center' }}>＋ 選擇廠商</button>
+                    <button onClick={openVendorPicker} style={{ ...S.btnGhost, fontSize: 13, padding: '6px 14px', color: '#3b82f6', borderColor: '#93c5fd', width: '100%', justifyContent: 'center' }}>＋ 選擇廠商</button>
                   )}
                 </div>
               )}
@@ -526,14 +540,16 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                 <div style={{ marginTop: 8, padding: '8px 0' }}>
                   <input
                     autoFocus
-                    placeholder="搜尋廠商名稱或編號..."
+                    placeholder="搜尋廠商名稱、編號、聯絡人..."
                     value={vendorSearch}
-                    onChange={e => searchVendors(e.target.value)}
+                    onChange={e => setVendorSearch(e.target.value)}
                     style={{ ...S.input, fontSize: 13, padding: '6px 10px', width: '100%', marginBottom: 6 }}
                   />
-                  {vendorResults.length > 0 && (
-                    <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff' }}>
-                      {vendorResults.map(v => (
+                  {vendorLoading ? (
+                    <div style={{ textAlign: 'center', padding: 12, fontSize: 12, color: '#9ca3af' }}>載入中...</div>
+                  ) : (
+                    <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff' }}>
+                      {filteredVendors.length > 0 ? filteredVendors.map(v => (
                         <div key={v.id} onClick={() => selectVendor(v)} style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                           onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
                           onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
@@ -543,10 +559,12 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                           </div>
                           <span style={{ fontSize: 11, color: '#9ca3af' }}>{v.vendor_code}</span>
                         </div>
-                      ))}
+                      )) : (
+                        <div style={{ textAlign: 'center', padding: 12, fontSize: 12, color: '#9ca3af' }}>{vendorSearch ? '找不到符合的廠商' : '尚無廠商資料'}</div>
+                      )}
                     </div>
                   )}
-                  <button onClick={() => { setShowVendorPicker(false); setVendorSearch(''); setVendorResults([]); }} style={{ ...S.btnGhost, fontSize: 12, padding: '3px 10px', marginTop: 6, color: '#6b7280', width: '100%', justifyContent: 'center' }}>取消</button>
+                  <button onClick={() => { setShowVendorPicker(false); setVendorSearch(''); }} style={{ ...S.btnGhost, fontSize: 12, padding: '3px 10px', marginTop: 6, color: '#6b7280', width: '100%', justifyContent: 'center' }}>取消</button>
                 </div>
               )}
             </div>
