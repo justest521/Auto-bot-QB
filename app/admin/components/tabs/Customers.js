@@ -498,7 +498,7 @@ export default function Customers() {
         <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : 'minmax(0, 1.25fr) minmax(340px, 0.9fr)', gap: 10, alignItems: 'start' }}>
           <div style={S.card}>
             {!isMobile && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 110px 150px 110px', gap: 10, padding: '0 10px 10px', borderBottom: '1px solid #e6edf5', marginBottom: 8, color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 110px 150px 110px', gap: 10, padding: '8px 16px', borderBottom: '1px solid #e6edf5', marginBottom: 8, color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
                 <div>客戶</div>
                 <div>狀態</div>
                 <div>ERP</div>

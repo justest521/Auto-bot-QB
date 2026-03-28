@@ -132,6 +132,7 @@ export async function GET(req) {
             <div>報價日期：${fmtDate(quote.quote_date)}</div>
             <div>有效期限：${fmtDate(quote.valid_until)}</div>
             <div>狀態：${esc(quote.status)}</div>
+            ${quote.sales_person ? `<div>負責業務：${esc(quote.sales_person)}</div>` : ''}
           </div>
         </div>
         ${customer ? `<div class="info-grid">
@@ -193,6 +194,7 @@ export async function GET(req) {
             <div>訂單日期：${fmtDate(order.order_date)}</div>
             <div>付款狀態：${{unpaid:'未付款',partial:'部分付款',paid:'已付款'}[order.payment_status] || esc(order.payment_status)}</div>
             <div>出貨狀態：${{pending:'待出貨',shipped:'已出貨',delivered:'已送達',partial:'部分出貨'}[order.shipping_status] || esc(order.shipping_status)}</div>
+            ${order.sales_person ? `<div>負責業務：${esc(order.sales_person)}</div>` : ''}
           </div>
         </div>
         ${customer ? `<div class="info-grid">
@@ -258,7 +260,7 @@ export async function GET(req) {
             <div style="font-size:16px;font-weight:700;color:#1c2740;">${esc(sale.slip_number)}</div>
             <div>銷貨日期：${fmtDate(sale.sale_date)}</div>
             ${sale.invoice_number ? `<div>發票號碼：${esc(sale.invoice_number)}</div>` : ''}
-            <div>業務人員：${esc(sale.sales_person || '-')}</div>
+            <div>負責業務：${esc(sale.sales_person || '-')}</div>
           </div>
         </div>
         <div class="info-grid">

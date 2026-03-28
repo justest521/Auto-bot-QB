@@ -31,6 +31,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
   const [productLoading, setProductLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [staffList, setStaffList] = useState([]);
   const [form, setForm] = useState(() => {
     const today = toDateInputValue(todayInTaipei());
     return {
@@ -40,9 +41,14 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
       discount_amount: 0,
       shipping_fee: 0,
       tax_excluded: true,
+      sales_person: '',
       items: [],
     };
   });
+
+  useEffect(() => {
+    apiGet({ action: 'staff_list' }).then(res => setStaffList(res.staff || [])).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -190,6 +196,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
         tax_amount: taxAmount,
         subtotal: subtotal,
         total_amount: totalAmount,
+        sales_person: form.sales_person || null,
         items: form.items,
       });
       onCreated?.();
@@ -345,6 +352,13 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
               <PanelHeader title="訂單抬頭" meta="設定日期與備註。" />
               <div style={{ display: 'grid', gap: 10 }}>
                 <div><label style={{ ...S.label, marginBottom: 6 }}>訂單日期</label><input type="date" value={form.order_date} onChange={(e) => setForm((current) => ({ ...current, order_date: e.target.value }))} style={S.input} /></div>
+                <div>
+                  <label style={{ ...S.label, marginBottom: 6 }}>負責業務</label>
+                  <select value={form.sales_person} onChange={(e) => setForm((current) => ({ ...current, sales_person: e.target.value }))} style={S.input}>
+                    <option value="">-- 選擇業務 --</option>
+                    {staffList.map(s => <option key={s.id || s.name} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
                 <div><label style={{ ...S.label, marginBottom: 6 }}>備註</label><textarea value={form.remark} onChange={(e) => setForm((current) => ({ ...current, remark: e.target.value }))} rows={4} style={{ ...S.input, resize: 'vertical' }} /></div>
               </div>
             </div>

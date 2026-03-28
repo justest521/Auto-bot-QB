@@ -60,6 +60,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
   const [productLoading, setProductLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [staffList, setStaffList] = useState([]);
   const [form, setForm] = useState(() => {
     const today = getPresetDateRange('today').from;
     const validDate = new Date(todayInTaipei());
@@ -73,9 +74,14 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
       discount_amount: 0,
       shipping_fee: 0,
       tax_excluded: true,
+      sales_person: '',
       items: [],
     };
   });
+
+  useEffect(() => {
+    apiGet({ action: 'staff_list' }).then(res => setStaffList(res.staff || [])).catch(() => {});
+  }, []);
 
   // Only clear error when reopening — keep all other state (customer, items, form) intact
   useEffect(() => {
@@ -96,7 +102,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
     const validDate = new Date(todayInTaipei());
     validDate.setMonth(validDate.getMonth() + 1);
     const validUntil = toDateInputValue(validDate);
-    setForm({ quote_date: today, valid_until: validUntil, status: 'draft', remark: '', discount_amount: 0, shipping_fee: 0, tax_excluded: true, items: [] });
+    setForm({ quote_date: today, valid_until: validUntil, status: 'draft', remark: '', discount_amount: 0, shipping_fee: 0, tax_excluded: true, sales_person: '', items: [] });
   };
 
   const searchCustomers = async (term) => {
@@ -242,6 +248,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
         discount_amount: Number(form.discount_amount || 0),
         shipping_fee: Number(form.shipping_fee || 0),
         tax_excluded: form.tax_excluded,
+        sales_person: form.sales_person || null,
         items: form.items,
       });
       resetAll();
@@ -399,6 +406,13 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
               <div style={{ display: 'grid', gap: 10 }}>
                 <div><label style={{ ...S.label, marginBottom: 6 }}>報價日期</label><input type="date" value={form.quote_date} onChange={(e) => setForm((current) => ({ ...current, quote_date: e.target.value }))} style={S.input} /></div>
                 <div><label style={{ ...S.label, marginBottom: 6 }}>有效期限</label><input type="date" value={form.valid_until} onChange={(e) => setForm((current) => ({ ...current, valid_until: e.target.value }))} style={S.input} /></div>
+                <div>
+                  <label style={{ ...S.label, marginBottom: 6 }}>負責業務</label>
+                  <select value={form.sales_person} onChange={(e) => setForm((current) => ({ ...current, sales_person: e.target.value }))} style={S.input}>
+                    <option value="">-- 選擇業務 --</option>
+                    {staffList.map(s => <option key={s.id || s.name} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
                 <div><label style={{ ...S.label, marginBottom: 6 }}>備註</label><textarea value={form.remark} onChange={(e) => setForm((current) => ({ ...current, remark: e.target.value }))} rows={4} style={{ ...S.input, resize: 'vertical' }} /></div>
               </div>
             </div>

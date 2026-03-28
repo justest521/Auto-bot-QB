@@ -60,9 +60,9 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
       {/* Header */}
-      <div style={{ ...cardStyle, padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+      <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 22, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{ship.shipment_no || '-'}</span>
@@ -100,11 +100,11 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
               </div>
               {items.length > 0 ? (
                 <div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '10px 24px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     <div>料號</div><div>品名</div><div style={{ textAlign: 'center' }}>訂購數</div><div style={{ textAlign: 'center' }}>出貨數</div><div style={{ textAlign: 'right' }}>單價</div>
                   </div>
                   {items.map((item, i) => (
-                    <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '16px 24px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                    <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                       <div style={{ ...S.mono, fontSize: 14, color: '#374151' }}>{item.item_number || '-'}</div>
                       <div style={{ fontWeight: 600, fontSize: 14, color: '#1f2937', lineHeight: 1.4 }}>{item.description || '-'}</div>
                       <div style={{ textAlign: 'center', ...S.mono, fontSize: 14, color: '#6b7280' }}>{item.order_qty || '-'}</div>
@@ -320,13 +320,13 @@ export default function Shipments() {
       {loading ? <Loading /> : data.shipments.length === 0 ? <EmptyState text="目前沒有出貨記錄" /> : (
         <div style={{ ...S.card, borderRadius: 14, padding: 0, overflow: 'hidden' }}>
           {/* Table header */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 10, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
             <div>#</div><div>出貨單號</div><div>物流商</div><div>追蹤編號</div><div>出貨日期</div><div>狀態</div><div>操作</div>
           </div>
           {/* Table rows */}
           {data.shipments.map((s, idx) => (
             <div key={s.id} onClick={() => setSelectedShipment(s)}
-              style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
+              style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '40px 160px 100px minmax(0,1fr) 120px 100px 160px', gap: 10, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
               <div style={{ fontSize: 13, color: '#b0b8c4', fontWeight: 500 }}>{(data.page * (data.limit || pageSize)) + idx + 1}</div>

@@ -265,7 +265,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
       {/* ====== Header ====== */}
-      <div style={{ ...cardStyle, padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+      <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
@@ -300,7 +300,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             {items.length > 0 ? (
               <div>
                 {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '6px 10px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
                   <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
                 </div>
                 {/* Table rows */}
@@ -311,7 +311,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                   const rowBg = isEditing ? '#fffbeb' : '#fff';
                   return (
                     <div key={item.id || item.item_number_snapshot}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '14px 10px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
                       <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', fontWeight: 600, ...S.mono, fontSize: 14 }} title={`${item.item_number_snapshot || '-'} — ${item.description_snapshot || ''}`}>
                         {item.item_number_snapshot || '-'}
                       </div>
@@ -459,6 +459,25 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                   <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...(f.mono ? S.mono : {}), overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.value}</span>
                 </div>
               ))}
+            </div>
+
+            {/* 2.5 Sales person */}
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+              <div style={labelStyle}>負責業務</div>
+              {editingSales ? (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <select defaultValue={q.sales_person || ''} onChange={e => updateSalesPerson(e.target.value)} style={{ ...S.input, flex: 1, fontSize: 13 }}>
+                    <option value="">-- 未指派 --</option>
+                    {salesUsers.map(u => <option key={u.id || u.display_name} value={u.display_name || u.username}>{u.display_name || u.username}</option>)}
+                  </select>
+                  <button onClick={() => setEditingSales(false)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12 }}>取消</button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: q.sales_person ? '#111827' : '#9ca3af' }}>{q.sales_person || '未指派'}</span>
+                  <button onClick={() => setEditingSales(true)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11 }}>變更</button>
+                </div>
+              )}
             </div>
 
             {/* 3. Unified record timeline card */}
@@ -636,8 +655,8 @@ export default function Quotes({ setTab }) {
     window.localStorage.removeItem('qb_quote_focus');
   }, [load]);
   useEffect(() => {
-    apiGet({ action: 'dealer_users' }).then(res => {
-      setSalesUsers((res.rows || []).filter(u => u.role === 'sales' && u.status === 'active'));
+    apiGet({ action: 'staff_list' }).then(res => {
+      setSalesUsers((res.staff || []).map(s => ({ id: s.id, display_name: s.name, username: s.name })));
     }).catch(() => {});
   }, []);
 

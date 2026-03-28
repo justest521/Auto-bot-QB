@@ -377,7 +377,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
       {/* ====== Header ====== */}
-      <div style={{ ...cardStyle, padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+      <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
@@ -422,7 +422,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 {items.length > 0 ? (
   <div>
     {/* Table header */}
-    <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '6px 10px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
       <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>到貨</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
     </div>
     {items.map((item) => {
@@ -432,7 +432,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       const rowBg = isEditing ? '#fffbeb' : '#fff';
       return (
         <div key={item.id || item.item_number}>
-        <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '14px 10px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
+        <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
           <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', fontWeight: 600, ...S.mono, fontSize: 14 }} title={`${item.item_number || '-'} — ${item.description || ''}`}>
             {item.item_number || '-'}
           </div>
@@ -586,7 +586,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                 </div>
                 <button onClick={() => setShowReceiving(false)} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 12 }}>取消</button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '6px 10px', background: '#f0fdf4', fontSize: 12, fontWeight: 700, color: '#6b7280', borderRadius: 8, marginBottom: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '8px 12px', background: '#f0fdf4', fontSize: 12, fontWeight: 700, color: '#6b7280', borderRadius: 8, marginBottom: 8 }}>
                 <div>料號</div><div>品名</div><div style={{ textAlign: 'center' }}>訂購</div><div style={{ textAlign: 'center' }}>已到</div><div style={{ textAlign: 'center' }}>本次到貨</div>
               </div>
               {items.map(item => {
@@ -595,7 +595,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                 const waitingOrders = allocationData[item.item_number] || null;
                 return (
                   <div key={item.id}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '8px 10px', borderBottom: waitingOrders ? 'none' : '1px solid #f0f2f5', alignItems: 'center', fontSize: 13 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '10px 12px', borderBottom: waitingOrders ? 'none' : '1px solid #f0f2f5', alignItems: 'center', fontSize: 13 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <span style={{ fontWeight: 600, ...S.mono }}>{item.item_number}</span>
                         <button onClick={() => { if (waitingOrders) { setAllocationData(prev => { const n = { ...prev }; delete n[item.item_number]; return n; }); } else { loadAllocation(item.item_number); } }} title="查看配貨建議 (FIFO)" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #c7d2fe', background: waitingOrders ? '#eef2ff' : '#fff', color: '#6366f1', cursor: 'pointer', fontSize: 10, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>⇄</button>
@@ -1268,7 +1268,7 @@ export default function PurchaseOrders({ setTab }) {
         const filteredRows = exportFilter ? data.rows.filter(r => exportFilter === 'exported' ? !!r.exported_at : !r.exported_at) : data.rows;
         return loading ? <Loading /> : filteredRows.length === 0 ? <EmptyState text={exportFilter ? '無符合篩選的採購單' : '目前沒有採購單'} /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 6, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
             <div><input type="checkbox" checked={filteredRows.length > 0 && selectedIds.size === filteredRows.length} onChange={() => { if (selectedIds.size === filteredRows.length) setSelectedIds(new Set()); else setSelectedIds(new Set(filteredRows.map(r => r.id))); }} style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
             <div>序</div>
             <div>採購單號</div>
@@ -1282,7 +1282,7 @@ export default function PurchaseOrders({ setTab }) {
           {filteredRows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
             return (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 6, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
+              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
                 <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
                 <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono, display: 'flex', alignItems: 'center', gap: 4 }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}</div>
