@@ -610,9 +610,11 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 已建立銷貨單 {linkedSales.map(s => s.slip_number).join(', ')}（自動核准）
               </span>
               )}
-              {isPending ? (
+              {!canConvert && !isConverted && (statusKey === 'draft' || statusKey === 'rejected') ? (
+              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>請先送審並核准後才能轉銷貨</span>
+              ) : isPending ? (
               <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}>訂單審核中，請等待審核完成</span>
-              ) : items.some(i => (i.remaining_qty != null ? Number(i.remaining_qty) > 0 : !i.sale_info)) && (
+              ) : canConvert && items.some(i => (i.remaining_qty != null ? Number(i.remaining_qty) > 0 : !i.sale_info)) && (
               <button
                 onClick={openSaleForm}
                 disabled={!!processingAction || selectedItemIds.size === 0}
@@ -621,7 +623,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 {processingAction === 'sale' ? '處理中...' : `勾選項目 → 轉銷貨${selectedItemIds.size > 0 ? ` (${selectedItemIds.size}項)` : ''}`}
               </button>
               )}
-              {!isPending && (
+              {canConvert && (
               <button
                 onClick={handleSelectedToPO}
                 disabled={!!processingAction || selectedItemIds.size === 0}
