@@ -29,7 +29,7 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
 
-function wrapHtml(title, body) {
+function wrapHtml(title, body, logoUrl) {
   return `<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -41,6 +41,7 @@ function wrapHtml(title, body) {
   body { font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; color: #1c2740; font-size: 12px; line-height: 1.4; padding: 14px; }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 2px solid #1976f3; padding-bottom: 8px; }
   .header h1 { font-size: 18px; color: #1976f3; }
+  .header .logo { max-height: 60px; max-width: 200px; object-fit: contain; margin-bottom: 4px; }
   .header .meta { text-align: right; font-size: 11px; color: #617084; line-height: 1.5; }
   .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
   .info-box { background: #f8fbff; border: 1px solid #dbe6f3; border-radius: 6px; padding: 6px 10px; }
@@ -108,6 +109,11 @@ export async function GET(req) {
   }
 
   try {
+    // Fetch company settings (logo, name, etc.)
+    const { data: configRow } = await getSupabase().from('quickbuy_config').select('value').eq('key', 'company_settings').maybeSingle();
+    const cs = configRow?.value || {};
+    const logoUrl = cs.logo_url || '';
+
     if (type === 'quote') {
       const { data: quote } = await getSupabase().from('erp_quotes').select('*').eq('id', id).single();
       if (!quote) return new Response('Quote not found', { status: 404 });
@@ -119,7 +125,7 @@ export async function GET(req) {
 
       const html = wrapHtml(`報價單 ${quote.quote_no}`, `
         <div class="header">
-          <div><h1>報價單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Quotation</div></div>
+          <div>${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" alt="Logo" />` : ''}<h1>報價單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Quotation</div></div>
           <div class="meta">
             <div style="font-size:16px;font-weight:700;color:#1c2740;">${esc(quote.quote_no)}</div>
             <div>報價日期：${fmtDate(quote.quote_date)}</div>
@@ -147,8 +153,8 @@ export async function GET(req) {
         </table>
         <div class="totals">
           <div class="row"><span>小計</span><span>${fmtP(quote.subtotal)}</span></div>
-          <div class="row"><span>折扣</span><span>-${fmtP(quote.discount_amount)}</span></div>
-          <div class="row"><span>運費</span><span>${fmtP(quote.shipping_fee)}</span></div>
+          ${Number(quote.discount_amount) > 0 ? `<div class="row"><span>折扣</span><span>-${fmtP(quote.discount_amount)}</span></div>` : ''}
+          ${Number(quote.shipping_fee) > 0 ? `<div class="row"><span>運費</span><span>${fmtP(quote.shipping_fee)}</span></div>` : ''}
           ${Number(quote.tax_amount) > 0 ? `<div class="row"><span>稅額 (${Number(quote.tax_rate || 5)}%)</span><span>${fmtP(quote.tax_amount)}</span></div>` : ''}
           <div class="row total"><span>合計</span><span>${fmtP(quote.total_amount)}</span></div>
         </div>
@@ -156,7 +162,7 @@ export async function GET(req) {
           <div class="sig-block">
             <div class="sig-label">賣方簽章</div>
             <div class="sig-line"></div>
-            <div class="sig-hint">公司大小章 / 負責人簽名</div>
+            <div class="sig-hint">${esc(cs.company_name || '')} / 負責人簽名</div>
           </div>
           <div class="sig-block">
             <div class="sig-label">客戶回簽</div>
@@ -164,7 +170,7 @@ export async function GET(req) {
             <div class="sig-hint">確認同意本報價內容</div>
           </div>
         </div>
-      `);
+      `, logoUrl);
 
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
@@ -180,12 +186,12 @@ export async function GET(req) {
 
       const html = wrapHtml(`訂單 ${order.order_no}`, `
         <div class="header">
-          <div><h1>訂購單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Sales Order</div></div>
+          <div>${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" alt="Logo" />` : ''}<h1>訂購單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Sales Order</div></div>
           <div class="meta">
             <div style="font-size:16px;font-weight:700;color:#1c2740;">${esc(order.order_no)}</div>
             <div>訂單日期：${fmtDate(order.order_date)}</div>
-            <div>付款狀態：${esc(order.payment_status)}</div>
-            <div>出貨狀態：${esc(order.shipping_status)}</div>
+            <div>付款狀態：${{unpaid:'未付款',partial:'部分付款',paid:'已付款'}[order.payment_status] || esc(order.payment_status)}</div>
+            <div>出貨狀態：${{pending:'待出貨',shipped:'已出貨',delivered:'已送達',partial:'部分出貨'}[order.shipping_status] || esc(order.shipping_status)}</div>
           </div>
         </div>
         ${customer ? `<div class="info-grid">
@@ -207,16 +213,16 @@ export async function GET(req) {
         </table>
         <div class="totals">
           <div class="row"><span>小計</span><span>${fmtP(order.subtotal)}</span></div>
-          <div class="row"><span>折扣</span><span>-${fmtP(order.discount_amount)}</span></div>
-          <div class="row"><span>運費</span><span>${fmtP(order.shipping_fee)}</span></div>
-          <div class="row"><span>稅額</span><span>${fmtP(order.tax_amount)}</span></div>
+          ${Number(order.discount_amount) > 0 ? `<div class="row"><span>折扣</span><span>-${fmtP(order.discount_amount)}</span></div>` : ''}
+          ${Number(order.shipping_fee) > 0 ? `<div class="row"><span>運費</span><span>${fmtP(order.shipping_fee)}</span></div>` : ''}
+          ${Number(order.tax_amount) > 0 ? `<div class="row"><span>稅額</span><span>${fmtP(order.tax_amount)}</span></div>` : ''}
           <div class="row total"><span>合計</span><span>${fmtP(order.total_amount)}</span></div>
         </div>
         <div class="signatures">
           <div class="sig-block">
             <div class="sig-label">賣方簽章</div>
             <div class="sig-line"></div>
-            <div class="sig-hint">公司大小章 / 負責人簽名</div>
+            <div class="sig-hint">${esc(cs.company_name || '')} / 負責人簽名</div>
           </div>
           <div class="sig-block">
             <div class="sig-label">客戶回簽</div>
@@ -224,7 +230,7 @@ export async function GET(req) {
             <div class="sig-hint">確認同意本訂單內容</div>
           </div>
         </div>
-      `);
+      `, logoUrl);
 
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
@@ -246,7 +252,7 @@ export async function GET(req) {
 
       const html = wrapHtml(`銷貨單 ${sale.slip_number}`, `
         <div class="header">
-          <div><h1>銷貨單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Sales Invoice</div></div>
+          <div>${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" alt="Logo" />` : ''}<h1>銷貨單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Sales Invoice</div></div>
           <div class="meta">
             <div style="font-size:16px;font-weight:700;color:#1c2740;">${esc(sale.slip_number)}</div>
             <div>銷貨日期：${fmtDate(sale.sale_date)}</div>
@@ -268,12 +274,12 @@ export async function GET(req) {
         </table>` : ''}
         <div class="totals">
           <div class="row"><span>小計</span><span>${fmtP(sale.subtotal)}</span></div>
-          <div class="row"><span>稅額</span><span>${fmtP(sale.tax)}</span></div>
+          ${Number(sale.discount_amount) > 0 ? `<div class="row"><span>折扣</span><span>-${fmtP(sale.discount_amount)}</span></div>` : ''}
+          ${Number(sale.shipping_fee) > 0 ? `<div class="row"><span>運費</span><span>${fmtP(sale.shipping_fee)}</span></div>` : ''}
+          ${Number(sale.tax) > 0 ? `<div class="row"><span>稅額</span><span>${fmtP(sale.tax)}</span></div>` : ''}
           <div class="row total"><span>合計</span><span>${fmtP(sale.total)}</span></div>
-          ${sale.cost ? `<div class="row"><span>成本</span><span>${fmtP(sale.cost)}</span></div>` : ''}
-          ${sale.gross_profit ? `<div class="row"><span>毛利</span><span>${fmtP(sale.gross_profit)} (${esc(sale.profit_margin || '')})</span></div>` : ''}
         </div>
-      `);
+      `, logoUrl);
 
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }

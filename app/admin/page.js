@@ -52,6 +52,7 @@ import PartsExchange from './components/tabs/PartsExchange';
 import EquipmentLease from './components/tabs/EquipmentLease';
 import AIForecast from './components/tabs/AIForecast';
 import Flowchart from './components/tabs/Flowchart';
+import CompanySettings from './components/tabs/CompanySettings';
 
 // ── SECTIONS ──
 const SECTION_ICONS = {
@@ -188,6 +189,7 @@ const SECTIONS = [
     accent: '#374151',
     tabs: [
       { id: 'user_management', label: '使用者管理', code: 'UMGT' },
+      { id: 'company_settings', label: '公司設定', code: 'CSET' },
     ],
   },
 ];
@@ -240,6 +242,7 @@ const TAB_COMPONENTS = {
   parts_exchange: PartsExchange,
   equipment_lease: EquipmentLease,
   ai_forecast: AIForecast,
+  company_settings: CompanySettings,
 };
 
 // ── Sidebar Hooks ──
