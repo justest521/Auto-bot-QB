@@ -1043,7 +1043,7 @@ export default function PurchaseOrders({ setTab }) {
             <div>狀態</div>
             <div>備註</div>
             <div style={{ textAlign: 'right' }}>金額</div>
-            {!isTablet && <div>廠商ID</div>}
+            {!isTablet && <div>廠商名稱</div>}
             <div style={{ textAlign: 'right' }}>操作</div>
           </div>
           {data.rows.map((row, idx) => {
@@ -1056,7 +1056,7 @@ export default function PurchaseOrders({ setTab }) {
                 <div><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
                 <div style={{ fontSize: 14, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</div>
                 <div style={{ fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
-                {!isTablet && <div style={{ fontSize: 12, color: '#6b7280' }}>{row.vendor_id || '-'}</div>}
+                {!isTablet && <div style={{ fontSize: 12, color: '#374151', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.vendor?.vendor_name || '-'}</div>}
                 <div style={{ fontSize: 12, color: '#9ca3af', textAlign: 'right' }}>→</div>
               </div>
             );
