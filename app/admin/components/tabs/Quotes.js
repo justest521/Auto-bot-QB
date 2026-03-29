@@ -285,60 +285,46 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
     padding: '16px',
   };
 
-  const cardStyle = { ...S.card, marginBottom: '10px', padding: isMobile ? '12px 14px' : '16px' };
+  const cardStyle = { ...S.card, marginBottom: 0, padding: isMobile ? '12px 14px' : '16px' };
   const labelStyle = { fontSize: isMobile ? 12 : 13, fontWeight: 700, color: '#6b7280', marginBottom: isMobile ? 6 : 8, textTransform: 'uppercase', letterSpacing: 0.5 };
 
   if (loading) return <Loading />;
 
   return (
     <div style={modalContainerStyle}>
-      {/* Back button */}
-      <div style={{ position: isMobile ? 'sticky' : 'relative', top: 0, padding: isMobile ? '8px 14px' : '0', background: isMobile ? '#fff' : 'transparent', borderBottom: isMobile ? '1px solid #e5e7eb' : 'none', zIndex: 100, marginBottom: isMobile ? 0 : '16px' }}>
-        <button onClick={onBack} style={{ ...S.btnGhost, fontSize: isMobile ? 13 : 14, minHeight: isMobile ? 44 : undefined }}>← 返回</button>
-        {msg && <div style={{ marginTop: '8px', fontSize: 12, color: msg.includes('失敗') ? '#dc2626' : '#15803d', background: msg.includes('失敗') ? '#fee2e2' : '#dcfce7', padding: '6px 8px', borderRadius: 4 }}>{msg}</div>}
-      </div>
-
-      {/* Header card */}
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: isMobile ? 8 : 12, marginBottom: isMobile ? 8 : 12, flexWrap: 'wrap' }}>
+      {/* ====== Header ====== */}
+      <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
-            <div style={{ fontSize: isMobile ? 18 : 24, fontWeight: 800, color: '#111827', ...S.mono }}>{q.quote_no || '-'}</div>
-            <div style={{ fontSize: isMobile ? 11 : 12, color: '#6b7280', marginTop: 4 }}>{q.quote_date || '-'}</div>
-          </div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <span style={{ ...S.tag(QUOTE_STATUS_TONE[statusKey] || ''), fontSize: isMobile ? 11 : 12, minHeight: isMobile ? 24 : undefined, display: 'flex', alignItems: 'center' }}>{QUOTE_STATUS_MAP[statusKey] || statusKey}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{q.quote_no || '-'}</span>
+              <span style={{ padding: '3px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: `${QUOTE_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: QUOTE_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${QUOTE_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
+                {QUOTE_STATUS_MAP[statusKey] || statusKey}
+              </span>
+            </div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, ...S.mono }}>
+              {q.quote_date || '-'}
+            </div>
           </div>
         </div>
-
-        {/* Customer & Sales Person */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 12 : 16 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', textAlign: 'right' }}>
           <div>
-            <div style={labelStyle}>客戶</div>
-            <div style={{ fontSize: isMobile ? 13 : 14, color: '#111827', fontWeight: 600 }}>{c.company_name || c.name || '未綁定'}</div>
-            {c.phone && <div style={{ fontSize: isMobile ? 11 : 12, color: '#6b7280', marginTop: 2 }}>{c.phone}</div>}
-          </div>
-          <div>
-            <div style={labelStyle}>業務</div>
-            {editingSales ? (
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', minHeight: isMobile ? 44 : undefined }}>
-                <select value={q.sales_person || ''} onChange={(e) => updateSalesPerson(e.target.value)} style={{ ...S.input, fontSize: isMobile ? 13 : 14, flex: 1, ...(isMobile ? S.mobile.input : {}) }}>
-                  <option value="">-- 未指定 --</option>
-                  {(salesUsers || []).map(u => <option key={u.id} value={u.display_name}>{u.display_name}</option>)}
-                </select>
-                <button onClick={() => setEditingSales(false)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: isMobile ? 12 : 13, minHeight: isMobile ? 44 : undefined }}>完成</button>
-              </div>
-            ) : (
-              <div onClick={() => isEditable && setEditingSales(true)} style={{ fontSize: isMobile ? 13 : 14, color: isEditable ? '#3b82f6' : '#111827', fontWeight: 600, cursor: isEditable ? 'pointer' : 'default', padding: isMobile ? '6px 8px' : '2px 4px', borderRadius: 4, background: isEditable ? '#eff6ff' : 'transparent' }}>
-                {q.sales_person || <span style={{ color: '#d1d5db' }}>點擊設定</span>}
-              </div>
-            )}
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{c.company_name || c.name || '未綁定客戶'}</div>
+            {c.phone && <div style={{ fontSize: 12, color: '#6b7280', ...S.mono, marginTop: 2 }}>{c.phone}</div>}
           </div>
         </div>
       </div>
 
-      {/* Quote items */}
-      {items.length > 0 ? (
-        <div style={cardStyle}>
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
+
+      {/* Two-column layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: 10, alignItems: 'start' }}>
+        {/* ====== Left: Items section ====== */}
+        <div>
+          {/* Quote items */}
+          {items.length > 0 ? (
+            <div style={cardStyle}>
           {isMobile ? (
             // Mobile card layout
             <div>
@@ -567,17 +553,17 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                 <button onClick={() => setShowAddItem(true)} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: isMobile ? 13 : 14, minHeight: isMobile ? 44 : undefined }}>+ 新增品項</button>
               )}
             </div>
-          )}
-        </div>
-      ) : (
-        <div style={cardStyle}>
-          <div style={labelStyle}>品項</div>
-          <EmptyState text="暫無品項" />
-        </div>
-      )}
+            )}
+          </div>
+        ) : (
+          <div style={cardStyle}>
+            <div style={labelStyle}>品項</div>
+            <EmptyState text="暫無品項" />
+          </div>
+        )}
 
-      {/* Amounts card */}
-      <div style={cardStyle}>
+        {/* Amounts card in left column */}
+        <div style={cardStyle}>
         <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: '#6b7280', marginBottom: isMobile ? 8 : 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>金額明細</div>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 10 : 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: isMobile ? 8 : 10, borderBottom: '1px solid #e5e7eb' }}>
@@ -598,9 +584,68 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
           </div>
         </div>
       </div>
+        </div>
 
-      {/* Timeline card */}
-      <div style={cardStyle}>
+        {/* ====== Right: Sidebar ====== */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, ...(isMobile ? { gridColumn: '1/-1' } : {}) }}>
+          {/* 1. PDF button */}
+          <button onClick={() => window.open(`/api/pdf?type=quote&id=${quote.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+
+          {/* 2. 客戶資訊 */}
+          <div style={{ ...cardStyle, padding: '10px 16px' }}>
+            <div style={labelStyle}>客戶資訊</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{c.company_name || c.name || '未綁定'}</div>
+            {[
+              { label: '電話', value: c.phone },
+              { label: '報價日期', value: q.quote_date, mono: true },
+              { label: '有效期', value: q.valid_until, mono: true },
+            ].filter(f => f.value).map((f, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
+                <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
+                <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...(f.mono ? S.mono : {}) }}>{f.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 3. Sales person */}
+          <div style={{ ...cardStyle, padding: '10px 16px' }}>
+            <div style={labelStyle}>業務</div>
+            {editingSales ? (
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <select value={q.sales_person || ''} onChange={(e) => updateSalesPerson(e.target.value)} style={{ ...S.input, fontSize: 13, flex: 1 }}>
+                  <option value="">-- 未指定 --</option>
+                  {(salesUsers || []).map(u => <option key={u.id} value={u.display_name}>{u.display_name}</option>)}
+                </select>
+                <button onClick={() => setEditingSales(false)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 12 }}>完成</button>
+              </div>
+            ) : (
+              <div onClick={() => isEditable && setEditingSales(true)} style={{ fontSize: 14, fontWeight: 600, color: isEditable ? '#3b82f6' : '#111827', cursor: isEditable ? 'pointer' : 'default', padding: '2px 4px', borderRadius: 4, background: isEditable ? '#eff6ff' : 'transparent' }}>
+                {q.sales_person || <span style={{ color: '#d1d5db' }}>未指派</span>}
+              </div>
+            )}
+          </div>
+
+          {/* 4. Remark textarea in sidebar */}
+          <div style={{ ...cardStyle, padding: '10px 16px' }}>
+            <div style={labelStyle}>備註</div>
+            <textarea
+              defaultValue={q.remark || ''}
+              placeholder="輸入備註..."
+              rows={3}
+              style={{ width: '100%', fontSize: 12, color: '#374151', lineHeight: 1.6, border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 10px', resize: 'vertical', fontFamily: 'inherit', minHeight: 80 }}
+              onBlur={async (e) => {
+                const val = e.target.value.trim();
+                if (val === (q.remark || '').trim()) return;
+                try {
+                  await apiPost({ action: 'update_quote', quote_id: q.id, remark: val });
+                  onRefresh?.();
+                } catch (err) { setMsg(err.message || '備註更新失敗'); }
+              }}
+            />
+          </div>
+
+          {/* 5. Timeline card */}
+          <div style={cardStyle}>
         <div style={labelStyle}>進度</div>
         {(() => {
         // Build unified timeline entries
@@ -677,44 +722,24 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             })}
           </div>
         ) : null;
-      })()}
-      </div>
+          })()}
+          </div>
 
-      {/* Remark card */}
-      <div style={cardStyle}>
-        <div style={labelStyle}>備註</div>
-        <textarea
-          defaultValue={q.remark || ''}
-          placeholder="輸入備註..."
-          rows={isMobile ? 3 : 4}
-          style={{ width: '100%', fontSize: isMobile ? 13 : 14, color: '#374151', lineHeight: 1.6, border: '1px solid #e5e7eb', borderRadius: 6, padding: isMobile ? '8px 10px' : '8px 12px', resize: 'vertical', fontFamily: 'inherit', minHeight: isMobile ? 100 : undefined, ...(isMobile ? S.mobile.input : {}) }}
-          onBlur={async (e) => {
-            const val = e.target.value.trim();
-            if (val === (q.remark || '').trim()) return;
-            try {
-              await apiPost({ action: 'update_quote', quote_id: q.id, remark: val });
-              onRefresh?.();
-            } catch (err) { setMsg(err.message || '備註更新失敗'); }
-          }}
-        />
-      </div>
-
-      {/* Action buttons */}
-      <div style={{ ...cardStyle, display: 'flex', gap: isMobile ? 6 : 8, flexWrap: 'wrap' }}>
-        {!isConverted && isEditable && (
-          <button onClick={convertToOrder} disabled={convertingOrder} style={{ ...S.btnPrimary, flex: isMobile ? '1 1 100%' : '0 1 auto', minHeight: isMobile ? 44 : undefined, fontSize: isMobile ? 13 : 14 }}>
-            {convertingOrder ? '轉換中...' : '轉為訂單'}
-          </button>
-        )}
-        {isEditable && (
-          <>
-            <button onClick={sendToLine} style={{ ...S.btnGhost, flex: isMobile ? '1 1 48%' : '0 1 auto', minHeight: isMobile ? 44 : undefined, fontSize: isMobile ? 13 : 14 }}>發送 LINE</button>
-            <button onClick={() => window.open(`/api/pdf?type=quote&id=${quote.id}`, '_blank')} style={{ ...S.btnGhost, flex: isMobile ? '1 1 48%' : '0 1 auto', minHeight: isMobile ? 44 : undefined, fontSize: isMobile ? 13 : 14 }}>PDF</button>
-          </>
-        )}
-        {isDeletable && (
-          <button onClick={deleteQuote} style={{ ...S.btnGhost, color: '#dc2626', flex: isMobile ? '1 1 100%' : '0 1 auto', minHeight: isMobile ? 44 : undefined, fontSize: isMobile ? 13 : 14 }}>刪除報價單</button>
-        )}
+          {/* 6. Action buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {!isConverted && isEditable && (
+              <button onClick={convertToOrder} disabled={convertingOrder} style={{ ...S.btnPrimary, width: '100%', padding: '10px 16px', fontSize: 13, minHeight: 40 }}>
+                {convertingOrder ? '轉換中...' : '轉為訂單'}
+              </button>
+            )}
+            {isEditable && (
+              <button onClick={sendToLine} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 13, minHeight: 40 }}>發送 LINE</button>
+            )}
+            {isDeletable && (
+              <button onClick={deleteQuote} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 13, color: '#dc2626', minHeight: 40 }}>刪除報價單</button>
+            )}
+          </div>
+        </div>
       </div>
 
       {isMobile && <div style={{ height: 20 }} />}
