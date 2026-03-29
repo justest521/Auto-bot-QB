@@ -93,6 +93,8 @@ export default function MobileStockIn() {
   const [selectedVendor, setSelectedVendor] = useState('');
   const [parseMethod, setParseMethod] = useState('');
   const [authed, setAuthed] = useState(null);
+  const [isPWA, setIsPWA] = useState(false);
+  const [showInstall, setShowInstall] = useState(false);
 
   // 掃碼相關
   const [scanning, setScanning] = useState(false);
@@ -108,12 +110,21 @@ export default function MobileStockIn() {
   const fileRef = useRef(null);
   const cameraRef = useRef(null);
 
-  // 認證檢查
+  // 認證檢查 + PWA 偵測
   useEffect(() => {
     const token = getToken();
     if (!token) { setAuthed(false); return; }
     apiGet({ action: 'me' }).then(r => setAuthed(!!r.user)).catch(() => setAuthed(false));
     apiGet({ action: 'vendors', search: '', limit: 200 }).then(r => setVendors(r.vendors || [])).catch(() => {});
+
+    // 偵測是否已從主畫面安裝
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    setIsPWA(!!standalone);
+    // 如果在 LINE WebView 或一般瀏覽器裡，顯示安裝提示
+    if (!standalone) {
+      const dismissed = sessionStorage.getItem('pwa_install_dismissed');
+      if (!dismissed) setShowInstall(true);
+    }
   }, []);
 
   // 清理相機
@@ -485,6 +496,27 @@ export default function MobileStockIn() {
         <div style={{ margin: '12px', padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, color: '#dc2626', fontSize: 13 }}>
           {error}
           <span onClick={() => setError('')} style={{ float: 'right', cursor: 'pointer' }}>✕</span>
+        </div>
+      )}
+
+      {/* ══════ PWA 安裝提示 ══════ */}
+      {showInstall && !isPWA && step === 'capture' && (
+        <div style={{ margin: '12px', padding: '12px 14px', background: 'linear-gradient(135deg, #ecfdf5, #f0fdf4)', border: '1px solid #86efac', borderRadius: 12, fontSize: 13 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontWeight: 700, color: '#15803d', marginBottom: 4 }}>⚡ 加到主畫面更快！</div>
+              <div style={{ color: '#4b5563', lineHeight: 1.5 }}>
+                安裝後掃碼速度提升 3-5 倍<br/>
+                <span style={{ fontSize: 12, color: '#6b7280' }}>
+                  {/iPad|iPhone|iPod/.test(navigator?.userAgent || '')
+                    ? '點底部「分享」⬆ →「加入主畫面」'
+                    : '點右上選單 ⋮ →「加到主畫面」'}
+                </span>
+              </div>
+            </div>
+            <button onClick={() => { setShowInstall(false); sessionStorage.setItem('pwa_install_dismissed', '1'); }}
+              style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 18, cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>✕</button>
+          </div>
         </div>
       )}
 

@@ -1,0 +1,25 @@
+{
+  "name": "QB 進貨",
+  "short_name": "QB進貨",
+  "description": "Quick Buy 手機快速進貨 — 掃碼、拍照、手動輸入",
+  "start_url": "/m/stock-in",
+  "scope": "/m/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f6f7",
+  "theme_color": "#16a34a",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
