@@ -148,6 +148,8 @@ export default function QuickReceive({ setTab }) {
   const [taxExtra, setTaxExtra] = useState(true);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const dragCounter = useRef(0);
+  const [preview, setPreview] = useState(null);       // { items: [], source: 'csv'|'excel'|'pdf'|'image', detectedCols: [] }
+  const [previewChecked, setPreviewChecked] = useState(new Set());
 
   // dirty tracking
   useEffect(() => {
@@ -213,20 +215,23 @@ export default function QuickReceive({ setTab }) {
         setMsg(`已壓縮至 ${(file.size / 1024 / 1024).toFixed(1)}MB`);
       }
 
+      let parsed = [];
+      let source = fileType;
+      let detectedCols = [];
+
       if (fileType === 'csv') {
         const text = await file.text();
-        const parsed = parseCsv(text);
+        parsed = parseCsv(text);
         if (!parsed.length) { setError('無法解析 CSV，請確認格式'); setLoading(false); return; }
-        await matchItems(parsed);
+        detectedCols = ['料號', '品名', '數量', '成本'].filter((_, i) => parsed.some(p => [p.part_no, p.name, p.qty, p.cost][i]));
 
       } else if (fileType === 'excel') {
         const buf = await file.arrayBuffer();
-        const parsed = await parseExcel(buf);
+        parsed = await parseExcel(buf);
         if (!parsed.length) { setError('無法解析 Excel，請確認格式'); setLoading(false); return; }
-        await matchItems(parsed);
+        detectedCols = ['料號', '品名', '數量', '成本'].filter((_, i) => parsed.some(p => [p.part_no, p.name, p.qty, p.cost][i]));
 
       } else if (fileType === 'pdf' || fileType === 'image') {
-        // 計算檔案 hash 用於快取
         const hash = await fileHash(file);
         const base64 = await new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -238,25 +243,40 @@ export default function QuickReceive({ setTab }) {
         const METHOD_LABELS = { cache: '快取命中，秒速載入！', 'text-haiku': 'PDF 文字快速解析完成', 'ai-vision': 'AI 圖像辨識完成' };
         if (res.method) setMsg(METHOD_LABELS[res.method] || '解析完成');
         if (res.error) { setError(res.error); setLoading(false); return; }
-        const parsed = (res.items || []).map(i => ({
+        parsed = (res.items || []).map(i => ({
           part_no: (i.part_no || '').toUpperCase(),
           name: i.name || '',
           qty: Number(i.qty) || 1,
           cost: Number(i.cost) || 0,
         })).filter(i => i.part_no);
         if (!parsed.length) { setError('AI 無法從檔案中辨識品項'); setLoading(false); return; }
-        await matchItems(parsed);
+        detectedCols = ['料號', '品名', '數量', '成本'].filter((_, i) => parsed.some(p => [p.part_no, p.name, p.qty, p.cost][i]));
 
       } else {
         setError(`不支援的檔案格式：${file.name}`);
         setLoading(false);
         return;
       }
+
+      // 顯示預覽讓使用者勾選
+      setPreview({ items: parsed, source, detectedCols });
+      setPreviewChecked(new Set(parsed.map((_, i) => i))); // 預設全選
     } catch (err) {
       setError(`檔案處理失敗: ${err.message}`);
     }
     setLoading(false);
     if (fileRef.current) fileRef.current.value = '';
+  };
+
+  // ── 確認預覽，進行比對 ──
+  const confirmPreview = async () => {
+    if (!preview) return;
+    const selected = preview.items.filter((_, i) => previewChecked.has(i));
+    if (!selected.length) { setError('請至少勾選一項'); return; }
+    setPreview(null);
+    setLoading(true);
+    await matchItems(selected);
+    setLoading(false);
   };
 
   // ── Drag 事件 ──
@@ -269,10 +289,10 @@ export default function QuickReceive({ setTab }) {
   const handleTextParse = async () => {
     const parsed = parseTextInput(textInput);
     if (!parsed.length) { setError('無法解析文字，格式範例：AB1234 x5'); return; }
-    setLoading(true);
     setError('');
-    await matchItems(parsed);
-    setLoading(false);
+    const detectedCols = ['料號', '數量'];
+    setPreview({ items: parsed, source: 'text', detectedCols });
+    setPreviewChecked(new Set(parsed.map((_, i) => i)));
   };
 
   // ── 更新 / 刪除 ──
@@ -397,6 +417,82 @@ export default function QuickReceive({ setTab }) {
           {loading ? '解析中...' : '解析並比對'}
         </button>
       </div>
+
+      {/* ── 解析預覽 ── */}
+      {preview && !loading && (
+        <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px', border: '2px solid #3b82f6', background: '#f8faff' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#1e40af' }}>
+                解析預覽
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#6b7280', marginLeft: 8 }}>
+                  來源：{FILE_TYPE_LABELS[preview.source] || preview.source}
+                </span>
+              </div>
+              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                偵測到欄位：{preview.detectedCols.map(c => (
+                  <span key={c} style={{ display: 'inline-block', fontSize: 11, fontWeight: 600, color: '#2563eb', background: '#dbeafe', padding: '1px 8px', borderRadius: 10, marginRight: 4 }}>{c}</span>
+                ))}
+                <span style={{ marginLeft: 8 }}>共 {preview.items.length} 項</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setPreview(null)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 12, color: '#6b7280' }}>取消</button>
+              <button onClick={confirmPreview} disabled={previewChecked.size === 0} style={{
+                ...S.btnPrimary, padding: '6px 18px', fontSize: 13, fontWeight: 700,
+                background: previewChecked.size > 0 ? '#2563eb' : '#94a3b8',
+              }}>
+                確認匯入 ({previewChecked.size} 項)
+              </button>
+            </div>
+          </div>
+          <div style={{ overflowX: 'auto', maxHeight: 400, overflowY: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ position: 'sticky', top: 0, background: '#eef2ff', zIndex: 1 }}>
+                  <th style={{ ...thStyle, textAlign: 'center', width: 36, borderBottom: '2px solid #c7d2fe' }}>
+                    <input type="checkbox"
+                      checked={previewChecked.size === preview.items.length}
+                      onChange={e => {
+                        if (e.target.checked) setPreviewChecked(new Set(preview.items.map((_, i) => i)));
+                        else setPreviewChecked(new Set());
+                      }}
+                      style={{ width: 15, height: 15, accentColor: '#3b82f6', cursor: 'pointer' }}
+                    />
+                  </th>
+                  <th style={{ ...thStyle, textAlign: 'center', width: 36, borderBottom: '2px solid #c7d2fe' }}>#</th>
+                  <th style={{ ...thStyle, borderBottom: '2px solid #c7d2fe' }}>料號</th>
+                  <th style={{ ...thStyle, borderBottom: '2px solid #c7d2fe' }}>品名</th>
+                  <th style={{ ...thStyle, textAlign: 'right', width: 70, borderBottom: '2px solid #c7d2fe' }}>數量</th>
+                  <th style={{ ...thStyle, textAlign: 'right', width: 90, borderBottom: '2px solid #c7d2fe' }}>成本</th>
+                </tr>
+              </thead>
+              <tbody>
+                {preview.items.map((item, idx) => {
+                  const checked = previewChecked.has(idx);
+                  return (
+                    <tr key={idx}
+                      onClick={() => setPreviewChecked(prev => { const s = new Set(prev); if (s.has(idx)) s.delete(idx); else s.add(idx); return s; })}
+                      style={{ background: checked ? (idx % 2 === 0 ? '#fff' : '#f8faff') : '#f9fafb', opacity: checked ? 1 : 0.45, cursor: 'pointer', transition: 'all 0.1s' }}
+                    >
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <input type="checkbox" checked={checked} readOnly style={{ width: 14, height: 14, accentColor: '#3b82f6', cursor: 'pointer' }} />
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'center', color: '#9ca3af', fontSize: 11 }}>{idx + 1}</td>
+                      <td style={tdStyle}>
+                        <span style={{ ...S.mono, fontWeight: 700, color: '#1e40af', fontSize: 13 }}>{item.part_no}</span>
+                      </td>
+                      <td style={{ ...tdStyle, color: '#4b5563', fontSize: 12 }}>{item.name || <span style={{ color: '#d1d5db' }}>—</span>}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600, fontSize: 13 }}>{item.qty}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, color: item.cost > 0 ? '#374151' : '#d1d5db', fontSize: 12 }}>{item.cost > 0 ? fmtP(item.cost) : '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* ── 載入中 ── */}
       {(loading || matching) && (
