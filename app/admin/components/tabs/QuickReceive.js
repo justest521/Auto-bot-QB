@@ -6,13 +6,7 @@ import { fmt, fmtP } from '@/lib/admin/helpers';
 import { Loading, PageLead } from '../shared/ui';
 import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
-const MODES = [
-  { key: 'csv', label: 'CSV 上傳', icon: '📄' },
-  { key: 'image', label: 'PDF / 圖片', icon: '📷' },
-  { key: 'text', label: '文字輸入', icon: '⌨️' },
-];
-
-// CSV 解析
+// ─── CSV 解析 ───
 function parseCsv(text) {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if (lines.length < 2) return [];
@@ -26,7 +20,6 @@ function parseCsv(text) {
     else if (/成本|cost|price|單價/.test(h)) colMap.cost = i;
   });
 
-  // fallback: 如果沒猜到，用前 4 欄
   if (colMap.part_no === undefined) colMap.part_no = 0;
   if (colMap.name === undefined) colMap.name = 1;
   if (colMap.qty === undefined) colMap.qty = 2;
@@ -43,22 +36,58 @@ function parseCsv(text) {
   }).filter(r => r.part_no);
 }
 
-// 文字快輸解析
+// ─── Excel 解析 ───
+async function parseExcel(arrayBuffer) {
+  const XLSX = (await import('xlsx')).default || (await import('xlsx'));
+  const wb = XLSX.read(arrayBuffer, { type: 'array' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+  if (!rows.length) return [];
+
+  // 自動對應欄位
+  const keys = Object.keys(rows[0]);
+  const find = (patterns) => keys.find(k => patterns.some(p => p.test(k.toLowerCase()))) || null;
+  const partCol = find([/料號/, /part/, /sku/, /item/]) || keys[0];
+  const nameCol = find([/品名/, /name/, /desc/]) || keys[1];
+  const qtyCol = find([/數量/, /qty/, /quantity/]) || keys[2];
+  const costCol = find([/成本/, /cost/, /price/, /單價/]) || keys[3];
+
+  return rows.map(r => ({
+    part_no: String(r[partCol] || '').trim(),
+    name: String(r[nameCol] || '').trim(),
+    qty: Number(r[qtyCol]) || 1,
+    cost: Number(r[costCol]) || 0,
+  })).filter(r => r.part_no);
+}
+
+// ─── 文字快輸解析 ───
 function parseTextInput(text) {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   return lines.map(line => {
     const m = line.trim().match(/^([A-Za-z0-9\-_]+)\s*[xX×]\s*(\d+)/);
     if (m) return { part_no: m[1], name: '', qty: Number(m[2]) || 1, cost: 0 };
-    // fallback: 只有料號
     const word = line.trim().split(/\s+/)[0];
     if (word && /^[A-Za-z0-9\-_]+$/.test(word)) return { part_no: word, name: '', qty: 1, cost: 0 };
     return null;
   }).filter(Boolean);
 }
 
+// ─── 檔案類型偵測 ───
+function detectFileType(file) {
+  const name = file.name?.toLowerCase() || '';
+  const type = file.type?.toLowerCase() || '';
+  if (name.endsWith('.csv') || name.endsWith('.txt') || type === 'text/csv') return 'csv';
+  if (name.endsWith('.xlsx') || name.endsWith('.xls') || type.includes('spreadsheet') || type.includes('excel')) return 'excel';
+  if (name.endsWith('.pdf') || type === 'application/pdf') return 'pdf';
+  if (type.startsWith('image/')) return 'image';
+  return 'unknown';
+}
+
+// ─── 檔案類型標籤 ───
+const FILE_TYPE_LABELS = { csv: 'CSV', excel: 'Excel', pdf: 'PDF', image: '圖片' };
+
 export default function QuickReceive({ setTab }) {
   const { setDirty } = useUnsavedGuard();
-  const [mode, setMode] = useState('csv');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [matching, setMatching] = useState(false);
@@ -69,9 +98,10 @@ export default function QuickReceive({ setTab }) {
   const [selectedVendor, setSelectedVendor] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const csvFileRef = useRef(null);
-  const imgFileRef = useRef(null);
+  const fileRef = useRef(null);
   const [dragging, setDragging] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const dragCounter = useRef(0);
 
   // dirty tracking
   useEffect(() => {
@@ -85,7 +115,7 @@ export default function QuickReceive({ setTab }) {
       .catch(() => {});
   }, []);
 
-  // 比對每個品項的產品資訊 + 等待訂單
+  // ── 比對品項 ──
   const matchItems = useCallback(async (rawItems) => {
     if (!rawItems.length) return;
     setMatching(true);
@@ -112,57 +142,64 @@ export default function QuickReceive({ setTab }) {
     }
   }, []);
 
-  // CSV file upload
-  const handleCsvUpload = async (e) => {
-    const file = e.target.files?.[0];
+  // ── 統一檔案處理 ──
+  const handleFile = async (file) => {
     if (!file) return;
+    const fileType = detectFileType(file);
     setLoading(true);
     setError('');
+    setUploadedFileName(file.name);
+
     try {
-      const text = await file.text();
-      const parsed = parseCsv(text);
-      if (!parsed.length) { setError('無法解析 CSV，請確認格式'); setLoading(false); return; }
-      await matchItems(parsed);
+      if (fileType === 'csv') {
+        const text = await file.text();
+        const parsed = parseCsv(text);
+        if (!parsed.length) { setError('無法解析 CSV，請確認格式'); setLoading(false); return; }
+        await matchItems(parsed);
+
+      } else if (fileType === 'excel') {
+        const buf = await file.arrayBuffer();
+        const parsed = await parseExcel(buf);
+        if (!parsed.length) { setError('無法解析 Excel，請確認格式'); setLoading(false); return; }
+        await matchItems(parsed);
+
+      } else if (fileType === 'pdf' || fileType === 'image') {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const res = await apiPost({ action: 'parse_receive_image', base64, mime: file.type });
+        if (res.error) { setError(res.error); setLoading(false); return; }
+        const parsed = (res.items || []).map(i => ({
+          part_no: i.part_no || '',
+          name: i.name || '',
+          qty: Number(i.qty) || 1,
+          cost: Number(i.cost) || 0,
+        })).filter(i => i.part_no);
+        if (!parsed.length) { setError('AI 無法從檔案中辨識品項'); setLoading(false); return; }
+        await matchItems(parsed);
+
+      } else {
+        setError(`不支援的檔案格式：${file.name}`);
+        setLoading(false);
+        return;
+      }
     } catch (err) {
-      setError('CSV 讀取失敗: ' + err.message);
+      setError(`檔案處理失敗: ${err.message}`);
     }
     setLoading(false);
-    if (csvFileRef.current) csvFileRef.current.value = '';
-    if (imgFileRef.current) imgFileRef.current.value = '';
+    if (fileRef.current) fileRef.current.value = '';
   };
 
-  // Image/PDF upload → AI parse
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLoading(true);
-    setError('');
-    try {
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      const res = await apiPost({ action: 'parse_receive_image', base64, mime: file.type });
-      if (res.error) { setError(res.error); setLoading(false); return; }
-      const parsed = (res.items || []).map(i => ({
-        part_no: i.part_no || '',
-        name: i.name || '',
-        qty: Number(i.qty) || 1,
-        cost: Number(i.cost) || 0,
-      })).filter(i => i.part_no);
-      if (!parsed.length) { setError('AI 無法從圖片中辨識品項'); setLoading(false); return; }
-      await matchItems(parsed);
-    } catch (err) {
-      setError('圖片解析失敗: ' + err.message);
-    }
-    setLoading(false);
-    if (csvFileRef.current) csvFileRef.current.value = '';
-    if (imgFileRef.current) imgFileRef.current.value = '';
-  };
+  // ── Drag 事件 ──
+  const onDragEnter = (e) => { e.preventDefault(); e.stopPropagation(); dragCounter.current++; setDragging(true); };
+  const onDragOver = (e) => { e.preventDefault(); e.stopPropagation(); };
+  const onDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); dragCounter.current--; if (dragCounter.current <= 0) { dragCounter.current = 0; setDragging(false); } };
+  const onDrop = (e) => { e.preventDefault(); e.stopPropagation(); dragCounter.current = 0; setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); };
 
-  // 文字解析
+  // ── 文字解析 ──
   const handleTextParse = async () => {
     const parsed = parseTextInput(textInput);
     if (!parsed.length) { setError('無法解析文字，格式範例：AB1234 x5'); return; }
@@ -172,17 +209,15 @@ export default function QuickReceive({ setTab }) {
     setLoading(false);
   };
 
-  // 更新單行
+  // ── 更新 / 刪除 ──
   const updateItem = (idx, field, value) => {
     setItems(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item));
   };
-
-  // 刪除單行
   const removeItem = (idx) => {
     setItems(prev => prev.filter((_, i) => i !== idx));
   };
 
-  // 一鍵入庫
+  // ── 一鍵入庫 ──
   const handleStockIn = async () => {
     if (!items.length) return;
     setSubmitting(true);
@@ -206,6 +241,7 @@ export default function QuickReceive({ setTab }) {
       setItems([]);
       setTextInput('');
       setNote('');
+      setUploadedFileName('');
       setTimeout(() => setMsg(''), 4000);
     } catch (err) {
       setError('入庫失敗: ' + err.message);
@@ -223,103 +259,75 @@ export default function QuickReceive({ setTab }) {
 
   return (
     <div>
-      <PageLead eyebrow="Quick Receive" title="快速進貨" description="上傳 CSV、拍照或手打料號，一鍵完成入庫並推進等待訂單。" />
+      <PageLead eyebrow="Quick Receive" title="快速進貨" description="上傳檔案、拍照或手打料號，一鍵完成入庫並推進等待訂單。" />
 
       {msg && <div style={{ ...cardStyle, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 12, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
       {error && <div style={{ ...cardStyle, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 12, cursor: 'pointer' }} onClick={() => setError('')}>{error}</div>}
 
-      {/* ── 模式切換 ── */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {MODES.map(m => (
-          <button key={m.key} onClick={() => setMode(m.key)} style={{
-            ...S.btnGhost, padding: '10px 20px', fontSize: 14, fontWeight: 600,
-            background: mode === m.key ? '#eff6ff' : '#fff',
-            borderColor: mode === m.key ? '#3b82f6' : '#e5e7eb',
-            color: mode === m.key ? '#2563eb' : '#374151',
-          }}>
-            {m.icon} {m.label}
-          </button>
-        ))}
+      {/* ── 統一拖曳上傳區 ── */}
+      <div style={{ ...cardStyle, marginBottom: 16, padding: '20px 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>上傳檔案</div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>支援 CSV、Excel、PDF、圖片 — 系統自動偵測格式並解析</div>
+          </div>
+          {uploadedFileName && !loading && (
+            <div style={{ fontSize: 12, color: '#6b7280', background: '#f3f4f6', padding: '4px 10px', borderRadius: 6 }}>
+              已上傳：{uploadedFileName}
+            </div>
+          )}
+        </div>
+        <div
+          onDragEnter={onDragEnter}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          onClick={() => fileRef.current?.click()}
+          style={{
+            border: `2px dashed ${dragging ? '#3b82f6' : '#d1d5db'}`,
+            borderRadius: 12,
+            padding: '44px 20px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            background: dragging ? '#eff6ff' : '#fafbfd',
+            transition: 'all 0.2s',
+          }}
+        >
+          <div style={{ fontSize: 40, marginBottom: 8, lineHeight: 1 }}>{dragging ? '\uD83D\uDCE5' : '\uD83D\uDCC1'}</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: dragging ? '#2563eb' : '#374151', marginBottom: 6 }}>
+            {dragging ? '放開以上傳檔案' : '拖曳檔案到這裡'}
+          </div>
+          <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 10 }}>或點擊選擇檔案</div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { label: 'CSV', color: '#16a34a', bg: '#f0fdf4' },
+              { label: 'Excel', color: '#0d9488', bg: '#f0fdfa' },
+              { label: 'PDF', color: '#dc2626', bg: '#fef2f2' },
+              { label: '圖片', color: '#7c3aed', bg: '#f5f3ff' },
+            ].map(t => (
+              <span key={t.label} style={{ fontSize: 11, fontWeight: 600, color: t.color, background: t.bg, padding: '2px 10px', borderRadius: 10 }}>{t.label}</span>
+            ))}
+          </div>
+        </div>
+        <input ref={fileRef} type="file" accept=".csv,.txt,.xlsx,.xls,image/*,.pdf" onChange={e => handleFile(e.target.files?.[0])} style={{ display: 'none' }} />
       </div>
 
-      {/* ── 輸入區 ── */}
+      {/* ── 文字輸入區 ── */}
       <div style={{ ...cardStyle, marginBottom: 16, padding: '20px 24px' }}>
-        {mode === 'csv' && (
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>上傳 CSV 檔案</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>CSV 第一列為表頭，系統會自動對應「料號、品名、數量、成本」欄位</div>
-            <div
-              onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
-              onDragEnter={e => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
-              onDragLeave={e => { e.preventDefault(); e.stopPropagation(); setDragging(false); }}
-              onDrop={e => { e.preventDefault(); e.stopPropagation(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleCsvUpload({ target: { files: [f] } }); }}
-              onClick={() => csvFileRef.current?.click()}
-              style={{
-                border: `2px dashed ${dragging ? '#3b82f6' : '#d1d5db'}`,
-                borderRadius: 12,
-                padding: '40px 20px',
-                textAlign: 'center',
-                cursor: 'pointer',
-                background: dragging ? '#eff6ff' : '#fafbfd',
-                transition: 'all 0.2s',
-              }}
-            >
-              <div style={{ fontSize: 36, marginBottom: 8 }}>{dragging ? '\uD83D\uDCE5' : '\uD83D\uDCC4'}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: dragging ? '#2563eb' : '#374151', marginBottom: 4 }}>
-                {dragging ? '放開以上傳檔案' : '拖曳 CSV 檔案到這裡'}
-              </div>
-              <div style={{ fontSize: 12, color: '#9ca3af' }}>或點擊選擇檔案（.csv, .txt）</div>
-            </div>
-            <input ref={csvFileRef} type="file" accept=".csv,.txt" onChange={handleCsvUpload} style={{ display: 'none' }} />
-          </div>
-        )}
-
-        {mode === 'image' && (
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>上傳圖片或 PDF</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>系統會用 AI 辨識進貨單/送貨單上的品項、數量和金額</div>
-            <div
-              onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
-              onDragEnter={e => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
-              onDragLeave={e => { e.preventDefault(); e.stopPropagation(); setDragging(false); }}
-              onDrop={e => { e.preventDefault(); e.stopPropagation(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleImageUpload({ target: { files: [f] } }); }}
-              onClick={() => imgFileRef.current?.click()}
-              style={{
-                border: `2px dashed ${dragging ? '#3b82f6' : '#d1d5db'}`,
-                borderRadius: 12,
-                padding: '40px 20px',
-                textAlign: 'center',
-                cursor: 'pointer',
-                background: dragging ? '#eff6ff' : '#fafbfd',
-                transition: 'all 0.2s',
-              }}
-            >
-              <div style={{ fontSize: 36, marginBottom: 8 }}>{dragging ? '\uD83D\uDCE5' : '\uD83D\uDCF7'}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: dragging ? '#2563eb' : '#374151', marginBottom: 4 }}>
-                {dragging ? '放開以上傳檔案' : '拖曳圖片或 PDF 到這裡'}
-              </div>
-              <div style={{ fontSize: 12, color: '#9ca3af' }}>或點擊選擇檔案（圖片、PDF）</div>
-            </div>
-            <input ref={imgFileRef} type="file" accept="image/*,.pdf" onChange={handleImageUpload} style={{ display: 'none' }} />
-          </div>
-        )}
-
-        {mode === 'text' && (
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>手動輸入料號</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>每行一個品項，格式：<code style={{ background: '#f3f4f6', padding: '1px 6px', borderRadius: 4 }}>料號 x數量</code></div>
-            <textarea
-              value={textInput}
-              onChange={e => setTextInput(e.target.value)}
-              placeholder={'AB1234 x5\nBP-5678 x10\nKRADD26T x1'}
-              rows={6}
-              style={{ ...S.input, resize: 'vertical', fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: 13, lineHeight: 1.8, marginBottom: 10 }}
-            />
-            <button onClick={handleTextParse} disabled={!textInput.trim() || loading} style={{ ...S.btnPrimary, padding: '8px 20px' }}>
-              {loading ? '解析中...' : '解析並比對'}
-            </button>
-          </div>
-        )}
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 4 }}>手動輸入料號</div>
+        <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 10 }}>
+          每行一個品項，格式：<code style={{ background: '#f3f4f6', padding: '1px 6px', borderRadius: 4 }}>料號 x數量</code>
+        </div>
+        <textarea
+          value={textInput}
+          onChange={e => setTextInput(e.target.value)}
+          placeholder={'AB1234 x5\nBP-5678 x10\nKRADD26T x1'}
+          rows={5}
+          style={{ ...S.input, resize: 'vertical', fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: 13, lineHeight: 1.8, marginBottom: 10 }}
+        />
+        <button onClick={handleTextParse} disabled={!textInput.trim() || loading} style={{ ...S.btnPrimary, padding: '8px 20px' }}>
+          {loading ? '解析中...' : '解析並比對'}
+        </button>
       </div>
 
       {/* ── 載入中 ── */}
@@ -429,7 +437,7 @@ export default function QuickReceive({ setTab }) {
               background: submitting ? '#94a3b8' : '#16a34a',
               boxShadow: submitting ? 'none' : '0 2px 8px rgba(22,163,74,0.3)',
             }}>
-              {submitting ? '入庫中...' : `⚡ 一鍵入庫 (${items.length} 項)`}
+              {submitting ? '入庫中...' : `一鍵入庫 (${items.length} 項)`}
             </button>
           </div>
         </div>
