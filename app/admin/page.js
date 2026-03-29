@@ -640,7 +640,7 @@ export default function AdminPage() {
                 <div style={{ color: '#9ca3af', fontSize: 10 }}>ERP Console</div>
               </div>}
             </div>
-            {!isTablet && !sidebarCollapsed && <button onClick={() => setSidebarCollapsed(true)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 14, padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s' }} title="收合">‹</button>}
+            {!isTablet && <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 16, padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s', lineHeight: 1 }} title={sidebarCollapsed ? '展開' : '收合'}>{sidebarCollapsed ? '›' : '‹'}</button>}
           </div>
 
           {!sidebarCollapsed && (
