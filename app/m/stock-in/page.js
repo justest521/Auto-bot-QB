@@ -182,96 +182,142 @@ export default function MobileStockIn() {
     }
   }, []);
 
-  // ── html5-qrcode ──
-  const scannerInstanceRef = useRef(null);
-  const Html5QrCodeRef = useRef(null);
+  // ── 高速掃碼引擎（barcode-detector polyfill + requestAnimationFrame）──
+  const detectorRef = useRef(null);
+  const videoRef = useRef(null);
+  const rafRef = useRef(null);
+  const scanningRef = useRef(false);
 
   // ── 啟動掃碼器 ──
   const startScanner = useCallback(async () => {
     try {
       setScanStatus('載入掃碼器...');
-
-      // 在用戶點擊時初始化 AudioContext（WebView 要求）
       getAudioCtx();
 
-      // 動態 import（Next.js 會打包進 bundle）
-      if (!Html5QrCodeRef.current) {
-        const mod = await import('html5-qrcode');
-        Html5QrCodeRef.current = mod.Html5Qrcode;
+      // 載入 barcode-detector polyfill（WASM 加速，原生優先）
+      if (!detectorRef.current) {
+        let DetectorClass;
+        // 優先用瀏覽器原生
+        if ('BarcodeDetector' in window) {
+          DetectorClass = window.BarcodeDetector;
+        } else {
+          const mod = await import('barcode-detector');
+          DetectorClass = mod.BarcodeDetector || mod.default;
+        }
+        detectorRef.current = new DetectorClass({
+          formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'qr_code'],
+        });
       }
 
-      setScanning(true);
-      setStep('scanning');
       setScanStatus('啟動相機...');
 
-      // 等 DOM 渲染
-      await new Promise(r => setTimeout(r, 200));
-
-      const scannerId = 'qr-scanner-container';
-      if (scannerInstanceRef.current) {
-        try { await scannerInstanceRef.current.stop(); } catch {}
-        scannerInstanceRef.current = null;
-      }
-
-      const html5QrCode = new Html5QrCodeRef.current(scannerId, {
-        verbose: false,
-        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+      // 直接開啟高解析度相機
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          focusMode: { ideal: 'continuous' },
+        },
       });
-      scannerInstanceRef.current = html5QrCode;
+      streamRef.current = stream;
 
-      await html5QrCode.start(
-        { facingMode: 'environment' },
-        {
-          fps: 30,
-          qrbox: (vw, vh) => {
-            const w = Math.min(vw * 0.9, 400);
-            const h = Math.min(vh * 0.4, 220);
-            return { width: Math.max(w, 280), height: Math.max(h, 150) };
-          },
-          aspectRatio: 1.333,
-          disableFlip: false,
-          formatsToSupport: [
-            0,  // QR_CODE
-            5,  // CODE_128
-            9,  // EAN_13
-            10, // EAN_8
-            3,  // CODE_39
-          ],
-        },
-        (decodedText) => {
-          // 成功掃到條碼
-          lookupAndAdd(decodedText);
-        },
-        () => {
-          // 每幀掃不到時不做事
-        }
-      );
+      setScanning(true);
+      scanningRef.current = true;
+      setStep('scanning');
+
+      // 等 DOM + video 就緒
+      await new Promise(r => setTimeout(r, 150));
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        await video.play();
+      }
 
       setScanStatus('對準條碼...');
 
+      // 高速掃描迴圈（requestAnimationFrame，比 setInterval 快）
+      let frameCount = 0;
+      const scanLoop = async () => {
+        if (!scanningRef.current || !video || video.readyState < 2) {
+          if (scanningRef.current) rafRef.current = requestAnimationFrame(scanLoop);
+          return;
+        }
+        frameCount++;
+        // 每 2 幀偵測一次（~30fps 中取 15fps 偵測，平衡效能）
+        if (frameCount % 2 === 0) {
+          try {
+            const barcodes = await detectorRef.current.detect(video);
+            if (barcodes.length > 0) {
+              const code = barcodes[0].rawValue;
+              if (code) lookupAndAdd(code);
+            }
+          } catch {}
+        }
+        rafRef.current = requestAnimationFrame(scanLoop);
+      };
+      rafRef.current = requestAnimationFrame(scanLoop);
+
     } catch (e) {
-      const msg = e.message || '';
-      if (msg.includes('NotAllowedError') || msg.includes('Permission')) {
+      const errMsg = e.message || '';
+      if (errMsg.includes('NotAllowed') || errMsg.includes('Permission') || errMsg.includes('denied')) {
         setError('請允許相機權限後再試');
+      } else if (errMsg.includes('NotFound') || errMsg.includes('Requested device not found')) {
+        setError('找不到相機，請確認裝置有攝影鏡頭');
       } else {
-        setError('無法開啟掃碼器：' + msg);
+        // fallback 到 html5-qrcode
+        try {
+          await startScannerFallback();
+          return;
+        } catch {
+          setError('無法開啟掃碼器：' + errMsg);
+        }
       }
       setStep('capture');
       setScanning(false);
     }
   }, [lookupAndAdd]);
 
+  // ── Fallback: html5-qrcode（若 barcode-detector 不可用）──
+  const fallbackRef = useRef(null);
+  const startScannerFallback = useCallback(async () => {
+    const mod = await import('html5-qrcode');
+    const Html5Qrcode = mod.Html5Qrcode;
+
+    setScanning(true);
+    scanningRef.current = true;
+    setStep('scanning');
+    await new Promise(r => setTimeout(r, 200));
+
+    const scanner = new Html5Qrcode('qr-scanner-fallback', { verbose: false });
+    fallbackRef.current = scanner;
+
+    await scanner.start(
+      { facingMode: 'environment' },
+      { fps: 20, qrbox: (vw, vh) => ({ width: Math.max(vw * 0.85, 250), height: Math.max(vh * 0.3, 120) }) },
+      (text) => lookupAndAdd(text),
+      () => {}
+    );
+    setScanStatus('對準條碼...');
+  }, [lookupAndAdd]);
+
   // ── 停止掃碼器 ──
   const stopScanner = useCallback(async () => {
+    scanningRef.current = false;
     setScanning(false);
-    if (scannerInstanceRef.current) {
-      try { await scannerInstanceRef.current.stop(); } catch {}
-      try { scannerInstanceRef.current.clear(); } catch {}
-      scannerInstanceRef.current = null;
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
+    }
+    if (videoRef.current) videoRef.current.srcObject = null;
+    if (fallbackRef.current) {
+      try { await fallbackRef.current.stop(); } catch {}
+      try { fallbackRef.current.clear(); } catch {}
+      fallbackRef.current = null;
     }
   }, []);
 
@@ -539,14 +585,45 @@ export default function MobileStockIn() {
       {/* ══════ 掃碼進行中 ══════ */}
       {step === 'scanning' && (
         <>
-          <div id="qr-scanner-container" style={{ width: '100%', minHeight: '55vh', background: '#000' }} />
-          <style>{`
-            #qr-scanner-container { position: relative; }
-            #qr-scanner-container video { width: 100% !important; height: 55vh !important; object-fit: cover !important; border-radius: 0 !important; }
-            #qr-scanner-container #qr-shaded-region { border-color: #22c55e !important; border-width: 3px !important; border-radius: 12px !important; }
-            #qr-scanner-container img[alt="Info"] { display: none !important; }
-            #qr-scanner-container > div:first-child { min-height: 55vh !important; }
-          `}</style>
+          {/* 原生高速掃碼視窗 */}
+          <div style={{ position: 'relative', background: '#000', width: '100%', height: '60vh' }}>
+            <video ref={videoRef} playsInline muted autoPlay
+              style={{ width: '100%', height: '60vh', objectFit: 'cover', display: 'block' }} />
+            {/* 掃描框疊層 */}
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <div style={{
+                width: '85%', maxWidth: 360, height: 180,
+                border: '3px solid #22c55e', borderRadius: 14,
+                boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
+                position: 'relative', overflow: 'hidden',
+              }}>
+                {/* 掃描線動畫 */}
+                <div style={{
+                  position: 'absolute', left: 0, right: 0, height: 3,
+                  background: 'linear-gradient(90deg, transparent, #22c55e, transparent)',
+                  animation: 'scanline 1.2s ease-in-out infinite',
+                }} />
+                {/* 四角裝飾 */}
+                {[{top:0,left:0},{top:0,right:0},{bottom:0,left:0},{bottom:0,right:0}].map((pos, i) => (
+                  <div key={i} style={{
+                    position: 'absolute', ...pos, width: 24, height: 24,
+                    borderColor: '#22c55e', borderStyle: 'solid', borderWidth: 0,
+                    ...(pos.top !== undefined ? { borderTopWidth: 4 } : { borderBottomWidth: 4 }),
+                    ...(pos.left !== undefined ? { borderLeftWidth: 4 } : { borderRightWidth: 4 }),
+                    borderRadius: pos.top !== undefined && pos.left !== undefined ? '8px 0 0 0' :
+                      pos.top !== undefined && pos.right !== undefined ? '0 8px 0 0' :
+                      pos.bottom !== undefined && pos.left !== undefined ? '0 0 0 8px' : '0 0 8px 0',
+                  }} />
+                ))}
+              </div>
+            </div>
+            <style>{`@keyframes scanline { 0%,100% { top: 0 } 50% { top: 177px } }`}</style>
+          </div>
+          {/* Fallback 容器（隱藏，只在 barcode-detector 不可用時啟用）*/}
+          <div id="qr-scanner-fallback" style={{ display: fallbackRef.current ? 'block' : 'none', width: '100%', minHeight: '55vh', background: '#000' }} />
 
           {/* 掃碼狀態 */}
           <div style={{ ...S.card, padding: '10px 16px' }}>

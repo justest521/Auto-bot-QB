@@ -11,6 +11,7 @@
     "@anthropic-ai/sdk": "^0.39.0",
     "@line/liff": "^2.27.3",
     "@supabase/supabase-js": "^2.49.0",
+    "barcode-detector": "^2.3.1",
     "bcryptjs": "^3.0.3",
     "html5-qrcode": "^2.3.8",
     "next": "^14.2.0",
