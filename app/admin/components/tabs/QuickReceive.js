@@ -214,6 +214,7 @@ export default function QuickReceive({ setTab }) {
             ...item,
             name, cost,
             stock_qty: product?.stock_qty || 0,
+            safety_stock: product?.safety_stock || null,
             matched: !!product,
             waiting_orders: res.waitingOrders || [],
             from_memory: !item.cost && (!!vmem?.last_cost || !!cmem?.last_cost),
@@ -410,6 +411,7 @@ export default function QuickReceive({ setTab }) {
           name: i.name,
           qty: Number(i.qty) || 1,
           cost: Number(i.cost) || 0,
+          safety_stock: i.safety_stock != null ? Number(i.safety_stock) : null,
           waiting_orders: i.waiting_orders || [],
         })),
         vendor_id: selectedVendor || null,
@@ -665,6 +667,7 @@ export default function QuickReceive({ setTab }) {
                   <th style={{ ...thStyle, textAlign: 'right', width: 70 }}>數量</th>
                   <th style={{ ...thStyle, textAlign: 'right', width: 100 }}>成本</th>
                   <th style={{ ...thStyle, textAlign: 'right', width: 100 }}>小計</th>
+                  <th style={{ ...thStyle, textAlign: 'right', width: 80 }}>安全庫存</th>
                   <th style={{ ...thStyle, width: 180 }}>等待訂單</th>
                   <th style={{ ...thStyle, width: 36 }}></th>
                 </tr>
@@ -697,6 +700,9 @@ export default function QuickReceive({ setTab }) {
                         ? <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 700, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
                         : <span style={{ ...S.mono, fontWeight: 700, color: '#10b981' }}>{fmtP((Number(item.qty) || 0) * (Number(item.cost) || 0))}</span>
                       }
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'right' }}>
+                      <input type="number" value={item.safety_stock ?? ''} min={0} placeholder="自動" onChange={e => updateItem(idx, 'safety_stock', e.target.value === '' ? null : Number(e.target.value))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: 65, textAlign: 'right', padding: '3px 6px', fontSize: 12, color: '#6b7280' }} />
                     </td>
                     <td style={tdStyle}>
                       {item.waiting_orders?.length > 0 ? (

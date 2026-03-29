@@ -120,8 +120,6 @@ const SECTIONS = [
       { id: 'shipments', label: '出貨管理', code: 'SHIP' },
       { id: 'returns', label: '退貨管理', code: 'RTN' },
       { id: 'payments', label: '收款管理', code: 'PAY' },
-      { id: 'promotions', label: '活動管理', code: 'PRMO' },
-      { id: 'pricing', label: '報價規則', code: 'PRCE' },
       { id: 'parts_exchange', label: '🔮 零件交易所', code: 'PTEX' },
       { id: 'equipment_lease', label: '🔮 設備租賃', code: 'LEAS' },
     ],
@@ -197,6 +195,8 @@ const SECTIONS = [
       { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
       { id: 'ai_prompt', label: 'AI Prompt 設定', code: 'AI' },
       { id: 'chat_history', label: '歷史對話', code: 'HIST' },
+      { id: 'promotions', label: '活動管理', code: 'PRMO' },
+      { id: 'pricing', label: '報價規則', code: 'PRCE' },
     ],
   },
   {
