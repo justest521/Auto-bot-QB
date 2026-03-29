@@ -1269,7 +1269,7 @@ export default function PurchaseOrders({ setTab }) {
       {(() => {
         const filteredRows = exportFilter ? data.rows.filter(r => exportFilter === 'exported' ? !!r.exported_at : !r.exported_at) : data.rows;
         return loading ? <Loading /> : filteredRows.length === 0 ? <EmptyState text={exportFilter ? '無符合篩選的採購單' : '目前沒有採購單'} /> : (
-        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
           <ResizableHeader
             headers={[
               { label: <input type="checkbox" checked={filteredRows.length > 0 && selectedIds.size === filteredRows.length} onChange={() => { if (selectedIds.size === filteredRows.length) setSelectedIds(new Set()); else setSelectedIds(new Set(filteredRows.map(r => r.id))); }} style={{ cursor: 'pointer', width: 15, height: 15 }} />, align: 'center' },
@@ -1286,20 +1286,22 @@ export default function PurchaseOrders({ setTab }) {
           />
           {filteredRows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
-            const cCenter = { display: 'flex', alignItems: 'center', justifyContent: 'center' };
-            const cLeft = { display: 'flex', alignItems: 'center', justifyContent: 'flex-start' };
-            const cRight = { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' };
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13 };
+            const cCenter = { ...cell, justifyContent: 'center' };
+            const cLeft = { ...cell, justifyContent: 'flex-start' };
+            const cRight = { ...cell, justifyContent: 'flex-end' };
+            const colCount = isTablet ? 8 : 9;
             return (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 10, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
-                <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }} style={cCenter}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
-                <div style={{ fontSize: 12, color: '#6b7280', ...S.mono, ...cCenter }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
-                <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono, ...cCenter, display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}</div>
-                <div style={{ fontSize: 12, color: '#374151', ...S.mono, ...cCenter }}>{row.po_date?.slice(0, 10) || '-'}</div>
+              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, alignItems: 'center', background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s', borderBottom: idx < filteredRows.length - 1 ? '1px solid #e5e7eb' : 'none' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
+                <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }} style={{ ...cCenter, borderRight: 'none' }}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
+                <div style={{ ...cCenter, fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
+                <div style={{ ...cCenter, fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono, gap: 4 }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}</div>
+                <div style={{ ...cCenter, fontSize: 12, color: '#374151', ...S.mono }}>{row.po_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
-                <div style={{ fontSize: 14, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...cLeft }}>{row.remark || '-'}</div>
-                <div style={{ fontSize: 14, color: '#10b981', fontWeight: 700, ...S.mono, ...cRight }}>{fmtP(row.total_amount)}</div>
-                {!isTablet && <div style={{ fontSize: 12, color: '#374151', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...cLeft }}>{row.vendor?.vendor_name || '-'}</div>}
-                <div style={{ fontSize: 12, color: '#9ca3af', ...cRight }}>→</div>
+                <div style={{ ...cLeft, fontSize: 14, color: '#374151', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</div>
+                <div style={{ ...cRight, fontSize: 14, color: '#10b981', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+                {!isTablet && <div style={{ ...cLeft, fontSize: 12, color: '#374151', fontWeight: 600, textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.vendor?.vendor_name || '-'}</div>}
+                <div style={{ ...cRight, borderRight: 'none', fontSize: 12, color: '#9ca3af' }}>→</div>
               </div>
             );
           })}

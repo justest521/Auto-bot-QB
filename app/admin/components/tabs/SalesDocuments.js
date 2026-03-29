@@ -504,42 +504,44 @@ export default function SalesDocuments({ setTab }) {
         <StatCard code="GP" label="本頁毛利" value={fmtP(data.summary?.gross_profit)} tone="yellow" />
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷貨單資料" /> : (
-        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
           <ResizableHeader
             headers={isTablet ? [
               { label: '序', align: 'center' },
               { label: '銷貨單號', align: 'center' },
-              { label: '客戶 / 發票' },
+              { label: '客戶 / 發票', align: 'center' },
               { label: '日期', align: 'center' },
             ] : [
               { label: '序', align: 'center' },
               { label: '銷貨單號', align: 'center' },
-              { label: '客戶 / 發票' },
+              { label: '客戶 / 發票', align: 'center' },
               { label: '日期', align: 'center' },
               { label: '業務', align: 'center' },
               { label: '未稅', align: 'center' },
               { label: '總額', align: 'center' },
               { label: '毛利', align: 'center' },
             ]}
-            style={{ padding: '6px 14px', color: '#6b7280', fontSize: 12 }}
           />
           {data.rows.map((row, idx) => {
-            const cell = { fontSize: 12, color: '#374151', ...S.mono };
-            const cCenter = { ...cell, justifyContent: 'center', display: 'flex', alignItems: 'center' };
-            const cRight = { ...cell, justifyContent: 'flex-end', display: 'flex', alignItems: 'center' };
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13 };
+            const cCenter = { ...cell, justifyContent: 'center' };
+            const cRight = { ...cell, justifyContent: 'flex-end' };
+            const cellLast = { ...cell, borderRight: 'none' };
             return (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedSale(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
-                <div style={cCenter}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ ...cCenter, color: '#3b82f6', fontWeight: 700 }}>{row.slip_number || '-'}</div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 14, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2, ...S.mono }}>{row.invoice_number ? `INV ${row.invoice_number}` : ''}</div>
+              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedSale(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+                <div style={{ ...cCenter, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ ...cCenter, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{row.slip_number || '-'}</div>
+                <div style={cell}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1, ...S.mono }}>{row.invoice_number ? `INV ${row.invoice_number}` : ''}</div>
+                  </div>
                 </div>
-                <div style={cCenter}>{row.sale_date || '-'}</div>
-                {!isTablet && <div style={cCenter}>{row.sales_person || '-'}</div>}
-                {!isTablet && <div style={{ ...cRight, color: '#111827' }}>{fmtP(row.subtotal)}</div>}
-                {!isTablet && <div style={{ ...cRight, color: '#10b981', fontWeight: 700 }}>{fmtP(row.total)}</div>}
-                {!isTablet && <div style={{ ...cRight, color: '#3b82f6', fontWeight: 700 }}>{fmtP(row.gross_profit)}</div>}
+                <div style={{ ...cCenter, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.sale_date || '-'}</div>
+                {!isTablet && <div style={{ ...cCenter, color: '#374151' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
+                {!isTablet && <div style={{ ...cRight, color: '#111827', ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.subtotal)}</div>}
+                {!isTablet && <div style={{ ...cRight, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total)}</div>}
+                {!isTablet && <div style={{ ...(isTablet ? cellLast : cRight), color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', borderRight: 'none' }}>{fmtP(row.gross_profit)}</div>}
               </div>
             );
           })}

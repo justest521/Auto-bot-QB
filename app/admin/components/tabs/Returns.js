@@ -349,26 +349,32 @@ export default function Returns() {
 
       {/* Table */}
       {loading ? <Loading /> : data.returns.length === 0 ? <EmptyState text="目前沒有退貨記錄" /> : (
-        <div style={{ ...S.card, borderRadius: 14, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplate: gridTemplate, gap: 10, padding: '6px 14px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-            <div style={{ textAlign: 'center' }}>#</div><div style={{ textAlign: 'center' }}>退貨單號</div><div style={{ textAlign: 'left' }}>原因</div><div style={{ textAlign: 'right' }}>退款金額</div><div style={{ textAlign: 'center' }}>日期</div><div style={{ textAlign: 'center' }}>狀態</div><div style={{ textAlign: 'center' }}>操作</div>
+        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
+          <div style={{ display: 'grid', gridTemplate: gridTemplate, gap: 0, padding: '6px 0', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>#</div>
+            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>退貨單號</div>
+            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}>原因</div>
+            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right' }}>退款金額</div>
+            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>日期</div>
+            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>狀態</div>
+            <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>操作</div>
           </div>
           {data.returns.map((r, idx) => (
             <div key={r.id} onClick={() => setSelectedReturn(r)}
-              style={{ display: 'grid', gridTemplate: gridTemplate, gap: 10, padding: '8px 14px', borderTop: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
+              style={{ display: 'grid', gridTemplate: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-              <div style={{ fontSize: 13, color: '#b0b8c4', fontWeight: 500, textAlign: 'center' }}>{(data.page * (data.limit || 30)) + idx + 1}</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', textAlign: 'center', ...S.mono }}>{r.return_no || '-'}</div>
-              <div style={{ fontSize: 13, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>{r.reason || '-'}</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#ef4444', textAlign: 'right', ...S.mono }}>{fmtP(r.refund_amount)}</div>
-              <div style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', ...S.mono }}>{fmtDate(r.return_date || r.created_at)}</div>
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ fontSize: 13, color: '#b0b8c4', fontWeight: 500, padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{(data.page * (data.limit || 30)) + idx + 1}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', ...S.mono }}>{r.return_no || '-'}</div>
+              <div style={{ fontSize: 13, color: '#374151', padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>{r.reason || '-'}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#ef4444', padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right', ...S.mono }}>{fmtP(r.refund_amount)}</div>
+              <div style={{ fontSize: 13, color: '#6b7280', padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', ...S.mono }}>{fmtDate(r.return_date || r.created_at)}</div>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>
                 <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: `${STATUS_COLOR[r.status] || '#6b7280'}14`, color: STATUS_COLOR[r.status] || '#6b7280', border: `1px solid ${STATUS_COLOR[r.status] || '#6b7280'}30` }}>
                   {STATUS_MAP[r.status] || r.status}
                 </span>
               </div>
-              <div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'center', padding: '8px 10px' }}>
                 {r.status === 'pending' && <button onClick={(e) => handleApprove(e, r.id)} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, borderColor: '#86efac', color: '#16a34a' }}>核准</button>}
               </div>
             </div>
