@@ -4,6 +4,7 @@ import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, getPresetDateRange, useViewportWidth, exportCsv } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
 import { OrderCreateModal } from './OrderCreateModal';
 
 const SALES_DOCUMENT_FOCUS_KEY = 'qb_sales_document_focus';
@@ -1066,6 +1067,12 @@ export default function Orders({ setTab }) {
   const [showCreate, setShowCreate] = useState(false);
   // ★ 新增：選中的訂單（進入詳情頁）
   const [selectedOrder, setSelectedOrder] = useState(null);
+  // ★ 可拖拉欄寬
+  const ORDER_DEFAULT_WIDTHS = isTablet
+    ? [32, 50, 140, 200, 90, 80, 80]
+    : [32, 50, 150, 200, 80, 90, 80, 80, 80, 100, 130];
+  const { gridTemplate: orderGridTemplate, ResizableHeader: OrderHeader } = useResizableColumns('orders_list', ORDER_DEFAULT_WIDTHS);
+
   // ★ 批次出貨
   const [batchIds, setBatchIds] = useState(new Set());
   const [batchShipping, setBatchShipping] = useState(false);
@@ -1223,58 +1230,59 @@ export default function Orders({ setTab }) {
         <StatCard code="AMT" label="本頁總額" value={fmtP(data.summary?.total_amount)} tone="green" />
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有訂單資料" /> : (
-        <div style={{ ...S.card, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
-          {(() => {
-            const hdrCell = { padding: '8px 10px', borderRight: '1px solid #d1d5db', display: 'flex', alignItems: 'center', fontSize: 13, fontWeight: 600, color: '#374151' };
-            const hdrLast = { ...hdrCell, borderRight: 'none', justifyContent: 'flex-end' };
-            const cols = isTablet ? '32px 50px 140px minmax(0,1fr) 90px 80px 80px' : '32px 50px 150px minmax(0,1.2fr) 80px 90px 80px 80px 80px 100px 130px';
-            return (
-              <div style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: '2px solid #d1d5db', background: '#f3f4f6' }}>
-                <div style={{ ...hdrCell, justifyContent: 'center' }}><input type="checkbox" checked={batchIds.size > 0 && data.rows.every(r => batchIds.has(r.id))} onChange={(e) => { if (e.target.checked) setBatchIds(new Set(data.rows.map(r => r.id))); else setBatchIds(new Set()); }} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
-                <div style={hdrCell}>序</div>
-                <div style={hdrCell}>訂單號</div>
-                <div style={hdrCell}>客戶</div>
-                {!isTablet && <div style={hdrCell}>業務</div>}
-                <div style={hdrCell}>日期</div>
-                <div style={hdrCell}>狀態</div>
-                {!isTablet && <div style={hdrCell}>付款</div>}
-                {!isTablet && <div style={hdrCell}>出貨</div>}
-                {!isTablet && <div style={{ ...hdrCell, justifyContent: 'flex-end' }}>總額</div>}
-                <div style={hdrLast}>操作</div>
-              </div>
-            );
-          })()}
+        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
+          {/* ── 可拖拉表頭 ── */}
+          <OrderHeader headers={isTablet ? [
+            { label: '', align: 'center', render: () => <input type="checkbox" checked={batchIds.size > 0 && data.rows.every(r => batchIds.has(r.id))} onChange={(e) => { if (e.target.checked) setBatchIds(new Set(data.rows.map(r => r.id))); else setBatchIds(new Set()); }} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /> },
+            { label: '序' },
+            { label: '訂單號' },
+            { label: '客戶' },
+            { label: '日期' },
+            { label: '狀態' },
+            { label: '操作', align: 'right' },
+          ] : [
+            { label: '', align: 'center', render: () => <input type="checkbox" checked={batchIds.size > 0 && data.rows.every(r => batchIds.has(r.id))} onChange={(e) => { if (e.target.checked) setBatchIds(new Set(data.rows.map(r => r.id))); else setBatchIds(new Set()); }} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /> },
+            { label: '序' },
+            { label: '訂單號' },
+            { label: '客戶' },
+            { label: '業務' },
+            { label: '日期' },
+            { label: '狀態' },
+            { label: '付款' },
+            { label: '出貨' },
+            { label: '總額', align: 'right' },
+            { label: '操作', align: 'right' },
+          ]} />
+          {/* ── 列表 ── */}
           {data.rows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
             const payKey = String(row.payment_status || 'unpaid').toLowerCase();
             const shipKey = String(row.shipping_status || 'pending').toLowerCase();
-            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0 };
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
             const cellLast = { ...cell, borderRight: 'none', justifyContent: 'flex-end' };
-            const cols = isTablet ? '32px 50px 140px minmax(0,1fr) 90px 80px 80px' : '32px 50px 150px minmax(0,1.2fr) 80px 90px 80px 80px 80px 100px 130px';
 
             return (
-              <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
+              <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: orderGridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div style={{ ...cell, justifyContent: 'center' }}><input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
                 <div style={{ ...cell, fontSize: 13, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
+                <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.order_no || '-'}</div>
                 <div style={cell}>
                   <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                 </div>
-                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
-                <div style={{ ...cell, fontSize: 13, color: '#374151', ...S.mono }}>{row.order_date || '-'}</div>
+                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
+                <div style={{ ...cell, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.order_date || '-'}</div>
                 <div style={cell}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
                 {!isTablet && <div style={cell}><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : '')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
                 {!isTablet && <div style={cell}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : '')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
-                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#10b981', justifyContent: 'flex-end', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>}
-                <div style={{ ...cellLast, gap: 4, flexWrap: 'wrap', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#10b981', justifyContent: 'flex-end', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
+                <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
                   {(() => {
-                    const approval = approvalMap[row.id];
                     const shipKey_local = String(row.shipping_status || 'pending').toLowerCase();
                     const isConverted = shipKey_local === 'shipped' || shipKey_local === 'delivered';
                     if (isConverted) return <span style={{ ...S.tag('green'), fontSize: 11 }}>已轉銷貨</span>;
                     return null;
                   })()}
-                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '5px 8px', fontSize: 13 }}>PDF</button>
+                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>PDF</button>
                 </div>
               </div>
             );
