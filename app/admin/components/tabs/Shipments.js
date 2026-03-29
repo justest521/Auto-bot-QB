@@ -323,15 +323,15 @@ export default function Shipments() {
       {loading ? <Loading /> : data.shipments.length === 0 ? <EmptyState text="目前沒有出貨記錄" /> : (
         <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
           {/* Table header */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : gridTemplate, gap: 0, padding: 0, background: '#f3f4f6', borderBottom: '2px solid #d1d5db', fontSize: 13, fontWeight: 600, color: '#374151' }}>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>#</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>出貨單號</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'left' }}>物流商</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'left' }}>追蹤編號</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>出貨日期</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>狀態</div>
-            <div style={{ padding: '8px 10px', borderRight: 'none', textAlign: 'center' }}>操作</div>
-          </div>
+          <ResizableHeader headers={[
+            { label: '#', align: 'center' },
+            { label: '出貨單號', align: 'center' },
+            { label: '物流商', align: 'center' },
+            { label: '追蹤編號', align: 'center' },
+            { label: '出貨日期', align: 'center' },
+            { label: '狀態', align: 'center' },
+            { label: '操作', align: 'center' },
+          ]} />
           {/* Table rows */}
           {data.shipments.map((s, idx) => {
             const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13 };

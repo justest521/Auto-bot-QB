@@ -105,14 +105,14 @@ export default function DealerUsers() {
       )}
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="尚無帳號" /> : (
         <div ref={tableRef} style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '2px solid #d1d5db', background: '#f3f4f6', color: '#374151', fontSize: 13, fontWeight: 600, alignItems: 'center' }}>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>帳號</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>姓名 / 公司</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>角色</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>電話</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>狀態</div>
-            <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>操作</div>
-          </div>
+          <ResizableHeader headers={[
+            { label: '帳號', align: 'center' },
+            { label: '姓名 / 公司', align: 'center' },
+            { label: '角色', align: 'center' },
+            { label: '電話', align: 'center' },
+            { label: '狀態', align: 'center' },
+            { label: '操作', align: 'center' },
+          ]} />
           {data.rows.map((u, idx) => (
             <div key={u.id}>
               <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #eef3f8', alignItems: 'center', background: expandedId === u.id ? '#f0f7ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === u.id ? null : u.id)}>

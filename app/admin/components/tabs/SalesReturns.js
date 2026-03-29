@@ -146,15 +146,17 @@ export default function SalesReturns() {
         </div>
       )) : (
         <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: '8px 0', borderBottom: '1px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>單別</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>單號</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}>客戶 / 發票</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>日期</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>業務</div>
-            {!isTablet && <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right' }}>未稅金額</div>}
-            {!isTablet && <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right' }}>總金額</div>}
-          </div>
+          <ResizableHeader headers={[
+            { label: '單別', align: 'center' },
+            { label: '單號', align: 'center' },
+            { label: '客戶 / 發票', align: 'center' },
+            { label: '日期', align: 'center' },
+            { label: '業務', align: 'center' },
+            ...(!isTablet ? [
+              { label: '未稅金額', align: 'center' },
+              { label: '總金額', align: 'center' },
+            ] : []),
+          ]} />
           {data.rows.map((row) => (
             <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #eef3f8', alignItems: 'center' }}>
               <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>

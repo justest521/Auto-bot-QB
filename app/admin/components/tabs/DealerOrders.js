@@ -392,14 +392,14 @@ export default function DealerOrders() {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="沒有訂單" /> : (
         <div ref={tableRef} style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '2px solid #d1d5db', background: '#f3f4f6', color: '#374151', fontSize: 13, fontWeight: 600, alignItems: 'center' }}>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}><input type="checkbox" checked={selected.length > 0 && selected.length === data.rows.filter((r) => r.status === 'pending').length} onChange={selectAll} /></div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>訂單號</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>下單人</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>日期</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>狀態</div>
-            <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>金額</div>
-          </div>
+          <ResizableHeader headers={[
+            { label: '', align: 'center', render: () => <input type="checkbox" checked={selected.length > 0 && selected.length === data.rows.filter((r) => r.status === 'pending').length} onChange={selectAll} /> },
+            { label: '訂單號', align: 'center' },
+            { label: '下單人', align: 'center' },
+            { label: '日期', align: 'center' },
+            { label: '狀態', align: 'center' },
+            { label: '金額', align: 'center' },
+          ]} />
           {data.rows.map((row, idx) => (
             <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #eef3f8', alignItems: 'center', background: selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedOrder(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd'}>
               <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', fontSize: 13 }} onClick={(e) => e.stopPropagation()}>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>

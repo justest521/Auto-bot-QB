@@ -346,15 +346,15 @@ export default function Returns() {
       {/* Table */}
       {loading ? <Loading /> : data.returns.length === 0 ? <EmptyState text="目前沒有退貨記錄" /> : (
         <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, background: '#f3f4f6', borderBottom: '2px solid #d1d5db', fontSize: 13, fontWeight: 600, color: '#374151' }}>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>#</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>退貨單號</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}>原因</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right' }}>退款金額</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>日期</div>
-            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>狀態</div>
-            <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>操作</div>
-          </div>
+          <ResizableHeader headers={[
+            { label: '#', align: 'center' },
+            { label: '退貨單號', align: 'center' },
+            { label: '原因', align: 'center' },
+            { label: '退款金額', align: 'center' },
+            { label: '日期', align: 'center' },
+            { label: '狀態', align: 'center' },
+            { label: '操作', align: 'center' },
+          ]} />
           {data.returns.map((r, idx) => (
             <div key={r.id} onClick={() => setSelectedReturn(r)}
               style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
