@@ -134,7 +134,7 @@ export default function QuickReceive({ setTab }) {
           return {
             ...item,
             name: item.name || product?.description || '',
-            cost: item.cost || Number(product?.cost_price || product?.tw_reseller_price || 0),
+            cost: item.cost || Number(product?.tw_reseller_price || product?.us_price || 0),
             stock_qty: product?.stock_qty || 0,
             matched: !!product,
             waiting_orders: res.waitingOrders || [],
@@ -372,6 +372,7 @@ export default function QuickReceive({ setTab }) {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
+                  <th style={{ ...thStyle, textAlign: 'center', width: 40 }}>序</th>
                   <th style={thStyle}>料號</th>
                   <th style={thStyle}>品名</th>
                   <th style={{ ...thStyle, textAlign: 'right', width: 70 }}>數量</th>
@@ -384,9 +385,10 @@ export default function QuickReceive({ setTab }) {
               <tbody>
                 {items.map((item, idx) => (
                   <tr key={idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
                     <td style={tdStyle}>
-                      <span style={{ ...S.mono, fontWeight: 700, color: item.matched ? '#2563eb' : '#dc2626' }}>{item.part_no}</span>
-                      {!item.matched && <span style={{ fontSize: 10, color: '#dc2626', marginLeft: 4 }}>未對應</span>}
+                      <span style={{ ...S.mono, fontWeight: 700, color: item.matched ? '#2563eb' : '#374151' }}>{item.part_no}</span>
+                      {!item.matched && <span style={{ fontSize: 10, color: '#f59e0b', marginLeft: 6, background: '#fef3c7', padding: '1px 6px', borderRadius: 4 }}>新品</span>}
                     </td>
                     <td style={tdStyle}>
                       <input value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} style={{ ...S.input, padding: '3px 6px', fontSize: 12 }} />
