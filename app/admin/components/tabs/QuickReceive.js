@@ -188,7 +188,8 @@ export default function QuickReceive({ setTab }) {
           reader.readAsDataURL(file);
         });
         const res = await apiPost({ action: 'parse_receive_image', base64, mime: file.type, file_hash: hash, file_name: file.name });
-        if (res.cached) setMsg('快取命中，秒速載入！');
+        const METHOD_LABELS = { cache: '快取命中，秒速載入！', 'text-haiku': 'PDF 文字快速解析完成', 'ai-vision': 'AI 圖像辨識完成' };
+        if (res.method) setMsg(METHOD_LABELS[res.method] || '解析完成');
         if (res.error) { setError(res.error); setLoading(false); return; }
         const parsed = (res.items || []).map(i => ({
           part_no: i.part_no || '',
