@@ -41,8 +41,29 @@ function compressImage(file, maxPx = 1600, quality = 0.7) {
   });
 }
 
+// ── 震動反饋 ──
+function vibrate(ms = 100) {
+  try { navigator.vibrate?.(ms); } catch {}
+}
+
+// ── 嗶聲 ──
+function beep(freq = 1000, duration = 150) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    gain.gain.value = 0.3;
+    osc.start();
+    setTimeout(() => { osc.stop(); ctx.close(); }, duration);
+  } catch {}
+}
+
 export default function MobileStockIn() {
-  const [step, setStep] = useState('capture'); // capture | parsing | preview | submitting | done
+  const [step, setStep] = useState('capture'); // capture | scanning | parsing | preview | submitting | done
+  const [mode, setMode] = useState('photo');   // photo | scan | manual
   const [items, setItems] = useState([]);
   const [checkedItems, setCheckedItems] = useState(new Set());
   const [error, setError] = useState('');
@@ -50,7 +71,22 @@ export default function MobileStockIn() {
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState('');
   const [parseMethod, setParseMethod] = useState('');
-  const [authed, setAuthed] = useState(null); // null=checking, true/false
+  const [authed, setAuthed] = useState(null);
+
+  // 掃碼相關
+  const [scanning, setScanning] = useState(false);
+  const [scanHistory, setScanHistory] = useState([]); // 最近掃過的碼
+  const [scanStatus, setScanStatus] = useState(''); // 掃碼狀態提示
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+  const scanLoopRef = useRef(null);
+  const lastScannedRef = useRef('');
+  const lastScannedTimeRef = useRef(0);
+
+  // 手動輸入
+  const [manualInput, setManualInput] = useState('');
+
   const fileRef = useRef(null);
   const cameraRef = useRef(null);
 
@@ -62,13 +98,141 @@ export default function MobileStockIn() {
     apiGet({ action: 'vendors', search: '', limit: 200 }).then(r => setVendors(r.vendors || [])).catch(() => {});
   }, []);
 
-  // ── 上傳解析 ──
+  // 清理相機
+  useEffect(() => {
+    return () => stopScanner();
+  }, []);
+
+  // ── 條碼查詢並加入清單 ──
+  const lookupAndAdd = useCallback(async (code) => {
+    if (!code) return;
+    // 防止重複掃（同一碼 2 秒內不重複）
+    const now = Date.now();
+    if (code === lastScannedRef.current && now - lastScannedTimeRef.current < 2000) return;
+    lastScannedRef.current = code;
+    lastScannedTimeRef.current = now;
+
+    beep(1200, 100);
+    vibrate(80);
+    setScanStatus(`查詢 ${code}...`);
+    setScanHistory(prev => [code, ...prev.filter(c => c !== code)].slice(0, 20));
+
+    try {
+      const res = await apiGet({ action: 'barcode_lookup', code });
+      const prod = res.product;
+      const mem = res.memory;
+
+      const newItem = {
+        part_no: prod?.item_number || code,
+        name: prod?.description || '',
+        cost: mem?.last_cost || Number(prod?.tw_reseller_price || 0) || 0,
+        qty: 1,
+        matched: !!prod && !prod.fuzzy_match,
+        fuzzy: !!prod?.fuzzy_match,
+        from_memory: !!mem?.last_cost,
+        barcode: code,
+      };
+
+      // 如果已有同料號，+1 數量
+      setItems(prev => {
+        const existIdx = prev.findIndex(i => i.part_no.toUpperCase() === newItem.part_no.toUpperCase());
+        if (existIdx >= 0) {
+          const updated = [...prev];
+          updated[existIdx] = { ...updated[existIdx], qty: updated[existIdx].qty + 1 };
+          setScanStatus(`${newItem.part_no} 數量 +1 → ${updated[existIdx].qty}`);
+          return updated;
+        }
+        setScanStatus(`✓ ${newItem.part_no}${newItem.name ? ' ' + newItem.name : ''}`);
+        return [...prev, newItem];
+      });
+
+      // 確保新加入的自動勾選
+      setCheckedItems(prev => {
+        const n = new Set(prev);
+        setItems(cur => { n.add(cur.length - 1); return cur; });
+        return n;
+      });
+      // 用更可靠的方式：在 items 更新後同步 checked
+      setTimeout(() => {
+        setItems(cur => {
+          setCheckedItems(new Set(cur.map((_, i) => i)));
+          return cur;
+        });
+      }, 50);
+
+    } catch (e) {
+      setScanStatus(`❌ ${code} 查詢失敗`);
+    }
+  }, []);
+
+  // ── 啟動掃碼器 ──
+  const startScanner = useCallback(async () => {
+    try {
+      // 先檢查是否支援 BarcodeDetector
+      if (!('BarcodeDetector' in window)) {
+        setError('您的瀏覽器不支援條碼掃描，請使用 iPhone Safari 或 Android Chrome');
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      const detector = new BarcodeDetector({
+        formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'code_93', 'qr_code', 'upc_a', 'upc_e', 'itf', 'codabar']
+      });
+
+      setScanning(true);
+      setStep('scanning');
+      setScanStatus('對準條碼...');
+
+      // 掃碼循環
+      const scanFrame = async () => {
+        if (!videoRef.current || videoRef.current.readyState < 2) {
+          scanLoopRef.current = requestAnimationFrame(scanFrame);
+          return;
+        }
+        try {
+          const barcodes = await detector.detect(videoRef.current);
+          if (barcodes.length > 0) {
+            const code = barcodes[0].rawValue;
+            if (code) lookupAndAdd(code);
+          }
+        } catch {}
+        scanLoopRef.current = requestAnimationFrame(scanFrame);
+      };
+      scanLoopRef.current = requestAnimationFrame(scanFrame);
+
+    } catch (e) {
+      setError('無法開啟相機：' + e.message);
+    }
+  }, [lookupAndAdd]);
+
+  // ── 停止掃碼器 ──
+  const stopScanner = useCallback(() => {
+    setScanning(false);
+    if (scanLoopRef.current) {
+      cancelAnimationFrame(scanLoopRef.current);
+      scanLoopRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+  }, []);
+
+  // ── 上傳解析（拍照模式）──
   const handleFile = useCallback(async (file) => {
     if (!file) return;
     setStep('parsing');
     setError('');
     try {
-      // 壓縮圖片
       let uploadFile = file;
       if (file.type.startsWith('image/')) {
         const compressed = await compressImage(file);
@@ -88,7 +252,6 @@ export default function MobileStockIn() {
       const parsed = data.items || [];
       if (!parsed.length) { setError('無法辨識品項，請重新拍照'); setStep('capture'); return; }
 
-      // 比對產品 + 記憶
       const partNos = parsed.map(i => (i.part_no || '').toUpperCase()).filter(Boolean);
       let costMap = {};
       try {
@@ -116,8 +279,12 @@ export default function MobileStockIn() {
         }
       }));
 
-      setItems(enriched);
-      setCheckedItems(new Set(enriched.map((_, i) => i)));
+      setItems(prev => [...prev, ...enriched]);
+      // 設定新增的也勾選
+      setItems(cur => {
+        setCheckedItems(new Set(cur.map((_, i) => i)));
+        return cur;
+      });
       setParseMethod(data.method || 'ai');
       setStep('preview');
     } catch (e) {
@@ -125,6 +292,16 @@ export default function MobileStockIn() {
       setStep('capture');
     }
   }, [selectedVendor]);
+
+  // ── 手動加入品項 ──
+  const handleManualAdd = useCallback(async () => {
+    const code = manualInput.trim().toUpperCase();
+    if (!code) return;
+    setManualInput('');
+    await lookupAndAdd(code);
+    // 如果還在 capture，跳到 preview
+    setStep('preview');
+  }, [manualInput, lookupAndAdd]);
 
   // ── 入庫 ──
   const handleStockIn = async () => {
@@ -136,7 +313,7 @@ export default function MobileStockIn() {
         action: 'quick_stock_in',
         items: selected.map(i => ({ part_no: i.part_no, name: i.name, qty: Number(i.qty) || 1, cost: Number(i.cost) || 0 })),
         vendor_id: selectedVendor || null,
-        note: '手機進貨',
+        note: mode === 'scan' ? '條碼掃描進貨' : '手機進貨',
       });
       setMsg(`✅ ${res.stock_in_no}\n${res.count} 項入庫完成`);
       setStep('done');
@@ -148,6 +325,14 @@ export default function MobileStockIn() {
 
   const toggleCheck = (idx) => setCheckedItems(prev => { const n = new Set(prev); n.has(idx) ? n.delete(idx) : n.add(idx); return n; });
   const updateItem = (idx, key, val) => setItems(prev => prev.map((it, i) => i === idx ? { ...it, [key]: val } : it));
+  const removeItem = (idx) => {
+    setItems(prev => prev.filter((_, i) => i !== idx));
+    setCheckedItems(prev => {
+      const n = new Set();
+      prev.forEach(i => { if (i < idx) n.add(i); else if (i > idx) n.add(i - 1); });
+      return n;
+    });
+  };
   const checkedCount = [...checkedItems].filter(i => i < items.length).length;
   const totalAmt = items.filter((_, i) => checkedItems.has(i)).reduce((s, i) => s + (Number(i.qty) || 1) * (Number(i.cost) || 0), 0);
 
@@ -159,6 +344,11 @@ export default function MobileStockIn() {
     btn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 700, color: '#fff', background: '#16a34a', border: 'none', borderRadius: 12, cursor: 'pointer' },
     btnOutline: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 700, color: '#16a34a', background: '#fff', border: '2px solid #16a34a', borderRadius: 12, cursor: 'pointer' },
     input: { width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #e5e7eb', borderRadius: 8, outline: 'none', boxSizing: 'border-box' },
+    modeBtn: (active) => ({
+      flex: 1, padding: '10px 8px', fontSize: 13, fontWeight: 700, border: 'none', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
+      background: active ? '#16a34a' : '#f3f4f6', color: active ? '#fff' : '#6b7280',
+      transition: 'all 0.2s',
+    }),
   };
 
   // ── 未認證 ──
@@ -182,9 +372,16 @@ export default function MobileStockIn() {
     <div style={S.page}>
       <div style={S.header}>
         <span>📦 手機進貨</span>
-        {step !== 'capture' && step !== 'done' && (
-          <button onClick={() => { setStep('capture'); setItems([]); setError(''); }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '4px 12px', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>重來</button>
-        )}
+        <div style={{ display: 'flex', gap: 6 }}>
+          {items.length > 0 && step !== 'done' && (
+            <button onClick={() => { stopScanner(); setStep('preview'); }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '4px 12px', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>
+              清單 ({items.length})
+            </button>
+          )}
+          {step !== 'capture' && step !== 'done' && (
+            <button onClick={() => { stopScanner(); setStep('capture'); setItems([]); setError(''); }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '4px 12px', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>重來</button>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -194,35 +391,164 @@ export default function MobileStockIn() {
         </div>
       )}
 
-      {/* ══════ 拍照/上傳 ══════ */}
+      {/* ══════ 拍照/掃碼/手動 選擇 ══════ */}
       {step === 'capture' && (
-        <div style={S.card}>
-          <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <div style={{ fontSize: 56, marginBottom: 8 }}>📸</div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>拍照或上傳進貨單</div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>支援送貨單、發票、手寫單據</div>
+        <>
+          {/* 模式切換 */}
+          <div style={{ display: 'flex', gap: 6, margin: '12px 12px 0', background: '#fff', borderRadius: 12, padding: 4, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <button onClick={() => setMode('scan')} style={S.modeBtn(mode === 'scan')}>📱 掃條碼</button>
+            <button onClick={() => setMode('photo')} style={S.modeBtn(mode === 'photo')}>📸 拍照辨識</button>
+            <button onClick={() => setMode('manual')} style={S.modeBtn(mode === 'manual')}>⌨️ 手動輸入</button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-            <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={e => handleFile(e.target.files[0])} style={{ display: 'none' }} />
-            <button onClick={() => cameraRef.current?.click()} style={{ ...S.btn, fontSize: 18, padding: 16 }}>
-              📷 拍照進貨
-            </button>
+          {/* 掃碼模式 */}
+          {mode === 'scan' && (
+            <div style={S.card}>
+              <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                <div style={{ fontSize: 56, marginBottom: 8 }}>📱</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>連續掃描條碼</div>
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>支援 EAN-13、Code128、QR Code 等</div>
+                <div style={{ fontSize: 12, color: '#9ca3af' }}>同料號重複掃會自動 +1</div>
+              </div>
+              <button onClick={startScanner} style={{ ...S.btn, fontSize: 18, padding: 16 }}>
+                開始掃碼
+              </button>
+            </div>
+          )}
 
-            <input ref={fileRef} type="file" accept="image/*,.pdf,.csv,.xlsx" onChange={e => handleFile(e.target.files[0])} style={{ display: 'none' }} />
-            <button onClick={() => fileRef.current?.click()} style={S.btnOutline}>
-              📁 從相簿/檔案選取
-            </button>
-          </div>
+          {/* 拍照模式 */}
+          {mode === 'photo' && (
+            <div style={S.card}>
+              <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                <div style={{ fontSize: 56, marginBottom: 8 }}>📸</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>拍照或上傳進貨單</div>
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>支援送貨單、發票、手寫單據</div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+                <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={e => handleFile(e.target.files[0])} style={{ display: 'none' }} />
+                <button onClick={() => cameraRef.current?.click()} style={{ ...S.btn, fontSize: 18, padding: 16 }}>
+                  📷 拍照進貨
+                </button>
+                <input ref={fileRef} type="file" accept="image/*,.pdf,.csv,.xlsx" onChange={e => handleFile(e.target.files[0])} style={{ display: 'none' }} />
+                <button onClick={() => fileRef.current?.click()} style={S.btnOutline}>
+                  📁 從相簿/檔案選取
+                </button>
+              </div>
+            </div>
+          )}
 
-          <div>
+          {/* 手動輸入模式 */}
+          {mode === 'manual' && (
+            <div style={S.card}>
+              <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                <div style={{ fontSize: 56, marginBottom: 8 }}>⌨️</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>輸入料號查詢</div>
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>輸入料號或條碼自動查詢產品</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <input
+                  value={manualInput} onChange={e => setManualInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleManualAdd()}
+                  placeholder="輸入料號 / EAN 條碼"
+                  style={{ ...S.input, flex: 1, fontSize: 16, padding: '12px' }}
+                  autoFocus
+                />
+                <button onClick={handleManualAdd} style={{ ...S.btn, width: 'auto', padding: '12px 20px', whiteSpace: 'nowrap' }}>加入</button>
+              </div>
+              {scanStatus && <div style={{ fontSize: 13, color: '#16a34a', textAlign: 'center', marginTop: 4 }}>{scanStatus}</div>}
+            </div>
+          )}
+
+          {/* 廠商選擇 */}
+          <div style={S.card}>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 4, display: 'block' }}>廠商（選填，可提高辨識準確度）</label>
             <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={S.input}>
               <option value="">不指定</option>
               {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
             </select>
           </div>
-        </div>
+
+          {/* 已掃入的品項預覽 */}
+          {items.length > 0 && (
+            <div style={S.card}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 700 }}>已加入 {items.length} 項</span>
+                <button onClick={() => setStep('preview')} style={{ fontSize: 13, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                  查看清單 →
+                </button>
+              </div>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>
+                {items.slice(-3).map((it, i) => (
+                  <div key={i} style={{ padding: '2px 0' }}>{it.part_no} × {it.qty}</div>
+                ))}
+                {items.length > 3 && <div>... 還有 {items.length - 3} 項</div>}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ══════ 掃碼進行中 ══════ */}
+      {step === 'scanning' && (
+        <>
+          <div style={{ position: 'relative', background: '#000' }}>
+            <video ref={videoRef} playsInline muted style={{ width: '100%', display: 'block' }} />
+            {/* 掃描框 */}
+            <div style={{
+              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: '70%', height: 120, border: '3px solid #16a34a', borderRadius: 12,
+              boxShadow: '0 0 0 9999px rgba(0,0,0,0.4)',
+            }}>
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+                background: '#16a34a', animation: 'scanline 1.5s ease-in-out infinite',
+              }} />
+            </div>
+            <style>{`@keyframes scanline { 0%,100% { transform: translateY(0) } 50% { transform: translateY(117px) } }`}</style>
+          </div>
+
+          {/* 掃碼狀態 */}
+          <div style={{ ...S.card, padding: '10px 16px' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#374151', marginBottom: 4 }}>
+              {scanStatus || '對準條碼...'}
+            </div>
+            <div style={{ fontSize: 12, color: '#9ca3af' }}>已掃 {items.length} 項</div>
+          </div>
+
+          {/* 最近掃入清單 */}
+          {items.length > 0 && (
+            <div style={S.card}>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>已掃入品項</div>
+              {items.slice().reverse().slice(0, 8).map((item, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 13 }}>
+                  <div>
+                    <span style={{ fontWeight: 700, fontFamily: 'monospace', color: item.matched ? '#2563eb' : '#374151' }}>{item.part_no}</span>
+                    {item.name && <span style={{ color: '#6b7280', marginLeft: 6 }}>{item.name.substring(0, 15)}</span>}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontWeight: 700 }}>×{item.qty}</span>
+                    <span style={{ color: item.cost === 0 ? '#a855f7' : '#10b981', fontFamily: 'monospace', fontWeight: 600 }}>
+                      {item.cost === 0 ? '贈品' : `$${item.cost}`}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 掃碼底部工具列 */}
+          <div style={{ position: 'sticky', bottom: 0, background: '#fff', borderTop: '1px solid #e5e7eb', padding: '12px 16px', display: 'flex', gap: 10 }}>
+            <button onClick={() => { stopScanner(); setStep('capture'); }} style={{ ...S.btnOutline, flex: 1, padding: 12 }}>
+              ← 返回
+            </button>
+            <button onClick={() => { stopScanner(); setStep('preview'); }} disabled={items.length === 0} style={{
+              ...S.btn, flex: 2, padding: 12,
+              background: items.length === 0 ? '#d1d5db' : '#16a34a',
+            }}>
+              完成掃碼 → 確認清單 ({items.length})
+            </button>
+          </div>
+        </>
       )}
 
       {/* ══════ 解析中 ══════ */}
@@ -241,29 +567,42 @@ export default function MobileStockIn() {
           <div style={S.card}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 15, fontWeight: 700 }}>
-                辨識結果 <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>{checkedCount}/{items.length} 項</span>
+                進貨清單 <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>{checkedCount}/{items.length} 項</span>
               </div>
-              <button onClick={() => {
-                if (checkedItems.size === items.length) setCheckedItems(new Set());
-                else setCheckedItems(new Set(items.map((_, i) => i)));
-              }} style={{ fontSize: 12, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                {checkedItems.size === items.length ? '全不選' : '全選'}
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => {
+                  if (checkedItems.size === items.length) setCheckedItems(new Set());
+                  else setCheckedItems(new Set(items.map((_, i) => i)));
+                }} style={{ fontSize: 12, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                  {checkedItems.size === items.length ? '全不選' : '全選'}
+                </button>
+                <button onClick={() => { stopScanner(); setStep('capture'); }} style={{ fontSize: 12, color: '#16a34a', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                  + 繼續加
+                </button>
+              </div>
             </div>
 
+            {items.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#9ca3af', fontSize: 13 }}>
+                還沒有品項，回去掃碼或拍照加入
+              </div>
+            )}
+
             {items.map((item, idx) => (
-              <div key={idx} onClick={() => toggleCheck(idx)} style={{
+              <div key={idx} style={{
                 display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 0',
                 borderBottom: idx < items.length - 1 ? '1px solid #f3f4f6' : 'none',
                 opacity: checkedItems.has(idx) ? 1 : 0.4, transition: 'opacity 0.15s',
               }}>
                 <input type="checkbox" checked={checkedItems.has(idx)} onChange={() => toggleCheck(idx)}
                   style={{ width: 20, height: 20, accentColor: '#16a34a', marginTop: 2, flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0 }} onClick={() => toggleCheck(idx)}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                     <span style={{ fontWeight: 700, color: item.matched ? '#2563eb' : '#374151', fontFamily: 'monospace', fontSize: 14 }}>{item.part_no || '?'}</span>
-                    {!item.matched && <span style={{ fontSize: 10, color: '#f59e0b', background: '#fef3c7', padding: '1px 5px', borderRadius: 3 }}>新品</span>}
+                    {!item.matched && !item.fuzzy && <span style={{ fontSize: 10, color: '#f59e0b', background: '#fef3c7', padding: '1px 5px', borderRadius: 3 }}>新品</span>}
+                    {item.fuzzy && <span style={{ fontSize: 10, color: '#f97316', background: '#fff7ed', padding: '1px 5px', borderRadius: 3 }}>模糊</span>}
                     {item.from_memory && <span style={{ fontSize: 10, color: '#8b5cf6', background: '#f5f3ff', padding: '1px 5px', borderRadius: 3 }}>記憶</span>}
+                    {item.barcode && <span style={{ fontSize: 10, color: '#6b7280', background: '#f3f4f6', padding: '1px 5px', borderRadius: 3 }}>{item.barcode.length > 10 ? 'EAN' : 'BC'}</span>}
                   </div>
                   <div style={{ fontSize: 13, color: '#4b5563', marginBottom: 4 }}>
                     <input value={item.name} onChange={e => { e.stopPropagation(); updateItem(idx, 'name', e.target.value); }} onClick={e => e.stopPropagation()} placeholder="品名" style={{ ...S.input, fontSize: 13, padding: '4px 6px' }} />
@@ -282,6 +621,7 @@ export default function MobileStockIn() {
                     </span>
                   </div>
                 </div>
+                <button onClick={(e) => { e.stopPropagation(); removeItem(idx); }} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: 18, cursor: 'pointer', padding: '0 4px', flexShrink: 0 }}>✕</button>
               </div>
             ))}
           </div>
@@ -318,7 +658,7 @@ export default function MobileStockIn() {
             <div style={{ fontSize: 16, fontWeight: 700, color: '#15803d', whiteSpace: 'pre-line' }}>{msg}</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
-            <button onClick={() => { setStep('capture'); setItems([]); setMsg(''); }} style={S.btn}>
+            <button onClick={() => { setStep('capture'); setItems([]); setMsg(''); setCheckedItems(new Set()); }} style={S.btn}>
               繼續進貨
             </button>
             <button onClick={() => window.location.href = '/admin'} style={S.btnOutline}>
