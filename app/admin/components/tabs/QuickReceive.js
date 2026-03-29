@@ -6,6 +6,13 @@ import { fmt, fmtP } from '@/lib/admin/helpers';
 import { Loading, PageLead } from '../shared/ui';
 import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
+// ─── 檔案 SHA-256 hash ───
+async function fileHash(file) {
+  const buf = await file.arrayBuffer();
+  const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ─── CSV 解析 ───
 function parseCsv(text) {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
@@ -164,13 +171,16 @@ export default function QuickReceive({ setTab }) {
         await matchItems(parsed);
 
       } else if (fileType === 'pdf' || fileType === 'image') {
+        // 計算檔案 hash 用於快取
+        const hash = await fileHash(file);
         const base64 = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result.split(',')[1]);
           reader.onerror = reject;
           reader.readAsDataURL(file);
         });
-        const res = await apiPost({ action: 'parse_receive_image', base64, mime: file.type });
+        const res = await apiPost({ action: 'parse_receive_image', base64, mime: file.type, file_hash: hash, file_name: file.name });
+        if (res.cached) setMsg('快取命中，秒速載入！');
         if (res.error) { setError(res.error); setLoading(false); return; }
         const parsed = (res.items || []).map(i => ({
           part_no: i.part_no || '',
