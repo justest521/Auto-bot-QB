@@ -107,7 +107,7 @@ export default function QuickReceive({ setTab }) {
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef(null);
   const [dragging, setDragging] = useState(false);
-  const [taxIncluded, setTaxIncluded] = useState(true);
+  const [taxExtra, setTaxExtra] = useState(true);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const dragCounter = useRef(0);
 
@@ -271,7 +271,7 @@ export default function QuickReceive({ setTab }) {
 
   const totalQty = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
   const subtotal = items.reduce((s, i) => s + (Number(i.qty) || 0) * (Number(i.cost) || 0), 0);
-  const taxAmount = taxIncluded ? 0 : Math.round(subtotal * 0.05);
+  const taxAmount = taxExtra ? Math.round(subtotal * 0.05) : 0;
   const totalCost = subtotal + taxAmount;
   const totalWaiting = items.reduce((s, i) => s + (i.waiting_orders?.length || 0), 0);
 
@@ -431,23 +431,23 @@ export default function QuickReceive({ setTab }) {
           {/* 合計列 */}
           <div style={{ padding: '12px 8px 4px', borderTop: '2px solid #bfdbfe', marginTop: 4, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: '#374151', userSelect: 'none' }}>
-              <input type="checkbox" checked={taxIncluded} onChange={e => setTaxIncluded(e.target.checked)}
+              <input type="checkbox" checked={taxExtra} onChange={e => setTaxExtra(e.target.checked)}
                 style={{ width: 16, height: 16, accentColor: '#3b82f6', cursor: 'pointer' }} />
-              含稅
+              稅額外加 5%
             </label>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 13, color: '#6b7280' }}>
                 小計 <span style={{ ...S.mono, fontWeight: 700, color: '#111827' }}>{fmtP(subtotal)}</span>
                 <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 4 }}>({items.length} 項 / {totalQty} 件)</span>
               </div>
-              {!taxIncluded && (
+              {taxExtra && (
                 <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                   稅金 5% <span style={{ ...S.mono, fontWeight: 600, color: '#374151' }}>{fmtP(taxAmount)}</span>
                 </div>
               )}
             </div>
             <div style={{ borderLeft: '3px solid #16a34a', paddingLeft: 16, textAlign: 'right' }}>
-              <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, marginBottom: 2 }}>進貨合計{!taxIncluded ? '（含稅）' : ''}</div>
+              <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, marginBottom: 2 }}>進貨合計{taxExtra ? '（含稅）' : ''}</div>
               <div style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalCost)}</div>
             </div>
           </div>
