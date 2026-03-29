@@ -306,11 +306,18 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, ...S.mono }}>{q.quote_date || '-'}</div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', textAlign: 'right' }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{c.company_name || c.name || '未綁定客戶'}</div>
-            {c.phone && <div style={{ fontSize: 12, color: '#6b7280', ...S.mono, marginTop: 2 }}>{c.phone}</div>}
-          </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {!isConverted && isEditable && (
+            <button onClick={convertToOrder} disabled={convertingOrder} style={{ ...S.btnPrimary, padding: '7px 16px', fontSize: 13, fontWeight: 700 }}>
+              {convertingOrder ? '轉換中...' : '轉為訂單'}
+            </button>
+          )}
+          {isEditable && (
+            <button onClick={sendToLine} style={{ ...S.btnGhost, padding: '7px 16px', fontSize: 13, fontWeight: 600 }}>發送 LINE</button>
+          )}
+          {isDeletable && (
+            <button onClick={deleteQuote} style={{ ...S.btnGhost, padding: '7px 16px', fontSize: 13, fontWeight: 600, color: '#dc2626' }}>刪除報價單</button>
+          )}
         </div>
       </div>
 
@@ -603,7 +610,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
           {/* 1. PDF button */}
           <button onClick={() => window.open(`/api/pdf?type=quote&id=${quote.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
 
-          {/* 2. 客戶資訊 */}
+          {/* 3. 客戶資訊 */}
           <div style={{ ...cardStyle, padding: '10px 16px' }}>
             <div style={labelStyle}>客戶資訊</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{c.company_name || c.name || '未綁定客戶'}</div>
@@ -634,26 +641,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             )}
           </div>
 
-          {/* 4. 備註 */}
-          <div style={{ ...cardStyle, padding: '10px 16px' }}>
-            <div style={labelStyle}>備註</div>
-            <textarea
-              defaultValue={q.remark || ''}
-              placeholder="輸入備註..."
-              rows={3}
-              style={{ width: '100%', fontSize: 13, color: '#374151', lineHeight: 1.5, border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 10px', resize: 'vertical', fontFamily: 'inherit' }}
-              onBlur={async (e) => {
-                const val = e.target.value.trim();
-                if (val === (q.remark || '').trim()) return;
-                try {
-                  await apiPost({ action: 'update_quote', quote_id: q.id, remark: val });
-                  onRefresh?.();
-                } catch (err) { setMsg(err.message || '備註更新失敗'); }
-              }}
-            />
-          </div>
-
-          {/* 5. 進度 timeline */}
+          {/* 4. 進度 timeline */}
           <div style={{ ...cardStyle, padding: '10px 16px' }}>
             <div style={labelStyle}>進度</div>
         {(() => {
@@ -734,18 +722,25 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
       })()}
       </div>
 
-          {/* 6. Action buttons */}
-          {!isConverted && isEditable && (
-            <button onClick={convertToOrder} disabled={convertingOrder} style={{ ...S.btnPrimary, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 700 }}>
-              {convertingOrder ? '轉換中...' : '轉為訂單'}
-            </button>
-          )}
-          {isEditable && (
-            <button onClick={sendToLine} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600 }}>發送 LINE</button>
-          )}
-          {isDeletable && (
-            <button onClick={deleteQuote} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, color: '#dc2626' }}>刪除報價單</button>
-          )}
+          {/* 5. 備註 */}
+          <div style={{ ...cardStyle, padding: '10px 16px' }}>
+            <div style={labelStyle}>備註</div>
+            <textarea
+              defaultValue={q.remark || ''}
+              placeholder="輸入備註..."
+              rows={3}
+              style={{ width: '100%', fontSize: 13, color: '#374151', lineHeight: 1.5, border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 10px', resize: 'vertical', fontFamily: 'inherit' }}
+              onBlur={async (e) => {
+                const val = e.target.value.trim();
+                if (val === (q.remark || '').trim()) return;
+                try {
+                  await apiPost({ action: 'update_quote', quote_id: q.id, remark: val });
+                  onRefresh?.();
+                } catch (err) { setMsg(err.message || '備註更新失敗'); }
+              }}
+            />
+          </div>
+
         </div>
       </div>
     </div>
