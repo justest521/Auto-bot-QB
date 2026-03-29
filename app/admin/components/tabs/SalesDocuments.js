@@ -416,7 +416,7 @@ export default function SalesDocuments({ setTab }) {
   const [dateTo, setDateTo] = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
 
-  const { gridTemplate, ResizableHeader } = useResizableColumns('sales_list', isTablet ? [50, 160, 250, 100] : [50, 170, 250, 120, 120, 120, 120, 120]);
+  const { gridTemplate, ResizableHeader } = useResizableColumns('sales_list_v2', isTablet ? [50, 160, 250, 100] : [50, 150, 220, 100, 80, 100, 110, 140]);
 
   const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
     setLoading(true);
@@ -449,6 +449,49 @@ export default function SalesDocuments({ setTab }) {
   };
 
   const doSearch = () => load(1, search, pageSize);
+
+  // 銷貨退回
+  const handleSalesReturn = async (row) => {
+    if (!confirm(`確定要對銷貨單 ${row.slip_number} 建立退回單？`)) return;
+    try {
+      const result = await apiPost({
+        action: 'create_sales_return',
+        slip_number: row.slip_number,
+        sale_id: row.id,
+        customer_id: row.customer_id,
+        customer_name: row.customer_name,
+        items: row.items || [],
+        total: row.total,
+        subtotal: row.subtotal,
+        reason: '',
+      });
+      if (result?.error) { alert(result.error); return; }
+      alert(`退回單 ${result.return_no || ''} 已建立`);
+      await load(data.page, search, pageSize);
+    } catch (e) { alert('建立退回單失敗: ' + e.message); }
+  };
+
+  // 沖帳
+  const handlePayment = async (row) => {
+    if (row.payment_status === 'paid') {
+      alert('此銷貨單已沖帳完成');
+      return;
+    }
+    const method = prompt(`銷貨單 ${row.slip_number}\n總額：${row.total}\n\n請輸入沖帳方式（現金 / 匯款 / 支票 / 月結沖帳）：`);
+    if (!method) return;
+    try {
+      const result = await apiPost({
+        action: 'record_sale_payment',
+        sale_id: row.id,
+        slip_number: row.slip_number,
+        amount: row.total,
+        method: method.trim(),
+      });
+      if (result?.error) { alert(result.error); return; }
+      alert('沖帳完成');
+      await load(data.page, search, pageSize);
+    } catch (e) { alert('沖帳失敗: ' + e.message); }
+  };
 
   const handleExport = async () => {
     try {
@@ -519,7 +562,7 @@ export default function SalesDocuments({ setTab }) {
               { label: '業務', align: 'center' },
               { label: '未稅', align: 'center' },
               { label: '總額', align: 'center' },
-              { label: '毛利', align: 'center' },
+              { label: '操作', align: 'center' },
             ]}
           />
           {data.rows.map((row, idx) => {
@@ -541,7 +584,10 @@ export default function SalesDocuments({ setTab }) {
                 {!isTablet && <div style={{ ...cCenter, color: '#374151' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
                 {!isTablet && <div style={{ ...cRight, color: '#111827', ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.subtotal)}</div>}
                 {!isTablet && <div style={{ ...cRight, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total)}</div>}
-                {!isTablet && <div style={{ ...(isTablet ? cellLast : cRight), color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', borderRight: 'none' }}>{fmtP(row.gross_profit)}</div>}
+                {!isTablet && <div style={{ ...cellLast, justifyContent: 'flex-end', gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => handleSalesReturn(row)} title="銷貨退回" style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, whiteSpace: 'nowrap' }}>退回</button>
+                  <button onClick={() => handlePayment(row)} title="沖帳" style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, whiteSpace: 'nowrap', color: row.payment_status === 'paid' ? '#10b981' : '#374151' }}>{row.payment_status === 'paid' ? '已沖' : '沖帳'}</button>
+                </div>}
               </div>
             );
           })}
