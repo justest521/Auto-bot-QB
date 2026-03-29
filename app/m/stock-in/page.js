@@ -162,33 +162,27 @@ export default function MobileStockIn() {
     }
   }, []);
 
-  // ── 動態載入 html5-qrcode ──
-  const html5QrRef = useRef(null);
+  // ── html5-qrcode ──
   const scannerInstanceRef = useRef(null);
-
-  const loadHtml5QrCode = useCallback(() => {
-    return new Promise((resolve, reject) => {
-      if (window.Html5Qrcode) { resolve(); return; }
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('無法載入掃碼套件'));
-      document.head.appendChild(script);
-    });
-  }, []);
+  const Html5QrCodeRef = useRef(null);
 
   // ── 啟動掃碼器 ──
   const startScanner = useCallback(async () => {
     try {
       setScanStatus('載入掃碼器...');
-      await loadHtml5QrCode();
+
+      // 動態 import（Next.js 會打包進 bundle）
+      if (!Html5QrCodeRef.current) {
+        const mod = await import('html5-qrcode');
+        Html5QrCodeRef.current = mod.Html5Qrcode;
+      }
 
       setScanning(true);
       setStep('scanning');
       setScanStatus('啟動相機...');
 
       // 等 DOM 渲染
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 200));
 
       const scannerId = 'qr-scanner-container';
       if (scannerInstanceRef.current) {
@@ -196,7 +190,7 @@ export default function MobileStockIn() {
         scannerInstanceRef.current = null;
       }
 
-      const html5QrCode = new window.Html5Qrcode(scannerId);
+      const html5QrCode = new Html5QrCodeRef.current(scannerId);
       scannerInstanceRef.current = html5QrCode;
 
       await html5QrCode.start(
@@ -249,7 +243,7 @@ export default function MobileStockIn() {
       setStep('capture');
       setScanning(false);
     }
-  }, [lookupAndAdd, loadHtml5QrCode]);
+  }, [lookupAndAdd]);
 
   // ── 停止掃碼器 ──
   const stopScanner = useCallback(async () => {
