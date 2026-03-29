@@ -4,6 +4,7 @@ import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard, PanelHeader } from '../shared/ui';
+import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
 function useViewportWidth() {
   const [width, setWidth] = useState(1400);
@@ -19,6 +20,7 @@ function useViewportWidth() {
 }
 
 export default function Customers() {
+  const { setDirty } = useUnsavedGuard();
   const width = useViewportWidth();
   const isTablet = width < 1180;
   const isMobile = width < 820;
@@ -98,7 +100,13 @@ export default function Customers() {
       notes: linked?.notes || '',
     });
     setEditingProfile(false);
-  }, [detail]);
+    setDirty(false);
+  }, [detail, setDirty]);
+
+  // 編輯中標記 dirty
+  useEffect(() => {
+    setDirty(editingProfile);
+  }, [editingProfile, setDirty]);
 
   useEffect(() => {
     if (!bindMessage) return undefined;
@@ -229,6 +237,7 @@ export default function Customers() {
 
     setProfileSaving(true);
     setEditingProfile(false);
+    setDirty(false);
     setBindMessage('已更新正式客戶資料');
     setDetail((prev) => prev ? {
       ...prev,

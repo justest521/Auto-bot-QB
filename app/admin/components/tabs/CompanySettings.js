@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
 const S = {
   input: { padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none', transition: 'border 0.15s' },
@@ -8,27 +9,38 @@ const S = {
 };
 
 export default function CompanySettings({ apiGet, apiPost }) {
+  const { setDirty } = useUnsavedGuard();
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [msg, setMsg] = useState('');
   const fileRef = useRef(null);
+  const origSettings = useRef('{}');
 
   useEffect(() => {
     (async () => {
       try {
         const res = await apiGet({ action: 'company_settings' });
-        setSettings(res.settings || {});
+        const s = res.settings || {};
+        setSettings(s);
+        origSettings.current = JSON.stringify(s);
       } catch (err) { console.error(err); }
       setLoading(false);
     })();
   }, []);
 
+  // 追蹤設定變更
+  useEffect(() => {
+    setDirty(JSON.stringify(settings) !== origSettings.current);
+  }, [settings, setDirty]);
+
   const save = async () => {
     setSaving(true);
     try {
       await apiPost({ action: 'update_company_settings', settings });
+      origSettings.current = JSON.stringify(settings);
+      setDirty(false);
       setMsg('已儲存');
       setTimeout(() => setMsg(''), 2000);
     } catch (err) { setMsg(err.message || '儲存失敗'); }

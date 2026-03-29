@@ -4,6 +4,7 @@ import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PanelHeader } from '../shared/ui';
+import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
 function todayInTaipei() {
   const now = new Date();
@@ -19,6 +20,7 @@ function toDateInputValue(date) {
 }
 
 export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }) {
+  const { setDirty, confirmIfDirty } = useUnsavedGuard();
   const [customerSearch, setCustomerSearch] = useState('');
   const [customerResults, setCustomerResults] = useState([]);
   const [customerLoading, setCustomerLoading] = useState(false);
@@ -52,7 +54,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) { setDirty(false); return; }
     setError('');
     setCustomerSearch('');
     setCustomerResults([]);
@@ -60,7 +62,16 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
     setSelectedCustomer(null);
     setProductSearch('');
     setProductResults([]);
-  }, [open]);
+  }, [open, setDirty]);
+
+  // 追蹤表單是否有內容
+  useEffect(() => {
+    if (!open) return;
+    const hasContent = !!(selectedCustomer || form.items.length > 0 || form.remark);
+    setDirty(hasContent);
+  }, [open, selectedCustomer, form.items, form.remark, setDirty]);
+
+  const guardedClose = () => confirmIfDirty(() => { setDirty(false); onClose?.(); });
 
   const searchCustomers = async (term) => {
     const q = (term !== undefined ? term : customerSearch).trim();
@@ -208,6 +219,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
         sales_person: form.sales_person || null,
         items: form.items,
       });
+      setDirty(false);
       onCreated?.();
       onClose?.();
     } catch (err) {
@@ -220,7 +232,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
   if (!open) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={onClose}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={guardedClose}>
       <div style={{ width: 'min(1280px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
           <div>
@@ -228,7 +240,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
             <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>建立訂單</div>
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>直接建立訂單，選擇客戶與商品後即可進入出貨流程。</div>
           </div>
-          <button onClick={onClose} style={S.btnGhost}>關閉</button>
+          <button onClick={guardedClose} style={S.btnGhost}>關閉</button>
         </div>
         {error ? <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10 }}>{error}</div> : null}
         {!tableReady ? (

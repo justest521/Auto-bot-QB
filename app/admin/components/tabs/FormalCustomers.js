@@ -4,6 +4,7 @@ import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard, PanelHeader, Pager, CsvImportButton, SaleDetailDrawer } from '../shared/ui';
+import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
 // 客戶名稱正規化：移除公司後綴、空白，取核心名稱做比對
 function normalizeName(name) {
@@ -46,6 +47,7 @@ function useViewportWidth() {
 }
 
 export default function FormalCustomers() {
+  const { setDirty } = useUnsavedGuard();
   const width = useViewportWidth();
   const isMobile = width < 820;
   const isTablet = width < 1180;
@@ -112,6 +114,11 @@ export default function FormalCustomers() {
     }
   }, [selectedCustomerId, loadDetail]);
 
+  // 編輯或新增時標記 dirty
+  useEffect(() => {
+    setDirty(editing || creating);
+  }, [editing, creating, setDirty]);
+
   const startEditing = () => {
     if (!detailCustomer) return;
     const c = detailCustomer;
@@ -126,6 +133,7 @@ export default function FormalCustomers() {
     try {
       await apiPost({ action: 'update_customer_profile', erp_customer_id: selectedCustomerId, profile: editForm });
       setEditing(false);
+      setDirty(false);
       await loadDetail(selectedCustomerId);
       await load(data.page, search, pageSize);
     } finally {
@@ -150,6 +158,7 @@ export default function FormalCustomers() {
         return;
       }
       setCreating(false);
+      setDirty(false);
       setCreateForm({ ...emptyForm });
       await load(1, search, pageSize);
       if (result?.customer?.id) setSelectedCustomerId(result.customer.id);

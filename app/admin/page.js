@@ -5,6 +5,7 @@ import S from '@/lib/admin/styles';
 import { API, ADMIN_TOKEN_KEY, apiGet, apiPost } from '@/lib/admin/api';
 import { useViewportWidth } from '@/lib/admin/helpers';
 import { HEADER_ACTION_PORTAL_ID } from './components/shared/ui';
+import { UnsavedChangesProvider, useUnsavedGuard } from './components/shared/UnsavedChangesGuard';
 
 // ── Tab Components ──
 import EnvHealth from './components/tabs/EnvHealth';
@@ -361,6 +362,14 @@ function useCollapsed() {
 //  ADMIN PAGE — Main orchestrator
 // ══════════════════════════════════════════════════════════════
 export default function AdminPage() {
+  return (
+    <UnsavedChangesProvider>
+      <AdminPageInner />
+    </UnsavedChangesProvider>
+  );
+}
+
+function AdminPageInner() {
   const width = useViewportWidth();
   const isTablet = width < 1180;
   const isMobile = width < 820;
@@ -380,12 +389,16 @@ export default function AdminPage() {
   // headerAction is rendered via portal from PageLead into HEADER_ACTION_PORTAL_ID div
   const { favs, toggle: toggleFav, isFav } = useFavorites();
   const { collapsed, toggle: toggleCollapsed, collapseAll, expandSection } = useCollapsed();
-  // Wrapped setTab: auto-expand the parent section (accordion)
+  // Unsaved changes guard
+  const { confirmIfDirty } = useUnsavedGuard();
+  // Wrapped setTab: auto-expand the parent section (accordion) + unsaved guard
   const setTab = useCallback((tabId) => {
-    setTabRaw(tabId);
-    const parentSection = SECTIONS.find(s => s.tabs.some(t => t.id === tabId));
-    if (parentSection) expandSection(parentSection.title);
-  }, [expandSection]);
+    confirmIfDirty(() => {
+      setTabRaw(tabId);
+      const parentSection = SECTIONS.find(s => s.tabs.some(t => t.id === tabId));
+      if (parentSection) expandSection(parentSection.title);
+    });
+  }, [expandSection, confirmIfDirty]);
   // On mount: expand the section of the default tab
   useEffect(() => {
     const parentSection = SECTIONS.find(s => s.tabs.some(t => t.id === tab));

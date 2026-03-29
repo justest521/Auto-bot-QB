@@ -6,6 +6,7 @@ import { fmt, fmtP, fmtDate, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
 import { useViewportWidth } from '@/lib/admin/helpers';
 import { useResizableColumns } from '../shared/ResizableTable';
+import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
 const PO_FOCUS_KEY = 'qb_purchase_order_focus';
 const SALES_DOCUMENT_FOCUS_KEY = 'qb_sales_document_focus';
@@ -13,6 +14,7 @@ const ORDER_FOCUS_KEY = 'qb_order_focus';
 
 // ========== 採購單詳情頁 ==========
 function PODetailView({ po, onBack, onRefresh, setTab }) {
+  const { setDirty, confirmIfDirty } = useUnsavedGuard();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
@@ -26,6 +28,11 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const [addSearch, setAddSearch] = useState('');
   const [addResults, setAddResults] = useState([]);
   const [replacingItemId, setReplacingItemId] = useState(null);
+
+  // 編輯中標記 dirty
+  useEffect(() => { setDirty(!!editingItemId); }, [editingItemId, setDirty]);
+  useEffect(() => () => setDirty(false), [setDirty]);
+  const guardedBack = () => confirmIfDirty(onBack);
   const [replaceSearch, setReplaceSearch] = useState('');
   const [replaceResults, setReplaceResults] = useState([]);
 
@@ -380,7 +387,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       {/* ====== Header ====== */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 20, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{po.po_no || '-'}</span>

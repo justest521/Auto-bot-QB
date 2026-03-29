@@ -5,6 +5,7 @@ import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, useViewportWidth, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
+import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
 const SALES_DOCUMENT_FOCUS_KEY = 'qb_sales_document_focus';
 const PO_FOCUS_KEY = 'qb_purchase_order_focus';
@@ -12,6 +13,7 @@ const ORDER_FOCUS_KEY = 'qb_order_focus';
 
 // ========== 銷貨單詳情頁 ==========
 function SaleDetailView({ sale, onBack, setTab }) {
+  const { setDirty, confirmIfDirty } = useUnsavedGuard();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
@@ -24,6 +26,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const [invoiceDate, setInvoiceDate] = useState('');
   const [savingInvoice, setSavingInvoice] = useState(false);
   const [shipments, setShipments] = useState([]);
+  const [origInvoice, setOrigInvoice] = useState({ number: '', date: '' });
 
   const loadDetail = useCallback(async () => {
     setLoading(true);
@@ -35,8 +38,11 @@ function SaleDetailView({ sale, onBack, setTab }) {
       setDetail(result);
       setTimeline(result.timeline || []);
       setShipments(result.shipments || []);
-      setInvoiceNumber(result.sale?.invoice_number || sale.invoice_number || '');
-      setInvoiceDate(result.sale?.invoice_date || result.invoice?.invoice_date || result.sale?.sale_date || sale.sale_date || '');
+      const origNum = result.sale?.invoice_number || sale.invoice_number || '';
+      const origDate = result.sale?.invoice_date || result.invoice?.invoice_date || result.sale?.sale_date || sale.sale_date || '';
+      setInvoiceNumber(origNum);
+      setInvoiceDate(origDate);
+      setOrigInvoice({ number: origNum, date: origDate });
       const saleApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(sale.id));
       if (saleApprovals.length > 0) {
         saleApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -55,11 +61,24 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const invoice = detail?.invoice;
   const items = detail?.items || [];
 
+  // 追蹤發票/出貨表單是否有未儲存變更
+  useEffect(() => {
+    const invoiceDirty = invoiceNumber !== origInvoice.number || invoiceDate !== origInvoice.date;
+    const shipDirty = showShipForm && (shipForm.carrier || shipForm.tracking_no || shipForm.remark);
+    setDirty(invoiceDirty || !!shipDirty);
+  }, [invoiceNumber, invoiceDate, origInvoice, showShipForm, shipForm, setDirty]);
+
+  // 離開時清除 dirty
+  useEffect(() => () => setDirty(false), [setDirty]);
+
+  const guardedBack = () => confirmIfDirty(onBack);
+
   const saveInvoice = async () => {
     setSavingInvoice(true); setMsg('');
     try {
       await apiPost({ action: 'update_sale_invoice', sale_id: sale.id, invoice_number: invoiceNumber.trim(), invoice_date: invoiceDate || undefined });
       setMsg('發票資訊已儲存');
+      setDirty(false);
       loadDetail();
     } catch (e) { setMsg(e.message || '儲存失敗'); }
     finally { setSavingInvoice(false); }
@@ -79,7 +98,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
       {/* ====== Header ====== */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 20, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{sale.slip_number || '-'}</span>

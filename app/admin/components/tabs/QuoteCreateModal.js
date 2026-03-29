@@ -4,6 +4,7 @@ import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PanelHeader } from '../shared/ui';
+import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
 function getPresetDateRange(preset) {
   const todayInTaipei = () => {
@@ -48,6 +49,7 @@ function todayInTaipei() {
 }
 
 export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }) {
+  const { setDirty, confirmIfDirty } = useUnsavedGuard();
   const [customerSearch, setCustomerSearch] = useState('');
   const [customerResults, setCustomerResults] = useState([]);
   const [customerLoading, setCustomerLoading] = useState(false);
@@ -87,7 +89,17 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
   // Only clear error when reopening — keep all other state (customer, items, form) intact
   useEffect(() => {
     if (open) setError('');
-  }, [open]);
+    else setDirty(false);
+  }, [open, setDirty]);
+
+  // 追蹤表單是否有內容
+  useEffect(() => {
+    if (!open) return;
+    const hasContent = !!(selectedCustomer || form.items.length > 0 || form.remark);
+    setDirty(hasContent);
+  }, [open, selectedCustomer, form.items, form.remark, setDirty]);
+
+  const guardedClose = () => confirmIfDirty(() => { setDirty(false); onClose?.(); });
 
   // Full reset — call after successful creation
   const resetAll = () => {
@@ -261,6 +273,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
         items: form.items,
       });
       resetAll();
+      setDirty(false);
       onCreated?.();
       onClose?.();
     } catch (err) {
@@ -273,7 +286,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
   if (!open) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={onClose}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={guardedClose}>
       <div style={{ width: 'min(1280px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
           <div>
@@ -283,7 +296,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             {(selectedCustomer || form.items.length > 0) && <button onClick={() => { if (confirm('確定清除所有已填資料？')) resetAll(); }} style={{ ...S.btnGhost, fontSize: 12, color: '#ef4444', borderColor: '#fecaca' }}>清除</button>}
-            <button onClick={onClose} style={S.btnGhost}>關閉</button>
+            <button onClick={guardedClose} style={S.btnGhost}>關閉</button>
           </div>
         </div>
         {error ? <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10 }}>{error}</div> : null}
