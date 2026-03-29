@@ -79,6 +79,44 @@ function parseTextInput(text) {
   }).filter(Boolean);
 }
 
+// ─── 圖片壓縮（超過限制自動縮小） ───
+function compressImage(file, maxBytes = 3.5 * 1024 * 1024) {
+  return new Promise((resolve) => {
+    if (file.size <= maxBytes) { resolve(file); return; }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      // 計算縮放比例，最大邊不超過 2000px
+      let { width, height } = img;
+      const MAX_DIM = 2000;
+      if (width > MAX_DIM || height > MAX_DIM) {
+        const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      // 嘗試不同品質
+      const tryQuality = (q) => {
+        canvas.toBlob((blob) => {
+          if (blob && (blob.size <= maxBytes || q <= 0.3)) {
+            resolve(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }));
+          } else {
+            tryQuality(q - 0.1);
+          }
+        }, 'image/jpeg', q);
+      };
+      tryQuality(0.8);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 // ─── 檔案類型偵測 ───
 function detectFileType(file) {
   const name = file.name?.toLowerCase() || '';
@@ -152,13 +190,14 @@ export default function QuickReceive({ setTab }) {
 
   // ── 統一檔案處理 ──
   const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB (Vercel body limit)
-  const handleFile = async (file) => {
-    if (!file) return;
+  const handleFile = async (inputFile) => {
+    if (!inputFile) return;
+    let file = inputFile;
     const fileType = detectFileType(file);
 
-    // PDF/圖片需要 base64 上傳，檢查大小
-    if ((fileType === 'pdf' || fileType === 'image') && file.size > MAX_FILE_SIZE) {
-      setError(`檔案太大（${(file.size / 1024 / 1024).toFixed(1)}MB），PDF/圖片上限 4MB`);
+    // PDF 超過限制無法壓縮
+    if (fileType === 'pdf' && file.size > MAX_FILE_SIZE) {
+      setError(`PDF 太大（${(file.size / 1024 / 1024).toFixed(1)}MB），上限 4MB`);
       return;
     }
 
@@ -167,6 +206,13 @@ export default function QuickReceive({ setTab }) {
     setUploadedFileName(file.name);
 
     try {
+      // 圖片自動壓縮
+      if (fileType === 'image' && file.size > MAX_FILE_SIZE) {
+        setMsg('圖片較大，自動壓縮中...');
+        file = await compressImage(file);
+        setMsg(`已壓縮至 ${(file.size / 1024 / 1024).toFixed(1)}MB`);
+      }
+
       if (fileType === 'csv') {
         const text = await file.text();
         const parsed = parseCsv(text);
