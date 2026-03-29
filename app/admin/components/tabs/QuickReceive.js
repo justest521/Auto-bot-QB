@@ -149,8 +149,9 @@ export default function QuickReceive({ setTab }) {
   const [taxExtra, setTaxExtra] = useState(true);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const dragCounter = useRef(0);
-  const [preview, setPreview] = useState(null);       // { items: [], source: 'csv'|'excel'|'pdf'|'image', detectedCols: [] }
+  const [preview, setPreview] = useState(null);       // { items: [], rawItems: [], rawCols: [], source, detectedCols: [], colMap: {} }
   const [previewChecked, setPreviewChecked] = useState(new Set());
+  const [colMap, setColMap] = useState({ part_no: 'part_no', name: 'name', qty: 'qty', cost: 'cost' });
 
   // dirty tracking
   useEffect(() => {
@@ -267,7 +268,8 @@ export default function QuickReceive({ setTab }) {
 
       // 顯示預覽讓使用者勾選
       setPreview({ items: parsed, source, detectedCols });
-      setPreviewChecked(new Set(parsed.map((_, i) => i))); // 預設全選
+      setPreviewChecked(new Set(parsed.map((_, i) => i)));
+      setColMap({ part_no: 'part_no', name: 'name', qty: 'qty', cost: 'cost' }); // 重設對應
     } catch (err) {
       setError(`檔案處理失敗: ${err.message}`);
     }
@@ -275,10 +277,22 @@ export default function QuickReceive({ setTab }) {
     if (fileRef.current) fileRef.current.value = '';
   };
 
+  // ── 取得對應後的預覽項目 ──
+  const getMappedItems = () => {
+    if (!preview) return [];
+    return preview.items.map(item => ({
+      part_no: (String(item[colMap.part_no] || '') || '').toUpperCase(),
+      name: String(item[colMap.name] || ''),
+      qty: Number(item[colMap.qty]) || 1,
+      cost: Number(item[colMap.cost]) || 0,
+    }));
+  };
+
   // ── 確認預覽，進行比對 ──
   const confirmPreview = async () => {
     if (!preview) return;
-    const selected = preview.items.filter((_, i) => previewChecked.has(i));
+    const mapped = getMappedItems();
+    const selected = mapped.filter((_, i) => previewChecked.has(i)).filter(i => i.part_no);
     if (!selected.length) { setError('請至少勾選一項'); return; }
     setPreview(null);
     setLoading(true);
@@ -300,6 +314,7 @@ export default function QuickReceive({ setTab }) {
     const detectedCols = ['料號', '數量'];
     setPreview({ items: parsed, source: 'text', detectedCols });
     setPreviewChecked(new Set(parsed.map((_, i) => i)));
+    setColMap({ part_no: 'part_no', name: 'name', qty: 'qty', cost: 'cost' });
   };
 
   // ── 更新 / 刪除 ──
@@ -426,80 +441,114 @@ export default function QuickReceive({ setTab }) {
       </div>
 
       {/* ── 解析預覽 ── */}
-      {preview && !loading && (
-        <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px', border: '2px solid #3b82f6', background: '#f8faff' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#1e40af' }}>
-                解析預覽
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#6b7280', marginLeft: 8 }}>
-                  來源：{FILE_TYPE_LABELS[preview.source] || preview.source}
-                </span>
+      {preview && !loading && (() => {
+        const FIELD_OPTIONS = [
+          { value: 'part_no', label: '料號' },
+          { value: 'name', label: '品名' },
+          { value: 'qty', label: '數量' },
+          { value: 'cost', label: '成本' },
+        ];
+        const TARGET_COLS = [
+          { key: 'part_no', label: '料號', required: true },
+          { key: 'name', label: '品名' },
+          { key: 'qty', label: '數量', align: 'right' },
+          { key: 'cost', label: '成本', align: 'right' },
+        ];
+        const mapped = getMappedItems();
+        const selectStyle = { padding: '3px 6px', fontSize: 11, border: '1px solid #c7d2fe', borderRadius: 4, background: '#fff', color: '#1e40af', fontWeight: 600, cursor: 'pointer', outline: 'none' };
+
+        return (
+          <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px', border: '2px solid #3b82f6', background: '#f8faff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#1e40af' }}>
+                  解析預覽
+                  <span style={{ fontSize: 11, fontWeight: 500, color: '#6b7280', marginLeft: 8 }}>
+                    來源：{FILE_TYPE_LABELS[preview.source] || preview.source}
+                  </span>
+                  <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 6 }}>共 {preview.items.length} 項</span>
+                </div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+                  偵測到欄位：{preview.detectedCols.map(c => (
+                    <span key={c} style={{ display: 'inline-block', fontSize: 11, fontWeight: 600, color: '#2563eb', background: '#dbeafe', padding: '1px 8px', borderRadius: 10, marginRight: 4 }}>{c}</span>
+                  ))}
+                </div>
               </div>
-              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                偵測到欄位：{preview.detectedCols.map(c => (
-                  <span key={c} style={{ display: 'inline-block', fontSize: 11, fontWeight: 600, color: '#2563eb', background: '#dbeafe', padding: '1px 8px', borderRadius: 10, marginRight: 4 }}>{c}</span>
-                ))}
-                <span style={{ marginLeft: 8 }}>共 {preview.items.length} 項</span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button onClick={() => setPreview(null)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 12, color: '#6b7280' }}>取消</button>
+                <button onClick={confirmPreview} disabled={previewChecked.size === 0} style={{
+                  ...S.btnPrimary, padding: '6px 18px', fontSize: 13, fontWeight: 700,
+                  background: previewChecked.size > 0 ? '#2563eb' : '#94a3b8',
+                }}>
+                  確認匯入 ({previewChecked.size} 項)
+                </button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => setPreview(null)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 12, color: '#6b7280' }}>取消</button>
-              <button onClick={confirmPreview} disabled={previewChecked.size === 0} style={{
-                ...S.btnPrimary, padding: '6px 18px', fontSize: 13, fontWeight: 700,
-                background: previewChecked.size > 0 ? '#2563eb' : '#94a3b8',
-              }}>
-                確認匯入 ({previewChecked.size} 項)
-              </button>
+
+            {/* 欄位對應 */}
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 12px', background: '#eef2ff', borderRadius: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#4338ca' }}>欄位對應</span>
+              {TARGET_COLS.map(tc => (
+                <div key={tc.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 11, color: '#6b7280' }}>{tc.label}{tc.required ? '*' : ''}：</span>
+                  <select value={colMap[tc.key]} onChange={e => setColMap(prev => ({ ...prev, [tc.key]: e.target.value }))} style={selectStyle}>
+                    {FIELD_OPTIONS.map(fo => (
+                      <option key={fo.value} value={fo.value}>{fo.label}</option>
+                    ))}
+                    <option value="_skip">（跳過）</option>
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ overflowX: 'auto', maxHeight: 400, overflowY: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ position: 'sticky', top: 0, background: '#eef2ff', zIndex: 1 }}>
+                    <th style={{ ...thStyle, textAlign: 'center', width: 36, borderBottom: '2px solid #c7d2fe' }}>
+                      <input type="checkbox"
+                        checked={previewChecked.size === preview.items.length}
+                        onChange={e => {
+                          if (e.target.checked) setPreviewChecked(new Set(preview.items.map((_, i) => i)));
+                          else setPreviewChecked(new Set());
+                        }}
+                        style={{ width: 15, height: 15, accentColor: '#3b82f6', cursor: 'pointer' }}
+                      />
+                    </th>
+                    <th style={{ ...thStyle, textAlign: 'center', width: 36, borderBottom: '2px solid #c7d2fe' }}>#</th>
+                    <th style={{ ...thStyle, borderBottom: '2px solid #c7d2fe' }}>料號</th>
+                    <th style={{ ...thStyle, borderBottom: '2px solid #c7d2fe' }}>品名</th>
+                    <th style={{ ...thStyle, textAlign: 'right', width: 70, borderBottom: '2px solid #c7d2fe' }}>數量</th>
+                    <th style={{ ...thStyle, textAlign: 'right', width: 90, borderBottom: '2px solid #c7d2fe' }}>成本</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mapped.map((item, idx) => {
+                    const checked = previewChecked.has(idx);
+                    return (
+                      <tr key={idx}
+                        onClick={() => setPreviewChecked(prev => { const s = new Set(prev); if (s.has(idx)) s.delete(idx); else s.add(idx); return s; })}
+                        style={{ background: checked ? (idx % 2 === 0 ? '#fff' : '#f8faff') : '#f9fafb', opacity: checked ? 1 : 0.45, cursor: 'pointer', transition: 'all 0.1s' }}
+                      >
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          <input type="checkbox" checked={checked} readOnly style={{ width: 14, height: 14, accentColor: '#3b82f6', cursor: 'pointer' }} />
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'center', color: '#9ca3af', fontSize: 11 }}>{idx + 1}</td>
+                        <td style={tdStyle}>
+                          <span style={{ ...S.mono, fontWeight: 700, color: item.part_no ? '#1e40af' : '#ef4444', fontSize: 13 }}>{item.part_no || '(空)'}</span>
+                        </td>
+                        <td style={{ ...tdStyle, color: '#4b5563', fontSize: 12 }}>{item.name || <span style={{ color: '#d1d5db' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600, fontSize: 13 }}>{item.qty}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, color: item.cost > 0 ? '#374151' : '#d1d5db', fontSize: 12 }}>{item.cost > 0 ? fmtP(item.cost) : '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
-          <div style={{ overflowX: 'auto', maxHeight: 400, overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ position: 'sticky', top: 0, background: '#eef2ff', zIndex: 1 }}>
-                  <th style={{ ...thStyle, textAlign: 'center', width: 36, borderBottom: '2px solid #c7d2fe' }}>
-                    <input type="checkbox"
-                      checked={previewChecked.size === preview.items.length}
-                      onChange={e => {
-                        if (e.target.checked) setPreviewChecked(new Set(preview.items.map((_, i) => i)));
-                        else setPreviewChecked(new Set());
-                      }}
-                      style={{ width: 15, height: 15, accentColor: '#3b82f6', cursor: 'pointer' }}
-                    />
-                  </th>
-                  <th style={{ ...thStyle, textAlign: 'center', width: 36, borderBottom: '2px solid #c7d2fe' }}>#</th>
-                  <th style={{ ...thStyle, borderBottom: '2px solid #c7d2fe' }}>料號</th>
-                  <th style={{ ...thStyle, borderBottom: '2px solid #c7d2fe' }}>品名</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 70, borderBottom: '2px solid #c7d2fe' }}>數量</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 90, borderBottom: '2px solid #c7d2fe' }}>成本</th>
-                </tr>
-              </thead>
-              <tbody>
-                {preview.items.map((item, idx) => {
-                  const checked = previewChecked.has(idx);
-                  return (
-                    <tr key={idx}
-                      onClick={() => setPreviewChecked(prev => { const s = new Set(prev); if (s.has(idx)) s.delete(idx); else s.add(idx); return s; })}
-                      style={{ background: checked ? (idx % 2 === 0 ? '#fff' : '#f8faff') : '#f9fafb', opacity: checked ? 1 : 0.45, cursor: 'pointer', transition: 'all 0.1s' }}
-                    >
-                      <td style={{ ...tdStyle, textAlign: 'center' }}>
-                        <input type="checkbox" checked={checked} readOnly style={{ width: 14, height: 14, accentColor: '#3b82f6', cursor: 'pointer' }} />
-                      </td>
-                      <td style={{ ...tdStyle, textAlign: 'center', color: '#9ca3af', fontSize: 11 }}>{idx + 1}</td>
-                      <td style={tdStyle}>
-                        <span style={{ ...S.mono, fontWeight: 700, color: '#1e40af', fontSize: 13 }}>{item.part_no}</span>
-                      </td>
-                      <td style={{ ...tdStyle, color: '#4b5563', fontSize: 12 }}>{item.name || <span style={{ color: '#d1d5db' }}>—</span>}</td>
-                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600, fontSize: 13 }}>{item.qty}</td>
-                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, color: item.cost > 0 ? '#374151' : '#d1d5db', fontSize: 12 }}>{item.cost > 0 ? fmtP(item.cost) : '—'}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── 載入中 ── */}
       {(loading || matching) && (
