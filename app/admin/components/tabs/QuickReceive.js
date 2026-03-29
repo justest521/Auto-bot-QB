@@ -142,11 +142,15 @@ export default function QuickReceive({ setTab }) {
   const [msg, setMsg] = useState('');
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState('');
+  const [newVendorMode, setNewVendorMode] = useState(false);
+  const [newVendorName, setNewVendorName] = useState('');
+  const [creatingVendor, setCreatingVendor] = useState(false);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [taxExtra, setTaxExtra] = useState(true);
+  const [checkedItems, setCheckedItems] = useState(new Set());
   const [uploadedFileName, setUploadedFileName] = useState('');
   const dragCounter = useRef(0);
   const [preview, setPreview] = useState(null);       // { items: [], rawItems: [], rawCols: [], source, detectedCols: [], colMap: {} }
@@ -159,11 +163,23 @@ export default function QuickReceive({ setTab }) {
   }, [items, setDirty]);
 
   // load vendors
-  useEffect(() => {
-    apiGet({ action: 'vendors', search: '', limit: 200 })
-      .then(res => setVendors(res.vendors || []))
-      .catch(() => {});
-  }, []);
+  const loadVendors = useCallback(() => apiGet({ action: 'vendors', search: '', limit: 200 }).then(res => setVendors(res.vendors || [])).catch(() => {}), []);
+  useEffect(() => { loadVendors(); }, []);
+
+  const createVendorInline = async () => {
+    if (!newVendorName.trim()) return;
+    setCreatingVendor(true);
+    try {
+      const res = await apiPost({ action: 'create_vendor', vendor_name: newVendorName.trim() });
+      if (res.vendor?.id) {
+        await loadVendors();
+        setSelectedVendor(res.vendor.id);
+        setNewVendorName('');
+        setNewVendorMode(false);
+      }
+    } catch (e) { alert(e.message); }
+    setCreatingVendor(false);
+  };
 
   // ── 比對品項 ──
   const matchItems = useCallback(async (rawItems) => {
@@ -187,6 +203,7 @@ export default function QuickReceive({ setTab }) {
         }
       }));
       setItems(matched);
+      setCheckedItems(new Set(matched.map((_, i) => i)));
     } finally {
       setMatching(false);
     }
@@ -323,17 +340,43 @@ export default function QuickReceive({ setTab }) {
   };
   const removeItem = (idx) => {
     setItems(prev => prev.filter((_, i) => i !== idx));
+    setCheckedItems(prev => {
+      const next = new Set();
+      prev.forEach(i => { if (i < idx) next.add(i); else if (i > idx) next.add(i - 1); });
+      return next;
+    });
+  };
+
+  const addManualItem = () => {
+    const newIdx = items.length;
+    setItems(prev => [...prev, { part_no: '', name: '', qty: 1, cost: 0, matched: false, waiting_orders: [] }]);
+    setCheckedItems(prev => new Set([...prev, newIdx]));
+  };
+
+  const toggleCheck = (idx) => {
+    setCheckedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (checkedItems.size === items.length) setCheckedItems(new Set());
+    else setCheckedItems(new Set(items.map((_, i) => i)));
   };
 
   // ── 一鍵入庫 ──
+  const checkedCount = [...checkedItems].filter(i => i < items.length).length;
+  const checkedItemsList = items.filter((_, i) => checkedItems.has(i));
   const handleStockIn = async () => {
-    if (!items.length) return;
+    if (!checkedItemsList.length) return;
     setSubmitting(true);
     setError('');
     try {
       const res = await apiPost({
         action: 'quick_stock_in',
-        items: items.map(i => ({
+        items: checkedItemsList.map(i => ({
           part_no: (i.part_no || '').toUpperCase(),
           name: i.name,
           qty: Number(i.qty) || 1,
@@ -345,8 +388,9 @@ export default function QuickReceive({ setTab }) {
       });
       if (res.error) { setError(res.error); setSubmitting(false); return; }
       setDirty(false);
-      setMsg(`入庫完成！進貨單號 ${res.stock_in_no || ''}，共 ${res.count || items.length} 項`);
+      setMsg(`入庫完成！進貨單號 ${res.stock_in_no || ''}，共 ${res.count || checkedItemsList.length} 項`);
       setItems([]);
+      setCheckedItems(new Set());
       setTextInput('');
       setNote('');
       setUploadedFileName('');
@@ -357,11 +401,11 @@ export default function QuickReceive({ setTab }) {
     setSubmitting(false);
   };
 
-  const totalQty = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
-  const subtotal = items.reduce((s, i) => s + (Number(i.qty) || 0) * (Number(i.cost) || 0), 0);
+  const totalQty = checkedItemsList.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+  const subtotal = checkedItemsList.reduce((s, i) => s + (Number(i.qty) || 0) * (Number(i.cost) || 0), 0);
   const taxAmount = taxExtra ? Math.round(subtotal * 0.05) : 0;
   const totalCost = subtotal + taxAmount;
-  const totalWaiting = items.reduce((s, i) => s + (i.waiting_orders?.length || 0), 0);
+  const totalWaiting = checkedItemsList.reduce((s, i) => s + (i.waiting_orders?.length || 0), 0);
 
   const cardStyle = { ...S.card, borderRadius: 10, border: '1px solid #eaeff5' };
   const thStyle = { textAlign: 'left', padding: '8px 10px', color: '#6b7280', fontWeight: 600, fontSize: 12, borderBottom: '2px solid #e5e7eb', whiteSpace: 'nowrap' };
@@ -562,17 +606,25 @@ export default function QuickReceive({ setTab }) {
       {items.length > 0 && !loading && !matching && (
         <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>進貨明細 <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>{items.length} 項 / {totalQty} 件</span></div>
-            {totalWaiting > 0 && (
-              <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600, background: '#fef3c7', padding: '3px 10px', borderRadius: 6 }}>
-                {totalWaiting} 筆等待訂單
-              </span>
-            )}
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>
+              進貨明細 <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>{checkedCount} / {items.length} 項 / {totalQty} 件</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {totalWaiting > 0 && (
+                <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600, background: '#fef3c7', padding: '3px 10px', borderRadius: 6 }}>
+                  {totalWaiting} 筆等待訂單
+                </span>
+              )}
+              <button onClick={addManualItem} style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>+ 手動新增</button>
+            </div>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
+                  <th style={{ ...thStyle, textAlign: 'center', width: 36 }}>
+                    <input type="checkbox" checked={checkedItems.size === items.length && items.length > 0} onChange={toggleAll} style={{ width: 15, height: 15, accentColor: '#3b82f6', cursor: 'pointer' }} />
+                  </th>
                   <th style={{ ...thStyle, textAlign: 'center', width: 40 }}>序</th>
                   <th style={thStyle}>料號</th>
                   <th style={thStyle}>品名</th>
@@ -585,7 +637,10 @@ export default function QuickReceive({ setTab }) {
               </thead>
               <tbody>
                 {items.map((item, idx) => (
-                  <tr key={idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
+                  <tr key={idx} style={{ background: !checkedItems.has(idx) ? '#f9fafb' : idx % 2 === 0 ? '#fff' : '#fafbfd', opacity: checkedItems.has(idx) ? 1 : 0.5, transition: 'opacity 0.15s' }}>
+                    <td style={{ ...tdStyle, textAlign: 'center' }}>
+                      <input type="checkbox" checked={checkedItems.has(idx)} onChange={() => toggleCheck(idx)} style={{ width: 15, height: 15, accentColor: '#3b82f6', cursor: 'pointer' }} />
+                    </td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
                     <td style={tdStyle}>
                       <span style={{ ...S.mono, fontWeight: 700, color: item.matched ? '#2563eb' : '#374151' }}>{item.part_no}</span>
@@ -600,8 +655,11 @@ export default function QuickReceive({ setTab }) {
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
                       <input type="number" value={item.cost || ''} min={0} onChange={e => updateItem(idx, 'cost', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'cost', 0); }} style={{ ...S.input, width: 90, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, color: '#10b981' }}>
-                      {fmtP((Number(item.qty) || 0) * (Number(item.cost) || 0))}
+                    <td style={{ ...tdStyle, textAlign: 'right' }}>
+                      {(Number(item.cost) || 0) === 0
+                        ? <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 700, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
+                        : <span style={{ ...S.mono, fontWeight: 700, color: '#10b981' }}>{fmtP((Number(item.qty) || 0) * (Number(item.cost) || 0))}</span>
+                      }
                     </td>
                     <td style={tdStyle}>
                       {item.waiting_orders?.length > 0 ? (
@@ -636,7 +694,7 @@ export default function QuickReceive({ setTab }) {
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 13, color: '#6b7280' }}>
                 小計 <span style={{ ...S.mono, fontWeight: 700, color: '#111827' }}>{fmtP(subtotal)}</span>
-                <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 4 }}>({items.length} 項 / {totalQty} 件)</span>
+                <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 4 }}>({checkedCount} 項 / {totalQty} 件)</span>
               </div>
               {taxExtra && (
                 <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
@@ -657,22 +715,33 @@ export default function QuickReceive({ setTab }) {
         <div style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 180 }}>
             <label style={{ ...S.label, marginBottom: 4 }}>廠商（選填）</label>
-            <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={{ ...S.input, fontSize: 13 }}>
-              <option value="">不指定廠商</option>
-              {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
-            </select>
+            {!newVendorMode ? (
+              <div style={{ display: 'flex', gap: 6 }}>
+                <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={{ ...S.input, fontSize: 13, flex: 1 }}>
+                  <option value="">不指定廠商</option>
+                  {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
+                </select>
+                <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', lineHeight: 1 }}>+</button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <input value={newVendorName} onChange={e => setNewVendorName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createVendorInline()} placeholder="輸入新廠商名稱" autoFocus style={{ ...S.input, fontSize: 13, flex: 1 }} />
+                <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorName.trim()} style={{ padding: '7px 12px', fontSize: 12, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorName.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>{creatingVendor ? '...' : '建立'}</button>
+                <button type="button" onClick={() => { setNewVendorMode(false); setNewVendorName(''); }} style={{ padding: '7px 10px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
+              </div>
+            )}
           </div>
           <div style={{ flex: 2, minWidth: 200 }}>
             <label style={{ ...S.label, marginBottom: 4 }}>備註（選填）</label>
             <input value={note} onChange={e => setNote(e.target.value)} placeholder="進貨備註..." style={{ ...S.input, fontSize: 13 }} />
           </div>
           <div style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-end', paddingTop: 18 }}>
-            <button onClick={handleStockIn} disabled={submitting || items.length === 0} style={{
+            <button onClick={handleStockIn} disabled={submitting || checkedCount === 0} style={{
               ...S.btnPrimary, padding: '12px 32px', fontSize: 15, fontWeight: 700,
-              background: submitting ? '#94a3b8' : '#16a34a',
-              boxShadow: submitting ? 'none' : '0 2px 8px rgba(22,163,74,0.3)',
+              background: submitting ? '#94a3b8' : checkedCount === 0 ? '#d1d5db' : '#16a34a',
+              boxShadow: submitting || checkedCount === 0 ? 'none' : '0 2px 8px rgba(22,163,74,0.3)',
             }}>
-              {submitting ? '入庫中...' : `一鍵入庫 (${items.length} 項)`}
+              {submitting ? '入庫中...' : `一鍵入庫 (${checkedCount} 項)`}
             </button>
           </div>
         </div>

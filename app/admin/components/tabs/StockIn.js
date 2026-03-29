@@ -122,8 +122,15 @@ function StockInDetailView({ id, onBack }) {
                     <td style={tdStyle}>{item.description || '-'}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: '#6b7280', fontSize: 12 }}>{item.unit || '-'}</td>
                     <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600 }}>{fmt(item.qty_received)}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', ...S.mono }}>{fmtP(item.unit_cost)}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, color: '#10b981' }}>{fmtP(item.line_total)}</td>
+                    <td style={{ ...tdStyle, textAlign: 'right', ...S.mono }}>
+                      {(Number(item.unit_cost) || 0) === 0
+                        ? <span style={{ fontSize: 10, color: '#a855f7', fontWeight: 700, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
+                        : fmtP(item.unit_cost)
+                      }
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, color: (Number(item.unit_cost) || 0) === 0 ? '#a855f7' : '#10b981' }}>
+                      {(Number(item.unit_cost) || 0) === 0 ? '$0' : fmtP(item.line_total)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -415,7 +422,12 @@ export default function StockIn() {
                           <option value="把">把</option>
                         </select>
                         <input type="number" value={it.unit_cost || ''} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'unit_cost', 0); }} style={{ ...S.input, fontSize: 12, padding: '5px 6px', textAlign: 'right', ...S.mono }} />
-                        <div style={{ fontSize: 12, color: it.line_total > 0 ? '#059669' : '#d1d5db', fontWeight: 700, ...S.mono, textAlign: 'right' }}>{it.line_total > 0 ? fmtP(it.line_total) : '—'}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, textAlign: 'right' }}>
+                          {(Number(it.unit_cost) || 0) === 0
+                            ? <span style={{ fontSize: 10, color: '#a855f7', background: '#faf5ff', padding: '1px 6px', borderRadius: 4 }}>贈品</span>
+                            : <span style={{ ...S.mono, color: '#059669' }}>{fmtP(it.line_total)}</span>
+                          }
+                        </div>
                         <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: items.length > 1 ? '#fee2e2' : 'transparent', color: items.length > 1 ? '#ef4444' : '#d1d5db', cursor: items.length > 1 ? 'pointer' : 'default', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                       </div>
                     ))}
