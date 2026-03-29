@@ -80,16 +80,16 @@ function parseTextInput(text) {
 }
 
 // ─── 圖片壓縮（超過限制自動縮小） ───
-function compressImage(file, maxBytes = 3.5 * 1024 * 1024) {
+function compressImage(file, maxBytes = 2.5 * 1024 * 1024) {
   return new Promise((resolve) => {
     if (file.size <= maxBytes) { resolve(file); return; }
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
-      // 計算縮放比例，最大邊不超過 2000px
       let { width, height } = img;
-      const MAX_DIM = 2000;
+      // 第一步：縮小尺寸（最大邊 1600px，辨識夠用）
+      const MAX_DIM = 1600;
       if (width > MAX_DIM || height > MAX_DIM) {
         const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
         width = Math.round(width * ratio);
@@ -100,17 +100,18 @@ function compressImage(file, maxBytes = 3.5 * 1024 * 1024) {
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
-      // 嘗試不同品質
+      // 第二步：逐步降低品質直到符合大小
       const tryQuality = (q) => {
         canvas.toBlob((blob) => {
-          if (blob && (blob.size <= maxBytes || q <= 0.3)) {
+          if (!blob) { resolve(file); return; }
+          if (blob.size <= maxBytes || q <= 0.2) {
             resolve(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }));
           } else {
             tryQuality(q - 0.1);
           }
         }, 'image/jpeg', q);
       };
-      tryQuality(0.8);
+      tryQuality(0.7);
     };
     img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
     img.src = url;
@@ -208,10 +209,10 @@ export default function QuickReceive({ setTab }) {
     setUploadedFileName(file.name);
 
     try {
-      // 圖片自動壓縮
-      if (fileType === 'image' && file.size > MAX_FILE_SIZE) {
+      // 圖片自動壓縮 (base64 膨脹 ~33%，壓到 2.5MB 確保傳輸 < 4MB)
+      if (fileType === 'image' && file.size > 2 * 1024 * 1024) {
         setMsg('圖片較大，自動壓縮中...');
-        file = await compressImage(file);
+        file = await compressImage(file, 2.5 * 1024 * 1024);
         setMsg(`已壓縮至 ${(file.size / 1024 / 1024).toFixed(1)}MB`);
       }
 
