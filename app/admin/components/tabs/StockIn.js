@@ -204,8 +204,10 @@ export default function StockIn() {
   }
 
   const sm = data.summary || {};
-  const thStyle = { textAlign: 'left', padding: '10px 12px', color: '#6b7280', fontWeight: 600, fontSize: 12, borderBottom: '2px solid #e5e7eb', whiteSpace: 'nowrap' };
-  const tdStyle = { padding: '10px 12px', borderBottom: '1px solid #f3f4f6', fontSize: 13, verticalAlign: 'middle' };
+  const borderR = '1px solid #e5e7eb';
+  const thStyle = { textAlign: 'left', padding: '10px 12px', color: '#6b7280', fontWeight: 600, fontSize: 12, borderBottom: '2px solid #e5e7eb', borderRight: borderR, whiteSpace: 'nowrap' };
+  const tdStyle = { padding: '10px 12px', borderBottom: '1px solid #f3f4f6', borderRight: '1px solid #f3f4f6', fontSize: 13, verticalAlign: 'middle' };
+  const fmtDateOnly = (d) => { if (!d) return '-'; const dt = new Date(d + (d.includes('T') ? '' : 'T00:00:00')); return `${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`; };
 
   return (
     <div>
@@ -247,10 +249,11 @@ export default function StockIn() {
                 <tr style={{ background: '#f9fafb' }}>
                   <th style={thStyle}>進貨單號</th>
                   <th style={thStyle}>日期</th>
+                  <th style={thStyle}>廠商</th>
                   <th style={{ ...thStyle, textAlign: 'right' }}>金額</th>
                   <th style={{ ...thStyle, textAlign: 'center', width: 80 }}>狀態</th>
                   <th style={thStyle}>備註</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 100 }}></th>
+                  <th style={{ ...thStyle, textAlign: 'right', width: 100, borderRight: 'none' }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -264,7 +267,8 @@ export default function StockIn() {
                     <td style={tdStyle}>
                       <span style={{ fontWeight: 700, color: '#3b82f6', ...S.mono, fontSize: 13 }}>{r.stock_in_no || '-'}</span>
                     </td>
-                    <td style={{ ...tdStyle, ...S.mono, fontSize: 13 }}>{fmtDate(r.stock_in_date)}</td>
+                    <td style={{ ...tdStyle, ...S.mono, fontSize: 13 }}>{fmtDateOnly(r.stock_in_date)}</td>
+                    <td style={{ ...tdStyle, fontSize: 13, color: '#374151' }}>{r.vendor_name || '-'}</td>
                     <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, fontSize: 14 }}>
                       {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: '#d1d5db' }}>-</span>}
                     </td>
@@ -276,7 +280,7 @@ export default function StockIn() {
                     <td style={{ ...tdStyle, color: '#6b7280', fontSize: 13, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {r.remark || '-'}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'right' }}>
+                    <td style={{ ...tdStyle, textAlign: 'right', borderRight: 'none' }}>
                       {r.status === 'pending' && (
                         <button onClick={(e) => handleConfirm(r.id, e)} style={{ ...S.btnPrimary, padding: '5px 12px', fontSize: 12 }}>確認入庫</button>
                       )}
