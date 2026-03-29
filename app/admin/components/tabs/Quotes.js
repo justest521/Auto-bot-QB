@@ -764,7 +764,7 @@ export default function Quotes({ setTab }) {
           {(() => {
             const hdrCell = { padding: '8px 10px', borderRight: '1px solid #d1d5db', display: 'flex', alignItems: 'center' };
             const hdrLast = { ...hdrCell, borderRight: 'none', justifyContent: 'flex-end' };
-            const cols = isTablet ? '36px 42px 130px minmax(0,1fr) 100px 100px' : '36px 42px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px';
+            const cols = isTablet ? '36px 42px 130px minmax(0,1fr) 90px 80px' : '36px 42px 150px minmax(0,1.2fr) 80px 90px 80px 90px minmax(0,1fr) 110px';
             return (
               <div style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: '2px solid #d1d5db', color: '#374151', fontSize: 13, fontWeight: 600, background: '#f3f4f6' }}>
                 <div style={{ ...hdrCell, justifyContent: 'center' }}>
@@ -773,6 +773,7 @@ export default function Quotes({ setTab }) {
                 <div style={hdrCell}>序</div>
                 <div style={hdrCell}>單號</div>
                 <div style={hdrCell}>客戶</div>
+                {!isTablet && <div style={hdrCell}>業務</div>}
                 <div style={hdrCell}>日期</div>
                 <div style={hdrCell}>狀態</div>
                 {!isTablet && <div style={{ ...hdrCell, justifyContent: 'flex-end' }}>總金額</div>}
@@ -787,7 +788,7 @@ export default function Quotes({ setTab }) {
             const isChecked = checkedIds.has(row.id);
             const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0 };
             const cellLast = { ...cell, borderRight: 'none', justifyContent: 'flex-end' };
-            const cols = isTablet ? '36px 42px 130px minmax(0,1fr) 100px 100px' : '36px 42px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px';
+            const cols = isTablet ? '36px 42px 130px minmax(0,1fr) 90px 80px' : '36px 42px 150px minmax(0,1.2fr) 80px 90px 80px 90px minmax(0,1fr) 110px';
             return (
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', background: isChecked ? '#eff6ff' : (idx % 2 === 0 ? '#fff' : '#fafbfd'), cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedQuote(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = isChecked ? '#eff6ff' : (idx % 2 === 0 ? '#fff' : '#fafbfd')}>
                 <div style={{ ...cell, justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
@@ -798,6 +799,7 @@ export default function Quotes({ setTab }) {
                 <div style={cell}>
                   <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                 </div>
+                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
                 <div style={{ ...cell, fontSize: 13, color: '#374151', ...S.mono }}>{row.quote_date || '-'}</div>
                 <div style={cell}><span style={S.tag(QUOTE_STATUS_TONE[statusKey] || '')}>{QUOTE_STATUS_MAP[statusKey] || statusKey}</span></div>
                 {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#10b981', justifyContent: 'flex-end', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>}

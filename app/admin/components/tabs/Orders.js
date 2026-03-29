@@ -1224,37 +1224,49 @@ export default function Orders({ setTab }) {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有訂單資料" /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '6px 14px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
-            <div><input type="checkbox" checked={batchIds.size > 0 && data.rows.every(r => batchIds.has(r.id))} onChange={(e) => { if (e.target.checked) setBatchIds(new Set(data.rows.map(r => r.id))); else setBatchIds(new Set()); }} style={{ cursor: 'pointer' }} /></div>
-            <div>序</div>
-            <div>訂單號</div>
-            <div>客戶</div>
-            <div>日期</div>
-            <div>狀態</div>
-            {!isTablet && <div>付款</div>}
-            {!isTablet && <div>出貨</div>}
-            {!isTablet && <div style={{ textAlign: 'right' }}>總額</div>}
-            <div style={{ textAlign: 'right' }}>操作</div>
-          </div>
+          {(() => {
+            const hdrCell = { padding: '8px 10px', borderRight: '1px solid #d1d5db', display: 'flex', alignItems: 'center', fontSize: 13, fontWeight: 600, color: '#374151' };
+            const hdrLast = { ...hdrCell, borderRight: 'none', justifyContent: 'flex-end' };
+            const cols = isTablet ? '32px 50px 140px minmax(0,1fr) 90px 80px 80px' : '32px 50px 150px minmax(0,1.2fr) 80px 90px 80px 80px 80px 100px 130px';
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: '2px solid #d1d5db', background: '#f3f4f6' }}>
+                <div style={{ ...hdrCell, justifyContent: 'center' }}><input type="checkbox" checked={batchIds.size > 0 && data.rows.every(r => batchIds.has(r.id))} onChange={(e) => { if (e.target.checked) setBatchIds(new Set(data.rows.map(r => r.id))); else setBatchIds(new Set()); }} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
+                <div style={hdrCell}>序</div>
+                <div style={hdrCell}>訂單號</div>
+                <div style={hdrCell}>客戶</div>
+                {!isTablet && <div style={hdrCell}>業務</div>}
+                <div style={hdrCell}>日期</div>
+                <div style={hdrCell}>狀態</div>
+                {!isTablet && <div style={hdrCell}>付款</div>}
+                {!isTablet && <div style={hdrCell}>出貨</div>}
+                {!isTablet && <div style={{ ...hdrCell, justifyContent: 'flex-end' }}>總額</div>}
+                <div style={hdrLast}>操作</div>
+              </div>
+            );
+          })()}
           {data.rows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
             const payKey = String(row.payment_status || 'unpaid').toLowerCase();
             const shipKey = String(row.shipping_status || 'pending').toLowerCase();
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0 };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'flex-end' };
+            const cols = isTablet ? '32px 50px 140px minmax(0,1fr) 90px 80px 80px' : '32px 50px 150px minmax(0,1.2fr) 80px 90px 80px 80px 80px 100px 130px';
 
             return (
-              <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 50px 140px minmax(0,1fr) 100px 100px 100px' : '32px 50px 150px minmax(0,1.2fr) 100px 100px 100px 100px 110px 150px', gap: 10, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
-                <div><input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer' }} /></div>
-                <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 14, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</div>
+              <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
+                <div style={{ ...cell, justifyContent: 'center' }}><input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
+                <div style={{ ...cell, fontSize: 13, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
+                <div style={cell}>
+                  <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                 </div>
-                <div style={{ fontSize: 12, color: '#374151', ...S.mono }}>{row.order_date || '-'}</div>
-                <div><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
-                {!isTablet && <div><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : '')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
-                {!isTablet && <div><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : '')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
-                {!isTablet && <div style={{ fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>}
-                <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end', flexWrap: 'wrap', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
+                <div style={{ ...cell, fontSize: 13, color: '#374151', ...S.mono }}>{row.order_date || '-'}</div>
+                <div style={cell}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
+                {!isTablet && <div style={cell}><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : '')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
+                {!isTablet && <div style={cell}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : '')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
+                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#10b981', justifyContent: 'flex-end', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>}
+                <div style={{ ...cellLast, gap: 4, flexWrap: 'wrap', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
                   {(() => {
                     const approval = approvalMap[row.id];
                     const shipKey_local = String(row.shipping_status || 'pending').toLowerCase();
@@ -1262,7 +1274,7 @@ export default function Orders({ setTab }) {
                     if (isConverted) return <span style={{ ...S.tag('green'), fontSize: 11 }}>已轉銷貨</span>;
                     return null;
                   })()}
-                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '5px 8px', fontSize: 12 }}>PDF</button>
+                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '5px 8px', fontSize: 13 }}>PDF</button>
                 </div>
               </div>
             );
