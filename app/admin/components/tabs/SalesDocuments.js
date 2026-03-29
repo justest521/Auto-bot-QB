@@ -552,12 +552,12 @@ export default function SalesDocuments({ setTab }) {
             headers={isTablet ? [
               { label: '序', align: 'center' },
               { label: '銷貨單號', align: 'center' },
-              { label: '客戶 / 發票', align: 'center' },
+              { label: '客戶', align: 'center' },
               { label: '日期', align: 'center' },
             ] : [
               { label: '序', align: 'center' },
               { label: '銷貨單號', align: 'center' },
-              { label: '客戶 / 發票', align: 'center' },
+              { label: '客戶', align: 'center' },
               { label: '日期', align: 'center' },
               { label: '業務', align: 'center' },
               { label: '未稅', align: 'center' },
@@ -574,12 +574,7 @@ export default function SalesDocuments({ setTab }) {
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedSale(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
                 <div style={{ ...cCenter, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
                 <div style={{ ...cCenter, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{row.slip_number || '-'}</div>
-                <div style={cell}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1, ...S.mono }}>{row.invoice_number ? `INV ${row.invoice_number}` : ''}</div>
-                  </div>
-                </div>
+                <div style={{ ...cell, fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
                 <div style={{ ...cCenter, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.sale_date || '-'}</div>
                 {!isTablet && <div style={{ ...cCenter, color: '#374151' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
                 {!isTablet && <div style={{ ...cRight, color: '#111827', ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.subtotal)}</div>}
