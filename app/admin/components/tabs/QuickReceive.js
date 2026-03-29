@@ -143,7 +143,7 @@ export default function QuickReceive({ setTab }) {
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState('');
   const [newVendorMode, setNewVendorMode] = useState(false);
-  const [newVendorName, setNewVendorName] = useState('');
+  const [newVendorForm, setNewVendorForm] = useState({ vendor_name: '', contact_name: '', phone: '', mobile: '', tax_id: '', address: '', email: '', remark: '' });
   const [creatingVendor, setCreatingVendor] = useState(false);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -181,25 +181,53 @@ export default function QuickReceive({ setTab }) {
     setCreatingVendor(false);
   };
 
-  // ── 比對品項 ──
-  const matchItems = useCallback(async (rawItems) => {
+  // ── 比對品項（含品項記憶自動帶入）──
+  const matchItems = useCallback(async (rawItems, vendorId) => {
     if (!rawItems.length) return;
     setMatching(true);
     try {
+      // 1. 載入品項記憶
+      const partNos = rawItems.map(i => (i.part_no || '').toUpperCase()).filter(Boolean);
+      let vendorMap = {};  // source_part_no → { item_name, last_cost, times_used }
+      let costMap = {};    // item_number → { last_cost, avg_cost, item_name }
+      try {
+        const memRes = await apiGet({ action: 'item_memory', vendor_id: vendorId || '', item_numbers: partNos.join(',') });
+        (memRes.vendor_mappings || []).forEach(m => { vendorMap[m.source_part_no?.toUpperCase()] = m; });
+        (memRes.cost_history || []).forEach(m => { costMap[m.item_number?.toUpperCase()] = m; });
+      } catch (_) {}
+
+      // 2. 逐筆比對
       const matched = await Promise.all(rawItems.map(async (item) => {
+        const partNo = (item.part_no || '').toUpperCase();
+        const vmem = vendorMap[partNo];   // 供應商記憶
+        const cmem = costMap[partNo];     // 全域成本歷史
         try {
-          const res = await apiGet({ action: 'quick_receive_match', part_no: item.part_no });
+          const res = await apiGet({ action: 'quick_receive_match', part_no: partNo });
           const product = res.product;
+
+          // 優先順序：原始解析值 > 供應商記憶 > 產品資料 > 全域歷史
+          const name = item.name || vmem?.item_name || product?.description || cmem?.item_name || '';
+          const cost = item.cost || vmem?.last_cost || Number(product?.tw_reseller_price || product?.us_price || 0) || cmem?.last_cost || 0;
+
           return {
             ...item,
-            name: item.name || product?.description || '',
-            cost: item.cost || Number(product?.tw_reseller_price || product?.us_price || 0),
+            name, cost,
             stock_qty: product?.stock_qty || 0,
             matched: !!product,
             waiting_orders: res.waitingOrders || [],
+            from_memory: !item.cost && (!!vmem?.last_cost || !!cmem?.last_cost),
+            memory_source: vmem ? `${vmem.times_used}次進貨` : cmem ? '歷史成本' : null,
           };
         } catch {
-          return { ...item, matched: false, waiting_orders: [] };
+          // 比對失敗但有記憶 → 仍帶入記憶值
+          return {
+            ...item,
+            name: item.name || vmem?.item_name || cmem?.item_name || '',
+            cost: item.cost || vmem?.last_cost || cmem?.last_cost || 0,
+            matched: false, waiting_orders: [],
+            from_memory: !!vmem?.last_cost || !!cmem?.last_cost,
+            memory_source: vmem ? `${vmem.times_used}次進貨` : cmem ? '歷史成本' : null,
+          };
         }
       }));
       setItems(matched);
@@ -313,7 +341,7 @@ export default function QuickReceive({ setTab }) {
     if (!selected.length) { setError('請至少勾選一項'); return; }
     setPreview(null);
     setLoading(true);
-    await matchItems(selected);
+    await matchItems(selected, selectedVendor);
     setLoading(false);
   };
 
@@ -610,6 +638,11 @@ export default function QuickReceive({ setTab }) {
               進貨明細 <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>{checkedCount} / {items.length} 項 / {totalQty} 件</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {(() => { const memCount = items.filter(i => i.from_memory).length; return memCount > 0 ? (
+                <span style={{ fontSize: 12, color: '#8b5cf6', fontWeight: 600, background: '#f5f3ff', padding: '3px 10px', borderRadius: 6 }}>
+                  {memCount} 筆記憶帶入
+                </span>
+              ) : null; })()}
               {totalWaiting > 0 && (
                 <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600, background: '#fef3c7', padding: '3px 10px', borderRadius: 6 }}>
                   {totalWaiting} 筆等待訂單
@@ -653,7 +686,10 @@ export default function QuickReceive({ setTab }) {
                       <input type="number" value={item.qty || ''} min={1} onChange={e => updateItem(idx, 'qty', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'qty', 1); }} style={{ ...S.input, width: 60, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <input type="number" value={item.cost || ''} min={0} onChange={e => updateItem(idx, 'cost', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'cost', 0); }} style={{ ...S.input, width: 90, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+                        {item.from_memory && <span title={item.memory_source || '記憶'} style={{ fontSize: 10, color: '#8b5cf6', background: '#f5f3ff', padding: '1px 5px', borderRadius: 3, cursor: 'help', whiteSpace: 'nowrap' }}>記憶</span>}
+                        <input type="number" value={item.cost || ''} min={0} onChange={e => updateItem(idx, 'cost', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'cost', 0); }} style={{ ...S.input, width: 90, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
+                      </div>
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
                       {(Number(item.cost) || 0) === 0
