@@ -670,7 +670,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
 
             entries.push({
               dot: dotColor,
-              label: ev.event ? (text.includes('轉訂單') ? '轉訂單' : text.includes('建立') ? '建立' : text) : '事件',
+              label: ev.event ? ((text.includes('轉訂單') || text.includes('轉為訂單')) ? '轉訂單' : text.includes('建立') ? '建立' : text) : '事件',
               ref: ref,
               refType: refType,
               detail: ev.by ? `由 ${ev.by}` : '',
@@ -681,8 +681,9 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
         }
 
         // Add current status based on quote status (skip if timeline already has a matching event)
-        const hasConvertEvent = entries.some(e => e.label === '轉訂單' && e.ref);
-        if (statusKey === 'sent') {
+        const hasConvertEvent = entries.some(e => e.label === '轉訂單');
+        const hasSentEvent = entries.some(e => e.label.includes('發送'));
+        if (statusKey === 'sent' && !hasSentEvent) {
           entries.push({ dot: '#3b82f6', label: '已發送', detail: '等待客戶回應', status: 'current' });
         } else if (statusKey === 'approved') {
           entries.push({ dot: '#16a34a', label: '已核准', detail: '客戶已核准', status: 'done' });
