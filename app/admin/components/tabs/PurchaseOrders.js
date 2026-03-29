@@ -1216,9 +1216,13 @@ export default function PurchaseOrders({ setTab }) {
       <PageLead eyebrow="Purchase Orders" title="採購單" description="建立對廠商的採購訂單，確認後可轉進貨單入庫。"
         action={<div style={{ display: 'flex', gap: 8 }}>
           <button onClick={async () => {
-            const rows = selectedIds.size > 0 ? data.rows.filter(r => selectedIds.has(r.id)) : data.rows;
-            if (!rows.length) { setMsg('沒有可匯出的資料'); return; }
-            setMsg('匯出中...');
+            const SKIP_STATUS = ['draft', 'pending_approval'];
+            const raw = selectedIds.size > 0 ? data.rows.filter(r => selectedIds.has(r.id)) : data.rows;
+            const rows = raw.filter(r => !SKIP_STATUS.includes(String(r.status || '').toLowerCase()));
+            const skipped = raw.length - rows.length;
+            if (!rows.length) { setMsg(skipped > 0 ? `已略過 ${skipped} 筆草稿/待審核單據，無可匯出資料` : '沒有可匯出的資料'); return; }
+            if (skipped > 0) setMsg(`已略過 ${skipped} 筆草稿/待審核單據`);
+            else setMsg('匯出中...');
             try {
               // Fetch items for each PO
               const allDetails = await Promise.all(rows.map(r => apiGet({ action: 'po_items', po_id: r.id }).catch(() => ({ items: [] }))));
