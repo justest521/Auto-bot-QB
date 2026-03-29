@@ -285,14 +285,14 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
     padding: '16px',
   };
 
-  const cardStyle = { ...S.card, marginBottom: 0, padding: isMobile ? '12px 14px' : '16px' };
+  const cardStyle = { ...S.card, marginBottom: 10, padding: isMobile ? '12px 14px' : '16px' };
   const labelStyle = { fontSize: isMobile ? 12 : 13, fontWeight: 700, color: '#6b7280', marginBottom: isMobile ? 6 : 8, textTransform: 'uppercase', letterSpacing: 0.5 };
 
   if (loading) return <Loading />;
 
   return (
-    <div style={modalContainerStyle}>
-      {/* ====== Header ====== */}
+    <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
+      {/* ====== Header (same as Order) ====== */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
@@ -303,9 +303,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                 {QUOTE_STATUS_MAP[statusKey] || statusKey}
               </span>
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, ...S.mono }}>
-              {q.quote_date || '-'}
-            </div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, ...S.mono }}>{q.quote_date || '-'}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', textAlign: 'right' }}>
@@ -318,13 +316,17 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
 
       {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
 
-      {/* Two-column layout */}
+      {/* ====== Two-column grid (same as Order) ====== */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: 10, alignItems: 'start' }}>
-        {/* ====== Left: Items section ====== */}
+        {/* ====== Left: Items ====== */}
         <div>
-          {/* Quote items */}
-          {items.length > 0 ? (
-            <div style={cardStyle}>
+      {/* Quote items */}
+      {items.length > 0 ? (
+        <div style={{ ...cardStyle, padding: 0, overflow: isMobile ? 'hidden' : 'visible', marginBottom: 10 }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>商品明細</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+          </div>
           {isMobile ? (
             // Mobile card layout
             <div>
@@ -553,40 +555,50 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                 <button onClick={() => setShowAddItem(true)} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: isMobile ? 13 : 14, minHeight: isMobile ? 44 : undefined }}>+ 新增品項</button>
               )}
             </div>
-            )}
-          </div>
-        ) : (
-          <div style={cardStyle}>
-            <div style={labelStyle}>品項</div>
-            <EmptyState text="暫無品項" />
-          </div>
-        )}
+          )}
 
-        {/* Amounts card in left column */}
-        <div style={cardStyle}>
-        <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: '#6b7280', marginBottom: isMobile ? 8 : 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>金額明細</div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 10 : 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: isMobile ? 8 : 10, borderBottom: '1px solid #e5e7eb' }}>
-            <span style={{ fontSize: isMobile ? 12 : 13, color: '#6b7280' }}>小計</span>
-            <span style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, ...S.mono, color: '#374151' }}>{fmtP(items.reduce((s, i) => s + (i.line_total || 0), 0))}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: isMobile ? 8 : 10, borderBottom: '1px solid #e5e7eb' }}>
-            <span style={{ fontSize: isMobile ? 12 : 13, color: '#6b7280' }}>運費</span>
-            <span style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, ...S.mono, color: '#374151' }}>{fmtP(q.shipping_fee || 0)}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: isMobile ? 8 : 10, borderBottom: '1px solid #e5e7eb' }}>
-            <span style={{ fontSize: isMobile ? 12 : 13, color: '#6b7280' }}>折扣</span>
-            <span style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, ...S.mono, color: '#dc2626' }}>-{fmtP(q.discount_amount || 0)}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: isMobile ? 8 : 10 }}>
-            <span style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, color: '#111827' }}>合計</span>
-            <span style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, ...S.mono, color: '#059669' }}>{fmtP(q.total_amount || 0)}</span>
+          {/* Green summary bar (same as Order) */}
+          <div style={{ padding: isMobile ? '16px 12px' : '20px 24px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: '2px solid #d1fae5' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: isMobile ? 'flex-start' : 'flex-end', alignItems: isMobile ? 'stretch' : 'flex-end', gap: isMobile ? 8 : 24 }}>
+              {isMobile ? (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <span style={{ fontSize: 12, color: '#6b7280' }}>小計</span>
+                      <div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{fmtP(q.subtotal || items.reduce((s, i) => s + (i.line_total || 0), 0))}</div>
+                    </div>
+                    {Number(q.discount_amount) > 0 && <div><span style={{ fontSize: 12, color: '#ef4444' }}>折扣</span><div style={{ ...S.mono, fontSize: 14, fontWeight: 600, color: '#ef4444' }}>-{fmtP(q.discount_amount)}</div></div>}
+                    {Number(q.shipping_fee) > 0 && <div><span style={{ fontSize: 12, color: '#6b7280' }}>運費</span><div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{fmtP(q.shipping_fee)}</div></div>}
+                    {Number(q.tax_amount) > 0 && <div><span style={{ fontSize: 12, color: '#6b7280' }}>稅額</span><div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{fmtP(q.tax_amount)}</div></div>}
+                  </div>
+                  <div style={{ borderTop: '2px solid #a7f3d0', paddingTop: 12, textAlign: 'left' }}>
+                    <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, display: 'block', marginBottom: 4 }}>合計</span>
+                    <span style={{ ...S.mono, fontSize: 20, fontWeight: 900, color: '#059669' }}>{fmtP(q.total_amount || 0)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
+                    <span style={{ fontSize: 14, color: '#6b7280' }}>小計 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(q.subtotal || items.reduce((s, i) => s + (i.line_total || 0), 0))}</strong></span>
+                    {Number(q.discount_amount) > 0 && <span style={{ fontSize: 14, color: '#ef4444' }}>折扣 <strong style={{ ...S.mono, fontSize: 16, fontWeight: 600 }}>-{fmtP(q.discount_amount)}</strong></span>}
+                    {Number(q.shipping_fee) > 0 && <span style={{ fontSize: 14, color: '#6b7280' }}>運費 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(q.shipping_fee)}</strong></span>}
+                    {Number(q.tax_amount) > 0 && <span style={{ fontSize: 14, color: '#6b7280' }}>稅額 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(q.tax_amount)}</strong></span>}
+                  </div>
+                  <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 20, textAlign: 'right' }}>
+                    <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600, display: 'block', marginBottom: 2 }}>合計</span>
+                    <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(q.total_amount || 0)}</span>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div style={{ ...cardStyle, padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14, marginBottom: 10 }}>尚無品項</div>
+      )}
         </div>
 
-        {/* ====== Right: Sidebar ====== */}
+        {/* ====== Right sidebar (same as Order) ====== */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, ...(isMobile ? { gridColumn: '1/-1' } : {}) }}>
           {/* 1. PDF button */}
           <button onClick={() => window.open(`/api/pdf?type=quote&id=${quote.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
@@ -594,9 +606,8 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
           {/* 2. 客戶資訊 */}
           <div style={{ ...cardStyle, padding: '10px 16px' }}>
             <div style={labelStyle}>客戶資訊</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{c.company_name || c.name || '未綁定'}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{c.company_name || c.name || '未綁定客戶'}</div>
             {[
-              { label: '電話', value: c.phone },
               { label: '報價日期', value: q.quote_date, mono: true },
               { label: '有效期', value: q.valid_until, mono: true },
             ].filter(f => f.value).map((f, i) => (
@@ -607,32 +618,30 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             ))}
           </div>
 
-          {/* 3. Sales person */}
+          {/* 3. 負責業務 */}
           <div style={{ ...cardStyle, padding: '10px 16px' }}>
-            <div style={labelStyle}>業務</div>
+            <div style={labelStyle}>負責業務</div>
             {editingSales ? (
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <select value={q.sales_person || ''} onChange={(e) => updateSalesPerson(e.target.value)} style={{ ...S.input, fontSize: 13, flex: 1 }}>
+                <select value={q.sales_person || ''} onChange={(e) => updateSalesPerson(e.target.value)} style={{ ...S.input, fontSize: 14, flex: 1 }}>
                   <option value="">-- 未指定 --</option>
                   {(salesUsers || []).map(u => <option key={u.id} value={u.display_name}>{u.display_name}</option>)}
                 </select>
                 <button onClick={() => setEditingSales(false)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 12 }}>完成</button>
               </div>
             ) : (
-              <div onClick={() => isEditable && setEditingSales(true)} style={{ fontSize: 14, fontWeight: 600, color: isEditable ? '#3b82f6' : '#111827', cursor: isEditable ? 'pointer' : 'default', padding: '2px 4px', borderRadius: 4, background: isEditable ? '#eff6ff' : 'transparent' }}>
-                {q.sales_person || <span style={{ color: '#d1d5db' }}>未指派</span>}
-              </div>
+              <span onClick={() => isEditable && setEditingSales(true)} style={{ fontSize: 14, fontWeight: 600, color: isEditable ? '#3b82f6' : q.sales_person ? '#111827' : '#9ca3af', cursor: isEditable ? 'pointer' : 'default' }}>{q.sales_person || '未指派'}</span>
             )}
           </div>
 
-          {/* 4. Remark textarea in sidebar */}
+          {/* 4. 備註 */}
           <div style={{ ...cardStyle, padding: '10px 16px' }}>
             <div style={labelStyle}>備註</div>
             <textarea
               defaultValue={q.remark || ''}
               placeholder="輸入備註..."
               rows={3}
-              style={{ width: '100%', fontSize: 12, color: '#374151', lineHeight: 1.6, border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 10px', resize: 'vertical', fontFamily: 'inherit', minHeight: 80 }}
+              style={{ width: '100%', fontSize: 13, color: '#374151', lineHeight: 1.5, border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 10px', resize: 'vertical', fontFamily: 'inherit' }}
               onBlur={async (e) => {
                 const val = e.target.value.trim();
                 if (val === (q.remark || '').trim()) return;
@@ -644,9 +653,9 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             />
           </div>
 
-          {/* 5. Timeline card */}
-          <div style={cardStyle}>
-        <div style={labelStyle}>進度</div>
+          {/* 5. 進度 timeline */}
+          <div style={{ ...cardStyle, padding: '10px 16px' }}>
+            <div style={labelStyle}>進度</div>
         {(() => {
         // Build unified timeline entries
         const entries = [];
@@ -722,27 +731,23 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             })}
           </div>
         ) : null;
-          })()}
-          </div>
-
-          {/* 6. Action buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {!isConverted && isEditable && (
-              <button onClick={convertToOrder} disabled={convertingOrder} style={{ ...S.btnPrimary, width: '100%', padding: '10px 16px', fontSize: 13, minHeight: 40 }}>
-                {convertingOrder ? '轉換中...' : '轉為訂單'}
-              </button>
-            )}
-            {isEditable && (
-              <button onClick={sendToLine} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 13, minHeight: 40 }}>發送 LINE</button>
-            )}
-            {isDeletable && (
-              <button onClick={deleteQuote} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 13, color: '#dc2626', minHeight: 40 }}>刪除報價單</button>
-            )}
-          </div>
-        </div>
+      })()}
       </div>
 
-      {isMobile && <div style={{ height: 20 }} />}
+          {/* 6. Action buttons */}
+          {!isConverted && isEditable && (
+            <button onClick={convertToOrder} disabled={convertingOrder} style={{ ...S.btnPrimary, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 700 }}>
+              {convertingOrder ? '轉換中...' : '轉為訂單'}
+            </button>
+          )}
+          {isEditable && (
+            <button onClick={sendToLine} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600 }}>發送 LINE</button>
+          )}
+          {isDeletable && (
+            <button onClick={deleteQuote} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, color: '#dc2626' }}>刪除報價單</button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
