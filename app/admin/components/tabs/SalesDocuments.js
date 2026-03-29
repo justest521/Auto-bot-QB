@@ -599,7 +599,7 @@ export default function SalesDocuments({ setTab }) {
           </div>
         ))
       ) : (
-        <div style={{ ...S.card, padding: 0, ...S.tableScroll, border: '1px solid #d1d5db' }}>
+        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
           <ResizableHeader
             headers={isTablet ? [
               { label: '序', align: 'center' },

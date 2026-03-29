@@ -962,7 +962,7 @@ export default function Quotes({ setTab }) {
           </div>
         ) : (
           // Desktop table layout
-          <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', ...S.tableScroll }}>
+          <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
             <QuoteHeader headers={isTablet ? [
               { label: '', align: 'center', render: () => <input type="checkbox" checked={data.rows.length > 0 && checkedIds.size === data.rows.length} onChange={(e) => { if (e.target.checked) { setCheckedIds(new Set(data.rows.map(r => r.id))); } else { setCheckedIds(new Set()); } }} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }} /> },
               { label: '序', align: 'center' },
