@@ -34,6 +34,7 @@ import Returns from './components/tabs/Returns';
 import AIPrompt from './components/tabs/AIPrompt';
 import ChatHistory from './components/tabs/ChatHistory';
 import PurchaseOrders from './components/tabs/PurchaseOrders';
+import QuickReceive from './components/tabs/QuickReceive';
 import ProcurementCenter from './components/tabs/ProcurementCenter';
 import StockIn from './components/tabs/StockIn';
 import PurchaseReturns from './components/tabs/PurchaseReturns';
@@ -97,6 +98,7 @@ const SECTIONS = [
   {
     title: 'ERP 採購進貨',
     tabs: [
+      { id: 'quick_receive', label: '快速進貨', code: 'RCIV' },
       { id: 'purchase_orders', label: '採購單', code: 'PO' },
       { id: 'procurement_center', label: '採購中心', code: 'PC' },
       { id: 'stock_in', label: '進貨單', code: 'SI' },
@@ -209,6 +211,7 @@ const TAB_META = {
   products: { eyebrow: 'Product Master', title: '商品主檔', desc: '維護商品狀態、分類、替代型號與價格。' },
   vendors: { eyebrow: 'Vendors', title: '廠商主檔', desc: '供應商主檔、聯絡窗口與統編資訊。' },
   line_customers: { eyebrow: 'Customers', title: '客戶綜合管理', desc: 'LINE 客戶與正式客戶綜合查看。' },
+  quick_receive: { eyebrow: 'Quick Receive', title: '快速進貨', desc: '上傳 CSV、拍照或手打料號，一鍵完成入庫並推進等待訂單。' },
   purchase_orders: { eyebrow: 'Purchase Orders', title: '採購單', desc: '建立對廠商的採購訂單，確認後可轉進貨單入庫。' },
   procurement_center: { eyebrow: 'Procurement Center', title: '採購中心', desc: '所有採購品項到貨進度、配貨建議總覽。' },
   stock_in: { eyebrow: 'Stock In', title: '進貨單', desc: '記錄廠商進貨入庫，確認後自動增加庫存。' },
@@ -278,6 +281,7 @@ const TAB_COMPONENTS = {
 
   ai_prompt: AIPrompt,
   chat_history: ChatHistory,
+  quick_receive: QuickReceive,
   purchase_orders: PurchaseOrders,
   procurement_center: ProcurementCenter,
   stock_in: StockIn,
