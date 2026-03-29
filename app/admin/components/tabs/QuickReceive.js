@@ -35,7 +35,7 @@ function parseCsv(text) {
   return lines.slice(1).map(line => {
     const cols = line.split(',').map(c => c.trim());
     return {
-      part_no: cols[colMap.part_no] || '',
+      part_no: (cols[colMap.part_no] || '').toUpperCase(),
       name: cols[colMap.name] || '',
       qty: Number(cols[colMap.qty]) || 1,
       cost: Number(cols[colMap.cost]) || 0,
@@ -60,7 +60,7 @@ async function parseExcel(arrayBuffer) {
   const costCol = find([/成本/, /cost/, /price/, /單價/]) || keys[3];
 
   return rows.map(r => ({
-    part_no: String(r[partCol] || '').trim(),
+    part_no: String(r[partCol] || '').trim().toUpperCase(),
     name: String(r[nameCol] || '').trim(),
     qty: Number(r[qtyCol]) || 1,
     cost: Number(r[costCol]) || 0,
@@ -72,9 +72,9 @@ function parseTextInput(text) {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   return lines.map(line => {
     const m = line.trim().match(/^([A-Za-z0-9\-_]+)\s*[xX×]\s*(\d+)/);
-    if (m) return { part_no: m[1], name: '', qty: Number(m[2]) || 1, cost: 0 };
+    if (m) return { part_no: m[1].toUpperCase(), name: '', qty: Number(m[2]) || 1, cost: 0 };
     const word = line.trim().split(/\s+/)[0];
-    if (word && /^[A-Za-z0-9\-_]+$/.test(word)) return { part_no: word, name: '', qty: 1, cost: 0 };
+    if (word && /^[A-Za-z0-9\-_]+$/.test(word)) return { part_no: word.toUpperCase(), name: '', qty: 1, cost: 0 };
     return null;
   }).filter(Boolean);
 }
@@ -193,7 +193,7 @@ export default function QuickReceive({ setTab }) {
         if (res.method) setMsg(METHOD_LABELS[res.method] || '解析完成');
         if (res.error) { setError(res.error); setLoading(false); return; }
         const parsed = (res.items || []).map(i => ({
-          part_no: i.part_no || '',
+          part_no: (i.part_no || '').toUpperCase(),
           name: i.name || '',
           qty: Number(i.qty) || 1,
           cost: Number(i.cost) || 0,
@@ -246,7 +246,7 @@ export default function QuickReceive({ setTab }) {
       const res = await apiPost({
         action: 'quick_stock_in',
         items: items.map(i => ({
-          part_no: i.part_no,
+          part_no: (i.part_no || '').toUpperCase(),
           name: i.name,
           qty: Number(i.qty) || 1,
           cost: Number(i.cost) || 0,
