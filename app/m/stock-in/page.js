@@ -41,24 +41,45 @@ function compressImage(file, maxPx = 1600, quality = 0.7) {
   });
 }
 
-// ── 震動反饋 ──
-function vibrate(ms = 100) {
-  try { navigator.vibrate?.(ms); } catch {}
+// ── 音效管理器（全域單例，避免 WebView 限制）──
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+  }
+  // iOS/LINE WebView 可能 suspend，嘗試 resume
+  if (_audioCtx?.state === 'suspended') _audioCtx.resume().catch(() => {});
+  return _audioCtx;
 }
 
-// ── 嗶聲 ──
-function beep(freq = 1000, duration = 150) {
+// ── 震動反饋 ──
+function vibrate(pattern = 100) {
+  try { navigator.vibrate?.(pattern); } catch {}
+}
+
+// ── 嗶聲（使用全域 AudioContext）──
+function beep(freq = 1200, duration = 180) {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
+    osc.type = 'square';
     osc.frequency.value = freq;
-    gain.gain.value = 0.3;
-    osc.start();
-    setTimeout(() => { osc.stop(); ctx.close(); }, duration);
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration / 1000);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration / 1000);
   } catch {}
+}
+
+// ── 成功掃碼音效（兩聲短嗶）──
+function beepSuccess() {
+  beep(1200, 80);
+  setTimeout(() => beep(1600, 120), 100);
+  vibrate([50, 30, 80]);
 }
 
 export default function MobileStockIn() {
@@ -109,8 +130,7 @@ export default function MobileStockIn() {
     lastScannedRef.current = code;
     lastScannedTimeRef.current = now;
 
-    beep(1200, 100);
-    vibrate(80);
+    beepSuccess();
     setScanStatus(`查詢 ${code}...`);
     setScanHistory(prev => [code, ...prev.filter(c => c !== code)].slice(0, 20));
 
@@ -171,6 +191,9 @@ export default function MobileStockIn() {
     try {
       setScanStatus('載入掃碼器...');
 
+      // 在用戶點擊時初始化 AudioContext（WebView 要求）
+      getAudioCtx();
+
       // 動態 import（Next.js 會打包進 bundle）
       if (!Html5QrCodeRef.current) {
         const mod = await import('html5-qrcode');
@@ -196,12 +219,13 @@ export default function MobileStockIn() {
       await html5QrCode.start(
         { facingMode: 'environment' },
         {
-          fps: 10,
+          fps: 15,
           qrbox: (vw, vh) => {
-            const size = Math.min(vw, vh) * 0.7;
-            return { width: Math.max(size, 200), height: Math.min(size * 0.4, 150) };
+            const w = Math.min(vw * 0.85, 350);
+            const h = Math.min(vh * 0.35, 200);
+            return { width: Math.max(w, 250), height: Math.max(h, 120) };
           },
-          aspectRatio: 1.0,
+          aspectRatio: 1.333,
           formatsToSupport: [
             0,  // QR_CODE
             1,  // AZTEC
@@ -523,11 +547,13 @@ export default function MobileStockIn() {
       {/* ══════ 掃碼進行中 ══════ */}
       {step === 'scanning' && (
         <>
-          <div id="qr-scanner-container" style={{ width: '100%', minHeight: 300, background: '#000' }} />
+          <div id="qr-scanner-container" style={{ width: '100%', minHeight: '55vh', background: '#000' }} />
           <style>{`
-            #qr-scanner-container video { width: 100% !important; border-radius: 0 !important; }
-            #qr-scanner-container #qr-shaded-region { border-color: #16a34a !important; }
+            #qr-scanner-container { position: relative; }
+            #qr-scanner-container video { width: 100% !important; height: 55vh !important; object-fit: cover !important; border-radius: 0 !important; }
+            #qr-scanner-container #qr-shaded-region { border-color: #22c55e !important; border-width: 3px !important; border-radius: 12px !important; }
             #qr-scanner-container img[alt="Info"] { display: none !important; }
+            #qr-scanner-container > div:first-child { min-height: 55vh !important; }
           `}</style>
 
           {/* 掃碼狀態 */}
