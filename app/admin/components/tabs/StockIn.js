@@ -175,21 +175,21 @@ export default function StockIn() {
   const [detailId, setDetailId] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [newVendorMode, setNewVendorMode] = useState(false);
-  const [newVendorName, setNewVendorName] = useState('');
+  const [newVendorForm, setNewVendorForm] = useState({ vendor_name: '', contact_name: '', phone: '', mobile: '', tax_id: '', address: '', email: '', remark: '' });
   const [creatingVendor, setCreatingVendor] = useState(false);
   const loadVendors = useCallback(() => apiGet({ action: 'vendors', search: '', limit: 200 }).then(r => setVendors(r.vendors || [])).catch(() => {}), []);
   useEffect(() => { loadVendors(); }, []);
 
+  const resetNewVendor = () => { setNewVendorMode(false); setNewVendorForm({ vendor_name: '', contact_name: '', phone: '', mobile: '', tax_id: '', address: '', email: '', remark: '' }); };
   const createVendorInline = async () => {
-    if (!newVendorName.trim()) return;
+    if (!newVendorForm.vendor_name.trim()) return;
     setCreatingVendor(true);
     try {
-      const res = await apiPost({ action: 'create_vendor', vendor_name: newVendorName.trim() });
+      const res = await apiPost({ action: 'create_vendor', ...newVendorForm });
       if (res.vendor?.id) {
         await loadVendors();
         setForm(p => ({ ...p, vendor_id: res.vendor.id }));
-        setNewVendorName('');
-        setNewVendorMode(false);
+        resetNewVendor();
       }
     } catch (e) { alert(e.message); }
     setCreatingVendor(false);
@@ -209,7 +209,7 @@ export default function StockIn() {
 
   const updateItem = (idx, key, val) => setItems(prev => { const next = [...prev]; next[idx] = { ...next[idx], [key]: val }; if (key === 'qty_received' || key === 'unit_cost') next[idx].line_total = Number(next[idx].qty_received || 0) * Number(next[idx].unit_cost || 0); return next; });
 
-  const handleCreate = async () => { try { await apiPost({ action: 'create_stock_in', ...form, items: items.filter(i => i.item_number) }); setCreateOpen(false); setForm({ vendor_id: '', po_id: '', remark: '' }); setItems([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }]); setNewVendorMode(false); setNewVendorName(''); load(); } catch (e) { alert(e.message); } };
+  const handleCreate = async () => { try { await apiPost({ action: 'create_stock_in', ...form, items: items.filter(i => i.item_number) }); setCreateOpen(false); setForm({ vendor_id: '', po_id: '', remark: '' }); setItems([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }]); resetNewVendor(); load(); } catch (e) { alert(e.message); } };
   const handleConfirm = async (id, e) => { e?.stopPropagation(); if (!confirm('確認進貨將自動增加庫存，確定？')) return; try { await apiPost({ action: 'confirm_stock_in', stock_in_id: id }); load(); } catch (e) { alert(e.message); } };
 
   const handleExport = async () => {
@@ -348,25 +348,50 @@ export default function StockIn() {
 
               {/* Form body */}
               <div style={{ padding: '16px 24px' }}>
+                {/* 新增廠商展開面板 */}
+                {newVendorMode && (
+                  <div style={{ background: '#f0f9ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '14px 16px', marginBottom: 14 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af' }}>新增廠商</div>
+                      <button type="button" onClick={resetNewVendor} style={{ fontSize: 12, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}>✕ 取消</button>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }}>
+                      {[
+                        { key: 'vendor_name', label: '廠商名稱 *', ph: '必填', autoFocus: true },
+                        { key: 'contact_name', label: '聯絡人', ph: '選填' },
+                        { key: 'phone', label: '電話', ph: '選填' },
+                        { key: 'mobile', label: '手機', ph: '選填' },
+                        { key: 'tax_id', label: '統一編號', ph: '8 碼' },
+                        { key: 'email', label: 'Email', ph: '選填' },
+                        { key: 'address', label: '地址', ph: '選填' },
+                        { key: 'remark', label: '備註', ph: '選填' },
+                      ].map(f => (
+                        <div key={f.key}>
+                          <label style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginBottom: 2, display: 'block' }}>{f.label}</label>
+                          <input value={newVendorForm[f.key]} onChange={e => setNewVendorForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.ph} autoFocus={f.autoFocus} style={{ ...modalInput, width: '100%', fontSize: 12, padding: '6px 8px' }} />
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+                      <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorForm.vendor_name.trim()}
+                        style={{ padding: '8px 20px', fontSize: 13, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorForm.vendor_name.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer' }}>
+                        {creatingVendor ? '建立中...' : '建立廠商'}
+                      </button>
+                      <button type="button" onClick={resetNewVendor} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
+                    </div>
+                  </div>
+                )}
                 {/* Vendor + PO */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                   <div>
                     <label style={modalLabel}>進貨廠商</label>
-                    {!newVendorMode ? (
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <select value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))} style={{ ...modalInput, flex: 1 }}>
-                          <option value="">不指定廠商</option>
-                          {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
-                        </select>
-                        <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1 }}>+</button>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <input value={newVendorName} onChange={(e) => setNewVendorName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && createVendorInline()} placeholder="輸入新廠商名稱" autoFocus style={{ ...modalInput, flex: 1 }} />
-                        <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorName.trim()} style={{ padding: '7px 12px', fontSize: 12, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorName.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>{creatingVendor ? '...' : '建立'}</button>
-                        <button type="button" onClick={() => { setNewVendorMode(false); setNewVendorName(''); }} style={{ padding: '7px 10px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <select value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))} style={{ ...modalInput, flex: 1 }}>
+                        <option value="">不指定廠商</option>
+                        {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
+                      </select>
+                      {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1 }}>+</button>}
+                    </div>
                   </div>
                   <div>
                     <label style={modalLabel}>關聯採購單 <span style={{ color: '#9ca3af', fontWeight: 400 }}>(選填)</span></label>

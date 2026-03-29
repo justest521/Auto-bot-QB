@@ -166,16 +166,16 @@ export default function QuickReceive({ setTab }) {
   const loadVendors = useCallback(() => apiGet({ action: 'vendors', search: '', limit: 200 }).then(res => setVendors(res.vendors || [])).catch(() => {}), []);
   useEffect(() => { loadVendors(); }, []);
 
+  const resetNewVendor = () => { setNewVendorMode(false); setNewVendorForm({ vendor_name: '', contact_name: '', phone: '', mobile: '', tax_id: '', address: '', email: '', remark: '' }); };
   const createVendorInline = async () => {
-    if (!newVendorName.trim()) return;
+    if (!newVendorForm.vendor_name.trim()) return;
     setCreatingVendor(true);
     try {
-      const res = await apiPost({ action: 'create_vendor', vendor_name: newVendorName.trim() });
+      const res = await apiPost({ action: 'create_vendor', ...newVendorForm });
       if (res.vendor?.id) {
         await loadVendors();
         setSelectedVendor(res.vendor.id);
-        setNewVendorName('');
-        setNewVendorMode(false);
+        resetNewVendor();
       }
     } catch (e) { alert(e.message); }
     setCreatingVendor(false);
@@ -748,37 +748,64 @@ export default function QuickReceive({ setTab }) {
 
       {/* ── 底部操作列 ── */}
       {items.length > 0 && !loading && !matching && (
-        <div style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <label style={{ ...S.label, marginBottom: 4 }}>廠商（選填）</label>
-            {!newVendorMode ? (
+        <div style={{ ...cardStyle, padding: '16px 20px' }}>
+          {/* 新增廠商展開面板 */}
+          {newVendorMode && (
+            <div style={{ background: '#f0f9ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '14px 16px', marginBottom: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af' }}>新增廠商</div>
+                <button type="button" onClick={resetNewVendor} style={{ fontSize: 12, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}>✕ 取消</button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
+                {[
+                  { key: 'vendor_name', label: '廠商名稱 *', ph: '必填', autoFocus: true },
+                  { key: 'contact_name', label: '聯絡人', ph: '選填' },
+                  { key: 'phone', label: '電話', ph: '選填' },
+                  { key: 'mobile', label: '手機', ph: '選填' },
+                  { key: 'tax_id', label: '統一編號', ph: '8 碼' },
+                  { key: 'email', label: 'Email', ph: '選填' },
+                  { key: 'address', label: '地址', ph: '選填' },
+                  { key: 'remark', label: '備註', ph: '選填' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginBottom: 2, display: 'block' }}>{f.label}</label>
+                    <input value={newVendorForm[f.key]} onChange={e => setNewVendorForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.ph} autoFocus={f.autoFocus} style={{ ...S.input, fontSize: 12, padding: '6px 8px', width: '100%' }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+                <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorForm.vendor_name.trim()}
+                  style={{ padding: '8px 20px', fontSize: 13, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorForm.vendor_name.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer' }}>
+                  {creatingVendor ? '建立中...' : '建立廠商'}
+                </button>
+                <button type="button" onClick={resetNewVendor} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
+              </div>
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <label style={{ ...S.label, marginBottom: 4 }}>廠商（選填）</label>
               <div style={{ display: 'flex', gap: 6 }}>
                 <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={{ ...S.input, fontSize: 13, flex: 1 }}>
                   <option value="">不指定廠商</option>
                   {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
                 </select>
-                <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', lineHeight: 1 }}>+</button>
+                {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', lineHeight: 1 }}>+</button>}
               </div>
-            ) : (
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <input value={newVendorName} onChange={e => setNewVendorName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createVendorInline()} placeholder="輸入新廠商名稱" autoFocus style={{ ...S.input, fontSize: 13, flex: 1 }} />
-                <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorName.trim()} style={{ padding: '7px 12px', fontSize: 12, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorName.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>{creatingVendor ? '...' : '建立'}</button>
-                <button type="button" onClick={() => { setNewVendorMode(false); setNewVendorName(''); }} style={{ padding: '7px 10px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
-              </div>
-            )}
-          </div>
-          <div style={{ flex: 2, minWidth: 200 }}>
-            <label style={{ ...S.label, marginBottom: 4 }}>備註（選填）</label>
-            <input value={note} onChange={e => setNote(e.target.value)} placeholder="進貨備註..." style={{ ...S.input, fontSize: 13 }} />
-          </div>
-          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-end', paddingTop: 18 }}>
-            <button onClick={handleStockIn} disabled={submitting || checkedCount === 0} style={{
-              ...S.btnPrimary, padding: '12px 32px', fontSize: 15, fontWeight: 700,
-              background: submitting ? '#94a3b8' : checkedCount === 0 ? '#d1d5db' : '#16a34a',
-              boxShadow: submitting || checkedCount === 0 ? 'none' : '0 2px 8px rgba(22,163,74,0.3)',
-            }}>
-              {submitting ? '入庫中...' : `一鍵入庫 (${checkedCount} 項)`}
-            </button>
+            </div>
+            <div style={{ flex: 2, minWidth: 200 }}>
+              <label style={{ ...S.label, marginBottom: 4 }}>備註（選填）</label>
+              <input value={note} onChange={e => setNote(e.target.value)} placeholder="進貨備註..." style={{ ...S.input, fontSize: 13 }} />
+            </div>
+            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-end', paddingTop: 18 }}>
+              <button onClick={handleStockIn} disabled={submitting || checkedCount === 0} style={{
+                ...S.btnPrimary, padding: '12px 32px', fontSize: 15, fontWeight: 700,
+                background: submitting ? '#94a3b8' : checkedCount === 0 ? '#d1d5db' : '#16a34a',
+                boxShadow: submitting || checkedCount === 0 ? 'none' : '0 2px 8px rgba(22,163,74,0.3)',
+              }}>
+                {submitting ? '入庫中...' : `一鍵入庫 (${checkedCount} 項)`}
+              </button>
+            </div>
           </div>
         </div>
       )}
