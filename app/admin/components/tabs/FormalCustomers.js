@@ -66,7 +66,11 @@ export default function FormalCustomers() {
   const emptyForm = { company_name: '', full_name: '', name: '', phone: '', fax: '', mobile: '', email: '', tax_id: '', job_title: '', sales_person: '', billing_customer: '', discount_percent: '', stop_date: '', invoice_email: '', invoice_mobile: '', carrier_type: '', carrier_code: '', bank_account: '', payment_method: '', payment_days: '', monthly_closing_day: '', collection_method: '', collection_day: '', address: '', registered_address: '', invoice_address: '', shipping_address: '', business_address: '', notes: '' };
   const [createForm, setCreateForm] = useState({ ...emptyForm });
   const [createSaving, setCreateSaving] = useState(false);
+  const [createDupWarning, setCreateDupWarning] = useState(null); // { duplicates: [...] }
   const [spFilter, setSpFilter] = useState('');
+  const [showDupPanel, setShowDupPanel] = useState(false);
+  const [dupGroups, setDupGroups] = useState([]);
+  const [dupGroupsLoading, setDupGroupsLoading] = useState(false);
 
   const load = useCallback(async (page = 1, q = search, limit = pageSize, sp = spFilter) => {
     setLoading(true);
@@ -129,17 +133,56 @@ export default function FormalCustomers() {
     }
   };
 
-  const saveCreate = async () => {
+  const saveCreate = async (forceCreate = false) => {
     if (!createForm.company_name.trim()) return;
     setCreateSaving(true);
+    setCreateDupWarning(null);
     try {
-      const result = await apiPost({ action: 'create_customer', profile: createForm });
+      const result = await apiPost({ action: 'create_customer', profile: createForm, force: forceCreate });
+      if (result?.error === 'duplicate_found') {
+        setCreateDupWarning(result);
+        setCreateSaving(false);
+        return;
+      }
+      if (result?.error) {
+        alert(result.error);
+        setCreateSaving(false);
+        return;
+      }
       setCreating(false);
       setCreateForm({ ...emptyForm });
       await load(1, search, pageSize);
       if (result?.customer?.id) setSelectedCustomerId(result.customer.id);
     } finally {
       setCreateSaving(false);
+    }
+  };
+
+  const loadDupGroups = async () => {
+    setDupGroupsLoading(true);
+    try {
+      const res = await apiGet({ action: 'customer_duplicate_groups' });
+      setDupGroups(res.groups || []);
+    } finally {
+      setDupGroupsLoading(false);
+    }
+  };
+
+  const deleteCustomer = async (customerId, customerName) => {
+    if (!confirm(`確定要刪除客戶「${customerName}」？此操作無法復原。`)) return;
+    try {
+      const result = await apiPost({ action: 'delete_customer', customer_id: customerId });
+      if (result?.error) { alert(result.error); return; }
+      // Refresh
+      await load(1, search, pageSize);
+      await loadDupGroups();
+      // Refresh duplicate banner
+      apiGet({ action: 'customer_duplicates' }).then(res => {
+        setDupMap(res.duplicates || {});
+        setDupCount(res.total_flagged || 0);
+      }).catch(() => {});
+    } catch (err) {
+      alert(err?.error || err?.message || '刪除失敗');
     }
   };
 
@@ -189,9 +232,46 @@ export default function FormalCustomers() {
         })()}
       </div>
       {dupCount > 0 && (
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '8px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-          <span style={{ background: '#f59e0b', color: '#fff', borderRadius: 4, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>疑似重複</span>
-          <span style={{ color: '#92400e' }}>全面偵測到 <strong>{dupCount}</strong> 筆可能重複的客戶（比對名稱、電話、統編），已用色條標記</span>
+        <div style={{ marginBottom: 12 }}>
+          <div
+            onClick={() => { if (!showDupPanel) { loadDupGroups(); } setShowDupPanel(!showDupPanel); }}
+            style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: showDupPanel ? '10px 10px 0 0' : 10, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', userSelect: 'none' }}
+          >
+            <span style={{ background: '#f59e0b', color: '#fff', borderRadius: 4, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>疑似重複</span>
+            <span style={{ color: '#92400e', flex: 1 }}>全面偵測到 <strong>{dupCount}</strong> 筆可能重複的客戶（比對名稱、電話、統編），已用色條標記</span>
+            <span style={{ color: '#92400e', fontSize: 16 }}>{showDupPanel ? '▲' : '▼ 點擊展開管理'}</span>
+          </div>
+          {showDupPanel && (
+            <div style={{ background: '#fff', border: '1px solid #fde68a', borderTop: 'none', borderRadius: '0 0 10px 10px', padding: '12px 14px', maxHeight: 500, overflowY: 'auto' }}>
+              {dupGroupsLoading ? <Loading /> : dupGroups.length === 0 ? <div style={{ color: '#6b7280', fontSize: 13 }}>沒有重複資料</div> : (
+                <div style={{ display: 'grid', gap: 14 }}>
+                  {dupGroups.map((group, gi) => {
+                    const typeLabel = group.matchType === 'name' ? '名稱' : group.matchType === 'phone' ? '電話' : '統編';
+                    return (
+                      <div key={gi} style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+                        <div style={{ background: '#f9fafb', padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
+                          重複條件：<span style={{ color: '#d97706' }}>{typeLabel}</span> = 「{group.matchValue}」 — {group.customers.length} 筆
+                        </div>
+                        {group.customers.map((c) => (
+                          <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px 120px 80px 100px', gap: 6, padding: '8px 12px', borderBottom: '1px solid #f3f4f6', alignItems: 'center', fontSize: 13 }}>
+                            <div style={{ color: '#6b7280', fontFamily: 'monospace' }}>{c.customer_code}</div>
+                            <div style={{ fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.company_name || c.name || '-'}</div>
+                            <div style={{ color: '#374151' }}>{c.name || '-'}</div>
+                            <div style={{ color: '#374151', fontFamily: 'monospace' }}>{c.phone || '-'}</div>
+                            <div style={{ color: '#374151', fontFamily: 'monospace' }}>{c.tax_id || '-'}</div>
+                            <div style={{ display: 'flex', gap: 4 }}>
+                              <button onClick={() => { setSelectedCustomerId(c.id); setShowDupPanel(false); }} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11 }}>編輯</button>
+                              <button onClick={() => deleteCustomer(c.id, c.company_name || c.name)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, color: '#ef4444', borderColor: '#fecaca' }}>刪除</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的正式客戶資料" /> : (
@@ -359,9 +439,32 @@ export default function FormalCustomers() {
               <div><label style={S.label}>營業地址</label><input value={createForm.business_address} onChange={(e) => setCreateForm({ ...createForm, business_address: e.target.value })} style={S.input} /></div>
             </div>
             <div><label style={S.label}>備註</label><textarea value={createForm.notes} onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })} rows={3} style={{ ...S.input, resize: 'vertical', lineHeight: 1.6 }} /></div>
+            {createDupWarning && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginTop: 4 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#dc2626', marginBottom: 6 }}>
+                  偵測到 {createDupWarning.duplicates?.length} 筆疑似重複客戶，無法新增：
+                </div>
+                {(createDupWarning.duplicates || []).map((d, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '4px 0', fontSize: 12, color: '#374151' }}>
+                    <span style={{ fontFamily: 'monospace', color: '#6b7280' }}>{d.customer_code}</span>
+                    <span style={{ fontWeight: 600 }}>{d.company_name || d.name}</span>
+                    <span style={{ color: '#6b7280' }}>{d.phone || ''}</span>
+                    <span style={{ color: '#6b7280' }}>{d.tax_id || ''}</span>
+                    <span style={{ background: '#fee2e2', color: '#dc2626', borderRadius: 4, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>
+                      符合：{(d.matchFields || []).join('、')}
+                    </span>
+                    <button onClick={() => { setSelectedCustomerId(d.id); setCreating(false); setCreateDupWarning(null); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 11 }}>查看</button>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <button onClick={() => saveCreate(true)} disabled={createSaving} style={{ ...S.btnGhost, padding: '6px 16px', fontSize: 12, color: '#d97706', borderColor: '#fde68a' }}>{createSaving ? '建立中...' : '仍要強制建立'}</button>
+                  <button onClick={() => setCreateDupWarning(null)} style={{ ...S.btnGhost, padding: '6px 16px', fontSize: 12 }}>返回修改</button>
+                </div>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button onClick={saveCreate} disabled={createSaving || !createForm.company_name.trim()} style={{ ...S.btnPrimary, padding: '10px 28px', fontSize: 14 }}>{createSaving ? '建立中...' : '建立客戶'}</button>
-              <button onClick={() => setCreating(false)} style={{ ...S.btnGhost, padding: '10px 28px', fontSize: 14 }}>取消</button>
+              <button onClick={() => saveCreate(false)} disabled={createSaving || !createForm.company_name.trim()} style={{ ...S.btnPrimary, padding: '10px 28px', fontSize: 14 }}>{createSaving ? '建立中...' : '建立客戶'}</button>
+              <button onClick={() => { setCreating(false); setCreateDupWarning(null); }} style={{ ...S.btnGhost, padding: '10px 28px', fontSize: 14 }}>取消</button>
             </div>
           </div>
         </div>
