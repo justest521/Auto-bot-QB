@@ -233,11 +233,7 @@ function ReturnDetailView({ ret: initRet, onBack, onRefresh }) {
 export default function Returns() {
   const width = useViewportWidth();
   const isMobile = width < 820;
-  const gridTemplate = useResizableColumns({
-    storageKey: 'returns_list',
-    columns: isMobile ? ['1fr'] : ['40px', '160px', '200px', '110px', '100px', '100px', '140px'],
-    defaults: isMobile ? undefined : [40, 160, 200, 110, 100, 100, 140]
-  });
+  const { colWidths, gridTemplate, ResizableHeader } = useResizableColumns('returns_list', [40, 160, 200, 110, 100, 100, 140]);
   const [data, setData] = useState({ returns: [], total: 0, page: 1, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -350,7 +346,7 @@ export default function Returns() {
       {/* Table */}
       {loading ? <Loading /> : data.returns.length === 0 ? <EmptyState text="目前沒有退貨記錄" /> : (
         <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
-          <div style={{ display: 'grid', gridTemplate: gridTemplate, gap: 0, padding: '6px 0', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: '6px 0', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>#</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>退貨單號</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}>原因</div>
@@ -361,7 +357,7 @@ export default function Returns() {
           </div>
           {data.returns.map((r, idx) => (
             <div key={r.id} onClick={() => setSelectedReturn(r)}
-              style={{ display: 'grid', gridTemplate: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
+              style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #f3f5f7', background: '#fff', cursor: 'pointer', transition: 'background 0.1s' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
               <div style={{ fontSize: 13, color: '#b0b8c4', fontWeight: 500, padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{(data.page * (data.limit || 30)) + idx + 1}</div>

@@ -231,11 +231,7 @@ export default function Shipments() {
   const [selectedShipment, setSelectedShipment] = useState(null);
   const [pageSize, setPageSize] = useState(20);
 
-  const { gridTemplate } = useResizableColumns({
-    storageKey: 'shipments_list',
-    defaultTemplate: '40px 160px 100px minmax(0,1fr) 120px 100px 160px',
-    defaults: [40, 160, 100, 200, 120, 100, 160]
-  });
+  const { gridTemplate, ResizableHeader } = useResizableColumns('shipments_list', [40, 160, 100, 200, 120, 100, 160]);
 
   const applyDatePreset = (preset) => {
     setDatePreset(preset);
@@ -327,7 +323,7 @@ export default function Shipments() {
       {loading ? <Loading /> : data.shipments.length === 0 ? <EmptyState text="目前沒有出貨記錄" /> : (
         <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
           {/* Table header */}
-          <div style={{ display: 'grid', gridTemplate: isMobile ? '1fr' : gridTemplate, gap: 0, padding: '6px 14px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : gridTemplate, gap: 0, padding: '6px 14px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>#</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>出貨單號</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'left' }}>物流商</div>
@@ -344,7 +340,7 @@ export default function Shipments() {
             const cLastCenterCell = { ...cCenter, borderRight: 'none' };
             return (
             <div key={s.id} onClick={() => setSelectedShipment(s)}
-              style={{ display: 'grid', gridTemplate: isMobile ? '1fr' : gridTemplate, gap: 0, background: '#fff', cursor: 'pointer', transition: 'background 0.1s', borderBottom: idx < data.shipments.length - 1 ? '1px solid #e5e7eb' : 'none' }}
+              style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : gridTemplate, gap: 0, background: '#fff', cursor: 'pointer', transition: 'background 0.1s', borderBottom: idx < data.shipments.length - 1 ? '1px solid #e5e7eb' : 'none' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
               <div style={{ color: '#b0b8c4', fontWeight: 500, ...cCenter }}>{(data.page * (data.limit || pageSize)) + idx + 1}</div>

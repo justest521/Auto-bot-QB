@@ -17,7 +17,7 @@ export default function DealerUsers() {
   const [expandedId, setExpandedId] = useState(null);
   const [permSaving, setPermSaving] = useState(null);
   const tableRef = useRef(null);
-  const gridTemplate = useResizableColumns('dealer_users_list', '120px minmax(0,1fr) 100px 130px 100px 160px', [120, 200, 100, 130, 100, 160]);
+  const { colWidths, gridTemplate, ResizableHeader } = useResizableColumns('dealer_users_list', [120, 200, 100, 130, 100, 160]);
   useEffect(() => {
     const handler = (e) => {
       if (tableRef.current && !tableRef.current.contains(e.target)) {
@@ -105,7 +105,7 @@ export default function DealerUsers() {
       )}
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="尚無帳號" /> : (
         <div ref={tableRef} style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
-          <div style={{ display: 'grid', gridTemplate, gap: 0, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>帳號</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}>姓名 / 公司</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>角色</div>
@@ -115,7 +115,7 @@ export default function DealerUsers() {
           </div>
           {data.rows.map((u, idx) => (
             <div key={u.id}>
-              <div style={{ display: 'grid', gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #eef3f8', alignItems: 'center', background: expandedId === u.id ? '#f0f7ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === u.id ? null : u.id)}>
+              <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #eef3f8', alignItems: 'center', background: expandedId === u.id ? '#f0f7ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === u.id ? null : u.id)}>
                 <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'center', ...S.mono }}>{u.username}</div>
                 <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}><div><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{u.display_name}</div>{u.company_name && <div style={{ fontSize: 11, color: '#374151' }}>{u.company_name}</div>}</div></div>
                 <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}><span style={S.tag(ROLE_TONE[u.role] || '')}>{ROLE_MAP[u.role] || u.role}</span></div>

@@ -10,11 +10,10 @@ export default function SalesReturns() {
   const width = useViewportWidth();
   const isMobile = width < 820;
   const isTablet = width < 1180;
-  const gridTemplate = useResizableColumns({
-    storageKey: 'sales_returns_list',
-    columns: isTablet ? ['96px', '150px', '220px', '110px', '120px'] : ['96px', '160px', '220px', '110px', '150px', '130px', '130px'],
-    defaults: isTablet ? [96, 150, 220, 110, 120] : [96, 160, 220, 110, 150, 130, 130]
-  });
+  const { colWidths, gridTemplate, ResizableHeader } = useResizableColumns(
+    isTablet ? 'sales_returns_list_tablet' : 'sales_returns_list',
+    isTablet ? [96, 150, 220, 110, 120] : [96, 160, 220, 110, 150, 130, 130]
+  );
   const initialRange = getPresetDateRange('today');
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, tax: 0, total: 0 } });
   const [loading, setLoading] = useState(true);
@@ -147,7 +146,7 @@ export default function SalesReturns() {
         </div>
       )) : (
         <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
-          <div style={{ display: 'grid', gridTemplate: gridTemplate, gap: 0, padding: '8px 0', borderBottom: '1px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: '8px 0', borderBottom: '1px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>單別</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>單號</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}>客戶 / 發票</div>
@@ -157,7 +156,7 @@ export default function SalesReturns() {
             {!isTablet && <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right' }}>總金額</div>}
           </div>
           {data.rows.map((row) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplate: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #eef3f8', alignItems: 'center' }}>
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #eef3f8', alignItems: 'center' }}>
               <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
               {row.doc_type === 'return' ? (
                 <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', ...S.mono }}>{row.doc_no}</div>
