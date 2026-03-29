@@ -610,8 +610,8 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
           {/* 1. PDF button */}
           <button onClick={() => window.open(`/api/pdf?type=quote&id=${quote.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
 
-          {/* 3. 客戶資訊 */}
-          <div style={{ ...cardStyle, padding: '10px 16px' }}>
+          {/* 2. 客戶資訊 */}
+          <div style={{ ...cardStyle, marginBottom: 0, padding: '10px 16px' }}>
             <div style={labelStyle}>客戶資訊</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{c.company_name || c.name || '未綁定客戶'}</div>
             {[
@@ -626,7 +626,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
           </div>
 
           {/* 3. 負責業務 */}
-          <div style={{ ...cardStyle, padding: '10px 16px' }}>
+          <div style={{ ...cardStyle, marginBottom: 0, padding: '10px 16px' }}>
             <div style={labelStyle}>負責業務</div>
             {editingSales ? (
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -642,7 +642,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
           </div>
 
           {/* 4. 進度 timeline */}
-          <div style={{ ...cardStyle, padding: '10px 16px' }}>
+          <div style={{ ...cardStyle, marginBottom: 0, padding: '10px 16px' }}>
             <div style={labelStyle}>進度</div>
         {(() => {
         // Build unified timeline entries
@@ -724,7 +724,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
       </div>
 
           {/* 5. 備註 */}
-          <div style={{ ...cardStyle, padding: '10px 16px' }}>
+          <div style={{ ...cardStyle, marginBottom: 0, padding: '10px 16px' }}>
             <div style={labelStyle}>備註</div>
             <textarea
               defaultValue={q.remark || ''}
