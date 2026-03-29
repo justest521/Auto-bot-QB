@@ -365,7 +365,7 @@ export default function FormalCustomers() {
         eyebrow="Customers"
         title="客戶主檔"
         description="這裡顯示全部正式 ERP 客戶，不限是否來自 LINE。適合查看你匯入的一千多筆正式客戶資料。"
-        action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap', width: isMobile ? '100%' : 'auto' }}}>
+        action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap', width: isMobile ? '100%' : 'auto' }}>
           <CsvImportButton datasetId="erp_customers" onImported={() => load(1, search, pageSize)} compact />
           <button onClick={async () => {
             try {
@@ -524,6 +524,7 @@ export default function FormalCustomers() {
                     const sHd = { fontSize: 11, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #f0f0f0', paddingBottom: 3, marginTop: 6 };
                     const g3 = { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 6 };
                     const fi = (label, key, opts) => <div key={key}><label style={sLb}>{label}</label>{opts ? <select value={editForm[key]} onChange={e => setEditForm({...editForm,[key]:e.target.value})} style={sIn}>{opts.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}</select> : <input type={key.includes('day') || key.includes('percent') ? 'number' : key === 'stop_date' ? 'date' : 'text'} value={editForm[key]} onChange={e => setEditForm({...editForm,[key]:e.target.value})} style={sIn} />}</div>;
+                    return (
                     <div style={{ display: 'grid', gap: 4 }}>
                       <div style={sHd}>基本資料</div>
                       <div style={g3}>
@@ -551,6 +552,8 @@ export default function FormalCustomers() {
                       <div><label style={sLb}>備註</label><textarea value={editForm.notes} onChange={e => setEditForm({...editForm,notes:e.target.value})} rows={2} style={{ ...sIn, resize: 'vertical', lineHeight: 1.4 }} /></div>
                       <button onClick={saveEdit} disabled={editSaving} style={{ ...S.btnPrimary, padding: '8px 0', fontSize: 13, minHeight: isMobile ? 44 : undefined }}>{editSaving ? '儲存中...' : '儲存'}</button>
                     </div>
+                    );
+                  })() : (
                     <div style={{ display: 'grid', gap: 6 }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '54px 1fr', gap: '2px 6px', fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
                         {[
