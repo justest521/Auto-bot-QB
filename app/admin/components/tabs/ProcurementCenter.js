@@ -19,6 +19,40 @@ const STATUS_BADGE = {
 const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
 const PO_STATUS_TAG = { draft: 'default', sent: 'blue', confirmed: 'green', shipped: 'yellow', received: 'green', rejected: 'red', cancelled: 'gray' };
 
+const SORT_COLS = [
+  { key: 'item_number', label: '料號' },
+  { key: 'description', label: '品名' },
+  { key: 'total_ordered', label: '已採', center: true },
+  { key: 'total_received', label: '已到', center: true },
+  { key: 'still_needed', label: '尚缺', center: true },
+  { key: 'demand_qty', label: '客戶需求', center: true },
+  { key: 'waiting_to_ship', label: '待出貨', center: true },
+  { key: 'procurement_status', label: '狀態', center: true },
+  { key: 'pct', label: '到貨率', center: true },
+];
+
+function sortRows(rows, sortKey, sortDir) {
+  const statusOrder = { waiting: 0, partial: 1, complete: 2 };
+  return [...rows].sort((a, b) => {
+    let va, vb;
+    if (sortKey === 'procurement_status') {
+      va = statusOrder[a.procurement_status] ?? 0;
+      vb = statusOrder[b.procurement_status] ?? 0;
+    } else if (sortKey === 'pct') {
+      va = a.total_ordered > 0 ? a.total_received / a.total_ordered : 0;
+      vb = b.total_ordered > 0 ? b.total_received / b.total_ordered : 0;
+    } else if (sortKey === 'item_number' || sortKey === 'description') {
+      va = (a[sortKey] || '').toLowerCase();
+      vb = (b[sortKey] || '').toLowerCase();
+      return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    } else {
+      va = Number(a[sortKey]) || 0;
+      vb = Number(b[sortKey]) || 0;
+    }
+    return sortDir === 'asc' ? va - vb : vb - va;
+  });
+}
+
 export default function ProcurementCenter({ setTab }) {
   const [data, setData] = useState({ rows: [], total: 0, summary: {} });
   const [loading, setLoading] = useState(true);
@@ -27,6 +61,8 @@ export default function ProcurementCenter({ setTab }) {
   const [page, setPage] = useState(1);
   const [expandedItem, setExpandedItem] = useState(null);
   const [allocationData, setAllocationData] = useState({});
+  const [sortKey, setSortKey] = useState('total_received');
+  const [sortDir, setSortDir] = useState('desc');
 
   const load = useCallback(async (p = page, q = search, st = statusF) => {
     setLoading(true);
@@ -94,18 +130,17 @@ export default function ProcurementCenter({ setTab }) {
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
           {/* Header */}
           <div style={{ display: 'grid', gridTemplateColumns: '130px minmax(0,1fr) 70px 70px 70px 80px 80px 70px 90px', gap: 10, padding: '6px 14px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
-            <div>料號</div>
-            <div>品名</div>
-            <div style={{ textAlign: 'center' }}>已採</div>
-            <div style={{ textAlign: 'center' }}>已到</div>
-            <div style={{ textAlign: 'center' }}>尚缺</div>
-            <div style={{ textAlign: 'center' }}>客戶需求</div>
-            <div style={{ textAlign: 'center' }}>待出貨</div>
-            <div style={{ textAlign: 'center' }}>狀態</div>
-            <div style={{ textAlign: 'center' }}>到貨率</div>
+            {SORT_COLS.map(col => (
+              <div key={col.key} onClick={() => { if (sortKey === col.key) { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); } else { setSortKey(col.key); setSortDir('desc'); } }} style={{ textAlign: col.center ? 'center' : 'left', cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: col.center ? 'center' : 'flex-start', gap: 2 }}>
+                {col.label}
+                <span style={{ fontSize: 10, color: sortKey === col.key ? '#2563eb' : '#d1d5db', lineHeight: 1 }}>
+                  {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                </span>
+              </div>
+            ))}
           </div>
 
-          {data.rows.map((row, idx) => {
+          {sortRows(data.rows, sortKey, sortDir).map((row, idx) => {
             const badge = STATUS_BADGE[row.procurement_status] || STATUS_BADGE.waiting;
             const pct = row.total_ordered > 0 ? Math.round((row.total_received / row.total_ordered) * 100) : 0;
             const isExpanded = expandedItem === row.item_number;
