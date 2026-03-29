@@ -1234,24 +1234,24 @@ export default function Orders({ setTab }) {
           {/* ── 可拖拉表頭 ── */}
           <OrderHeader headers={isTablet ? [
             { label: '', align: 'center', render: () => <input type="checkbox" checked={batchIds.size > 0 && data.rows.every(r => batchIds.has(r.id))} onChange={(e) => { if (e.target.checked) setBatchIds(new Set(data.rows.map(r => r.id))); else setBatchIds(new Set()); }} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /> },
-            { label: '序' },
-            { label: '訂單號' },
-            { label: '客戶' },
-            { label: '日期' },
-            { label: '狀態' },
-            { label: '操作', align: 'right' },
+            { label: '序', align: 'center' },
+            { label: '訂單號', align: 'center' },
+            { label: '客戶', align: 'center' },
+            { label: '日期', align: 'center' },
+            { label: '狀態', align: 'center' },
+            { label: '操作', align: 'center' },
           ] : [
             { label: '', align: 'center', render: () => <input type="checkbox" checked={batchIds.size > 0 && data.rows.every(r => batchIds.has(r.id))} onChange={(e) => { if (e.target.checked) setBatchIds(new Set(data.rows.map(r => r.id))); else setBatchIds(new Set()); }} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /> },
-            { label: '序' },
-            { label: '訂單號' },
-            { label: '客戶' },
-            { label: '業務' },
-            { label: '日期' },
-            { label: '狀態' },
-            { label: '付款' },
-            { label: '出貨' },
-            { label: '總額', align: 'right' },
-            { label: '操作', align: 'right' },
+            { label: '序', align: 'center' },
+            { label: '訂單號', align: 'center' },
+            { label: '客戶', align: 'center' },
+            { label: '業務', align: 'center' },
+            { label: '日期', align: 'center' },
+            { label: '狀態', align: 'center' },
+            { label: '付款', align: 'center' },
+            { label: '出貨', align: 'center' },
+            { label: '總額', align: 'center' },
+            { label: '操作', align: 'center' },
           ]} />
           {/* ── 列表 ── */}
           {data.rows.map((row, idx) => {
@@ -1259,23 +1259,25 @@ export default function Orders({ setTab }) {
             const payKey = String(row.payment_status || 'unpaid').toLowerCase();
             const shipKey = String(row.shipping_status || 'pending').toLowerCase();
             const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
-            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'flex-end' };
+            const cCenter = { ...cell, justifyContent: 'center' };
+            const cRight = { ...cell, justifyContent: 'flex-end' };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
 
             return (
               <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: orderGridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
-                <div style={{ ...cell, justifyContent: 'center' }}><input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
-                <div style={{ ...cell, fontSize: 13, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.order_no || '-'}</div>
+                <div style={cCenter}><input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
+                <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ ...cCenter, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.order_no || '-'}</div>
                 <div style={cell}>
                   <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                 </div>
-                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
-                <div style={{ ...cell, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.order_date || '-'}</div>
-                <div style={cell}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
-                {!isTablet && <div style={cell}><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : '')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
-                {!isTablet && <div style={cell}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : '')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
-                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#10b981', justifyContent: 'flex-end', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
-                <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                {!isTablet && <div style={{ ...cCenter, fontSize: 13, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
+                <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.order_date || '-'}</div>
+                <div style={cCenter}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
+                {!isTablet && <div style={cCenter}><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : '')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
+                {!isTablet && <div style={cCenter}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : '')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
+                {!isTablet && <div style={{ ...cRight, fontSize: 13, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
+                <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                   {(() => {
                     const shipKey_local = String(row.shipping_status || 'pending').toLowerCase();
                     const isConverted = shipKey_local === 'shipped' || shipKey_local === 'delivered';

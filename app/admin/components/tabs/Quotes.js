@@ -770,43 +770,45 @@ export default function Quotes({ setTab }) {
           {/* ── 可拖拉表頭 ── */}
           <QuoteHeader headers={isTablet ? [
             { label: '', align: 'center', render: () => <input type="checkbox" checked={data.rows.length > 0 && checkedIds.size === data.rows.length} onChange={(e) => { if (e.target.checked) { setCheckedIds(new Set(data.rows.map(r => r.id))); } else { setCheckedIds(new Set()); } }} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }} /> },
-            { label: '序' },
-            { label: '單號' },
-            { label: '客戶' },
-            { label: '日期' },
-            { label: '狀態' },
+            { label: '序', align: 'center' },
+            { label: '單號', align: 'center' },
+            { label: '客戶', align: 'center' },
+            { label: '日期', align: 'center' },
+            { label: '狀態', align: 'center' },
           ] : [
             { label: '', align: 'center', render: () => <input type="checkbox" checked={data.rows.length > 0 && checkedIds.size === data.rows.length} onChange={(e) => { if (e.target.checked) { setCheckedIds(new Set(data.rows.map(r => r.id))); } else { setCheckedIds(new Set()); } }} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }} /> },
-            { label: '序' },
-            { label: '單號' },
-            { label: '客戶' },
-            { label: '業務' },
-            { label: '日期' },
-            { label: '狀態' },
-            { label: '總金額', align: 'right' },
-            { label: '備註' },
-            { label: '操作', align: 'right' },
+            { label: '序', align: 'center' },
+            { label: '單號', align: 'center' },
+            { label: '客戶', align: 'center' },
+            { label: '業務', align: 'center' },
+            { label: '日期', align: 'center' },
+            { label: '狀態', align: 'center' },
+            { label: '總金額', align: 'center' },
+            { label: '備註', align: 'center' },
+            { label: '操作', align: 'center' },
           ]} />
           {/* ── 列表 ── */}
           {data.rows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
             const isChecked = checkedIds.has(row.id);
             const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
-            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'flex-end' };
+            const cCenter = { ...cell, justifyContent: 'center' };
+            const cRight = { ...cell, justifyContent: 'flex-end' };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
             return (
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: quoteGridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', background: isChecked ? '#eff6ff' : (idx % 2 === 0 ? '#fff' : '#fafbfd'), cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedQuote(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = isChecked ? '#eff6ff' : (idx % 2 === 0 ? '#fff' : '#fafbfd')}>
-                <div style={{ ...cell, justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
+                <div style={cCenter} onClick={(e) => e.stopPropagation()}>
                   <input type="checkbox" checked={isChecked} onChange={() => { setCheckedIds(prev => { const next = new Set(prev); if (next.has(row.id)) next.delete(row.id); else next.add(row.id); return next; }); }} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }} />
                 </div>
-                <div style={{ ...cell, fontSize: 13, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.quote_no || '-'}</div>
+                <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ ...cCenter, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.quote_no || '-'}</div>
                 <div style={cell}>
                   <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                 </div>
-                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
-                <div style={{ ...cell, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.quote_date || '-'}</div>
-                <div style={cell}><span style={S.tag(QUOTE_STATUS_TONE[statusKey] || '')}>{QUOTE_STATUS_MAP[statusKey] || statusKey}</span></div>
-                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#10b981', justifyContent: 'flex-end', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
+                {!isTablet && <div style={{ ...cCenter, fontSize: 13, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
+                <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.quote_date || '-'}</div>
+                <div style={cCenter}><span style={S.tag(QUOTE_STATUS_TONE[statusKey] || '')}>{QUOTE_STATUS_MAP[statusKey] || statusKey}</span></div>
+                {!isTablet && <div style={{ ...cRight, fontSize: 13, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
                 {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151' }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</span></div>}
                 <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                   <button onClick={() => duplicateQuote(row)} title="複製報價單" style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>複製</button>
