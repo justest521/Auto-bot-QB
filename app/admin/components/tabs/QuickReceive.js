@@ -150,9 +150,17 @@ export default function QuickReceive({ setTab }) {
   }, []);
 
   // ── 統一檔案處理 ──
+  const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB (Vercel body limit)
   const handleFile = async (file) => {
     if (!file) return;
     const fileType = detectFileType(file);
+
+    // PDF/圖片需要 base64 上傳，檢查大小
+    if ((fileType === 'pdf' || fileType === 'image') && file.size > MAX_FILE_SIZE) {
+      setError(`檔案太大（${(file.size / 1024 / 1024).toFixed(1)}MB），PDF/圖片上限 4MB`);
+      return;
+    }
+
     setLoading(true);
     setError('');
     setUploadedFileName(file.name);

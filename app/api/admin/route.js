@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1'; // 新加坡，靠近 Supabase (ap-southeast-1)
-export const maxDuration = 30; // seconds
+export const maxDuration = 60; // seconds (AI 解析 PDF 需要較長時間)
 
 export async function GET(request) {
   const rl = adminLimiter(request);
