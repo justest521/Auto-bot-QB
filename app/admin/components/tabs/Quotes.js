@@ -794,7 +794,7 @@ export default function Quotes({ setTab }) {
             const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
             const cCenter = { ...cell, justifyContent: 'center' };
             const cRight = { ...cell, justifyContent: 'flex-end' };
-            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'flex-end' };
             return (
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: quoteGridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', background: isChecked ? '#eff6ff' : (idx % 2 === 0 ? '#fff' : '#fafbfd'), cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedQuote(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = isChecked ? '#eff6ff' : (idx % 2 === 0 ? '#fff' : '#fafbfd')}>
                 <div style={cCenter} onClick={(e) => e.stopPropagation()}>
