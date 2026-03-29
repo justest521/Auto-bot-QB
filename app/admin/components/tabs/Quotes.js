@@ -75,6 +75,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
   const statusKey = String(localStatus || quote.status || 'draft').toLowerCase();
   const QUOTE_STATUS_MAP = { draft: '草稿', sent: '已發送', approved: '已核准', converted: '已轉單', closed: '已結案' };
   const QUOTE_STATUS_COLOR = { draft: '#6b7280', sent: '#3b82f6', approved: '#16a34a', converted: '#059669', closed: '#9ca3af' };
+  const QUOTE_STATUS_TONE = { draft: '', sent: 'blue', approved: 'green', converted: 'green', closed: '' };
 
   useEffect(() => {
     (async () => {
