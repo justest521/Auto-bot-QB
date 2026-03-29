@@ -198,9 +198,9 @@ export default function QuickReceive({ setTab }) {
     let file = inputFile;
     const fileType = detectFileType(file);
 
-    // PDF 超過限制無法壓縮
-    if (fileType === 'pdf' && file.size > MAX_FILE_SIZE) {
-      setError(`PDF 太大（${(file.size / 1024 / 1024).toFixed(1)}MB），上限 4MB`);
+    // PDF 超過 10MB 警告（FormData 上傳沒有 JSON 限制，但太大解析會慢）
+    if (fileType === 'pdf' && file.size > 10 * 1024 * 1024) {
+      setError(`PDF 太大（${(file.size / 1024 / 1024).toFixed(1)}MB），建議不超過 10MB`);
       return;
     }
 
@@ -209,10 +209,10 @@ export default function QuickReceive({ setTab }) {
     setUploadedFileName(file.name);
 
     try {
-      // 圖片自動壓縮 (base64 膨脹 ~33%，壓到 2.5MB 確保傳輸 < 4MB)
-      if (fileType === 'image' && file.size > 2 * 1024 * 1024) {
+      // 超大圖片壓縮（>8MB 時才壓，FormData 上傳已不受 4.5MB JSON 限制）
+      if (fileType === 'image' && file.size > 8 * 1024 * 1024) {
         setMsg('圖片較大，自動壓縮中...');
-        file = await compressImage(file, 2.5 * 1024 * 1024);
+        file = await compressImage(file, 4 * 1024 * 1024);
         setMsg(`已壓縮至 ${(file.size / 1024 / 1024).toFixed(1)}MB`);
       }
 
@@ -233,14 +233,20 @@ export default function QuickReceive({ setTab }) {
         detectedCols = ['料號', '品名', '數量', '成本'].filter((_, i) => parsed.some(p => [p.part_no, p.name, p.qty, p.cost][i]));
 
       } else if (fileType === 'pdf' || fileType === 'image') {
-        const hash = await fileHash(file);
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result.split(',')[1]);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
+        // 使用 FormData 上傳，繞過 JSON 4.5MB body 限制
+        const fd = new FormData();
+        fd.append('file', file);
+        const token = typeof window !== 'undefined' ? window.localStorage.getItem('qb_admin_token') : '';
+        const uploadRes = await fetch('/api/admin/upload', {
+          method: 'POST',
+          headers: { 'x-admin-token': token || '' },
+          body: fd,
         });
-        const res = await apiPost({ action: 'parse_receive_image', base64, mime: file.type, file_hash: hash, file_name: file.name });
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.error || `上傳失敗 (${uploadRes.status})`);
+        }
+        const res = await uploadRes.json();
         const METHOD_LABELS = { cache: '快取命中，秒速載入！', 'text-haiku': 'PDF 文字快速解析完成', 'ai-vision': 'AI 圖像辨識完成' };
         if (res.method) setMsg(METHOD_LABELS[res.method] || '解析完成');
         if (res.error) { setError(res.error); setLoading(false); return; }
