@@ -353,8 +353,7 @@ export default function StockIn() {
             ))}
           </div>
         ) : (
-          <div style={{ ...S.card, borderRadius: 10, border: '1px solid #eaeff5', overflow: 'hidden' }}>
-            <div style={S.tableScroll}>
+          <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: '#f9fafb' }}>
@@ -400,7 +399,6 @@ export default function StockIn() {
                   ))}
                 </tbody>
               </table>
-            </div>
           </div>
         )
       )}
