@@ -69,7 +69,9 @@ export default function QuickReceive({ setTab }) {
   const [selectedVendor, setSelectedVendor] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const fileRef = useRef(null);
+  const csvFileRef = useRef(null);
+  const imgFileRef = useRef(null);
+  const [dragging, setDragging] = useState(false);
 
   // dirty tracking
   useEffect(() => {
@@ -125,7 +127,8 @@ export default function QuickReceive({ setTab }) {
       setError('CSV 讀取失敗: ' + err.message);
     }
     setLoading(false);
-    if (fileRef.current) fileRef.current.value = '';
+    if (csvFileRef.current) csvFileRef.current.value = '';
+    if (imgFileRef.current) imgFileRef.current.value = '';
   };
 
   // Image/PDF upload → AI parse
@@ -155,7 +158,8 @@ export default function QuickReceive({ setTab }) {
       setError('圖片解析失敗: ' + err.message);
     }
     setLoading(false);
-    if (fileRef.current) fileRef.current.value = '';
+    if (csvFileRef.current) csvFileRef.current.value = '';
+    if (imgFileRef.current) imgFileRef.current.value = '';
   };
 
   // 文字解析
@@ -244,7 +248,29 @@ export default function QuickReceive({ setTab }) {
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>上傳 CSV 檔案</div>
             <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>CSV 第一列為表頭，系統會自動對應「料號、品名、數量、成本」欄位</div>
-            <input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleCsvUpload} style={{ fontSize: 13 }} />
+            <div
+              onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
+              onDragEnter={e => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
+              onDragLeave={e => { e.preventDefault(); e.stopPropagation(); setDragging(false); }}
+              onDrop={e => { e.preventDefault(); e.stopPropagation(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleCsvUpload({ target: { files: [f] } }); }}
+              onClick={() => csvFileRef.current?.click()}
+              style={{
+                border: `2px dashed ${dragging ? '#3b82f6' : '#d1d5db'}`,
+                borderRadius: 12,
+                padding: '40px 20px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                background: dragging ? '#eff6ff' : '#fafbfd',
+                transition: 'all 0.2s',
+              }}
+            >
+              <div style={{ fontSize: 36, marginBottom: 8 }}>{dragging ? '\uD83D\uDCE5' : '\uD83D\uDCC4'}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: dragging ? '#2563eb' : '#374151', marginBottom: 4 }}>
+                {dragging ? '放開以上傳檔案' : '拖曳 CSV 檔案到這裡'}
+              </div>
+              <div style={{ fontSize: 12, color: '#9ca3af' }}>或點擊選擇檔案（.csv, .txt）</div>
+            </div>
+            <input ref={csvFileRef} type="file" accept=".csv,.txt" onChange={handleCsvUpload} style={{ display: 'none' }} />
           </div>
         )}
 
@@ -252,7 +278,29 @@ export default function QuickReceive({ setTab }) {
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>上傳圖片或 PDF</div>
             <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>系統會用 AI 辨識進貨單/送貨單上的品項、數量和金額</div>
-            <input ref={fileRef} type="file" accept="image/*,.pdf" onChange={handleImageUpload} style={{ fontSize: 13 }} />
+            <div
+              onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
+              onDragEnter={e => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
+              onDragLeave={e => { e.preventDefault(); e.stopPropagation(); setDragging(false); }}
+              onDrop={e => { e.preventDefault(); e.stopPropagation(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleImageUpload({ target: { files: [f] } }); }}
+              onClick={() => imgFileRef.current?.click()}
+              style={{
+                border: `2px dashed ${dragging ? '#3b82f6' : '#d1d5db'}`,
+                borderRadius: 12,
+                padding: '40px 20px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                background: dragging ? '#eff6ff' : '#fafbfd',
+                transition: 'all 0.2s',
+              }}
+            >
+              <div style={{ fontSize: 36, marginBottom: 8 }}>{dragging ? '\uD83D\uDCE5' : '\uD83D\uDCF7'}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: dragging ? '#2563eb' : '#374151', marginBottom: 4 }}>
+                {dragging ? '放開以上傳檔案' : '拖曳圖片或 PDF 到這裡'}
+              </div>
+              <div style={{ fontSize: 12, color: '#9ca3af' }}>或點擊選擇檔案（圖片、PDF）</div>
+            </div>
+            <input ref={imgFileRef} type="file" accept="image/*,.pdf" onChange={handleImageUpload} style={{ display: 'none' }} />
           </div>
         )}
 
