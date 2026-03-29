@@ -881,6 +881,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
 // ========== 新增採購單 Modal ==========
 function CreatePOModal({ onClose, onCreated }) {
+  const { setDirty, confirmIfDirty } = useUnsavedGuard();
   const [vendorSearch, setVendorSearch] = useState('');
   const [allVendors, setAllVendors] = useState([]);
   const [vendorLoading, setVendorLoading] = useState(false);
@@ -891,6 +892,7 @@ function CreatePOModal({ onClose, onCreated }) {
   const [items, setItems] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [taxExcluded, setTaxExcluded] = useState(true);
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -903,6 +905,13 @@ function CreatePOModal({ onClose, onCreated }) {
       finally { setVendorLoading(false); }
     })();
   }, []);
+
+  // 追蹤表單是否有內容
+  useEffect(() => {
+    const hasContent = !!(selectedVendor || items.length > 0 || remark);
+    setDirty(hasContent);
+  }, [selectedVendor, items, remark, setDirty]);
+  const guardedClose = () => confirmIfDirty(() => { setDirty(false); onClose?.(); });
 
   const filteredVendors = (() => {
     if (!vendorSearch.trim()) return allVendors;
@@ -927,7 +936,7 @@ function CreatePOModal({ onClose, onCreated }) {
 
   const addItem = (product) => {
     if (items.some(i => i.item_number === product.item_number)) return;
-    const cost = Number(product.tw_reseller_price || product.cost_price || 0);
+    const cost = Number(product.cost_price || product.tw_reseller_price || product.us_price || product.tw_retail_price || 0);
     setItems(prev => [...prev, {
       item_number: product.item_number,
       description: product.description || product.product_name || '',
@@ -952,7 +961,9 @@ function CreatePOModal({ onClose, onCreated }) {
 
   const removeItem = (idx) => setItems(prev => prev.filter((_, i) => i !== idx));
 
-  const totalAmount = items.reduce((s, i) => s + Number(i.line_total || 0), 0);
+  const subtotal = items.reduce((s, i) => s + Number(i.line_total || 0), 0);
+  const taxAmount = taxExcluded ? Math.round(subtotal * 0.05) : 0;
+  const totalAmount = subtotal + taxAmount;
 
   const handleCreate = async () => {
     if (items.length === 0) { setError('請至少加入一個品項'); return; }
@@ -963,21 +974,23 @@ function CreatePOModal({ onClose, onCreated }) {
         vendor_id: selectedVendor?.id || null,
         remark,
         items,
+        tax_excluded: taxExcluded,
       });
+      setDirty(false);
       onCreated?.();
     } catch (e) { setError(e.message || '建立失敗'); }
     finally { setSaving(false); }
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={onClose}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={guardedClose}>
       <div style={{ width: 'min(960px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div>
             <div style={S.eyebrow}>Create Purchase Order</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>新增採購單</div>
           </div>
-          <button onClick={onClose} style={S.btnGhost}>關閉</button>
+          <button onClick={guardedClose} style={S.btnGhost}>關閉</button>
         </div>
         {error && <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10 }}>{error}</div>}
 
@@ -1015,11 +1028,15 @@ function CreatePOModal({ onClose, onCreated }) {
             </div>
           </div>
 
-          {/* Remark */}
+          {/* Remark + Tax */}
           <div style={S.card}>
             <div style={{ padding: '12px 16px' }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>備註</div>
-              <textarea value={remark} onChange={e => setRemark(e.target.value)} placeholder="輸入備註..." rows={4} style={{ ...S.input, resize: 'vertical', fontFamily: 'inherit' }} />
+              <textarea value={remark} onChange={e => setRemark(e.target.value)} placeholder="輸入備註..." rows={3} style={{ ...S.input, resize: 'vertical', fontFamily: 'inherit', marginBottom: 10 }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+                <input type="checkbox" checked={taxExcluded} onChange={e => setTaxExcluded(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }} />
+                <span style={{ fontWeight: 600 }}>未稅（另加 5% 營業稅）</span>
+              </label>
             </div>
           </div>
         </div>
@@ -1045,7 +1062,7 @@ function CreatePOModal({ onClose, onCreated }) {
                       <span style={{ ...S.mono, fontWeight: 700, color: '#2563eb' }}>{p.item_number}</span>
                       <span style={{ marginLeft: 8, color: '#374151' }}>{p.description || p.product_name || ''}</span>
                     </div>
-                    <span style={{ ...S.mono, color: '#6b7280', fontSize: 12 }}>{fmtP(p.tw_reseller_price || 0)}</span>
+                    <span style={{ ...S.mono, color: '#6b7280', fontSize: 12 }}>{fmtP(p.cost_price || p.tw_reseller_price || p.us_price || p.tw_retail_price || 0)}</span>
                   </div>
                 ))}
               </div>
@@ -1086,10 +1103,15 @@ function CreatePOModal({ onClose, onCreated }) {
               <div style={{ textAlign: 'center', padding: 20, color: '#9ca3af', fontSize: 13 }}>搜尋商品加入採購明細</div>
             )}
             {items.length > 0 && (
-              <div style={{ padding: '10px 8px', borderTop: '2px solid #bfdbfe', display: 'flex', justifyContent: 'flex-end', gap: 16, alignItems: 'baseline', marginTop: 4 }}>
-                <span style={{ fontSize: 13, color: '#6b7280' }}>{items.length} 項</span>
-                <span style={{ fontSize: 12, color: '#2563eb', fontWeight: 600 }}>採購合計</span>
-                <span style={{ ...S.mono, fontSize: 20, fontWeight: 900, color: '#1d4ed8' }}>{fmtP(totalAmount)}</span>
+              <div style={{ padding: '12px 8px 4px', borderTop: '2px solid #bfdbfe', marginTop: 4, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 20 }}>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 2 }}>小計 <span style={{ ...S.mono, fontWeight: 700, color: '#111827' }}>{fmtP(subtotal)}</span> <span style={{ fontSize: 11, color: '#9ca3af' }}>({items.length} 項)</span></div>
+                  {taxExcluded && <div style={{ fontSize: 12, color: '#6b7280' }}>稅額 <span style={{ ...S.mono, fontWeight: 600, color: '#374151' }}>{fmtP(taxAmount)}</span></div>}
+                </div>
+                <div style={{ borderLeft: '3px solid #2563eb', paddingLeft: 16, textAlign: 'right' }}>
+                  <div style={{ fontSize: 11, color: '#2563eb', fontWeight: 600, marginBottom: 2 }}>採購合計</div>
+                  <div style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#1d4ed8', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
+                </div>
               </div>
             )}
           </div>
