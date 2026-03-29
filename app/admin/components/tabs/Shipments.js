@@ -323,7 +323,7 @@ export default function Shipments() {
       {loading ? <Loading /> : data.shipments.length === 0 ? <EmptyState text="目前沒有出貨記錄" /> : (
         <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
           {/* Table header */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : gridTemplate, gap: 0, padding: '6px 14px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : gridTemplate, gap: 0, padding: 0, background: '#f3f4f6', borderBottom: '2px solid #d1d5db', fontSize: 13, fontWeight: 600, color: '#374151' }}>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>#</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>出貨單號</div>
             <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'left' }}>物流商</div>
