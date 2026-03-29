@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import S from '@/lib/admin/styles';
 import { API, ADMIN_TOKEN_KEY, apiGet, apiPost } from '@/lib/admin/api';
 import { useViewportWidth } from '@/lib/admin/helpers';
@@ -373,6 +374,8 @@ export default function AdminPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarPopup, setSidebarPopup] = useState(null); // section title when popup is open
+  const [popupPos, setPopupPos] = useState({ top: 0, left: 0 }); // portal popup position
+  const sectionRefs = useRef({});
   const [companySettings, setCompanySettings] = useState(null);
   // headerAction is rendered via portal from PageLead into HEADER_ACTION_PORTAL_ID div
   const { favs, toggle: toggleFav, isFav } = useFavorites();
@@ -624,7 +627,7 @@ export default function AdminPage() {
       `}</style>
       <div style={{ ...S.shell, flexDirection: isTablet ? 'column' : 'row' }}>
         {/* ===== SIDEBAR ===== */}
-        <div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 76 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: sidebarCollapsed ? 'visible' : (isTablet ? 'visible' : 'hidden auto') }}>
+        <div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 76 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
           <div style={{ padding: sidebarCollapsed ? '0 6px 10px' : '0 14px 12px', borderBottom: '1px solid #e5e7eb', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', width: sidebarCollapsed ? '100%' : 'auto' }}>
               {companySettings?.logo_url ? (
@@ -674,14 +677,14 @@ export default function AdminPage() {
               const hasActiveTab = section.tabs.some((t) => t.id === tab);
               return (
                 <div key={section.title}>
-                  <div className="qb-sb-section-hdr" onClick={() => { if (sidebarCollapsed) { setSidebarPopup(sidebarPopup === section.title ? null : section.title); return; } if (isCollapsed) { setTab(section.tabs[0].id); } else { toggleCollapsed(section.title); } }} style={{ padding: sidebarCollapsed ? '6px 0 4px' : '8px 12px', marginTop: si > 0 ? 0 : 0, cursor: 'pointer', display: 'flex', flexDirection: sidebarCollapsed ? 'column' : 'row', alignItems: 'center', gap: sidebarCollapsed ? 2 : 10, borderRadius: 8, transition: 'background 0.15s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? '0 4px' : '1px 8px', background: hasActiveTab ? '#f0fdf4' : (sidebarPopup === section.title ? '#f3f4f6' : 'transparent'), position: 'relative' }}>
+                  <div className="qb-sb-section-hdr" ref={(el) => { sectionRefs.current[section.title] = el; }} onClick={() => { if (sidebarCollapsed) { if (sidebarPopup === section.title) { setSidebarPopup(null); } else { const el = sectionRefs.current[section.title]; if (el) { const rect = el.getBoundingClientRect(); setPopupPos({ top: rect.top, left: rect.right + 6 }); } setSidebarPopup(section.title); } return; } if (isCollapsed) { setTab(section.tabs[0].id); } else { toggleCollapsed(section.title); } }} style={{ padding: sidebarCollapsed ? '6px 0 4px' : '8px 12px', cursor: 'pointer', display: 'flex', flexDirection: sidebarCollapsed ? 'column' : 'row', alignItems: 'center', gap: sidebarCollapsed ? 2 : 10, borderRadius: 8, transition: 'background 0.15s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? '0 4px' : '1px 8px', background: hasActiveTab ? '#f0fdf4' : (sidebarPopup === section.title ? '#f3f4f6' : 'transparent'), position: 'relative' }}>
                     <span style={{ width: sidebarCollapsed ? 36 : 28, height: sidebarCollapsed ? 36 : 28, minWidth: sidebarCollapsed ? 36 : 28, borderRadius: 8, background: hasActiveTab ? iconCfg.bg : '#f3f4f6', color: hasActiveTab ? iconCfg.fg : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: sidebarCollapsed ? 16 : 14, transition: 'all 0.2s', position: 'relative' }}>
                       {iconCfg.icon}
                       {sidebarCollapsed && (() => { const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} /> : null; })()}
                     </span>
                     {sidebarCollapsed && <span style={{ fontSize: 9, color: hasActiveTab ? '#16a34a' : '#9ca3af', fontWeight: hasActiveTab ? 600 : 500, lineHeight: 1.1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 56 }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>}
-                    {sidebarCollapsed && sidebarPopup === section.title && (
-                      <div style={{ position: 'absolute', left: '100%', top: 0, marginLeft: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '6px 0', minWidth: 160, zIndex: 999 }} onClick={(e) => e.stopPropagation()}>
+                    {sidebarCollapsed && sidebarPopup === section.title && createPortal(
+                      <div style={{ position: 'fixed', top: popupPos.top, left: popupPos.left, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '6px 0', minWidth: 180, zIndex: 99999 }} onClick={(e) => e.stopPropagation()}>
                         <div style={{ padding: '6px 14px 8px', fontSize: 12, fontWeight: 700, color: '#111827', borderBottom: '1px solid #f3f4f6' }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</div>
                         {section.tabs.map((t) => {
                           const isActive = tab === t.id;
@@ -692,7 +695,8 @@ export default function AdminPage() {
                             </div>
                           );
                         })}
-                      </div>
+                      </div>,
+                      document.body
                     )}
                     {!sidebarCollapsed && <>
                       <span style={{ fontSize: 13, color: hasActiveTab ? '#111827' : '#6b7280', fontWeight: 600, letterSpacing: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>
