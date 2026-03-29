@@ -55,6 +55,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ name: '', company_name: '', phone: '', email: '', tax_id: '' });
   const [savingCustomer, setSavingCustomer] = useState(false);
+  const [dupWarning, setDupWarning] = useState(null);
   const [productSearch, setProductSearch] = useState('');
   const [productResults, setProductResults] = useState([]);
   const [productLoading, setProductLoading] = useState(false);
@@ -151,14 +152,22 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
     setCustomerResults([]);
   };
 
-  const createCustomer = async () => {
+  const createCustomer = async (forceCreate = false) => {
     if (!newCustomer.name.trim()) return;
     setSavingCustomer(true);
+    setDupWarning(null);
     try {
-      const result = await apiPost({ action: 'quick_create_customer', ...newCustomer });
+      const result = await apiPost({ action: 'quick_create_customer', ...newCustomer, force: forceCreate });
+      if (result?.error === 'duplicate_found') {
+        setDupWarning(result);
+        setSavingCustomer(false);
+        return;
+      }
+      if (result?.error) { alert(result.error); setSavingCustomer(false); return; }
       setSelectedCustomer(result.customer);
       setShowNewCustomer(false);
       setNewCustomer({ name: '', company_name: '', phone: '', email: '', tax_id: '' });
+      setDupWarning(null);
     } catch (err) {
       alert(err.message || '建立失敗');
     } finally {
@@ -347,9 +356,26 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
                     <label style={S.label}>電子信箱</label>
                     <input type="email" value={newCustomer.email} onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })} placeholder="電子信箱..." style={S.input} />
                   </div>
+                  {dupWarning && (
+                    <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
+                      <div style={{ fontWeight: 700, color: '#dc2626', marginBottom: 4 }}>偵測到 {dupWarning.duplicates?.length} 筆重複客戶：</div>
+                      {(dupWarning.duplicates || []).map((d, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '2px 0', color: '#374151' }}>
+                          <span style={{ fontFamily: 'monospace', color: '#6b7280' }}>{d.customer_code}</span>
+                          <span style={{ fontWeight: 600 }}>{d.company_name || d.name}</span>
+                          <span style={{ background: '#fee2e2', color: '#dc2626', borderRadius: 4, padding: '0px 5px', fontSize: 10, fontWeight: 700 }}>符合：{(d.matchFields || []).join('、')}</span>
+                          <button onClick={() => { setSelectedCustomer({ id: d.id, customer_code: d.customer_code, company_name: d.company_name, name: d.name, phone: d.phone, tax_id: d.tax_id }); setShowNewCustomer(false); setDupWarning(null); }} style={{ ...S.btnGhost, padding: '1px 6px', fontSize: 10 }}>直接選用</button>
+                        </div>
+                      ))}
+                      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                        <button onClick={() => createCustomer(true)} disabled={savingCustomer} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11, color: '#d97706', borderColor: '#fde68a' }}>{savingCustomer ? '建立中...' : '仍要強制建立'}</button>
+                        <button onClick={() => setDupWarning(null)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11 }}>返回修改</button>
+                      </div>
+                    </div>
+                  )}
                   <div style={{ display: 'flex', gap: 10 }}>
-                    <button onClick={createCustomer} disabled={savingCustomer || !newCustomer.name.trim()} style={{ ...S.btnPrimary, flex: 1, opacity: savingCustomer || !newCustomer.name.trim() ? 0.7 : 1 }}>{savingCustomer ? '建立中...' : '建立客戶'}</button>
-                    <button onClick={() => { setShowNewCustomer(false); setNewCustomer({ name: '', company_name: '', phone: '', email: '', tax_id: '' }); }} style={{ ...S.btnGhost, flex: 1 }}>取消</button>
+                    <button onClick={() => createCustomer(false)} disabled={savingCustomer || !newCustomer.name.trim()} style={{ ...S.btnPrimary, flex: 1, opacity: savingCustomer || !newCustomer.name.trim() ? 0.7 : 1 }}>{savingCustomer ? '建立中...' : '建立客戶'}</button>
+                    <button onClick={() => { setShowNewCustomer(false); setNewCustomer({ name: '', company_name: '', phone: '', email: '', tax_id: '' }); setDupWarning(null); }} style={{ ...S.btnGhost, flex: 1 }}>取消</button>
                   </div>
                 </div>
               ) : null}
