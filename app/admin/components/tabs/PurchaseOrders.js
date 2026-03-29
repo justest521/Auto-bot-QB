@@ -5,6 +5,7 @@ import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
 import { useViewportWidth } from '@/lib/admin/helpers';
+import { useResizableColumns } from '../shared/ResizableTable';
 
 const PO_FOCUS_KEY = 'qb_purchase_order_focus';
 const SALES_DOCUMENT_FOCUS_KEY = 'qb_sales_document_focus';
@@ -1100,6 +1101,7 @@ export default function PurchaseOrders({ setTab }) {
   const width = useViewportWidth();
   const isMobile = width < 820;
   const isTablet = width < 1180;
+  const { gridTemplate, ResizableHeader } = useResizableColumns('po_list', isTablet ? [32, 36, 140, 100, 72, 200, 90] : [32, 36, 140, 100, 72, 200, 90, 90, 50]);
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -1268,30 +1270,36 @@ export default function PurchaseOrders({ setTab }) {
         const filteredRows = exportFilter ? data.rows.filter(r => exportFilter === 'exported' ? !!r.exported_at : !r.exported_at) : data.rows;
         return loading ? <Loading /> : filteredRows.length === 0 ? <EmptyState text={exportFilter ? '無符合篩選的採購單' : '目前沒有採購單'} /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 10, padding: '6px 14px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, alignItems: 'center' }}>
-            <div><input type="checkbox" checked={filteredRows.length > 0 && selectedIds.size === filteredRows.length} onChange={() => { if (selectedIds.size === filteredRows.length) setSelectedIds(new Set()); else setSelectedIds(new Set(filteredRows.map(r => r.id))); }} style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
-            <div>序</div>
-            <div>採購單號</div>
-            <div>日期</div>
-            <div>狀態</div>
-            <div>備註</div>
-            <div style={{ textAlign: 'right' }}>金額</div>
-            {!isTablet && <div>廠商名稱</div>}
-            <div style={{ textAlign: 'right' }}>操作</div>
-          </div>
+          <ResizableHeader
+            headers={[
+              { label: <input type="checkbox" checked={filteredRows.length > 0 && selectedIds.size === filteredRows.length} onChange={() => { if (selectedIds.size === filteredRows.length) setSelectedIds(new Set()); else setSelectedIds(new Set(filteredRows.map(r => r.id))); }} style={{ cursor: 'pointer', width: 15, height: 15 }} />, align: 'center' },
+              { label: '序', align: 'center' },
+              { label: '採購單號', align: 'center' },
+              { label: '日期', align: 'center' },
+              { label: '狀態', align: 'center' },
+              { label: '備註', align: 'left' },
+              { label: '金額', align: 'right' },
+              ...(isTablet ? [] : [{ label: '廠商名稱', align: 'left' }]),
+              { label: '操作', align: 'right' },
+            ]}
+            style={{ gap: 10, padding: '6px 14px', color: '#6b7280', fontSize: 12 }}
+          />
           {filteredRows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
+            const cCenter = { display: 'flex', alignItems: 'center', justifyContent: 'center' };
+            const cLeft = { display: 'flex', alignItems: 'center', justifyContent: 'flex-start' };
+            const cRight = { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' };
             return (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '32px 36px 140px 100px 72px minmax(0,1fr) 90px' : '32px 36px 140px 100px 72px minmax(0,1fr) 90px 90px 50px', gap: 10, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
-                <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
-                <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
-                <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono, display: 'flex', alignItems: 'center', gap: 4 }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}</div>
-                <div style={{ fontSize: 12, color: '#374151', ...S.mono }}>{row.po_date?.slice(0, 10) || '-'}</div>
-                <div><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
-                <div style={{ fontSize: 14, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</div>
-                <div style={{ fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
-                {!isTablet && <div style={{ fontSize: 12, color: '#374151', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.vendor?.vendor_name || '-'}</div>}
-                <div style={{ fontSize: 12, color: '#9ca3af', textAlign: 'right' }}>→</div>
+              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 10, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
+                <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }} style={cCenter}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 15, height: 15 }} /></div>
+                <div style={{ fontSize: 12, color: '#6b7280', ...S.mono, ...cCenter }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
+                <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono, ...cCenter, display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}</div>
+                <div style={{ fontSize: 12, color: '#374151', ...S.mono, ...cCenter }}>{row.po_date?.slice(0, 10) || '-'}</div>
+                <div style={cCenter}><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
+                <div style={{ fontSize: 14, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...cLeft }}>{row.remark || '-'}</div>
+                <div style={{ fontSize: 14, color: '#10b981', fontWeight: 700, ...S.mono, ...cRight }}>{fmtP(row.total_amount)}</div>
+                {!isTablet && <div style={{ fontSize: 12, color: '#374151', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...cLeft }}>{row.vendor?.vendor_name || '-'}</div>}
+                <div style={{ fontSize: 12, color: '#9ca3af', ...cRight }}>→</div>
               </div>
             );
           })}

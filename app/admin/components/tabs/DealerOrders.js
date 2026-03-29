@@ -4,6 +4,7 @@ import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, ComingSoonBanner } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
 
 const STOCK_BADGE = {
   sufficient: { label: '充足', bg: '#dcfce7', color: '#15803d', border: '#bbf7d0' },
@@ -296,6 +297,7 @@ export default function DealerOrders() {
   const [datePreset, setDatePreset] = useState('month');
   const [search, setSearch] = useState('');
   const tableRef = useRef(null);
+  const gridTemplate = useResizableColumns('dealer_orders_list', '40px 140px minmax(0,1fr) 100px 100px 110px', [40, 140, 200, 100, 100, 110]);
 
   const STATUS_MAP = { pending: '待處理', confirmed: '已確認', purchasing: '採購中', partial_arrived: '部分到貨', arrived: '已到貨', shipped: '已出貨', completed: '已完成', cancelled: '已取消' };
   const STATUS_TONE = { pending: 'yellow', confirmed: 'blue', purchasing: 'blue', arrived: 'green', shipped: 'green', completed: 'green', cancelled: '' };
@@ -390,17 +392,17 @@ export default function DealerOrders() {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="沒有訂單" /> : (
         <div ref={tableRef} style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
-            <div><input type="checkbox" checked={selected.length > 0 && selected.length === data.rows.filter((r) => r.status === 'pending').length} onChange={selectAll} /></div>
-            <div>訂單號</div><div>下單人</div><div>日期</div><div>狀態</div><div style={{ textAlign: 'right' }}>金額</div>
+          <div style={{ display: 'grid', gridTemplate, gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+            <div style={{ textAlign: 'center' }}><input type="checkbox" checked={selected.length > 0 && selected.length === data.rows.filter((r) => r.status === 'pending').length} onChange={selectAll} /></div>
+            <div style={{ textAlign: 'center' }}>訂單號</div><div style={{ textAlign: 'left' }}>下單人</div><div style={{ textAlign: 'center' }}>日期</div><div style={{ textAlign: 'center' }}>狀態</div><div style={{ textAlign: 'right' }}>金額</div>
           </div>
           {data.rows.map((row, idx) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '40px 140px minmax(0,1fr) 100px 100px 110px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedOrder(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd'}>
-              <div onClick={(e) => e.stopPropagation()}>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
-              <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</div>
-              <div><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: 11, color: '#374151' }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div>
-              <div style={{ fontSize: 13, color: '#374151', ...S.mono }}>{row.order_date || '-'}</div>
-              <div><span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span></div>
+            <div key={row.id} style={{ display: 'grid', gridTemplate, gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedOrder(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+              <div style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
+              <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'center', ...S.mono }}>{row.order_no || '-'}</div>
+              <div style={{ textAlign: 'left' }}><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: 11, color: '#374151' }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div>
+              <div style={{ fontSize: 13, color: '#374151', textAlign: 'center', ...S.mono }}>{row.order_date || '-'}</div>
+              <div style={{ textAlign: 'center' }}><span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span></div>
               <div style={{ fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
             </div>
           ))}

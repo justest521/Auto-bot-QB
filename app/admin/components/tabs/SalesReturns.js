@@ -4,11 +4,17 @@ import S from '@/lib/admin/styles';
 import { apiGet } from '@/lib/admin/api';
 import { fmt, fmtP, getPresetDateRange, useViewportWidth, exportCsv } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton, SaleDetailDrawer } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
 
 export default function SalesReturns() {
   const width = useViewportWidth();
   const isMobile = width < 820;
   const isTablet = width < 1180;
+  const gridTemplate = useResizableColumns({
+    storageKey: 'sales_returns_list',
+    columns: isTablet ? ['96px', '150px', '220px', '110px', '120px'] : ['96px', '160px', '220px', '110px', '150px', '130px', '130px'],
+    defaults: isTablet ? [96, 150, 220, 110, 120] : [96, 160, 220, 110, 150, 130, 130]
+  });
   const initialRange = getPresetDateRange('today');
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { amount: 0, tax: 0, total: 0 } });
   const [loading, setLoading] = useState(true);
@@ -141,36 +147,36 @@ export default function SalesReturns() {
         </div>
       )) : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '96px 150px minmax(0,1fr) 110px 120px' : '96px 160px minmax(0,1.2fr) 110px 150px 130px 130px', gap: 10, padding: '8px 16px', borderBottom: '1px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
-            <div>單別</div>
-            <div>單號</div>
-            <div>客戶 / 發票</div>
-            <div>日期</div>
-            <div>業務</div>
+          <div style={{ display: 'grid', gridTemplate: gridTemplate, gap: 10, padding: '8px 16px', borderBottom: '1px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
+            <div style={{ textAlign: 'center' }}>單別</div>
+            <div style={{ textAlign: 'center' }}>單號</div>
+            <div style={{ textAlign: 'left' }}>客戶 / 發票</div>
+            <div style={{ textAlign: 'center' }}>日期</div>
+            <div style={{ textAlign: 'center' }}>業務</div>
             {!isTablet && <div style={{ textAlign: 'right' }}>未稅金額</div>}
             {!isTablet && <div style={{ textAlign: 'right' }}>總金額</div>}
           </div>
           {data.rows.map((row) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '96px 150px minmax(0,1fr) 110px 120px' : '96px 160px minmax(0,1.2fr) 110px 150px 130px 130px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
-              <div>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
+            <div key={row.id} style={{ display: 'grid', gridTemplate: gridTemplate, gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center' }}>
+              <div style={{ textAlign: 'center' }}>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
               {row.doc_type === 'return' ? (
-                <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
+                <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'center', ...S.mono }}>{row.doc_no}</div>
               ) : (
                 <button
                   onClick={() => setSelectedSlipNumber(row.doc_no)}
-                  style={{ background: 'none', border: 0, padding: 0, fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'left', cursor: 'pointer', ...S.mono }}
+                  style={{ background: 'none', border: 0, padding: 0, fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'center', cursor: 'pointer', ...S.mono }}
                 >
                   {row.doc_no}
                 </button>
               )}
-              <div style={{ minWidth: 0 }}>
+              <div style={{ minWidth: 0, textAlign: 'left' }}>
                 <div style={{ fontSize: 14, color: '#111827', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
                 <div style={{ fontSize: 13, color: '#374151', marginTop: 4, lineHeight: 1.6 }}>
                   <span style={{ color: '#6b7280', ...S.mono }}>INVOICE</span> {row.invoice_no || '-'}
                 </div>
               </div>
-              <div style={{ fontSize: 13, color: '#374151', ...S.mono }}>{row.doc_date || '-'}</div>
-              <div style={{ fontSize: 13, color: '#374151' }}>{row.sales_name || '-'}</div>
+              <div style={{ fontSize: 13, color: '#374151', textAlign: 'center', ...S.mono }}>{row.doc_date || '-'}</div>
+              <div style={{ fontSize: 13, color: '#374151', textAlign: 'center' }}>{row.sales_name || '-'}</div>
               {!isTablet && <div style={{ fontSize: 14, color: '#111827', textAlign: 'right', ...S.mono }}>{fmtP(row.amount)}</div>}
               {!isTablet && <div style={{ fontSize: 14, color: '#10b981', fontWeight: 700, textAlign: 'right', ...S.mono }}>{fmtP(row.total_amount)}</div>}
             </div>

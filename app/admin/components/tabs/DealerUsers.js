@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { Loading, EmptyState, PageLead } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
 
 export default function DealerUsers() {
   const ROLE_MAP = { dealer: '經銷商', sales: '業務', technician: '維修技師' };
@@ -16,6 +17,7 @@ export default function DealerUsers() {
   const [expandedId, setExpandedId] = useState(null);
   const [permSaving, setPermSaving] = useState(null);
   const tableRef = useRef(null);
+  const gridTemplate = useResizableColumns('dealer_users_list', '120px minmax(0,1fr) 100px 130px 100px 160px', [120, 200, 100, 130, 100, 160]);
   useEffect(() => {
     const handler = (e) => {
       if (tableRef.current && !tableRef.current.contains(e.target)) {
@@ -103,18 +105,18 @@ export default function DealerUsers() {
       )}
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="尚無帳號" /> : (
         <div ref={tableRef} style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 100px 130px 100px 160px', gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
-            <div>帳號</div><div>姓名 / 公司</div><div>角色</div><div>電話</div><div>狀態</div><div>操作</div>
+          <div style={{ display: 'grid', gridTemplate, gap: 10, padding: '8px 16px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+            <div style={{ textAlign: 'center' }}>帳號</div><div style={{ textAlign: 'left' }}>姓名 / 公司</div><div style={{ textAlign: 'center' }}>角色</div><div style={{ textAlign: 'center' }}>電話</div><div style={{ textAlign: 'center' }}>狀態</div><div style={{ textAlign: 'center' }}>操作</div>
           </div>
           {data.rows.map((u, idx) => (
             <div key={u.id}>
-              <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 100px 130px 100px 160px', gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: expandedId === u.id ? '#f0f7ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === u.id ? null : u.id)}>
-                <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{u.username}</div>
-                <div><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{u.display_name}</div>{u.company_name && <div style={{ fontSize: 11, color: '#374151' }}>{u.company_name}</div>}</div>
-                <div><span style={S.tag(ROLE_TONE[u.role] || '')}>{ROLE_MAP[u.role] || u.role}</span></div>
-                <div style={{ fontSize: 13, color: '#374151' }}>{u.phone || '-'}</div>
-                <div><span style={S.tag(u.status === 'active' ? 'green' : '')}>{u.status === 'active' ? '啟用' : '停用'}</span></div>
-                <div style={{ display: 'flex', gap: 4 }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'grid', gridTemplate, gap: 10, padding: '10px 16px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: expandedId === u.id ? '#f0f7ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === u.id ? null : u.id)}>
+                <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'center', ...S.mono }}>{u.username}</div>
+                <div style={{ textAlign: 'left' }}><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{u.display_name}</div>{u.company_name && <div style={{ fontSize: 11, color: '#374151' }}>{u.company_name}</div>}</div>
+                <div style={{ textAlign: 'center' }}><span style={S.tag(ROLE_TONE[u.role] || '')}>{ROLE_MAP[u.role] || u.role}</span></div>
+                <div style={{ fontSize: 13, color: '#374151', textAlign: 'center' }}>{u.phone || '-'}</div>
+                <div style={{ textAlign: 'center' }}><span style={S.tag(u.status === 'active' ? 'green' : '')}>{u.status === 'active' ? '啟用' : '停用'}</span></div>
+                <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
                   <button onClick={() => toggleStatus(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11 }}>{u.status === 'active' ? '停用' : '啟用'}</button>
                   <button onClick={() => resetPw(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11 }}>重設密碼</button>
                 </div>

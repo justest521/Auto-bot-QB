@@ -4,6 +4,7 @@ import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, useViewportWidth, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
 
 const SALES_DOCUMENT_FOCUS_KEY = 'qb_sales_document_focus';
 const PO_FOCUS_KEY = 'qb_purchase_order_focus';
@@ -415,6 +416,8 @@ export default function SalesDocuments({ setTab }) {
   const [dateTo, setDateTo] = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
 
+  const { gridTemplate, ResizableHeader } = useResizableColumns('sales_list', isTablet ? [50, 160, 250, 100] : [50, 170, 250, 120, 120, 120, 120, 120]);
+
   const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
     setLoading(true);
     try {
@@ -502,33 +505,44 @@ export default function SalesDocuments({ setTab }) {
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷貨單資料" /> : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 160px minmax(0,1fr) 100px' : '50px 170px minmax(0,1.3fr) 120px 120px 120px 120px 120px', gap: 10, padding: '6px 14px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
-            <div>序</div>
-            <div>銷貨單號</div>
-            <div>客戶 / 發票</div>
-            <div>日期</div>
-            {!isTablet && <div>業務</div>}
-            {!isTablet && <div style={{ textAlign: 'right' }}>未稅</div>}
-            {!isTablet && <div style={{ textAlign: 'right' }}>總額</div>}
-            {!isTablet && <div style={{ textAlign: 'right' }}>毛利</div>}
-          </div>
-          {data.rows.map((row, idx) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 160px minmax(0,1fr) 100px' : '50px 170px minmax(0,1.3fr) 120px 120px 120px 120px 120px', gap: 10, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedSale(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
-              <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-              <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.slip_number || '-'}</div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
-                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2, ...S.mono }}>{row.invoice_number ? `INV ${row.invoice_number}` : ''}</div>
+          <ResizableHeader
+            headers={isTablet ? [
+              { label: '序', align: 'center' },
+              { label: '銷貨單號', align: 'center' },
+              { label: '客戶 / 發票' },
+              { label: '日期', align: 'center' },
+            ] : [
+              { label: '序', align: 'center' },
+              { label: '銷貨單號', align: 'center' },
+              { label: '客戶 / 發票' },
+              { label: '日期', align: 'center' },
+              { label: '業務', align: 'center' },
+              { label: '未稅', align: 'center' },
+              { label: '總額', align: 'center' },
+              { label: '毛利', align: 'center' },
+            ]}
+            style={{ padding: '6px 14px', color: '#6b7280', fontSize: 12 }}
+          />
+          {data.rows.map((row, idx) => {
+            const cell = { fontSize: 12, color: '#374151', ...S.mono };
+            const cCenter = { ...cell, justifyContent: 'center', display: 'flex', alignItems: 'center' };
+            const cRight = { ...cell, justifyContent: 'flex-end', display: 'flex', alignItems: 'center' };
+            return (
+              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedSale(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+                <div style={cCenter}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ ...cCenter, color: '#3b82f6', fontWeight: 700 }}>{row.slip_number || '-'}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2, ...S.mono }}>{row.invoice_number ? `INV ${row.invoice_number}` : ''}</div>
+                </div>
+                <div style={cCenter}>{row.sale_date || '-'}</div>
+                {!isTablet && <div style={cCenter}>{row.sales_person || '-'}</div>}
+                {!isTablet && <div style={{ ...cRight, color: '#111827' }}>{fmtP(row.subtotal)}</div>}
+                {!isTablet && <div style={{ ...cRight, color: '#10b981', fontWeight: 700 }}>{fmtP(row.total)}</div>}
+                {!isTablet && <div style={{ ...cRight, color: '#3b82f6', fontWeight: 700 }}>{fmtP(row.gross_profit)}</div>}
               </div>
-              <div style={{ fontSize: 12, color: '#374151', ...S.mono }}>{row.sale_date || '-'}</div>
-              {!isTablet && <div style={{ fontSize: 12, color: '#374151' }}>{row.sales_person || '-'}</div>}
-              {!isTablet && <div style={{ fontSize: 14, color: '#111827', textAlign: 'right', ...S.mono }}>{fmtP(row.subtotal)}</div>}
-              {!isTablet && <div style={{ fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total)}</div>}
-              {!isTablet && <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: 14, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{fmtP(row.gross_profit)}</span>
-              </div>}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
       <Pager
