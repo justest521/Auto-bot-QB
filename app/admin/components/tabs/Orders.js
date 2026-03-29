@@ -1274,8 +1274,8 @@ export default function Orders({ setTab }) {
                 {!isTablet && <div style={{ ...cCenter, fontSize: 13, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
                 <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.order_date || '-'}</div>
                 <div style={cCenter}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
-                {!isTablet && <div style={cCenter}><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : '')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
-                {!isTablet && <div style={cCenter}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : '')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
+                {!isTablet && <div style={cCenter}><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : 'gray')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
+                {!isTablet && <div style={cCenter}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : 'gray')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
                 {!isTablet && <div style={{ ...cRight, fontSize: 13, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
                 <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                   {(() => {
