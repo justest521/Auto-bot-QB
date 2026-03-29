@@ -625,6 +625,7 @@ export default function Quotes({ setTab }) {
   const [salesUsers, setSalesUsers] = useState([]);
   // ★ 新增：選中的報價單（進入詳情頁）
   const [selectedQuote, setSelectedQuote] = useState(null);
+  const [checkedIds, setCheckedIds] = useState(new Set());
 
   const QUOTE_STATUS_MAP = { draft: '草稿', sent: '已發送', approved: '已核准', converted: '已轉單', closed: '已結案' };
   const QUOTE_STATUS_TONE = { draft: '', sent: 'blue', approved: 'green', converted: 'green', closed: '' };
@@ -758,36 +759,52 @@ export default function Quotes({ setTab }) {
         <StatCard code="AMT" label="本頁總額" value={fmtP(data.summary?.total_amount)} tone="green" />
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有報價單資料" /> : (
-        <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 130px minmax(0,1fr) 100px 100px' : '50px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px', gap: 10, padding: '6px 14px', borderBottom: '2px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
-            <div>序</div>
-            <div>單號</div>
-            <div>客戶</div>
-            <div>日期</div>
-            <div>狀態</div>
-            {!isTablet && <div style={{ textAlign: 'right' }}>總金額</div>}
-            {!isTablet && <div>備註</div>}
-            <div style={{ textAlign: 'right' }}>操作</div>
-          </div>
+        <div style={{ ...S.card, padding: 0, overflow: 'hidden', border: '1px solid #d1d5db' }}>
+          {/* ── 表頭 ── */}
+          {(() => {
+            const hdrCell = { padding: '8px 10px', borderRight: '1px solid #d1d5db', display: 'flex', alignItems: 'center' };
+            const hdrLast = { ...hdrCell, borderRight: 'none', justifyContent: 'flex-end' };
+            const cols = isTablet ? '36px 42px 130px minmax(0,1fr) 100px 100px' : '36px 42px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px';
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: '2px solid #d1d5db', color: '#374151', fontSize: 13, fontWeight: 600, background: '#f3f4f6' }}>
+                <div style={{ ...hdrCell, justifyContent: 'center' }}>
+                  <input type="checkbox" checked={data.rows.length > 0 && checkedIds.size === data.rows.length} onChange={(e) => { if (e.target.checked) { setCheckedIds(new Set(data.rows.map(r => r.id))); } else { setCheckedIds(new Set()); } }} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }} />
+                </div>
+                <div style={hdrCell}>序</div>
+                <div style={hdrCell}>單號</div>
+                <div style={hdrCell}>客戶</div>
+                <div style={hdrCell}>日期</div>
+                <div style={hdrCell}>狀態</div>
+                {!isTablet && <div style={{ ...hdrCell, justifyContent: 'flex-end' }}>總金額</div>}
+                {!isTablet && <div style={hdrCell}>備註</div>}
+                <div style={hdrLast}>操作</div>
+              </div>
+            );
+          })()}
+          {/* ── 列表 ── */}
           {data.rows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
-            const isConverted = statusKey === 'converted';
-            const isEditable = statusKey === 'draft' || statusKey === 'sent';
-            const isDeletable = statusKey === 'draft' || statusKey === 'sent';
+            const isChecked = checkedIds.has(row.id);
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0 };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'flex-end' };
+            const cols = isTablet ? '36px 42px 130px minmax(0,1fr) 100px 100px' : '36px 42px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px';
             return (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? '50px 130px minmax(0,1fr) 100px 100px' : '50px 150px minmax(0,1.2fr) 100px 100px 100px minmax(0,1fr) 120px', gap: 10, padding: '8px 14px', borderTop: '1px solid #eef3f8', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedQuote(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
-                <div style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.quote_no || '-'}</div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 14, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</div>
+              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', background: isChecked ? '#eff6ff' : (idx % 2 === 0 ? '#fff' : '#fafbfd'), cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedQuote(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = isChecked ? '#eff6ff' : (idx % 2 === 0 ? '#fff' : '#fafbfd')}>
+                <div style={{ ...cell, justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
+                  <input type="checkbox" checked={isChecked} onChange={() => { setCheckedIds(prev => { const next = new Set(prev); if (next.has(row.id)) next.delete(row.id); else next.add(row.id); return next; }); }} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }} />
                 </div>
-                <div style={{ fontSize: 12, color: '#374151', ...S.mono }}>{row.quote_date || '-'}</div>
-                <div><span style={S.tag(QUOTE_STATUS_TONE[statusKey] || '')}>{QUOTE_STATUS_MAP[statusKey] || statusKey}</span></div>
-                {!isTablet && <div style={{ fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>}
-                {!isTablet && <div style={{ fontSize: 14, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</div>}
-                <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => duplicateQuote(row)} title="複製報價單" style={{ ...S.btnGhost, padding: '5px 8px', fontSize: 12 }}>複製</button>
-                  <button onClick={() => window.open(`/api/pdf?type=quote&id=${row.id}`, '_blank')} style={{ ...S.btnGhost, padding: '5px 8px', fontSize: 12 }}>PDF</button>
+                <div style={{ ...cell, fontSize: 13, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.quote_no || '-'}</div>
+                <div style={cell}>
+                  <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
+                </div>
+                <div style={{ ...cell, fontSize: 13, color: '#374151', ...S.mono }}>{row.quote_date || '-'}</div>
+                <div style={cell}><span style={S.tag(QUOTE_STATUS_TONE[statusKey] || '')}>{QUOTE_STATUS_MAP[statusKey] || statusKey}</span></div>
+                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#10b981', justifyContent: 'flex-end', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>}
+                {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151' }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</span></div>}
+                <div style={{ ...cellLast, gap: 4, flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => duplicateQuote(row)} title="複製報價單" style={{ ...S.btnGhost, padding: '5px 8px', fontSize: 13 }}>複製</button>
+                  <button onClick={() => window.open(`/api/pdf?type=quote&id=${row.id}`, '_blank')} style={{ ...S.btnGhost, padding: '5px 8px', fontSize: 13 }}>PDF</button>
                 </div>
               </div>
             );
