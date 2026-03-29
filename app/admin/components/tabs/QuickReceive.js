@@ -595,10 +595,10 @@ export default function QuickReceive({ setTab }) {
                       <input value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} style={{ ...S.input, padding: '3px 6px', fontSize: 12 }} />
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <input type="number" value={item.qty} min={1} onChange={e => updateItem(idx, 'qty', Number(e.target.value) || 1)} style={{ ...S.input, width: 60, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
+                      <input type="number" value={item.qty || ''} min={1} onChange={e => updateItem(idx, 'qty', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'qty', 1); }} style={{ ...S.input, width: 60, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <input type="number" value={item.cost} min={0} onChange={e => updateItem(idx, 'cost', Number(e.target.value) || 0)} style={{ ...S.input, width: 90, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
+                      <input type="number" value={item.cost || ''} min={0} onChange={e => updateItem(idx, 'cost', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'cost', 0); }} style={{ ...S.input, width: 90, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, color: '#10b981' }}>
                       {fmtP((Number(item.qty) || 0) * (Number(item.cost) || 0))}

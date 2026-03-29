@@ -106,6 +106,7 @@ function StockInDetailView({ id, onBack }) {
                   <th style={{ ...thStyle, width: 40 }}>#</th>
                   <th style={thStyle}>料號</th>
                   <th style={thStyle}>品名</th>
+                  <th style={{ ...thStyle, textAlign: 'center', width: 60 }}>單位</th>
                   <th style={{ ...thStyle, textAlign: 'right', width: 80 }}>數量</th>
                   <th style={{ ...thStyle, textAlign: 'right', width: 100 }}>單價</th>
                   <th style={{ ...thStyle, textAlign: 'right', width: 120 }}>小計</th>
@@ -119,6 +120,7 @@ function StockInDetailView({ id, onBack }) {
                       <span style={{ ...S.mono, fontWeight: 700, color: '#2563eb' }}>{item.item_number || '-'}</span>
                     </td>
                     <td style={tdStyle}>{item.description || '-'}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: '#6b7280', fontSize: 12 }}>{item.unit || '-'}</td>
                     <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600 }}>{fmt(item.qty_received)}</td>
                     <td style={{ ...tdStyle, textAlign: 'right', ...S.mono }}>{fmtP(item.unit_cost)}</td>
                     <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, color: '#10b981' }}>{fmtP(item.line_total)}</td>
@@ -162,10 +164,29 @@ export default function StockIn() {
   const [datePreset, setDatePreset] = useState('month');
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ vendor_id: '', po_id: '', remark: '' });
-  const [items, setItems] = useState([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0 }]);
+  const [items, setItems] = useState([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }]);
   const [detailId, setDetailId] = useState(null);
   const [vendors, setVendors] = useState([]);
-  useEffect(() => { apiGet({ action: 'vendors', search: '', limit: 200 }).then(r => setVendors(r.vendors || [])).catch(() => {}); }, []);
+  const [newVendorMode, setNewVendorMode] = useState(false);
+  const [newVendorName, setNewVendorName] = useState('');
+  const [creatingVendor, setCreatingVendor] = useState(false);
+  const loadVendors = useCallback(() => apiGet({ action: 'vendors', search: '', limit: 200 }).then(r => setVendors(r.vendors || [])).catch(() => {}), []);
+  useEffect(() => { loadVendors(); }, []);
+
+  const createVendorInline = async () => {
+    if (!newVendorName.trim()) return;
+    setCreatingVendor(true);
+    try {
+      const res = await apiPost({ action: 'create_vendor', vendor_name: newVendorName.trim() });
+      if (res.vendor?.id) {
+        await loadVendors();
+        setForm(p => ({ ...p, vendor_id: res.vendor.id }));
+        setNewVendorName('');
+        setNewVendorMode(false);
+      }
+    } catch (e) { alert(e.message); }
+    setCreatingVendor(false);
+  };
 
   const applyDatePreset = (preset) => {
     setDatePreset(preset);
@@ -181,7 +202,7 @@ export default function StockIn() {
 
   const updateItem = (idx, key, val) => setItems(prev => { const next = [...prev]; next[idx] = { ...next[idx], [key]: val }; if (key === 'qty_received' || key === 'unit_cost') next[idx].line_total = Number(next[idx].qty_received || 0) * Number(next[idx].unit_cost || 0); return next; });
 
-  const handleCreate = async () => { try { await apiPost({ action: 'create_stock_in', ...form, items: items.filter(i => i.item_number) }); setCreateOpen(false); setForm({ vendor_id: '', po_id: '', remark: '' }); setItems([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0 }]); load(); } catch (e) { alert(e.message); } };
+  const handleCreate = async () => { try { await apiPost({ action: 'create_stock_in', ...form, items: items.filter(i => i.item_number) }); setCreateOpen(false); setForm({ vendor_id: '', po_id: '', remark: '' }); setItems([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }]); setNewVendorMode(false); setNewVendorName(''); load(); } catch (e) { alert(e.message); } };
   const handleConfirm = async (id, e) => { e?.stopPropagation(); if (!confirm('確認進貨將自動增加庫存，確定？')) return; try { await apiPost({ action: 'confirm_stock_in', stock_in_id: id }); load(); } catch (e) { alert(e.message); } };
 
   const handleExport = async () => {
@@ -324,10 +345,21 @@ export default function StockIn() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                   <div>
                     <label style={modalLabel}>進貨廠商</label>
-                    <select value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))} style={{ ...modalInput, width: '100%' }}>
-                      <option value="">不指定廠商</option>
-                      {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
-                    </select>
+                    {!newVendorMode ? (
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <select value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))} style={{ ...modalInput, flex: 1 }}>
+                          <option value="">不指定廠商</option>
+                          {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
+                        </select>
+                        <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1 }}>+</button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input value={newVendorName} onChange={(e) => setNewVendorName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && createVendorInline()} placeholder="輸入新廠商名稱" autoFocus style={{ ...modalInput, flex: 1 }} />
+                        <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorName.trim()} style={{ padding: '7px 12px', fontSize: 12, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorName.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>{creatingVendor ? '...' : '建立'}</button>
+                        <button type="button" onClick={() => { setNewVendorMode(false); setNewVendorName(''); }} style={{ padding: '7px 10px', fontSize: 12, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label style={modalLabel}>關聯採購單 <span style={{ color: '#9ca3af', fontWeight: 400 }}>(選填)</span></label>
@@ -349,27 +381,46 @@ export default function StockIn() {
                     {formTotal > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: '#059669', ...S.mono }}>{fmtP(formTotal)}</span>}
                   </div>
                   {/* Column headers */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 80px 70px 28px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 60px 80px 70px 28px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
                     <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>料號</span>
                     <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>品名</span>
                     <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>數量</span>
+                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>單位</span>
                     <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>單價</span>
                     <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>小計</span>
                     <span></span>
                   </div>
                   <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {items.map((it, idx) => (
-                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 80px 70px 28px', gap: 6, alignItems: 'center', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 8px' }}>
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 60px 80px 70px 28px', gap: 6, alignItems: 'center', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 8px' }}>
                         <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value.toUpperCase())} style={{ ...S.input, fontSize: 12, padding: '5px 8px', ...S.mono, fontWeight: 600 }} placeholder="料號" />
                         <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, fontSize: 12, padding: '5px 8px' }} placeholder="品名" />
-                        <input type="number" value={it.qty_received} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value)} style={{ ...S.input, fontSize: 12, padding: '5px 4px', textAlign: 'center' }} />
-                        <input type="number" value={it.unit_cost} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value)} style={{ ...S.input, fontSize: 12, padding: '5px 6px', textAlign: 'right', ...S.mono }} />
+                        <input type="number" value={it.qty_received || ''} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'qty_received', 1); }} style={{ ...S.input, fontSize: 12, padding: '5px 4px', textAlign: 'center' }} />
+                        <select value={it.unit || ''} onChange={(e) => updateItem(idx, 'unit', e.target.value)} style={{ ...S.input, fontSize: 11, padding: '5px 2px', textAlign: 'center', color: it.unit ? '#374151' : '#9ca3af' }}>
+                          <option value="">—</option>
+                          <option value="個">個</option>
+                          <option value="組">組</option>
+                          <option value="箱">箱</option>
+                          <option value="瓶">瓶</option>
+                          <option value="支">支</option>
+                          <option value="條">條</option>
+                          <option value="包">包</option>
+                          <option value="片">片</option>
+                          <option value="台">台</option>
+                          <option value="套">套</option>
+                          <option value="罐">罐</option>
+                          <option value="盒">盒</option>
+                          <option value="捲">捲</option>
+                          <option value="張">張</option>
+                          <option value="把">把</option>
+                        </select>
+                        <input type="number" value={it.unit_cost || ''} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'unit_cost', 0); }} style={{ ...S.input, fontSize: 12, padding: '5px 6px', textAlign: 'right', ...S.mono }} />
                         <div style={{ fontSize: 12, color: it.line_total > 0 ? '#059669' : '#d1d5db', fontWeight: 700, ...S.mono, textAlign: 'right' }}>{it.line_total > 0 ? fmtP(it.line_total) : '—'}</div>
                         <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: items.length > 1 ? '#fee2e2' : 'transparent', color: items.length > 1 ? '#ef4444' : '#d1d5db', cursor: items.length > 1 ? 'pointer' : 'default', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0 }])} style={{ width: '100%', marginTop: 8, padding: '8px', fontSize: 12, fontWeight: 600, color: '#2563eb', background: '#eff6ff', border: '1px dashed #93c5fd', borderRadius: 8, cursor: 'pointer' }}>+ 新增品項</button>
+                  <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }])} style={{ width: '100%', marginTop: 8, padding: '8px', fontSize: 12, fontWeight: 600, color: '#2563eb', background: '#eff6ff', border: '1px dashed #93c5fd', borderRadius: 8, cursor: 'pointer' }}>+ 新增品項</button>
                 </div>
               </div>
 
