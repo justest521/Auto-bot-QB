@@ -199,6 +199,8 @@ export default function MobileStockIn() {
   const rafRef = useRef(null);
   const scanningRef = useRef(false);
   const [scanEngine, setScanEngine] = useState(''); // native | html5qr
+  const [torchOn, setTorchOn] = useState(false);
+  const [capturing, setCapturing] = useState(false); // 拍照解碼中
 
   // ── 啟動掃碼器（雙引擎：原生優先 → html5-qrcode 保底）──
   const startScanner = useCallback(async () => {
@@ -213,7 +215,7 @@ export default function MobileStockIn() {
           const formats = await window.BarcodeDetector.getSupportedFormats();
           if (formats.includes('ean_13') || formats.includes('code_128')) {
             detectorRef.current = new window.BarcodeDetector({
-              formats: formats.filter(f => ['ean_13','ean_8','code_128','code_39','qr_code'].includes(f)),
+              formats: formats.filter(f => ['ean_13','ean_8','code_128','code_39','qr_code','upc_a','upc_e','codabar','itf'].includes(f)),
             });
             useNative = true;
           }
@@ -293,7 +295,7 @@ export default function MobileStockIn() {
               return { width: Math.max(w, 250), height: Math.max(h, 130) };
             },
             aspectRatio: 1.333,
-            formatsToSupport: [0, 3, 5, 9, 10], // QR, CODE_39, CODE_128, EAN_13, EAN_8
+            formatsToSupport: [0, 2, 3, 5, 8, 9, 10, 14, 15], // QR, CODABAR, CODE_39, CODE_128, ITF, EAN_13, EAN_8, UPC_A, UPC_E
           },
           (text) => { lookupAndAdd(text); },
           () => {},
@@ -333,7 +335,118 @@ export default function MobileStockIn() {
       try { detectorRef.current.clear(); } catch {}
     }
     detectorRef.current = null;
+    setTorchOn(false);
   }, [scanEngine]);
+
+  // ── 手電筒開關 ──
+  const toggleTorch = useCallback(async () => {
+    try {
+      const track = streamRef.current?.getVideoTracks()?.[0];
+      if (!track) return;
+      const caps = track.getCapabilities?.();
+      if (!caps?.torch) { setError('此裝置不支援手電筒'); return; }
+      const newVal = !torchOn;
+      await track.applyConstraints({ advanced: [{ torch: newVal }] });
+      setTorchOn(newVal);
+    } catch (e) {
+      setError('手電筒切換失敗');
+    }
+  }, [torchOn]);
+
+  // ── 拍照解碼（針對難掃條碼：擷取高解析度靜態畫面解碼）──
+  const captureAndDecode = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video || video.readyState < 2) return;
+    setCapturing(true);
+    setScanStatus('📸 拍照解碼中...');
+
+    try {
+      // 從 video 擷取最高解析度畫面
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+
+      let found = false;
+
+      // 方法 1: 用原生 BarcodeDetector 掃描靜態圖（更精確）
+      if ('BarcodeDetector' in window) {
+        try {
+          const detector = new window.BarcodeDetector({
+            formats: ['ean_13','ean_8','code_128','code_39','qr_code','upc_a','upc_e','codabar','itf'],
+          });
+          const bitmap = await createImageBitmap(canvas);
+          const barcodes = await detector.detect(bitmap);
+          if (barcodes.length > 0 && barcodes[0].rawValue) {
+            lookupAndAdd(barcodes[0].rawValue);
+            found = true;
+          }
+        } catch {}
+      }
+
+      // 方法 2: 用 html5-qrcode 靜態掃描
+      if (!found) {
+        try {
+          const mod = await import('html5-qrcode');
+          const Html5Qrcode = mod.Html5Qrcode;
+          const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
+          const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+          const result = await Html5Qrcode.scanFile(file, false);
+          if (result) {
+            lookupAndAdd(result);
+            found = true;
+          }
+        } catch {}
+      }
+
+      // 方法 3: 增強對比後重試（處理深色/反光包裝）
+      if (!found) {
+        try {
+          // 灰階 + 高對比處理
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const gray = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
+            const enhanced = gray > 128 ? 255 : 0; // 二值化
+            data[i] = data[i+1] = data[i+2] = enhanced;
+          }
+          ctx.putImageData(imageData, 0, 0);
+
+          if ('BarcodeDetector' in window) {
+            const bitmap2 = await createImageBitmap(canvas);
+            const detector2 = new window.BarcodeDetector({
+              formats: ['ean_13','ean_8','code_128','code_39','qr_code','upc_a','upc_e','codabar','itf'],
+            });
+            const barcodes2 = await detector2.detect(bitmap2);
+            if (barcodes2.length > 0 && barcodes2[0].rawValue) {
+              lookupAndAdd(barcodes2[0].rawValue);
+              found = true;
+            }
+          }
+
+          if (!found) {
+            const mod2 = await import('html5-qrcode');
+            const blob2 = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
+            const file2 = new File([blob2], 'enhanced.jpg', { type: 'image/jpeg' });
+            const result2 = await mod2.Html5Qrcode.scanFile(file2, false);
+            if (result2) {
+              lookupAndAdd(result2);
+              found = true;
+            }
+          }
+        } catch {}
+      }
+
+      if (!found) {
+        setScanStatus('❌ 未偵測到條碼，請靠近一點再試');
+        vibrate([100, 50, 100]);
+      }
+    } catch {
+      setScanStatus('❌ 拍照解碼失敗');
+    }
+    setCapturing(false);
+  }, [lookupAndAdd]);
 
   // ── 上傳解析（拍照模式）──
   const handleFile = useCallback(async (file) => {
@@ -686,6 +799,24 @@ export default function MobileStockIn() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* 掃碼工具列（手電筒 + 拍照解碼）*/}
+          {scanEngine === 'native' && (
+            <div style={{ display: 'flex', gap: 10, margin: '0 12px', marginTop: -4 }}>
+              <button onClick={toggleTorch} style={{
+                flex: 1, padding: '10px', fontSize: 14, fontWeight: 700, border: 'none', borderRadius: 10, cursor: 'pointer',
+                background: torchOn ? '#fbbf24' : '#374151', color: torchOn ? '#000' : '#fff',
+              }}>
+                {torchOn ? '🔦 關閉手電筒' : '💡 手電筒'}
+              </button>
+              <button onClick={captureAndDecode} disabled={capturing} style={{
+                flex: 1, padding: '10px', fontSize: 14, fontWeight: 700, border: 'none', borderRadius: 10, cursor: 'pointer',
+                background: capturing ? '#9ca3af' : '#2563eb', color: '#fff',
+              }}>
+                {capturing ? '⏳ 解碼中...' : '📸 拍照解碼'}
+              </button>
             </div>
           )}
 
