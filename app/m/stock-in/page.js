@@ -124,9 +124,9 @@ export default function MobileStockIn() {
   // ── 條碼查詢並加入清單 ──
   const lookupAndAdd = useCallback(async (code) => {
     if (!code) return;
-    // 防止重複掃（同一碼 2 秒內不重複）
+    // 防止重複掃（同一碼 1.2 秒內不重複）
     const now = Date.now();
-    if (code === lastScannedRef.current && now - lastScannedTimeRef.current < 2000) return;
+    if (code === lastScannedRef.current && now - lastScannedTimeRef.current < 1200) return;
     lastScannedRef.current = code;
     lastScannedTimeRef.current = now;
 
@@ -213,37 +213,29 @@ export default function MobileStockIn() {
         scannerInstanceRef.current = null;
       }
 
-      const html5QrCode = new Html5QrCodeRef.current(scannerId);
+      const html5QrCode = new Html5QrCodeRef.current(scannerId, {
+        verbose: false,
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+      });
       scannerInstanceRef.current = html5QrCode;
 
       await html5QrCode.start(
         { facingMode: 'environment' },
         {
-          fps: 15,
+          fps: 30,
           qrbox: (vw, vh) => {
-            const w = Math.min(vw * 0.85, 350);
-            const h = Math.min(vh * 0.35, 200);
-            return { width: Math.max(w, 250), height: Math.max(h, 120) };
+            const w = Math.min(vw * 0.9, 400);
+            const h = Math.min(vh * 0.4, 220);
+            return { width: Math.max(w, 280), height: Math.max(h, 150) };
           },
           aspectRatio: 1.333,
+          disableFlip: false,
           formatsToSupport: [
             0,  // QR_CODE
-            1,  // AZTEC
-            2,  // CODABAR
-            3,  // CODE_39
-            4,  // CODE_93
             5,  // CODE_128
-            6,  // DATA_MATRIX
-            7,  // MAXICODE
-            8,  // ITF
             9,  // EAN_13
             10, // EAN_8
-            11, // PDF_417
-            12, // RSS_14
-            13, // RSS_EXPANDED
-            14, // UPC_A
-            15, // UPC_E
-            16, // UPC_EAN_EXTENSION
+            3,  // CODE_39
           ],
         },
         (decodedText) => {
