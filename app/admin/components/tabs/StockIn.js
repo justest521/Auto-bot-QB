@@ -164,6 +164,8 @@ export default function StockIn() {
   const [form, setForm] = useState({ vendor_id: '', po_id: '', remark: '' });
   const [items, setItems] = useState([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0 }]);
   const [detailId, setDetailId] = useState(null);
+  const [vendors, setVendors] = useState([]);
+  useEffect(() => { apiGet({ action: 'vendors', search: '', limit: 200 }).then(r => setVendors(r.vendors || [])).catch(() => {}); }, []);
 
   const applyDatePreset = (preset) => {
     setDatePreset(preset);
@@ -296,48 +298,93 @@ export default function StockIn() {
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF, dateFrom, dateTo)} />
 
       {/* 新增 Modal */}
-      {createOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setCreateOpen(false)}>
-          <div style={{ width: 'min(620px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div>
-                <div style={S.eyebrow}>Stock In</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>新增進貨單</div>
-              </div>
-              <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>關閉</button>
-            </div>
-            <div style={{ ...S.card, marginBottom: 10 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                <div><label style={S.label}>廠商 ID</label><input value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))} style={S.input} /></div>
-                <div><label style={S.label}>採購單 ID (選填)</label><input value={form.po_id} onChange={(e) => setForm(p => ({ ...p, po_id: e.target.value }))} style={S.input} /></div>
-              </div>
-              <div><label style={S.label}>備註</label><input value={form.remark} onChange={(e) => setForm(p => ({ ...p, remark: e.target.value }))} style={S.input} /></div>
-            </div>
-            <div style={{ ...S.card }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>進貨明細</span>
-                <span style={{ fontSize: 12, color: '#9ca3af' }}>{items.length} 項</span>
-              </div>
-              <div style={{ maxHeight: 280, overflowY: 'auto', display: 'grid', gap: 5, paddingRight: 4 }}>
-                {items.map((it, idx) => (
-                  <div key={idx} style={{ background: '#f9fafb', border: '1px solid #f0f2f5', borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value)} style={{ ...S.input, flex: 1, fontSize: 12, padding: '4px 6px', ...S.mono }} placeholder="料號" />
-                    <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, flex: 1, fontSize: 12, padding: '4px 6px' }} placeholder="品名" />
-                    <input type="number" value={it.qty_received} onChange={(e) => updateItem(idx, 'qty_received', e.target.value)} style={{ ...S.input, width: 52, fontSize: 12, padding: '4px 6px', textAlign: 'center', flexShrink: 0 }} placeholder="數量" />
-                    <input type="number" value={it.unit_cost} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value)} style={{ ...S.input, width: 72, fontSize: 12, padding: '4px 6px', textAlign: 'right', flexShrink: 0, ...S.mono }} placeholder="成本" />
-                    <div style={{ fontSize: 12, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', flexShrink: 0, minWidth: 60, textAlign: 'right' }}>{fmtP(it.line_total)}</div>
+      {createOpen && (() => {
+        const formTotal = items.reduce((s, i) => s + (Number(i.line_total) || 0), 0);
+        const formQty = items.reduce((s, i) => s + (Number(i.qty_received) || 0), 0);
+        const validItems = items.filter(i => i.item_number?.trim());
+        const modalLabel = { fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4, display: 'block' };
+        const modalInput = { ...S.input, fontSize: 13, padding: '8px 10px', borderRadius: 8 };
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setCreateOpen(false)}>
+            <div style={{ width: 'min(680px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#fff', borderRadius: 16, boxShadow: '0 24px 70px rgba(8,12,20,0.25)' }} onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>新增進貨</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: '#111827' }}>建立進貨單</div>
                   </div>
-                ))}
+                  <button onClick={() => setCreateOpen(false)} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer', fontSize: 16, color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                </div>
               </div>
-              <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0 }])} style={{ ...S.btnGhost, fontSize: 12, marginTop: 8, width: '100%' }}>+ 新增品項</button>
-            </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-              <button onClick={handleCreate} style={{ ...S.btnPrimary, flex: 1 }}>建立進貨</button>
-              <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, flex: 1 }}>取消</button>
+
+              {/* Form body */}
+              <div style={{ padding: '16px 24px' }}>
+                {/* Vendor + PO */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                  <div>
+                    <label style={modalLabel}>進貨廠商</label>
+                    <select value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))} style={{ ...modalInput, width: '100%' }}>
+                      <option value="">不指定廠商</option>
+                      {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={modalLabel}>關聯採購單 <span style={{ color: '#9ca3af', fontWeight: 400 }}>(選填)</span></label>
+                    <input value={form.po_id} onChange={(e) => setForm(p => ({ ...p, po_id: e.target.value }))} placeholder="PO 編號" style={{ ...modalInput, width: '100%' }} />
+                  </div>
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={modalLabel}>備註</label>
+                  <input value={form.remark} onChange={(e) => setForm(p => ({ ...p, remark: e.target.value }))} placeholder="進貨備註..." style={{ ...modalInput, width: '100%' }} />
+                </div>
+
+                {/* Items */}
+                <div style={{ background: '#f8fafc', borderRadius: 12, border: '1px solid #e5e7eb', padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1f2937' }}>
+                      進貨明細
+                      <span style={{ fontSize: 12, fontWeight: 500, color: '#6b7280', marginLeft: 6 }}>{validItems.length} 項 / {formQty} 件</span>
+                    </div>
+                    {formTotal > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: '#059669', ...S.mono }}>{fmtP(formTotal)}</span>}
+                  </div>
+                  {/* Column headers */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 80px 70px 28px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
+                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>料號</span>
+                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>品名</span>
+                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>數量</span>
+                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>單價</span>
+                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>小計</span>
+                    <span></span>
+                  </div>
+                  <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {items.map((it, idx) => (
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 80px 70px 28px', gap: 6, alignItems: 'center', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 8px' }}>
+                        <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value.toUpperCase())} style={{ ...S.input, fontSize: 12, padding: '5px 8px', ...S.mono, fontWeight: 600 }} placeholder="料號" />
+                        <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, fontSize: 12, padding: '5px 8px' }} placeholder="品名" />
+                        <input type="number" value={it.qty_received} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value)} style={{ ...S.input, fontSize: 12, padding: '5px 4px', textAlign: 'center' }} />
+                        <input type="number" value={it.unit_cost} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value)} style={{ ...S.input, fontSize: 12, padding: '5px 6px', textAlign: 'right', ...S.mono }} />
+                        <div style={{ fontSize: 12, color: it.line_total > 0 ? '#059669' : '#d1d5db', fontWeight: 700, ...S.mono, textAlign: 'right' }}>{it.line_total > 0 ? fmtP(it.line_total) : '—'}</div>
+                        <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: items.length > 1 ? '#fee2e2' : 'transparent', color: items.length > 1 ? '#ef4444' : '#d1d5db', cursor: items.length > 1 ? 'pointer' : 'default', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0 }])} style={{ width: '100%', marginTop: 8, padding: '8px', fontSize: 12, fontWeight: 600, color: '#2563eb', background: '#eff6ff', border: '1px dashed #93c5fd', borderRadius: 8, cursor: 'pointer' }}>+ 新增品項</button>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div style={{ padding: '14px 24px 20px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: 10 }}>
+                <button onClick={handleCreate} disabled={!validItems.length} style={{
+                  flex: 2, padding: '12px', fontSize: 15, fontWeight: 700, color: '#fff', borderRadius: 10, border: 'none', cursor: validItems.length ? 'pointer' : 'default',
+                  background: validItems.length ? '#16a34a' : '#d1d5db', boxShadow: validItems.length ? '0 2px 8px rgba(22,163,74,0.25)' : 'none', transition: 'all 0.15s',
+                }}>建立進貨 ({validItems.length} 項)</button>
+                <button onClick={() => setCreateOpen(false)} style={{ flex: 1, padding: '12px', fontSize: 14, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 10, cursor: 'pointer' }}>取消</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
