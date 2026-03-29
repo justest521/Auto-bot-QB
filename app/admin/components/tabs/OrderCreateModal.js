@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtP } from '@/lib/admin/helpers';
+import { fmt, fmtP, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PanelHeader } from '../shared/ui';
 import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
@@ -20,6 +20,7 @@ function toDateInputValue(date) {
 }
 
 export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }) {
+  const { isMobile, isTablet } = useResponsive();
   const { setDirty, confirmIfDirty } = useUnsavedGuard();
   const [customerSearch, setCustomerSearch] = useState('');
   const [customerResults, setCustomerResults] = useState([]);
@@ -232,8 +233,8 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
   if (!open) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={guardedClose}>
-      <div style={{ width: 'min(1280px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: isMobile ? 'flex-end' : 'center', padding: isMobile ? 0 : 20 }} onClick={guardedClose}>
+      <div style={{ width: isMobile ? '100%' : 'min(1280px, 100%)', maxHeight: isMobile ? '90vh' : '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: isMobile ? '16px 16px 0 0' : 14, padding: isMobile ? '12px 16px' : '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
           <div>
             <div style={S.eyebrow}>Create Order</div>
@@ -248,16 +249,16 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
             尚未建立 erp_orders / erp_order_items 資料表。
           </div>
         ) : null}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr', gap: 10 }}>
           <div style={{ display: 'grid', gap: 10 }}>
             {/* 選擇客戶 */}
             <div style={{ ...S.card, minHeight: 180 }}>
               <PanelHeader title="選擇客戶" meta="先綁正式客戶，再建立訂單。" badge={selectedCustomer ? <div style={S.tag('green')}>已選客戶</div> : null} />
               {!selectedCustomer && (
                 <div style={{ position: 'relative', marginBottom: 12 }}>
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <input value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchCustomers()} placeholder="搜尋公司、聯絡人或電話..." style={{ ...S.input, flex: 1 }} />
-                    <button onClick={() => searchCustomers()} style={S.btnPrimary}>搜尋</button>
+                  <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
+                    <input value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchCustomers()} placeholder="搜尋公司、聯絡人或電話..." style={{ ...S.input, ...S.mobile.input, flex: 1 }} />
+                    <button onClick={() => searchCustomers()} style={{ ...S.btnPrimary, ...(isMobile && S.mobile.btnPrimary) }}>搜尋</button>
                   </div>
                   {!customerLoading && customerResults.length > 0 && !showNewCustomer && (
                     <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 8, display: 'grid', gap: 6, maxHeight: 230, overflowY: 'auto' }}>
@@ -291,27 +292,27 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
               ) : showNewCustomer ? (
                 <div style={{ ...S.panelMuted, display: 'grid', gap: 8 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>新增客戶</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 8 }}>
                     <div>
                       <label style={S.label}>客戶名稱 *</label>
-                      <input type="text" value={newCustomer.name} onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })} placeholder="客戶名稱..." style={S.input} />
+                      <input type="text" value={newCustomer.name} onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })} placeholder="客戶名稱..." style={{ ...S.input, ...S.mobile.input }} />
                     </div>
                     <div>
                       <label style={S.label}>公司名稱</label>
-                      <input type="text" value={newCustomer.company_name} onChange={(e) => setNewCustomer({ ...newCustomer, company_name: e.target.value })} placeholder="公司名稱..." style={S.input} />
+                      <input type="text" value={newCustomer.company_name} onChange={(e) => setNewCustomer({ ...newCustomer, company_name: e.target.value })} placeholder="公司名稱..." style={{ ...S.input, ...S.mobile.input }} />
                     </div>
                     <div>
                       <label style={S.label}>電話</label>
-                      <input type="text" value={newCustomer.phone} onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })} placeholder="電話..." style={S.input} />
+                      <input type="text" value={newCustomer.phone} onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })} placeholder="電話..." style={{ ...S.input, ...S.mobile.input }} />
                     </div>
                     <div>
                       <label style={S.label}>統編</label>
-                      <input type="text" value={newCustomer.tax_id} onChange={(e) => setNewCustomer({ ...newCustomer, tax_id: e.target.value })} placeholder="統一編號..." style={S.input} />
+                      <input type="text" value={newCustomer.tax_id} onChange={(e) => setNewCustomer({ ...newCustomer, tax_id: e.target.value })} placeholder="統一編號..." style={{ ...S.input, ...S.mobile.input }} />
                     </div>
                   </div>
                   <div>
                     <label style={S.label}>電子信箱</label>
-                    <input type="email" value={newCustomer.email} onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })} placeholder="電子信箱..." style={S.input} />
+                    <input type="email" value={newCustomer.email} onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })} placeholder="電子信箱..." style={{ ...S.input, ...S.mobile.input }} />
                   </div>
                   {dupWarning && (
                     <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
@@ -330,9 +331,9 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                       </div>
                     </div>
                   )}
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <button onClick={() => createCustomer(false)} disabled={savingCustomer || !newCustomer.name.trim()} style={{ ...S.btnPrimary, flex: 1, opacity: savingCustomer || !newCustomer.name.trim() ? 0.7 : 1 }}>{savingCustomer ? '建立中...' : '建立客戶'}</button>
-                    <button onClick={() => { setShowNewCustomer(false); setNewCustomer({ name: '', company_name: '', phone: '', email: '', tax_id: '' }); setDupWarning(null); }} style={{ ...S.btnGhost, flex: 1 }}>取消</button>
+                  <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+                    <button onClick={() => createCustomer(false)} disabled={savingCustomer || !newCustomer.name.trim()} style={{ ...S.btnPrimary, ...(isMobile && S.mobile.btnPrimary), flex: 1, opacity: savingCustomer || !newCustomer.name.trim() ? 0.7 : 1 }}>{savingCustomer ? '建立中...' : '建立客戶'}</button>
+                    <button onClick={() => { setShowNewCustomer(false); setNewCustomer({ name: '', company_name: '', phone: '', email: '', tax_id: '' }); setDupWarning(null); }} style={{ ...S.btnGhost, ...(isMobile && { width: '100%' }), flex: 1 }}>取消</button>
                   </div>
                 </div>
               ) : !customerSearch.trim() ? <div style={{ fontSize: 12, color: '#6b7280' }}>輸入關鍵字後搜尋正式客戶，找不到會自動跳新增。</div> : null}
@@ -342,9 +343,9 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
             <div style={{ ...S.card, minHeight: 200, marginBottom: 10 }}>
               <PanelHeader title="訂單明細" meta="用商品搜尋快速加入明細，或直接調整數量與單價。" badge={<div style={S.tag('')}>{fmt(form.items.length)} 項</div>} />
               <div style={{ position: 'relative', marginBottom: 12 }}>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchProducts()} placeholder="搜尋料號或品名..." style={{ ...S.input, flex: 1, ...S.mono }} />
-                  <button onClick={searchProducts} style={S.btnPrimary}>找商品</button>
+                <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
+                  <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchProducts()} placeholder="搜尋料號或品名..." style={{ ...S.input, ...S.mobile.input, flex: 1, ...S.mono }} />
+                  <button onClick={searchProducts} style={{ ...S.btnPrimary, ...(isMobile && S.mobile.btnPrimary) }}>找商品</button>
                 </div>
                 {!productLoading && productResults.length > 0 && (
                   <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 8, display: 'grid', gap: 6, maxHeight: 260, overflowY: 'auto' }}>
@@ -389,23 +390,23 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
             <div style={{ ...S.card, marginBottom: 10 }}>
               <PanelHeader title="訂單抬頭" meta="設定日期與備註。" />
               <div style={{ display: 'grid', gap: 10 }}>
-                <div><label style={{ ...S.label, marginBottom: 6 }}>訂單日期</label><input type="date" value={form.order_date} onChange={(e) => setForm((current) => ({ ...current, order_date: e.target.value }))} style={S.input} /></div>
+                <div><label style={{ ...S.label, marginBottom: 6 }}>訂單日期</label><input type="date" value={form.order_date} onChange={(e) => setForm((current) => ({ ...current, order_date: e.target.value }))} style={{ ...S.input, ...S.mobile.input }} /></div>
                 <div>
                   <label style={{ ...S.label, marginBottom: 6 }}>負責業務</label>
-                  <select value={form.sales_person} onChange={(e) => setForm((current) => ({ ...current, sales_person: e.target.value }))} style={S.input}>
+                  <select value={form.sales_person} onChange={(e) => setForm((current) => ({ ...current, sales_person: e.target.value }))} style={{ ...S.input, ...S.mobile.input }}>
                     <option value="">-- 選擇業務 --</option>
                     {staffList.map(s => <option key={s.id || s.name} value={s.name}>{s.name}</option>)}
                   </select>
                 </div>
-                <div><label style={{ ...S.label, marginBottom: 6 }}>備註</label><textarea value={form.remark} onChange={(e) => setForm((current) => ({ ...current, remark: e.target.value }))} rows={4} style={{ ...S.input, resize: 'vertical' }} /></div>
+                <div><label style={{ ...S.label, marginBottom: 6 }}>備註</label><textarea value={form.remark} onChange={(e) => setForm((current) => ({ ...current, remark: e.target.value }))} rows={4} style={{ ...S.input, ...S.mobile.input, resize: 'vertical' }} /></div>
               </div>
             </div>
             {/* 金額摘要 */}
             <div style={{ ...S.card, marginBottom: 10 }}>
               <PanelHeader title="金額摘要" meta="系統會自動算小計、稅額與總額。" />
               <div style={{ display: 'grid', gap: 10 }}>
-                <div><label style={S.label}>折扣金額</label><input type="number" min="0" value={form.discount_amount} onChange={(e) => setForm((current) => ({ ...current, discount_amount: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mono }} /></div>
-                <div><label style={S.label}>運費</label><input type="number" min="0" value={form.shipping_fee} onChange={(e) => setForm((current) => ({ ...current, shipping_fee: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mono }} /></div>
+                <div><label style={S.label}>折扣金額</label><input type="number" min="0" value={form.discount_amount} onChange={(e) => setForm((current) => ({ ...current, discount_amount: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mobile.input, ...S.mono }} /></div>
+                <div><label style={S.label}>運費</label><input type="number" min="0" value={form.shipping_fee} onChange={(e) => setForm((current) => ({ ...current, shipping_fee: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mobile.input, ...S.mono }} /></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input type="checkbox" id="order_tax_excluded" checked={form.tax_excluded} onChange={(e) => setForm(cur => ({ ...cur, tax_excluded: e.target.checked }))} style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }} />
                   <label htmlFor="order_tax_excluded" style={{ fontSize: 13, color: '#111827', fontWeight: 600, cursor: 'pointer' }}>稅額外加 (5%)</label>
@@ -415,7 +416,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                   {form.tax_excluded && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>稅額 (5%)</span><strong style={S.mono}>{fmtP(taxAmount)}</strong></div>}
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#10b981', fontWeight: 700 }}><span>總額</span><strong style={S.mono}>{fmtP(totalAmount)}</strong></div>
                 </div>
-                <button onClick={submit} disabled={saving || !tableReady} style={{ ...S.btnPrimary, width: '100%', opacity: saving || !tableReady ? 0.7 : 1 }}>{saving ? '建立中...' : '建立訂單'}</button>
+                <button onClick={submit} disabled={saving || !tableReady} style={{ ...S.btnPrimary, ...S.mobile.btnPrimary, width: '100%', opacity: saving || !tableReady ? 0.7 : 1 }}>{saving ? '建立中...' : '建立訂單'}</button>
               </div>
             </div>
           </div>

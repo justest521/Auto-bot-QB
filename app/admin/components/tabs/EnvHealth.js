@@ -2,10 +2,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet } from '@/lib/admin/api';
-import { fmt } from '@/lib/admin/helpers';
+import { fmt, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard, PanelHeader } from '../shared/ui';
 
 export default function EnvHealth({ setTab }) {
+  const { isMobile } = useResponsive();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,14 +40,14 @@ export default function EnvHealth({ setTab }) {
       />
       {loading ? <Loading /> : data ? (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
             <StatCard code="READY" label="已就緒表數" value={fmt(data.summary?.ready_count)} sub={`共 ${fmt(data.summary?.total_count)} 張表`} tone="green" />
             <StatCard code="MISS" label="未就緒表數" value={fmt((data.summary?.total_count || 0) - (data.summary?.ready_count || 0))} tone="red" />
             <StatCard code="BOOT" label="快速入口" value="ERP" sub="可直接跳到各模組檢查" tone="blue" />
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 18 }}>
             {shortcuts.map((item) => (
-              <button key={item.tab} onClick={() => setTab?.(item.tab)} style={S.btnGhost}>{item.label}</button>
+              <button key={item.tab} onClick={() => setTab?.(item.tab)} style={{ ...S.btnGhost, flex: isMobile ? 1 : 'auto', minWidth: isMobile ? 'auto' : 80 }}>{item.label}</button>
             ))}
           </div>
           <div style={{ display: 'grid', gap: 14 }}>
@@ -59,7 +60,7 @@ export default function EnvHealth({ setTab }) {
                 />
                 <div style={{ display: 'grid', gap: 8 }}>
                   {group.items.map((item) => (
-                    <div key={item.name} style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: '220px 1fr 100px', gap: 10, alignItems: 'center' }}>
+                    <div key={item.name} style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '220px 1fr 100px', gap: 10, alignItems: isMobile ? 'flex-start' : 'center' }}>
                       <div>
                         <div style={{ fontSize: 13, color: '#111827', fontWeight: 700 }}>{item.label}</div>
                         <div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>{item.name}</div>
@@ -67,7 +68,7 @@ export default function EnvHealth({ setTab }) {
                       <div style={{ fontSize: 12, color: item.ready ? '#374151' : '#b45309' }}>
                         {item.ready ? `可讀取，現有 ${fmt(item.count)} 筆` : item.error}
                       </div>
-                      <div style={{ textAlign: 'right' }}>
+                      <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
                         <span style={S.tag(item.ready ? 'green' : 'red')}>{item.ready ? '可用' : '缺少'}</span>
                       </div>
                     </div>

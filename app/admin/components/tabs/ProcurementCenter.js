@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtP, fmtDate } from '@/lib/admin/helpers';
+import { fmt, fmtP, fmtDate, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 
 const PO_FOCUS_KEY = 'qb_purchase_order_focus';
@@ -65,6 +65,7 @@ const Chip = ({ label, value, color, icon }) => (
 );
 
 export default function ProcurementCenter({ setTab }) {
+  const { isMobile } = useResponsive();
   const [data, setData] = useState({ rows: [], total: 0, summary: {} });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -113,13 +114,15 @@ export default function ProcurementCenter({ setTab }) {
       {/* ── Summary Card ── */}
       <div style={{ ...S.card, marginBottom: 12, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {/* Progress row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#1f2937', whiteSpace: 'nowrap' }}>到貨進度</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#1f2937', whiteSpace: isMobile ? 'normal' : 'nowrap' }}>到貨進度</span>
           <div style={{ flex: 1, minWidth: 100, height: 8, borderRadius: 4, background: '#e5e7eb', overflow: 'hidden' }}>
             <div style={{ width: `${Math.min(overallPct, 100)}%`, height: '100%', borderRadius: 4, background: overallPct >= 80 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : overallPct >= 30 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #ef4444, #f87171)', transition: 'width 0.6s ease' }} />
           </div>
-          <span style={{ fontSize: 13, fontWeight: 800, ...S.mono, color: overallPct >= 80 ? '#16a34a' : overallPct >= 30 ? '#b45309' : '#dc2626', whiteSpace: 'nowrap' }}>{overallPct}%</span>
-          <span style={{ fontSize: 12, ...S.mono, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmt(sm.total_received)}/{fmt(sm.total_ordered)}</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{ fontSize: 13, fontWeight: 800, ...S.mono, color: overallPct >= 80 ? '#16a34a' : overallPct >= 30 ? '#b45309' : '#dc2626', whiteSpace: 'nowrap' }}>{overallPct}%</span>
+            <span style={{ fontSize: 12, ...S.mono, color: '#9ca3af', whiteSpace: 'nowrap' }}>{fmt(sm.total_received)}/{fmt(sm.total_ordered)}</span>
+          </div>
         </div>
         {/* Chips + filters row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -127,32 +130,34 @@ export default function ProcurementCenter({ setTab }) {
           <Chip icon="📦" label="部分" value={fmt(sm.partial)} color="#f59e0b" />
           <Chip icon="✓" label="已齊" value={fmt(sm.complete)} color="#16a34a" />
           <Chip label="總額" value={fmtP(sm.total_cost)} color="#2563eb" />
-          <div style={{ flex: 1 }} />
-          {[['', '全部'], ['waiting', '等待到貨'], ['partial', '部分到貨'], ['complete', '已齊']].map(([key, label]) => (
-            <button key={key} onClick={() => { setStatusF(key); load(1, search, key); }} style={{
-              padding: '4px 14px', fontSize: 12, fontWeight: 600, borderRadius: 6, border: '1px solid',
-              cursor: 'pointer', transition: 'all 0.15s',
-              background: statusF === key ? '#1d4ed8' : '#fff',
-              color: statusF === key ? '#fff' : '#6b7280',
-              borderColor: statusF === key ? '#1d4ed8' : '#e5e7eb',
-            }}>{label}</button>
-          ))}
+          <div style={{ flex: 1, display: isMobile ? 'none' : 'block' }} />
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
+            {[['', '全部'], ['waiting', '等待到貨'], ['partial', '部分到貨'], ['complete', '已齊']].map(([key, label]) => (
+              <button key={key} onClick={() => { setStatusF(key); load(1, search, key); }} style={{
+                padding: '4px 14px', fontSize: 12, fontWeight: 600, borderRadius: 6, border: '1px solid',
+                cursor: 'pointer', transition: 'all 0.15s', flex: isMobile ? 1 : 'auto',
+                background: statusF === key ? '#1d4ed8' : '#fff',
+                color: statusF === key ? '#fff' : '#6b7280',
+                borderColor: statusF === key ? '#1d4ed8' : '#e5e7eb',
+              }}>{label}</button>
+            ))}
+          </div>
         </div>
         {/* Search row */}
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1, maxWidth: 300 }}>
-            <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋料號或品名..." style={{ ...S.input, width: '100%', fontSize: 12, padding: '6px 10px 6px 30px', borderRadius: 6 }} />
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
+          <div style={{ position: 'relative', flex: 1, maxWidth: 300, width: isMobile ? '100%' : 'auto' }}>
+            <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋料號或品名..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: 12, padding: isMobile ? '10px 12px 10px 30px' : '6px 10px 6px 30px', borderRadius: 6 }} />
             <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#9ca3af', pointerEvents: 'none' }}>&#x1F50D;</span>
           </div>
-          <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 12, borderRadius: 6 }}>查詢</button>
+          <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, ...(isMobile ? { width: '100%', minHeight: 44 } : {}), padding: isMobile ? '12px 16px' : '6px 18px', fontSize: 12, borderRadius: 6 }}>查詢</button>
         </div>
       </div>
 
       {/* ── Table ── */}
       {loading ? <Loading /> : data.rows?.length === 0 ? <EmptyState text="目前沒有採購中的品項" /> : (
-        <div style={{ ...S.card, padding: 0, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+        <div style={{ ...S.card, padding: 0, overflow: isMobile ? 'auto' : 'hidden', border: '1px solid #e5e7eb', ...(isMobile && S.tableScroll) }}>
           {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0, padding: '10px 16px', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', alignItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0, padding: '10px 16px', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', alignItems: 'center', minWidth: isMobile ? 'min-content' : 'auto' }}>
             {SORT_COLS.map(col => (
               <div key={col.key}
                 onClick={() => { if (sortKey === col.key) { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); } else { setSortKey(col.key); setSortDir('desc'); } }}
@@ -185,6 +190,7 @@ export default function ProcurementCenter({ setTab }) {
                     background: isExpanded ? '#eef2ff' : idx % 2 === 0 ? '#fff' : '#fafbfd',
                     transition: 'all 0.15s',
                     borderLeft: isExpanded ? '3px solid #3b82f6' : '3px solid transparent',
+                    minWidth: isMobile ? 'min-content' : 'auto',
                   }}
                   onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.background = '#f0f7ff'; }}
                   onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}
@@ -212,7 +218,7 @@ export default function ProcurementCenter({ setTab }) {
                 {/* ── Expanded detail ── */}
                 {isExpanded && (
                   <div style={{ background: 'linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%)', borderTop: '1px solid #c7d2fe', padding: '16px 20px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
                       {/* Left: PO list */}
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>

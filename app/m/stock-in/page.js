@@ -84,7 +84,7 @@ function beepSuccess() {
 
 export default function MobileStockIn() {
   const [step, setStep] = useState('capture'); // capture | scanning | parsing | preview | submitting | done
-  const [mode, setMode] = useState('photo');   // photo | scan | manual
+  const [mode, setMode] = useState('photo');   // photo | scan | manual | hid
   const [items, setItems] = useState([]);
   const [checkedItems, setCheckedItems] = useState(new Set());
   const [error, setError] = useState('');
@@ -106,6 +106,14 @@ export default function MobileStockIn() {
 
   // 手動輸入
   const [manualInput, setManualInput] = useState('');
+
+  // HID 掃描槍模式
+  const [hidInput, setHidInput] = useState('');
+  const [hidBuffer, setHidBuffer] = useState('');
+  const [hidContinuous, setHidContinuous] = useState(true);
+  const [hidLastScanned, setHidLastScanned] = useState(null);
+  const hidInputRef = useRef(null);
+  const hidBufferTimeoutRef = useRef(null);
 
   const fileRef = useRef(null);
   const cameraRef = useRef(null);
@@ -129,7 +137,10 @@ export default function MobileStockIn() {
 
   // 清理相機
   useEffect(() => {
-    return () => stopScanner();
+    return () => {
+      stopScanner();
+      if (hidBufferTimeoutRef.current) clearTimeout(hidBufferTimeoutRef.current);
+    };
   }, []);
 
   // ── 條碼查詢並加入清單 ──
@@ -524,17 +535,65 @@ export default function MobileStockIn() {
     setStep('preview');
   }, [manualInput, lookupAndAdd]);
 
+  // ── HID 掃描槍模式：鍵盤輸入監聽 ──
+  const handleHidKeyDown = useCallback((e) => {
+    // Enter 鍵：觸發查詢
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const code = hidBuffer.trim().toUpperCase();
+      if (code) {
+        lookupAndAdd(code);
+        setHidLastScanned(code);
+        setHidBuffer('');
+        // 清除待機的緩衝超時
+        if (hidBufferTimeoutRef.current) clearTimeout(hidBufferTimeoutRef.current);
+        // 如果連續模式開啟，自動重新焦點
+        if (hidContinuous && hidInputRef.current) {
+          setTimeout(() => hidInputRef.current?.focus(), 50);
+        }
+      }
+      return;
+    }
+
+    // 其他按鍵：累積到緩衝
+    if (e.key.length === 1) {
+      const newBuf = hidBuffer + e.key;
+      setHidBuffer(newBuf);
+
+      // 清除舊的超時
+      if (hidBufferTimeoutRef.current) clearTimeout(hidBufferTimeoutRef.current);
+
+      // 設定 100ms 的無輸入超時：如果超過 100ms 沒有新按鍵，自動按 Enter 處理
+      // 但這種情況很少，主要是為了應對某些掃碼槍的特殊行為
+      hidBufferTimeoutRef.current = setTimeout(() => {
+        // 不自動觸發，只是準備好狀態
+      }, 100);
+    }
+  }, [hidBuffer, hidContinuous, lookupAndAdd]);
+
+  // HID 模式清理：移除舊的 change handler，防止重複
+  const handleHidInputChange = useCallback((e) => {
+    // 實際上用 onKeyDown 就夠了，但保留 onChange 作為備用
+    // 防止直接粘貼導致的邏輯問題
+  }, []);
+
   // ── 入庫 ──
   const handleStockIn = async () => {
     const selected = items.filter((_, i) => checkedItems.has(i));
     if (!selected.length) return;
     setStep('submitting');
     try {
+      let noteMsg = '手機進貨';
+      if (mode === 'scan') noteMsg = '條碼掃描進貨';
+      else if (mode === 'hid') noteMsg = '掃描槍進貨';
+      else if (mode === 'photo') noteMsg = '拍照辨識進貨';
+      else if (mode === 'manual') noteMsg = '手動輸入進貨';
+
       const res = await apiPost({
         action: 'quick_stock_in',
         items: selected.map(i => ({ part_no: i.part_no, name: i.name, qty: Number(i.qty) || 1, cost: Number(i.cost) || 0 })),
         vendor_id: selectedVendor || null,
-        note: mode === 'scan' ? '條碼掃描進貨' : '手機進貨',
+        note: noteMsg,
       });
       setMsg(`✅ ${res.stock_in_no}\n${res.count} 項入庫完成`);
       setStep('done');
@@ -637,10 +696,11 @@ export default function MobileStockIn() {
       {step === 'capture' && (
         <>
           {/* 模式切換 */}
-          <div style={{ display: 'flex', gap: 6, margin: '12px 12px 0', background: '#fff', borderRadius: 12, padding: 4, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', gap: 6, margin: '12px 12px 0', background: '#fff', borderRadius: 12, padding: 4, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', flexWrap: 'wrap' }}>
             <button onClick={() => setMode('scan')} style={S.modeBtn(mode === 'scan')}>📱 掃條碼</button>
             <button onClick={() => setMode('photo')} style={S.modeBtn(mode === 'photo')}>📸 拍照辨識</button>
             <button onClick={() => setMode('manual')} style={S.modeBtn(mode === 'manual')}>⌨️ 手動輸入</button>
+            <button onClick={() => setMode('hid')} style={S.modeBtn(mode === 'hid')}>📡 掃描槍</button>
           </div>
 
           {/* 掃碼模式 */}
@@ -701,6 +761,107 @@ export default function MobileStockIn() {
             </div>
           )}
 
+          {/* HID 外接掃描槍模式 */}
+          {mode === 'hid' && (
+            <div style={S.card}>
+              <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                <div style={{ fontSize: 56, marginBottom: 8 }}>📡</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>外接掃描槍模式</div>
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>連接 USB 或 Bluetooth 掃碼槍</div>
+                <div style={{ fontSize: 12, color: '#9ca3af' }}>掃碼槍會自動輸入並按 Enter 查詢</div>
+              </div>
+
+              {/* 掃描槍輸入框 */}
+              <div style={{ marginBottom: 14 }}>
+                <input
+                  ref={hidInputRef}
+                  type="text"
+                  placeholder="掃描槍自動輸入..."
+                  value={hidBuffer}
+                  onChange={handleHidInputChange}
+                  onKeyDown={handleHidKeyDown}
+                  autoFocus
+                  style={{
+                    ...S.input,
+                    fontSize: 18,
+                    padding: '16px 14px',
+                    fontWeight: 600,
+                    fontFamily: 'monospace',
+                    textAlign: 'center',
+                    border: '2px solid #16a34a',
+                    background: '#f0fdf4',
+                  }}
+                />
+              </div>
+
+              {/* 掃描狀態 */}
+              {scanStatus && (
+                <div style={{
+                  padding: '10px 12px',
+                  background: '#ecfdf5',
+                  borderRadius: 8,
+                  marginBottom: 12,
+                  fontSize: 13,
+                  color: '#16a34a',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                }}>
+                  {scanStatus}
+                </div>
+              )}
+
+              {/* 最後掃入項目 */}
+              {hidLastScanned && (
+                <div style={{
+                  padding: '12px',
+                  background: '#fefce8',
+                  borderLeft: '4px solid #facc15',
+                  borderRadius: 6,
+                  marginBottom: 12,
+                  fontSize: 13,
+                }}>
+                  <div style={{ color: '#6b7280', fontSize: 11, marginBottom: 3 }}>最後掃入</div>
+                  <div style={{ fontWeight: 700, fontFamily: 'monospace', color: '#374151' }}>{hidLastScanned}</div>
+                </div>
+              )}
+
+              {/* 連續模式開關 */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 12px',
+                background: '#f9fafb',
+                borderRadius: 8,
+                marginBottom: 12,
+                border: '1px solid #e5e7eb',
+              }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <input
+                    type="checkbox"
+                    checked={hidContinuous}
+                    onChange={e => setHidContinuous(e.target.checked)}
+                    style={{ width: 18, height: 18, accentColor: '#16a34a', cursor: 'pointer' }}
+                  />
+                  連續模式 (掃完自動聚焦)
+                </label>
+              </div>
+
+              {/* 掃碼次數 */}
+              <div style={{
+                fontSize: 12,
+                color: '#6b7280',
+                textAlign: 'center',
+                padding: '8px',
+                background: '#f3f4f6',
+                borderRadius: 6,
+                marginBottom: 12,
+              }}>
+                已掃 {items.length} 項
+              </div>
+            </div>
+          )}
+
           {/* 廠商選擇 */}
           <div style={S.card}>
             <label style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 4, display: 'block' }}>廠商（選填，可提高辨識準確度）</label>
@@ -724,6 +885,33 @@ export default function MobileStockIn() {
                   <div key={i} style={{ padding: '2px 0' }}>{it.part_no} × {it.qty}</div>
                 ))}
                 {items.length > 3 && <div>... 還有 {items.length - 3} 項</div>}
+              </div>
+            </div>
+          )}
+
+          {/* HID 模式的掃碼歷史 */}
+          {mode === 'hid' && scanHistory.length > 0 && (
+            <div style={S.card}>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#374151' }}>掃碼歷史</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {scanHistory.slice(0, 10).map((code, i) => {
+                  const item = items.find(it => it.barcode === code || it.part_no === code);
+                  return (
+                    <div key={i} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '6px 8px',
+                      background: '#f9fafb',
+                      borderRadius: 6,
+                      fontSize: 12,
+                    }}>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#374151' }}>{code}</span>
+                      {item && <span style={{ color: '#10b981', fontSize: 11 }}>✓ {item.part_no}</span>}
+                    </div>
+                  );
+                })}
+                {scanHistory.length > 10 && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>... 更多掃碼記錄</div>}
               </div>
             </div>
           )}

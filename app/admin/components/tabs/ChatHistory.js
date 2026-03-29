@@ -2,12 +2,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet } from '@/lib/admin/api';
-import { fmt, useViewportWidth } from '@/lib/admin/helpers';
+import { fmt, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard } from '../shared/ui';
 
 export default function ChatHistory() {
-  const width = useViewportWidth();
-  const isMobile = width < 820;
+  const { isMobile } = useResponsive();
   const [messages, setMessages] = useState([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
@@ -42,16 +41,16 @@ export default function ChatHistory() {
       <PageLead eyebrow="LINE Archive" title="歷史對話" description="檢視匯入的 LINE 對話資料，方便回顧真人客服風格與客戶常見需求。" />
 
       {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 24 }}>
           <StatCard code="TOTAL" label="總訊息數" value={fmt(stats.total)} sub="all messages" accent="#06c755" />
           <StatCard code="USER" label="客戶訊息" value={fmt(stats.user)} sub="from customers" accent="#06c755" />
           <StatCard code="ACCT" label="官方回覆" value={fmt(stats.account)} sub="from staff" accent="#06c755" />
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { setPage(1); load(search, 1); } }} placeholder="搜尋對話內容、客戶名稱、客服名稱..." style={{ ...S.input, flex: 1 }} onFocus={e => e.target.style.borderColor = '#06c755'} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
-        <button onClick={() => { setPage(1); load(search, 1); }} style={S.btnLine}>搜尋</button>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}>
+        <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { setPage(1); load(search, 1); } }} placeholder="搜尋對話內容、客戶名稱、客服名稱..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, width: isMobile ? '100%' : 'auto' }} onFocus={e => e.target.style.borderColor = '#06c755'} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
+        <button onClick={() => { setPage(1); load(search, 1); }} style={{ ...S.btnLine, ...(isMobile ? { width: '100%', minHeight: 44 } : {}) }}>搜尋</button>
       </div>
 
       <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>共 {fmt(total)} 筆 {totalPages > 1 && `· P${page}/${totalPages}`}</div>

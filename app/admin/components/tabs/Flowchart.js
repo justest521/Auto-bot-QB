@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet } from '@/lib/admin/api';
+import { useResponsive } from '@/lib/admin/helpers';
 
 // ═══════════════════════════════════════════════════
 // Layout: clean top-down, two parallel lanes
@@ -81,6 +82,7 @@ const ARROWS = [
 const nodeMap = {};
 
 export default function Flowchart({ setTab }) {
+  const { isMobile } = useResponsive();
   const [hovered, setHovered] = useState(null);
   const [stats, setStats] = useState({});
 
@@ -197,8 +199,8 @@ export default function Flowchart({ setTab }) {
       </div>
 
       {/* Flowchart */}
-      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', overflow: 'auto', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
-        <div style={{ position: 'relative', width: totalW, minHeight: totalH, margin: '0 auto', padding: '10px 0' }}>
+      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', overflow: 'auto', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', ...(isMobile && S.tableScroll) }}>
+        <div style={{ position: 'relative', width: isMobile ? 'min-content' : totalW, minHeight: totalH, margin: '0 auto', padding: '10px 0', minWidth: '100%' }}>
 
           {/* SVG layer */}
           <svg style={{ position: 'absolute', top: 0, left: 0, width: totalW, height: totalH, pointerEvents: 'none' }}>
@@ -312,14 +314,14 @@ export default function Flowchart({ setTab }) {
       </div>
 
       {/* Compact workflow summary */}
-      <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
         {[
           { icon: '📦', label: '銷售', text: '報價→訂單→銷貨→出貨→收款', bg: '#fffbeb', border: '#fde68a', color: '#92400e' },
           { icon: '🏭', label: '採購', text: '缺貨→採購→進貨入庫→付款', bg: '#ecfdf5', border: '#a7f3d0', color: '#065f46' },
           { icon: '🔄', label: '退貨', text: '銷退→加庫存 ｜ 進退→扣庫存', bg: '#eff6ff', border: '#bfdbfe', color: '#1e40af' },
           { icon: '✅', label: '審批', text: '訂單/採購/銷貨→送審→通過', bg: '#faf5ff', border: '#e9d5ff', color: '#6b21a8' },
         ].map(c => (
-          <div key={c.label} style={{ flex: 1, minWidth: 200, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 10, padding: '10px 14px' }}>
+          <div key={c.label} style={{ flex: isMobile ? 1 : 1, minWidth: isMobile ? '100%' : 200, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 10, padding: '10px 14px' }}>
             <span style={{ fontSize: 13, fontWeight: 800, color: c.color }}>{c.icon} {c.label}</span>
             <span style={{ fontSize: 12, color: c.color, marginLeft: 8, opacity: 0.8 }}>{c.text}</span>
           </div>

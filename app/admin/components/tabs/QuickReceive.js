@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtP } from '@/lib/admin/helpers';
+import { fmt, fmtP, useResponsive } from '@/lib/admin/helpers';
 import { Loading, PageLead } from '../shared/ui';
 import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
@@ -133,6 +133,7 @@ function detectFileType(file) {
 const FILE_TYPE_LABELS = { csv: 'CSV', excel: 'Excel', pdf: 'PDF', image: '圖片' };
 
 export default function QuickReceive({ setTab }) {
+  const { isMobile, isTablet } = useResponsive();
   const { setDirty } = useUnsavedGuard();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -505,7 +506,7 @@ export default function QuickReceive({ setTab }) {
           onChange={e => setTextInput(e.target.value)}
           placeholder={'AB1234 x5\nBP-5678 x10\nKRADD26T x1'}
           rows={5}
-          style={{ ...S.input, resize: 'vertical', fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: 13, lineHeight: 1.8, marginBottom: 10 }}
+          style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , resize: 'vertical', fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: 13, lineHeight: 1.8, marginBottom: 10  }}
         />
         <button onClick={handleTextParse} disabled={!textInput.trim() || loading} style={{ ...S.btnPrimary, padding: '8px 20px' }}>
           {loading ? '解析中...' : '解析並比對'}
@@ -574,7 +575,7 @@ export default function QuickReceive({ setTab }) {
             </div>
 
             <div style={{ overflowX: 'auto', maxHeight: 400, overflowY: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div style={S.tableScroll}><table style={{ width: \'100%\', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ position: 'sticky', top: 0, background: '#eef2ff', zIndex: 1 }}>
                     <th style={{ ...thStyle, textAlign: 'center', width: 36, borderBottom: '2px solid #c7d2fe' }}>
@@ -616,7 +617,7 @@ export default function QuickReceive({ setTab }) {
                     );
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         );
@@ -652,7 +653,7 @@ export default function QuickReceive({ setTab }) {
             </div>
           </div>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={S.tableScroll}><table style={{ width: \'100%\', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
                   <th style={{ ...thStyle, textAlign: 'center', width: 36 }}>
@@ -680,15 +681,15 @@ export default function QuickReceive({ setTab }) {
                       {!item.matched && <span style={{ fontSize: 10, color: '#f59e0b', marginLeft: 6, background: '#fef3c7', padding: '1px 6px', borderRadius: 4 }}>新品</span>}
                     </td>
                     <td style={tdStyle}>
-                      <input value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} style={{ ...S.input, padding: '3px 6px', fontSize: 12 }} />
+                      <input value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , padding: '3px 6px', fontSize: 12  }} />
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <input type="number" value={item.qty || ''} min={1} onChange={e => updateItem(idx, 'qty', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'qty', 1); }} style={{ ...S.input, width: 60, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
+                      <input type="number" value={item.qty || ''} min={1} onChange={e => updateItem(idx, 'qty', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'qty', 1); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , width: 60, textAlign: 'right', padding: '3px 6px', fontSize: 13  }} />
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
                         {item.from_memory && <span title={item.memory_source || '記憶'} style={{ fontSize: 10, color: '#8b5cf6', background: '#f5f3ff', padding: '1px 5px', borderRadius: 3, cursor: 'help', whiteSpace: 'nowrap' }}>記憶</span>}
-                        <input type="number" value={item.cost || ''} min={0} onChange={e => updateItem(idx, 'cost', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'cost', 0); }} style={{ ...S.input, width: 90, textAlign: 'right', padding: '3px 6px', fontSize: 13 }} />
+                        <input type="number" value={item.cost || ''} min={0} onChange={e => updateItem(idx, 'cost', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'cost', 0); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , width: 90, textAlign: 'right', padding: '3px 6px', fontSize: 13  }} />
                       </div>
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
@@ -717,7 +718,7 @@ export default function QuickReceive({ setTab }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
 
           {/* 合計列 */}
@@ -769,7 +770,7 @@ export default function QuickReceive({ setTab }) {
                 ].map(f => (
                   <div key={f.key}>
                     <label style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginBottom: 2, display: 'block' }}>{f.label}</label>
-                    <input value={newVendorForm[f.key]} onChange={e => setNewVendorForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.ph} autoFocus={f.autoFocus} style={{ ...S.input, fontSize: 12, padding: '6px 8px', width: '100%' }} />
+                    <input value={newVendorForm[f.key]} onChange={e => setNewVendorForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.ph} autoFocus={f.autoFocus} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: 12, padding: '6px 8px', width: '100%'  }} />
                   </div>
                 ))}
               </div>
@@ -786,7 +787,7 @@ export default function QuickReceive({ setTab }) {
             <div style={{ flex: 1, minWidth: 180 }}>
               <label style={{ ...S.label, marginBottom: 4 }}>廠商（選填）</label>
               <div style={{ display: 'flex', gap: 6 }}>
-                <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={{ ...S.input, fontSize: 13, flex: 1 }}>
+                <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: 13, flex: 1  }}>
                   <option value="">不指定廠商</option>
                   {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
                 </select>
@@ -795,7 +796,7 @@ export default function QuickReceive({ setTab }) {
             </div>
             <div style={{ flex: 2, minWidth: 200 }}>
               <label style={{ ...S.label, marginBottom: 4 }}>備註（選填）</label>
-              <input value={note} onChange={e => setNote(e.target.value)} placeholder="進貨備註..." style={{ ...S.input, fontSize: 13 }} />
+              <input value={note} onChange={e => setNote(e.target.value)} placeholder="進貨備註..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: 13  }} />
             </div>
             <div style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-end', paddingTop: 18 }}>
               <button onClick={handleStockIn} disabled={submitting || checkedCount === 0} style={{

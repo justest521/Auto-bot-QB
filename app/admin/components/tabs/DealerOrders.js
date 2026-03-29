@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import S from '@/lib/admin/styles';
+import { useResponsive } from '@/lib/admin/helpers';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, ComingSoonBanner } from '../shared/ui';
@@ -12,8 +13,8 @@ const STOCK_BADGE = {
   no_stock:   { label: '無庫存', bg: '#fee2e2', color: '#b91c1c', border: '#fecaca' },
 };
 
-// ========== 經銷商訂單詳情頁 ==========
 function DealerOrderDetailView({ order, onBack, onRefresh }) {
+  const { isMobile } = useResponsive();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
@@ -111,21 +112,19 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
   const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
   const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
 
-  // Compute stock summary
   const sufficientCount = items.filter(i => i.stock_status === 'sufficient').length;
   const partialCount = items.filter(i => i.stock_status === 'partial').length;
   const noStockCount = items.filter(i => i.stock_status === 'no_stock').length;
   const shortageCount = partialCount + noStockCount;
 
   return (
-    <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
-      {/* ====== Header ====== */}
-      <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+    <div style={{ animation: 'fadeIn 0.25s ease', padding: isMobile ? '0 8px' : '0 12px' }}>
+      <div style={{ ...cardStyle, padding: isMobile ? '8px 12px' : '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, minHeight: isMobile ? 44 : 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button onClick={onBack} style={{ width: isMobile ? 32 : 34, height: isMobile ? 32 : 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 22, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{order.order_no || '-'}</span>
+              <span style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{order.order_no || '-'}</span>
               <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `${STATUS_COLOR[o.status] || '#6b7280'}14`, color: STATUS_COLOR[o.status] || '#6b7280', border: `1px solid ${STATUS_COLOR[o.status] || '#6b7280'}30` }}>
                 {STATUS_MAP[o.status] || o.status}
               </span>
@@ -137,91 +136,113 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: isMobile ? '8px 12px' : '10px 16px', fontSize: 14, minHeight: isMobile ? 40 : 'auto' }}>{msg}</div>}
 
       {loading ? <Loading /> : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
-          {/* ====== Left: Items ====== */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 340px', gap: isMobile ? 10 : 20, alignItems: 'start' }}>
           <div>
-            {/* Stock summary */}
             {items.length > 0 && (
-              <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center', ...cardStyle, padding: '10px 16px' }}>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center', ...cardStyle, padding: isMobile ? '8px 12px' : '10px 16px', overflowX: 'auto' }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>庫存核對</div>
-                <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#dcfce7', color: '#15803d' }}>充足 {sufficientCount}</span>
+                <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#dcfce7', color: '#15803d', whiteSpace: 'nowrap' }}>充足 {sufficientCount}</span>
                 {partialCount > 0 && (
-                  <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#fef9c3', color: '#854d0e' }}>不足 {partialCount}</span>
+                  <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#fef9c3', color: '#854d0e', whiteSpace: 'nowrap' }}>不足 {partialCount}</span>
                 )}
                 {noStockCount > 0 && (
-                  <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#fee2e2', color: '#b91c1c' }}>無庫存 {noStockCount}</span>
+                  <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#fee2e2', color: '#b91c1c', whiteSpace: 'nowrap' }}>無庫存 {noStockCount}</span>
                 )}
               </div>
             )}
 
-            {/* Items card */}
             <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
-              <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
+              <div style={{ padding: isMobile ? '8px 12px' : '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
                 <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>訂單明細</span>
                 <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
               </div>
               {items.length > 0 ? (
-                <div>
-                  {/* Table header */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 10, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                <div style={{ overflowX: isMobile ? 'auto' : 'visible' }}>
+                  {!isMobile && <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 10, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     <div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'center' }}>狀態</div><div style={{ textAlign: 'right' }}>小計</div><div>操作</div>
-                  </div>
-                  {/* Table rows */}
+                  </div>}
                   {items.map((item) => {
                     const badge = item.stock_status ? (STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock) : null;
                     return (
-                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 10, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s', alignItems: 'center' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
-                        <div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{item.item_number_snapshot || '-'}</div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937' }}>{item.description_snapshot || '-'}</div>
-                        <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#6b7280' }}>{fmtP(item.unit_price)}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
-                          <button onClick={() => updateItemQty(item, item.qty - 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: 11, minWidth: 24 }}>-</button>
-                          <span style={{ ...S.mono, fontWeight: 700, minWidth: 20, textAlign: 'center', fontSize: 14 }}>{item.qty}</span>
-                          <button onClick={() => updateItemQty(item, item.qty + 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: 11, minWidth: 24 }}>+</button>
-                        </div>
-                        <div style={{ textAlign: 'center', fontWeight: 700, color: item.stock_qty > 0 ? '#15803d' : '#b91c1c', ...S.mono, fontSize: 14 }}>{item.stock_qty ?? '-'}</div>
-                        <div style={{ textAlign: 'center' }}>
-                          {badge ? (
-                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
-                              {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
-                            </span>
-                          ) : <span style={{ color: '#9ca3af', fontSize: 10 }}>-</span>}
-                        </div>
-                        <div style={{ color: '#059669', fontWeight: 800, textAlign: 'right', ...S.mono, fontSize: 16 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
-                        <div>{item.qty > 0 && <button onClick={() => { if (confirm('刪除此品項？')) updateItemQty(item, 0); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 10, color: '#ef4444', borderColor: '#fecdd3' }}>刪除</button>}</div>
+                      <div key={item.id} style={{ display: isMobile ? 'block' : 'grid', gridTemplateColumns: !isMobile ? '120px 1fr 80px 80px 70px 80px 80px 70px' : undefined, gap: isMobile ? 0 : 10, padding: isMobile ? '10px 12px' : '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s', alignItems: isMobile ? 'flex-start' : 'center', minHeight: isMobile ? 44 : 'auto' }} onMouseEnter={e => !isMobile && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isMobile && (e.currentTarget.style.background='#fff')}>
+                        {isMobile ? (
+                          <>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                              <span style={{ fontSize: 14, color: '#3b82f6', fontWeight: 600, ...S.mono }}>{item.item_number_snapshot || '-'}</span>
+                              <span style={{ color: '#374151', fontWeight: 600, fontSize: 14 }}>{fmtP(item.unit_price)}</span>
+                            </div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2937', marginBottom: 6 }}>{item.description_snapshot || '-'}</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, gap: 10, alignItems: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <button onClick={() => updateItemQty(item, item.qty - 1)} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 11, minWidth: 24, minHeight: 32 }}>-</button>
+                                <span style={{ ...S.mono, fontWeight: 700, minWidth: 20, textAlign: 'center', fontSize: 13 }}>{item.qty}</span>
+                                <button onClick={() => updateItemQty(item, item.qty + 1)} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 11, minWidth: 24, minHeight: 32 }}>+</button>
+                              </div>
+                              <div style={{ textAlign: 'center', fontWeight: 700, color: item.stock_qty > 0 ? '#15803d' : '#b91c1c', ...S.mono, fontSize: 13 }}>庫:{item.stock_qty ?? '-'}</div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, gap: 10, alignItems: 'center' }}>
+                              {badge ? (
+                                <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
+                                  {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
+                                </span>
+                              ) : <span style={{ color: '#9ca3af', fontSize: 10 }}>-</span>}
+                              <span style={{ color: '#059669', fontWeight: 800, ...S.mono, fontSize: 14 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</span>
+                            </div>
+                            {item.qty > 0 && <button onClick={() => { if (confirm('刪除此品項？')) updateItemQty(item, 0); }} style={{ ...S.btnGhost, padding: '6px 8px', fontSize: 10, color: '#ef4444', borderColor: '#fecdd3', width: '100%', minHeight: 40 }}>刪除</button>}
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{item.item_number_snapshot || '-'}</div>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937' }}>{item.description_snapshot || '-'}</div>
+                            <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#6b7280' }}>{fmtP(item.unit_price)}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
+                              <button onClick={() => updateItemQty(item, item.qty - 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: 11, minWidth: 24 }}>-</button>
+                              <span style={{ ...S.mono, fontWeight: 700, minWidth: 20, textAlign: 'center', fontSize: 14 }}>{item.qty}</span>
+                              <button onClick={() => updateItemQty(item, item.qty + 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: 11, minWidth: 24 }}>+</button>
+                            </div>
+                            <div style={{ textAlign: 'center', fontWeight: 700, color: item.stock_qty > 0 ? '#15803d' : '#b91c1c', ...S.mono, fontSize: 14 }}>{item.stock_qty ?? '-'}</div>
+                            <div style={{ textAlign: 'center' }}>
+                              {badge ? (
+                                <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
+                                  {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
+                                </span>
+                              ) : <span style={{ color: '#9ca3af', fontSize: 10 }}>-</span>}
+                            </div>
+                            <div style={{ color: '#059669', fontWeight: 800, textAlign: 'right', ...S.mono, fontSize: 16 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
+                            <div>{item.qty > 0 && <button onClick={() => { if (confirm('刪除此品項？')) updateItemQty(item, 0); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 10, color: '#ef4444', borderColor: '#fecdd3' }}>刪除</button>}</div>
+                          </>
+                        )}
                       </div>
                     );
                   })}
-                  {/* Totals */}
-                  <div style={{ padding: '10px 16px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: '2px solid #d1fae5' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 10 }}>
+                  <div style={{ padding: isMobile ? '8px 12px' : '10px 16px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: '2px solid #d1fae5' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 10, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'baseline' }}>
                         <span style={{ fontSize: 14, color: '#6b7280' }}>小計 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(o.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0))}</strong></span>
                         {o.tax_amount > 0 && <span style={{ fontSize: 14, color: '#6b7280' }}>稅金 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(o.tax_amount)}</strong></span>}
                       </div>
-                      <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 10, textAlign: 'right' }}>
+                      <div style={{ borderLeft: isMobile ? 'none' : '2px solid #a7f3d0', paddingLeft: isMobile ? 0 : 10, textAlign: 'right' }}>
                         <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600, display: 'block', marginBottom: 2 }}>合計</span>
-                        <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(o.total_amount || 0)}</span>
+                        <span style={{ ...S.mono, fontSize: isMobile ? 20 : 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(o.total_amount || 0)}</span>
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無品項</div>
+                <div style={{ padding: isMobile ? '30px 16px' : '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無品項</div>
               )}
             </div>
 
-            {/* Smart action buttons */}
             {items.length > 0 && (
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 20 }}>
                 {sufficientCount > 0 && (
                   <button
                     onClick={handleInstockToSale}
                     disabled={!!processingAction}
-                    style={{ ...S.btnPrimary, padding: '8px 18px', fontSize: 13, background: '#16a34a', borderColor: '#16a34a', opacity: processingAction === 'sale' ? 0.6 : 1 }}
+                    style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '8px 12px' : '8px 18px', fontSize: 13, background: '#16a34a', borderColor: '#16a34a', opacity: processingAction === 'sale' ? 0.6 : 1, minHeight: isMobile ? 44 : 'auto' }}
                   >
                     {processingAction === 'sale' ? '處理中...' : `有貨項目 → 轉銷貨 (${sufficientCount}項)`}
                   </button>
@@ -230,7 +251,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
                   <button
                     onClick={handleShortageToP0}
                     disabled={!!processingAction}
-                    style={{ ...S.btnGhost, padding: '8px 18px', fontSize: 13, color: '#dc2626', borderColor: '#fca5a5', opacity: processingAction === 'po' ? 0.6 : 1 }}
+                    style={{ ...S.btnGhost, ...(isMobile ? { flex: 1, minHeight: 44 } : {}), padding: isMobile ? '8px 12px' : '8px 18px', fontSize: 13, color: '#dc2626', borderColor: '#fca5a5', opacity: processingAction === 'po' ? 0.6 : 1 }}
                   >
                     {processingAction === 'po' ? '處理中...' : `缺貨項目 → 轉採購單 (${shortageCount}項)`}
                   </button>
@@ -239,12 +260,10 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
             )}
           </div>
 
-          {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* Dealer card */}
-            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+            <div style={{ ...cardStyle, padding: isMobile ? '8px 12px' : '10px 16px' }}>
               <div style={labelStyle}>下單人資訊</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 14, lineHeight: 1.3 }}>{d.company_name || d.display_name || '未綁定下單人'}</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: '#111827', marginBottom: 14, lineHeight: 1.3 }}>{d.company_name || d.display_name || '未綁定下單人'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {[
                   { label: '下單人', value: d.display_name },
@@ -252,7 +271,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
                   { label: '電話', value: d.phone, mono: true },
                   { label: '信箱', value: d.email, mono: true },
                 ].filter(f => f.value).map((f, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8', flexWrap: 'wrap', minHeight: isMobile ? 40 : 'auto', alignItems: 'center' }}>
                     <span style={{ fontSize: 12, color: '#b0b8c4', flexShrink: 0, fontWeight: 500 }}>{f.label}</span>
                     <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 500, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                   </div>
@@ -260,21 +279,19 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
               </div>
             </div>
 
-            {/* Status change card */}
-            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+            <div style={{ ...cardStyle, padding: isMobile ? '8px 12px' : '10px 16px' }}>
               <div style={labelStyle}>變更狀態</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {Object.entries(STATUS_MAP).map(([k, v]) => (
-                  <button key={k} onClick={() => updateOrderStatus(k)} disabled={o.status === k} style={{ ...S.btnGhost, padding: '8px 12px', fontSize: 12, background: o.status === k ? '#3b82f6' : '#fff', color: o.status === k ? '#fff' : '#4b5563', borderColor: o.status === k ? '#3b82f6' : '#e5e7eb', opacity: o.status === k ? 1 : 0.8, justifyContent: 'flex-start', textAlign: 'left' }}>{v}</button>
+                  <button key={k} onClick={() => updateOrderStatus(k)} disabled={o.status === k} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '8px 12px', fontSize: 12, background: o.status === k ? '#3b82f6' : '#fff', color: o.status === k ? '#fff' : '#4b5563', borderColor: o.status === k ? '#3b82f6' : '#e5e7eb', opacity: o.status === k ? 1 : 0.8, justifyContent: 'flex-start', textAlign: 'left', minHeight: isMobile ? 40 : 'auto' }}>{v}</button>
                 ))}
               </div>
             </div>
 
-            {/* Remark card */}
-            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+            <div style={{ ...cardStyle, padding: isMobile ? '8px 12px' : '10px 16px' }}>
               <div style={labelStyle}>備註</div>
-              <textarea value={editingRemark} onChange={(e) => setEditingRemark(e.target.value)} style={{ ...S.input, width: '100%', fontSize: 12, minHeight: 80, padding: '12px', borderRadius: 8, fontFamily: 'inherit' }} placeholder="訂單備註" />
-              <button onClick={updateOrderRemark} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12, marginTop: 10, width: '100%' }}>儲存備註</button>
+              <textarea value={editingRemark} onChange={(e) => setEditingRemark(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: 12, minHeight: isMobile ? 80 : 80, padding: isMobile ? '8px 12px' : '12px', borderRadius: 8, fontFamily: 'inherit', minHeight: isMobile ? 80 : 80 }} placeholder="訂單備註" />
+              <button onClick={updateOrderRemark} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '8px 12px' : '6px 14px', fontSize: 12, marginTop: 10, width: '100%', minHeight: isMobile ? 44 : 'auto' }}>儲存備註</button>
             </div>
           </div>
         </div>
@@ -284,6 +301,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
 }
 
 export default function DealerOrders() {
+  const { isMobile } = useResponsive();
   const [data, setData] = useState({ rows: [], total: 0 });
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
@@ -291,7 +309,6 @@ export default function DealerOrders() {
   const [msg, setMsg] = useState('');
   const [statusFilter, setStatusFilter] = useState('pending');
   const [selectedOrder, setSelectedOrder] = useState(null);
-  // Date filter
   const [dateFrom, setDateFrom] = useState(() => getPresetDateRange('month').from);
   const [dateTo, setDateTo] = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
@@ -346,7 +363,6 @@ export default function DealerOrders() {
     } catch { alert('匯出失敗'); }
   };
 
-  // If selectedOrder is set, show detail view
   if (selectedOrder) {
     return (
       <DealerOrderDetailView
@@ -357,26 +373,25 @@ export default function DealerOrders() {
     );
   }
 
-  // List view
   return (
     <div>
       <PageLead eyebrow="DEALER ORDERS" title="經銷商訂單" description="點擊訂單進入詳情頁。可編輯數量、狀態與備註，有貨轉銷貨、缺貨轉採購。" action={
-        <div style={{ display: 'flex', gap: 8 }}>
-          {selected.length > 0 && <button onClick={consolidate} disabled={consolidating} style={{ ...S.btnPrimary, opacity: consolidating ? 0.7 : 1 }}>{consolidating ? '彙整中...' : `彙整 ${selected.length} 筆 → 採購單`}</button>}
-          <button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
+          {selected.length > 0 && <button onClick={consolidate} disabled={consolidating} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto', opacity: consolidating ? 0.7 : 1 }}>{consolidating ? '彙整中...' : `彙整 ${selected.length} 筆`}</button>}
+          <button onClick={handleExport} style={{ ...S.btnGhost, ...(isMobile ? { minHeight: 40 } : {}) }}>匯出 CSV</button>
         </div>
       } />
       <ComingSoonBanner tabId="dealer_orders" />
-      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10 }}>{msg}</div>}
-      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: isMobile ? '8px 12px' : '10px 16px', minHeight: isMobile ? 40 : 'auto' }}>{msg}</div>}
+      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '8px 12px' : '10px 16px' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', minHeight: isMobile ? 40 : 'auto' }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
           <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, fontSize: 13, padding: '6px 10px' }}>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', width: isMobile ? '100%' : 'auto' }}>
             <option value="">全部狀態</option>
             <option value="pending">待處理</option>
             <option value="confirmed">已確認</option>
@@ -386,28 +401,51 @@ export default function DealerOrders() {
             <option value="completed">已完成</option>
             <option value="cancelled">已取消</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋訂單號、客戶..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: '6px 16px', fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋訂單號、客戶..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '6px 12px' : '6px 16px', fontSize: 13, minHeight: isMobile ? 40 : 'auto' }}>查詢</button>
         </div>
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="沒有訂單" /> : (
-        <div ref={tableRef} style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
-          <ResizableHeader headers={[
+        <div ref={tableRef} style={{ ...S.card, padding: isMobile ? 0 : 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
+          {!isMobile && <ResizableHeader headers={[
             { label: '', align: 'center', render: () => <input type="checkbox" checked={selected.length > 0 && selected.length === data.rows.filter((r) => r.status === 'pending').length} onChange={selectAll} /> },
             { label: '訂單號', align: 'center' },
             { label: '下單人', align: 'center' },
             { label: '日期', align: 'center' },
             { label: '狀態', align: 'center' },
             { label: '金額', align: 'center' },
-          ]} />
+          ]} />}
           {data.rows.map((row, idx) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #eef3f8', alignItems: 'center', background: selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedOrder(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd'}>
-              <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', fontSize: 13 }} onClick={(e) => e.stopPropagation()}>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
-              <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'center', ...S.mono }}>{row.order_no || '-'}</div>
-              <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}><div><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: 11, color: '#374151' }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div></div>
-              <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13, color: '#374151', textAlign: 'center', ...S.mono }}>{row.order_date || '-'}</div>
-              <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}><span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span></div>
-              <div style={{ padding: '8px 10px', borderRight: 'none', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+            <div key={row.id} style={{ display: isMobile ? 'block' : 'grid', gridTemplateColumns: !isMobile ? gridTemplate : undefined, gap: 0, padding: isMobile ? '10px 12px' : 0, borderBottom: '1px solid #eef3f8', alignItems: isMobile ? 'flex-start' : 'center', background: selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s', minHeight: isMobile ? 44 : 'auto' }} onClick={() => !isMobile && setSelectedOrder(row)} onMouseEnter={(e) => !isMobile && (e.currentTarget.style.background = '#f0f7ff')} onMouseLeave={(e) => !isMobile && (e.currentTarget.style.background = selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd')}>
+              {isMobile ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <input type="checkbox" checked={row.status === 'pending' && selected.includes(row.id)} onChange={() => toggleSelect(row.id)} style={{ cursor: 'pointer' }} />
+                    <span style={{ fontSize: 14, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</span>
+                    <span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, gap: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{row.dealer?.display_name || '-'}</div>
+                      <div style={{ fontSize: 11, color: '#374151' }}>{row.dealer?.company_name || ''}</div>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: 14, color: '#10b981', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#374151' }}>
+                    <span>{row.order_date || '-'}</span>
+                    <button onClick={() => setSelectedOrder(row)} style={{ ...S.btnPrimary, padding: '6px 12px', fontSize: 12, minHeight: 36 }}>詳情</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', fontSize: 13 }} onClick={(e) => e.stopPropagation()}>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
+                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'center', ...S.mono }}>{row.order_no || '-'}</div>
+                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}><div><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: 11, color: '#374151' }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div></div>
+                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13, color: '#374151', textAlign: 'center', ...S.mono }}>{row.order_date || '-'}</div>
+                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}><span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span></div>
+                  <div style={{ padding: '8px 10px', borderRight: 'none', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+                </>
+              )}
             </div>
           ))}
         </div>

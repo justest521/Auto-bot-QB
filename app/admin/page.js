@@ -58,6 +58,10 @@ import EquipmentLease from './components/tabs/EquipmentLease';
 import AIForecast from './components/tabs/AIForecast';
 import Flowchart from './components/tabs/Flowchart';
 import CompanySettings from './components/tabs/CompanySettings';
+import AccountsReceivable from './components/tabs/AccountsReceivable';
+import ReconciliationStatements from './components/tabs/ReconciliationStatements';
+import PaymentRecords from './components/tabs/PaymentRecords';
+import PaymentMatching from './components/tabs/PaymentMatching';
 
 // ── SECTIONS ──
 const SECTION_ICONS = {
@@ -155,6 +159,10 @@ const SECTIONS = [
     accent: '#0d9488',
     tabs: [
       { id: 'invoices', label: '發票管理', code: 'INV' },
+      { id: 'accounts_receivable', label: '應收帳款', code: 'AR' },
+      { id: 'reconciliation', label: '對帳單', code: 'RCON' },
+      { id: 'payment_records', label: '收款登錄', code: 'RCPT' },
+      { id: 'payment_matching', label: '沖帳配對', code: 'MTCH' },
     ],
   },
   {
@@ -240,6 +248,10 @@ const TAB_META = {
   imports: { eyebrow: 'Import', title: '資料匯入', desc: '匯入 CSV 或 Excel 資料。' },
   crm_leads: { eyebrow: 'CRM Pipeline', title: '商機管線', desc: '追蹤線索到成交的完整流程。' },
   invoices: { eyebrow: 'Invoices', title: '發票管理', desc: '管理發票開立與付款狀態追蹤。' },
+  accounts_receivable: { eyebrow: 'Accounts Receivable', title: '應收帳款', desc: '追蹤客戶應收帳款餘額與帳齡分析。' },
+  reconciliation: { eyebrow: 'Reconciliation', title: '對帳單', desc: '產生客戶對帳單，核對銷貨與收款紀錄。' },
+  payment_records: { eyebrow: 'Payment Records', title: '收款登錄', desc: '登錄客戶匯款、現金、支票等收款資訊。' },
+  payment_matching: { eyebrow: 'Payment Matching', title: '沖帳配對', desc: '將收款單與應收帳款配對沖銷。' },
   approvals: { eyebrow: 'Approvals', title: '簽核審批', desc: '集中管理文件的核准流程。' },
   tickets: { eyebrow: 'Helpdesk', title: '客服工單', desc: '客服工單管理。' },
   dealer_users: { eyebrow: 'Dealer Users', title: '經銷商帳號', desc: '管理帳號、角色與權限。' },
@@ -298,6 +310,10 @@ const TAB_COMPONENTS = {
   stock_alerts: StockAlerts,
   reorder: ReorderSuggestions,
   invoices: Invoices,
+  accounts_receivable: AccountsReceivable,
+  reconciliation: ReconciliationStatements,
+  payment_records: PaymentRecords,
+  payment_matching: PaymentMatching,
   approvals: Approvals,
   tickets: Tickets,
   user_management: UserManagement,
@@ -388,6 +404,7 @@ function AdminPageInner() {
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [sidebarPopup, setSidebarPopup] = useState(null); // section title when popup is open
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 }); // portal popup position
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false); // 手機版抽屜 sidebar
   const sectionRefs = useRef({});
   const [companySettings, setCompanySettings] = useState(null);
   // headerAction is rendered via portal from PageLead into HEADER_ACTION_PORTAL_ID div
@@ -641,10 +658,87 @@ function AdminPageInner() {
         .qb-content table tbody tr:hover{background:#E8F2EE!important}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         @keyframes badgeGlow{0%,100%{box-shadow:0 0 4px rgba(239,68,68,0.3)}50%{box-shadow:0 0 12px rgba(239,68,68,0.6)}}
+        @media(max-width:820px){
+          .qb-content>div>div[style*="border-radius"]:hover{transform:none!important}
+          .qb-card-hover:hover{transform:none!important}
+        }
       `}</style>
-      <div style={{ ...S.shell, flexDirection: isTablet ? 'column' : 'row' }}>
-        {/* ===== SIDEBAR ===== */}
-        <div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 76 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
+      <div style={{ ...S.shell, flexDirection: isMobile ? 'column' : isTablet ? 'column' : 'row' }}>
+
+        {/* ===== MOBILE DRAWER SIDEBAR ===== */}
+        {isMobile && mobileDrawerOpen && createPortal(
+          <>
+            <div style={S.mobileDrawerBackdrop} onClick={() => setMobileDrawerOpen(false)} />
+            <div className="qb-sb" style={S.mobileDrawerPanel}>
+              <div style={{ padding: '0 14px 12px', borderBottom: '1px solid #e5e7eb', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {companySettings?.logo_url ? (
+                    <img src={companySettings.logo_url} alt="Logo" style={{ width: 34, height: 34, borderRadius: 10, objectFit: 'contain', background: '#f3f4f6' }} />
+                  ) : (
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 13, ...S.mono }}>QB</div>
+                  )}
+                  <div>
+                    <div style={{ color: '#111827', fontSize: 14, fontWeight: 700 }}>{companySettings?.company_name || 'Auto-bot QB'}</div>
+                    <div style={{ color: '#9ca3af', fontSize: 10 }}>ERP Console</div>
+                  </div>
+                </div>
+                <button onClick={() => setMobileDrawerOpen(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#9ca3af', cursor: 'pointer', padding: 4 }}>✕</button>
+              </div>
+              <div style={{ padding: '4px 14px 8px' }}>
+                <input className="qb-sb-search" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} placeholder="🔍 搜尋功能..." style={{ width: '100%', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 12px', color: '#111827', fontSize: 14, outline: 'none', fontFamily: "'Noto Sans TC', sans-serif" }} />
+              </div>
+              {(() => {
+                const sq = sidebarSearch.trim().toLowerCase();
+                const permSections = SECTIONS.map((s) => ({ ...s, tabs: s.tabs.filter((t) => hasTab(t.id)) })).filter((s) => s.tabs.length > 0);
+                const filteredSections = sq
+                  ? permSections.map((s) => ({ ...s, tabs: s.tabs.filter((t) => t.label.toLowerCase().includes(sq) || t.code.toLowerCase().includes(sq)) })).filter((s) => s.tabs.length > 0)
+                  : permSections;
+                return filteredSections.map((section) => {
+                  const isCollapsed = !sq && collapsed[section.title];
+                  const iconCfg = SECTION_ICONS[section.title] || { icon: '○', bg: '#f3f4f6', fg: '#6b7280' };
+                  const hasActiveTab = section.tabs.some((t) => t.id === tab);
+                  return (
+                    <div key={section.title}>
+                      <div className="qb-sb-section-hdr" onClick={() => { if (isCollapsed) { expandSection(section.title); } else { toggleCollapsed(section.title); } }} style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, borderRadius: 8, margin: '1px 8px', background: hasActiveTab ? '#f0fdf4' : 'transparent' }}>
+                        <span style={{ width: 28, height: 28, minWidth: 28, borderRadius: 8, background: hasActiveTab ? iconCfg.bg : '#f3f4f6', color: hasActiveTab ? iconCfg.fg : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{iconCfg.icon}</span>
+                        <span style={{ fontSize: 14, color: hasActiveTab ? '#111827' : '#6b7280', fontWeight: 600, flex: 1 }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>
+                        <span style={{ fontSize: 11, color: '#9ca3af', display: 'inline-block', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', transition: 'transform 0.2s' }}>›</span>
+                      </div>
+                      {!isCollapsed && (
+                        <div style={{ padding: '2px 8px 4px' }}>
+                          {section.tabs.map((t) => {
+                            const isActive = tab === t.id;
+                            return (
+                              <div key={t.id} className="qb-sb-item" onClick={() => { setTab(t.id); setMobileDrawerOpen(false); setSidebarSearch(''); }} style={{ padding: '10px 12px 10px 42px', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#16a34a' : '#4b5563', background: isActive ? '#dcfce7' : 'transparent', borderRadius: 8, margin: '1px 0', fontWeight: isActive ? 600 : 400, borderLeft: isActive ? '3px solid #16a34a' : '3px solid transparent', minHeight: 44 }}>
+                                <span style={{ flex: 1 }}>{t.label}</span>
+                                {pendingBadges[t.id] > 0 && <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{pendingBadges[t.id]}</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+              {currentUser && (
+                <div style={{ padding: '12px 14px', borderTop: '1px solid #e5e7eb', marginTop: 8 }}>
+                  <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{currentUser.display_name || currentUser.username}</div>
+                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{currentUser.role_label || currentUser.role}</div>
+                    </div>
+                    <button onClick={logout} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 12px', fontSize: 12, color: '#6b7280', cursor: 'pointer' }}>登出</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>,
+          document.body
+        )}
+
+        {/* ===== DESKTOP/TABLET SIDEBAR ===== */}
+        {!isMobile && (<div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 76 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
           <div style={{ padding: sidebarCollapsed ? '0 6px 10px' : '0 14px 12px', borderBottom: '1px solid #e5e7eb', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', width: sidebarCollapsed ? '100%' : 'auto' }}>
               {companySettings?.logo_url ? (
@@ -766,12 +860,16 @@ function AdminPageInner() {
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#16a34a', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px', cursor: 'pointer' }} title={`${currentUser.display_name || currentUser.username} — 點擊登出`} onClick={logout}>{(currentUser.display_name || currentUser.username || '?')[0].toUpperCase()}</div>
             </div>
           )}
-        </div>
+        </div>)}
 
         {/* ===== MAIN CONTENT ===== */}
         <div style={S.main}>
-          <div style={S.header}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+          <div style={{ ...S.header, ...(isMobile ? S.mobile.header : {}) }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 12, minWidth: 0, flex: 1 }}>
+              {/* 手機版漢堡按鈕 */}
+              {isMobile && (
+                <button onClick={() => setMobileDrawerOpen(true)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#374151', cursor: 'pointer', padding: '4px 6px', lineHeight: 1 }}>☰</button>
+              )}
               <div style={{ minWidth: 0 }}>
                 {TAB_META[tab]?.eyebrow && <div style={{ fontSize: 10, color: '#16a34a', fontWeight: 600, letterSpacing: 1.2, textTransform: 'uppercase', ...S.mono, marginBottom: 2 }}>{TAB_META[tab].eyebrow}</div>}
                 <div style={{ color: '#111827', fontWeight: 700, fontSize: 17, letterSpacing: -0.3 }}>{TAB_META[tab]?.title || tab}</div>
@@ -781,7 +879,7 @@ function AdminPageInner() {
             <div id={HEADER_ACTION_PORTAL_ID} style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }} />
           </div>
 
-          <div className="qb-content" style={{ ...S.content, padding: isMobile ? '18px 14px 30px' : isTablet ? '22px 18px 34px' : S.content.padding }}>
+          <div className="qb-content" style={{ ...S.content, padding: isMobile ? '14px 12px 90px' : isTablet ? '22px 18px 34px' : S.content.padding }}>
             {hasTab(tab) ? <ActiveTab setTab={setTab} apiGet={apiGet} apiPost={apiPost} /> : (
               <div style={{ ...S.card, padding: 40, textAlign: 'center', maxWidth: 480, margin: '60px auto' }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>{'\uD83D\uDD12'}</div>
@@ -792,6 +890,31 @@ function AdminPageInner() {
           </div>
         </div>
       </div>
+
+      {/* ===== MOBILE BOTTOM NAV ===== */}
+      {isMobile && (
+        <nav style={S.bottomNav}>
+          {[
+            { id: 'dashboard', icon: '◉', label: '總覽' },
+            { id: 'orders', icon: '⬆', label: '訂單' },
+            { id: 'quick_receive', icon: '⬇', label: '進貨' },
+            { id: 'inventory', icon: '⊞', label: '庫存' },
+            { id: '_more', icon: '☰', label: '更多' },
+          ].map(nav => (
+            <button
+              key={nav.id}
+              onClick={() => {
+                if (nav.id === '_more') { setMobileDrawerOpen(true); }
+                else { setTab(nav.id); }
+              }}
+              style={S.bottomNavItem(nav.id !== '_more' && tab === nav.id)}
+            >
+              <span style={S.bottomNavIcon(nav.id !== '_more' && tab === nav.id)}>{nav.icon}</span>
+              <span>{nav.label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }

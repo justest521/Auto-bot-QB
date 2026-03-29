@@ -2,13 +2,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtP, fmtDate, exportCsv } from '@/lib/admin/helpers';
+import { fmt, fmtP, fmtDate, exportCsv, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
-import { useViewportWidth } from '@/lib/admin/helpers';
 import { StatCard } from '../shared/ui';
 
 export default function VendorPayments() {
-  const width = useViewportWidth(); const isMobile = width < 820;
+  const { isMobile } = useResponsive();
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true); const [search, setSearch] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
@@ -44,7 +43,7 @@ export default function VendorPayments() {
           <button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button>
           <button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 新增付款</button>
         </div>} />
-      <div style={S.statGrid}>
+      <div style={{ ...S.statGrid, ...(isMobile && { gridTemplateColumns: 'repeat(2, 1fr)' }) }}>
         <StatCard code="PEND" label="待確認" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
         <StatCard code="CONF" label="已付款" value={fmt(sm.confirmed)} tone="blue" accent="#16a34a" />
         <StatCard code="AMT" label="已付總額" value={fmtP(sm.total_paid)} tone="blue" />
@@ -63,13 +62,13 @@ export default function VendorPayments() {
       ))}
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search)} />
       {createOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ ...(isMobile ? S.mobileModal : { ...S.card, width: 440, maxWidth: '90vw' }), overflowY: 'auto', maxHeight: '90vh' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>新增付款單</h3>
             {[{ key: 'vendor_id', label: '廠商 ID', type: 'text' }, { key: 'amount', label: '金額', type: 'number' }, { key: 'payment_date', label: '付款日期', type: 'date' }, { key: 'bank_info', label: '銀行/帳號資訊', type: 'text' }, { key: 'remark', label: '備註', type: 'text' }].map(f => (
-              <div key={f.key} style={{ marginBottom: 10 }}><label style={S.label}>{f.label}</label><input type={f.type} value={form[f.key]} onChange={(e) => setForm(p => ({ ...p, [f.key]: e.target.value }))} style={S.input} /></div>
+              <div key={f.key} style={{ marginBottom: 10 }}><label style={S.label}>{f.label}</label><input type={f.type} value={form[f.key]} onChange={(e) => setForm(p => ({ ...p, [f.key]: e.target.value }))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
             ))}
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}><button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button><button onClick={handleCreate} style={S.btnPrimary}>建立付款</button></div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: isMobile ? 'stretch' : 'flex-end', flexDirection: isMobile ? 'column' : 'row' }}><button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, ...(isMobile ? { width: '100%' } : {}) }}>取消</button><button onClick={handleCreate} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}) }}>建立付款</button></div>
           </div>
         </div>
       )}

@@ -2,14 +2,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtDate } from '@/lib/admin/helpers';
+import { fmt, fmtDate, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
-import { useViewportWidth } from '@/lib/admin/helpers';
 import { StatCard } from '../shared/ui';
 
 export default function Inquiries() {
-  const width = useViewportWidth();
-  const isMobile = width < 820;
+  const { isMobile, isTablet } = useResponsive();
   const [data, setData] = useState({ inquiries: [], total: 0, page: 1, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -47,11 +45,11 @@ export default function Inquiries() {
         <StatCard code="CLSD" label="已結案" value={fmt(sm.closed)} tone="blue" accent="#16a34a" />
       </div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexDirection: isMobile ? 'column' : 'row' }}>
-        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋詢價單號或主旨..." style={{ ...S.input, flex: 1 }} />
-        <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(1, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 140 }}>
+        <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋詢價單號或主旨..." style={{ ...S.input, ...S.mobile.input, flex: 1 }} />
+        <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(1, search, e.target.value); }} style={{ ...S.input, ...(isMobile && S.mobile.input), width: isMobile ? '100%' : 140 }}>
           <option value="">全部狀態</option><option value="open">待處理</option><option value="quoted">已報價</option><option value="closed">已結案</option>
         </select>
-        <button onClick={() => load(1, search, statusF)} style={S.btnPrimary}>搜尋</button>
+        <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, ...(isMobile && { ...S.mobile.btnPrimary, marginTop: 0 }) }}>搜尋</button>
       </div>
       {loading ? <Loading /> : data.inquiries.length === 0 ? <EmptyState text="目前沒有詢價記錄" /> : data.inquiries.map(inq => (
         <div key={inq.id} style={{ ...S.card, padding: '10px 16px', marginBottom: 10 }}>
@@ -70,21 +68,21 @@ export default function Inquiries() {
       ))}
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF)} />
       {createOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 440, maxWidth: '90vw', padding: '10px 16px' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20 }}>
+          <div style={{ ...S.card, width: isMobile ? '100%' : 440, maxWidth: isMobile ? '100%' : '90vw', maxHeight: isMobile ? '90vh' : 'auto', overflowY: isMobile ? 'auto' : 'visible', borderRadius: isMobile ? '16px 16px 0 0' : 14, padding: '10px 16px' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>新增詢價</h3>
-            <div style={{ marginBottom: 10 }}><label style={{ ...S.label, marginBottom: 6 }}>客戶 ID (選填)</label><input value={form.customer_id} onChange={(e) => setForm(p => ({ ...p, customer_id: e.target.value }))} style={S.input} /></div>
-            <div style={{ marginBottom: 10 }}><label style={{ ...S.label, marginBottom: 6 }}>主旨 *</label><input value={form.subject} onChange={(e) => setForm(p => ({ ...p, subject: e.target.value }))} style={S.input} /></div>
-            <div style={{ marginBottom: 10 }}><label style={{ ...S.label, marginBottom: 6 }}>說明</label><textarea value={form.description} onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))} style={{ ...S.input, minHeight: 80 }} /></div>
+            <div style={{ marginBottom: 10 }}><label style={{ ...S.label, marginBottom: 6 }}>客戶 ID (選填)</label><input value={form.customer_id} onChange={(e) => setForm(p => ({ ...p, customer_id: e.target.value }))} style={{ ...S.input, ...S.mobile.input }} /></div>
+            <div style={{ marginBottom: 10 }}><label style={{ ...S.label, marginBottom: 6 }}>主旨 *</label><input value={form.subject} onChange={(e) => setForm(p => ({ ...p, subject: e.target.value }))} style={{ ...S.input, ...S.mobile.input }} /></div>
+            <div style={{ marginBottom: 10 }}><label style={{ ...S.label, marginBottom: 6 }}>說明</label><textarea value={form.description} onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))} style={{ ...S.input, ...S.mobile.input, minHeight: 80 }} /></div>
             <div style={{ marginBottom: 10 }}>
               <label style={{ ...S.label, marginBottom: 6 }}>優先度</label>
-              <select value={form.priority} onChange={(e) => setForm(p => ({ ...p, priority: e.target.value }))} style={S.input}>
+              <select value={form.priority} onChange={(e) => setForm(p => ({ ...p, priority: e.target.value }))} style={{ ...S.input, ...S.mobile.input }}>
                 <option value="low">低</option><option value="normal">一般</option><option value="high">高</option><option value="urgent">緊急</option>
               </select>
             </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => setCreateOpen(false)} style={S.btnGhost}>取消</button>
-              <button onClick={handleCreate} style={S.btnPrimary}>建立詢價</button>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+              <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, ...(isMobile && { width: '100%' }) }}>取消</button>
+              <button onClick={handleCreate} style={{ ...S.btnPrimary, ...(isMobile && S.mobile.btnPrimary) }}>建立詢價</button>
             </div>
           </div>
         </div>

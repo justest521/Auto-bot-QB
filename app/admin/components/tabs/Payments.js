@@ -2,14 +2,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtP, fmtDate, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
+import { fmt, fmtP, fmtDate, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
-import { useViewportWidth } from '@/lib/admin/helpers';
 import { StatCard } from '../shared/ui';
 
 export default function Payments() {
-  const width = useViewportWidth();
-  const isMobile = width < 820;
+  const { isMobile, isTablet } = useResponsive();
   const [data, setData] = useState({ payments: [], total: 0, page: 1, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -67,45 +65,111 @@ export default function Payments() {
   return (
     <div>
       <PageLead eyebrow="Payments" title="收款管理" description="記錄客戶付款、確認收款狀態，自動更新訂單付款進度。"
-        action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button>
-          <button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 新增收款</button>
+        action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', ...(isMobile ? { width: '100%' } : {}) }}>
+          <button onClick={handleExport} style={{ ...S.btnGhost, ...(isMobile ? { flex: 1 } : {}) }}>匯出 CSV</button>
+          <button onClick={() => setCreateOpen(true)} style={{ ...S.btnPrimary, ...(isMobile ? { flex: 1, minHeight: 44 } : {}) }}>+ 新增收款</button>
         </div>} />
-      <div style={S.statGrid}>
+      <div style={{ ...S.statGrid, ...(isMobile ? S.mobile.statGrid : {}) }}>
         <StatCard code="PEND" label="待確認" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
         <StatCard code="CONF" label="已確認" value={fmt(sm.confirmed)} tone="blue" accent="#16a34a" />
         <StatCard code="AMT" label="已收金額" value={fmtP(sm.total_confirmed_amount)} tone="blue" />
       </div>
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
-          ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px' }}>
-            <option value="">全部狀態</option>
-            <option value="pending">待確認</option>
-            <option value="confirmed">已確認</option>
-          </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 13 }}>查詢</button>
-        </div>
-      </div>
-      {loading ? <Loading /> : data.payments.length === 0 ? <EmptyState text="目前沒有收款記錄" /> : data.payments.map(p => (
-        <div key={p.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '140px 100px 120px minmax(0,1fr) 100px', gap: 10, alignItems: 'center' }}>
-            <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>PAY_NO</div><div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{p.payment_number || '-'}</div></div>
-            <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>AMOUNT</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(p.amount)}</div></div>
-            <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>METHOD</div><div style={{ fontSize: 14 }}>{methodLabel(p.payment_method)}</div></div>
-            <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>DATE</div><div style={{ fontSize: 13 }}>{fmtDate(p.payment_date || p.created_at)}</div></div>
-            <div>{p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}</div>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 8, flexWrap: 'wrap', alignItems: isMobile ? 'stretch' : 'center' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
+            {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
+              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+            <span style={{ color: '#6b7280', fontSize: 13, flexShrink: 0 }}>~</span>
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
+            <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }}>
+              <option value="">全部狀態</option>
+              <option value="pending">待確認</option>
+              <option value="confirmed">已確認</option>
+            </select>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }} />
+            <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, padding: isMobile ? '10px 16px' : '6px 18px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, flexShrink: 0 }}>查詢</button>
           </div>
         </div>
-      ))}
+      </div>
+      {loading ? <Loading /> : data.payments.length === 0 ? <EmptyState text="目前沒有收款記錄" /> : isMobile ? (
+        data.payments.map(p => (
+          <div key={p.id} style={{ ...S.mobileCard, marginBottom: 10 }}>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>收款單號</span>
+              <span style={{ ...S.mobileCardValue, color: '#3b82f6' }}>{p.payment_number || '-'}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>金額</span>
+              <span style={S.mobileCardValue}>{fmtP(p.amount)}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>付款方式</span>
+              <span style={S.mobileCardValue}>{methodLabel(p.payment_method)}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>付款日期</span>
+              <span style={S.mobileCardValue}>{fmtDate(p.payment_date || p.created_at)}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>狀態</span>
+              <div>
+                {p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '8px 16px', fontSize: 14, minHeight: 44 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}
+              </div>
+            </div>
+          </div>
+        ))
+      ) : (
+        data.payments.map(p => (
+          <div key={p.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '140px 100px 120px minmax(0,1fr) 100px', gap: 10, alignItems: 'center' }}>
+              <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>PAY_NO</div><div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{p.payment_number || '-'}</div></div>
+              <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>AMOUNT</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(p.amount)}</div></div>
+              <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>METHOD</div><div style={{ fontSize: 14 }}>{methodLabel(p.payment_method)}</div></div>
+              <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>DATE</div><div style={{ fontSize: 13 }}>{fmtDate(p.payment_date || p.created_at)}</div></div>
+              <div>{p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}</div>
+            </div>
+          </div>
+        ))
+      )}
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF, dateFrom, dateTo)} />
-      {createOpen && (
+      {createOpen && isMobile ? (
+        <div style={{ ...S.mobileModal }}>
+          <div style={{ ...S.mobileModalHeader }}>
+            <h3 style={{ margin: '0', fontSize: 18, fontWeight: 700 }}>新增收款記錄</h3>
+            <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, padding: '8px 12px' }}>關閉</button>
+          </div>
+          <div style={{ ...S.mobileModalBody }}>
+            {[
+              { key: 'order_id', label: '訂單 ID (qb_sales_history)', type: 'text' },
+              { key: 'amount', label: '金額', type: 'number' },
+              { key: 'payment_date', label: '付款日期', type: 'date' },
+              { key: 'bank_last5', label: '帳號末五碼', type: 'text' },
+              { key: 'notes', label: '備註', type: 'text' },
+            ].map(f => (
+              <div key={f.key} style={{ marginBottom: 16 }}>
+                <label style={S.label}>{f.label}</label>
+                <input type={f.type} value={form[f.key]} onChange={(e) => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} style={{ ...S.input, ...S.mobile.input, width: '100%' }} />
+              </div>
+            ))}
+            <div style={{ marginBottom: 16 }}>
+              <label style={S.label}>付款方式</label>
+              <select value={form.payment_method} onChange={(e) => setForm(prev => ({ ...prev, payment_method: e.target.value }))} style={{ ...S.input, ...S.mobile.input, width: '100%' }}>
+                <option value="transfer">匯款</option><option value="cash">現金</option><option value="check">支票</option><option value="card">信用卡</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ ...S.mobileModalFooter }}>
+            <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, flex: 1, minHeight: 44 }}>取消</button>
+            <button onClick={handleCreate} style={{ ...S.btnPrimary, ...S.mobile.btnPrimary, flex: 1 }}>建立收款</button>
+          </div>
+        </div>
+      ) : createOpen ? (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>新增收款記錄</h3>
@@ -133,7 +197,7 @@ export default function Payments() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmtP, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
+import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead } from '../shared/ui';
 
 function StatCard({ code, label, value, tone }) {
@@ -22,21 +22,8 @@ function StatCard({ code, label, value, tone }) {
   );
 }
 
-function useViewportWidth() {
-  const [width, setWidth] = useState(1400);
-
-  useEffect(() => {
-    const update = () => setWidth(window.innerWidth);
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
-
-  return width;
-}
-
 export default function Invoices() {
-  const width = useViewportWidth(); const isMobile = width < 820;
+  const { isMobile, isTablet } = useResponsive();
   const [data, setData] = useState({ rows: [], total: 0, summary: {} });
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -109,10 +96,10 @@ export default function Invoices() {
   return (
     <div>
       <PageLead eyebrow="INVOICES" title="發票管理" description="管理發票開立、付款狀態追蹤，參考 Odoo 會計模組。"
-        action={<button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button>} />
+        action={<button onClick={handleExport} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnGhost) }}>匯出 CSV</button>} />
       {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
 
-      <div style={S.statGrid}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12 }}>
         <StatCard code="UNPD" label="未付款" value={fmtP(s.unpaid_amount)} tone="yellow" />
         <StatCard code="PAID" label="已收款" value={fmtP(s.paid_amount)} tone="green" />
         <StatCard code="OVRD" label="逾期" value={fmtP(s.overdue_amount)} tone="red" />
@@ -120,15 +107,15 @@ export default function Invoices() {
       </div>
 
       {/* Unified filter card */}
-      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '12px 14px' : '10px 16px' }}>
+        <div style={{ display: 'flex', gap: isMobile ? 6 : 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: isMobile ? 12 : 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(e.target.value, search); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px' }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
+          {!isMobile && <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>}
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(e.target.value, search); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="draft">草稿</option>
             <option value="sent">已寄出</option>
@@ -138,55 +125,84 @@ export default function Invoices() {
             <option value="overdue">逾期</option>
             <option value="cancelled">已取消</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋發票號、客戶..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋發票號、客戶..." style={{ ...S.input, flex: isMobile ? '1 1 100%' : '1 1 auto', minWidth: isMobile ? 0 : 160, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: 13 }}>查詢</button>
         </div>
       </div>
 
-      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有發票資料" /> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead><tr style={{ background: '#f3f4f6' }}>
-            <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>發票號</th>
-            <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>客戶</th>
-            <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>狀態</th>
-            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>金額</th>
-            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>已付</th>
-            <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>餘額</th>
-            <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>到期日</th>
-            <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>操作</th>
-          </tr></thead>
-          <tbody>{(data.rows || []).map(inv => {
+      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有發票資料" /> : isMobile ? (
+        <div>
+          {(data.rows || []).map(inv => {
             const st = STATUS_MAP[inv.status] || STATUS_MAP.draft;
             const balance = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
             return (
-              <tr key={inv.id} style={{ borderTop: '1px solid #f0f0f0' }}>
-                <td style={{ padding: '10px 12px', fontWeight: 600, color: '#3b82f6', ...S.mono }}>{inv.invoice_no || '-'}</td>
-                <td style={{ padding: '10px 12px' }}>{inv.customer_name || '-'}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'center' }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></td>
-                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(inv.total_amount)}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a', ...S.mono }}>{fmtP(inv.paid_amount)}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 11, ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                  {balance > 0 && inv.status !== 'cancelled' && (
-                    <button onClick={() => { setPayDialog(inv); setPayAmount(String(balance)); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>收款</button>
-                  )}
-                </td>
-              </tr>
+              <div key={inv.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{inv.invoice_no || '-'}</div>
+                    <div style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>{inv.customer_name || '-'}</div>
+                  </div>
+                  <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10, padding: '3px 8px', borderRadius: 4 }}>{st.label}</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12, color: '#6b7280', marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #e5e7eb' }}>
+                  <div><span style={{ color: '#6b7280' }}>金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(inv.total_amount)}</div></div>
+                  <div><span style={{ color: '#6b7280' }}>已付</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(inv.paid_amount)}</div></div>
+                  <div><span style={{ color: '#6b7280' }}>餘額</span><div style={{ fontSize: 14, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div></div>
+                  <div><span style={{ color: '#6b7280' }}>到期日</span><div style={{ fontSize: 12, color: '#111827', ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</div></div>
+                </div>
+                {balance > 0 && inv.status !== 'cancelled' && (
+                  <button onClick={() => { setPayDialog(inv); setPayAmount(String(balance)); }} style={{ width: '100%', ...S.mobile.btnPrimary }}>收款</button>
+                )}
+              </div>
             );
-          })}</tbody>
-        </table>
+          })}
+        </div>
+      ) : (
+        <div style={{ ...S.card, padding: 0, overflow: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead><tr style={{ background: '#f3f4f6' }}>
+              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>發票號</th>
+              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>客戶</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>狀態</th>
+              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>金額</th>
+              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>已付</th>
+              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>餘額</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>到期日</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>操作</th>
+            </tr></thead>
+            <tbody>{(data.rows || []).map(inv => {
+              const st = STATUS_MAP[inv.status] || STATUS_MAP.draft;
+              const balance = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
+              return (
+                <tr key={inv.id} style={{ borderTop: '1px solid #f0f0f0' }}>
+                  <td style={{ padding: '10px 12px', fontWeight: 600, color: '#3b82f6', ...S.mono }}>{inv.invoice_no || '-'}</td>
+                  <td style={{ padding: '10px 12px' }}>{inv.customer_name || '-'}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'center' }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(inv.total_amount)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a', ...S.mono }}>{fmtP(inv.paid_amount)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 11, ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                    {balance > 0 && inv.status !== 'cancelled' && (
+                      <button onClick={() => { setPayDialog(inv); setPayAmount(String(balance)); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>收款</button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}</tbody>
+          </table>
+        </div>
       )}
 
       {payDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 400, maxWidth: '90vw', borderRadius: 14, padding: '16px 18px 20px' }}>
+          <div style={{ ...S.card, width: isMobile ? '90vw' : 400, maxWidth: '90vw', borderRadius: 14, padding: isMobile ? '16px 18px' : '16px 18px 20px' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>記錄收款</h3>
             <div style={{ marginBottom: 12, fontSize: 13, color: '#374151' }}>發票：{payDialog.invoice_no} / 餘額：{fmtP(Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0))}</div>
-            <div style={{ marginBottom: 12 }}><label style={S.label}>收款金額</label><input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} style={S.input} /></div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => setPayDialog(null)} style={S.btnGhost}>取消</button>
-              <button onClick={handlePay} style={S.btnPrimary}>確認收款</button>
+            <div style={{ marginBottom: 12 }}><label style={S.label}>收款金額</label><input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+              <button onClick={() => setPayDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>
+              <button onClick={handlePay} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnPrimary) }}>確認收款</button>
             </div>
           </div>
         </div>

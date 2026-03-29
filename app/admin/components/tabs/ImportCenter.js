@@ -2,10 +2,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtDate, useViewportWidth, IMPORT_DATASETS } from '@/lib/admin/helpers';
+import { fmt, fmtDate, useResponsive, IMPORT_DATASETS } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, PanelHeader, CsvImportButton } from '../shared/ui';
 
 export default function ImportCenter() {
+  const { isMobile } = useResponsive();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resetting, setResetting] = useState(false);
@@ -59,13 +60,13 @@ export default function ImportCenter() {
             {resetStatus}
           </div>
         ) : null}
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: isMobile ? 'stretch' : 'center', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
           <div style={{ fontSize: 13, color: '#8a5b00', lineHeight: 1.8 }}>
             清空範圍：商品、正式客戶、廠商、報價、訂單、銷貨、銷退貨、利潤分析。
             <br />
             保留範圍：LINE 客戶、LINE 訊息、系統設定、AI Prompt、匯入歷史。
           </div>
-          <button onClick={resetBusinessData} disabled={resetting} style={{ ...S.btnGhost, borderColor: '#f0b86d', color: '#8a5b00', background: '#fff' }}>
+          <button onClick={resetBusinessData} disabled={resetting} style={{ ...S.btnGhost, borderColor: '#f0b86d', color: '#8a5b00', background: '#fff', ...(isMobile ? { width: '100%', minHeight: 44 } : {}), minWidth: isMobile ? 'auto' : 150 }}>
             {resetting ? '清空中...' : '清空 ERP 業務資料'}
           </button>
         </div>
@@ -73,13 +74,13 @@ export default function ImportCenter() {
       <div style={{ display: 'grid', gap: 14 }}>
         {Object.entries(IMPORT_DATASETS).map(([datasetId, dataset]) => (
           <div key={datasetId} style={S.card}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-              <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-start', gap: 12, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
+              <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 16, color: '#111827', fontWeight: 700 }}>{dataset.title}</div>
                 <div style={{ fontSize: 13, color: '#374151', marginTop: 6, lineHeight: 1.7 }}>{dataset.desc}</div>
                 <div style={{ fontSize: 11, color: '#6b7280', marginTop: 8, ...S.mono }}>{dataset.fields}</div>
               </div>
-              <div style={{ minWidth: 150, textAlign: 'right' }}>
+              <div style={{ minWidth: isMobile ? '100%' : 150, textAlign: isMobile ? 'center' : 'right' }}>
                 <CsvImportButton datasetId={datasetId} onImported={loadHistory} />
               </div>
             </div>
@@ -94,7 +95,7 @@ export default function ImportCenter() {
               const dataset = IMPORT_DATASETS[entry.dataset];
               return (
                 <div key={`${entry.imported_at || 'history'}-${index}`} style={{ ...S.panelMuted, display: 'grid', gap: 6 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: 12, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
                     <div style={{ fontSize: 13, color: '#111827', fontWeight: 700 }}>
                       {dataset?.title || entry.dataset || '未知資料集'}
                     </div>

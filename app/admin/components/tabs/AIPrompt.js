@@ -2,12 +2,11 @@
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, useViewportWidth } from '@/lib/admin/helpers';
+import { fmt, useResponsive } from '@/lib/admin/helpers';
 import { Loading, PageLead, StatCard } from '../shared/ui';
 
 export default function AIPrompt() {
-  const width = useViewportWidth();
-  const isMobile = width < 820;
+  const { isMobile } = useResponsive();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -39,7 +38,7 @@ export default function AIPrompt() {
       <PageLead eyebrow="Prompt" title="AI Prompt 設定" description="調整 Bot 的回覆風格與客服 SOP，這裡的內容會直接影響下一次對話生成。" />
 
       {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 24, ...(isMobile && { gridTemplateColumns: 'repeat(2, 1fr)' }) }}>
           <StatCard code="HIST" label="歷史對話" value={fmt(stats.chatHistory)} sub="匯入的 Line 對話" accent="#06c755" />
           <StatCard code="AI" label="AI 回覆" value={fmt(stats.aiMessages)} sub="Bot 自動回覆" accent="#10b981" />
         </div>
@@ -61,8 +60,8 @@ export default function AIPrompt() {
           />
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row' }}>
-          <button onClick={save} style={{ ...S.btnPrimary, flex: 1, background: saved ? '#22c55e' : '#10b981', transition: 'background 0.3s', padding: '11px 0', fontSize: 14 }}>{saved ? '✓ SAVED' : '儲存 Prompt'}</button>
-          <div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>{prompt.length} 字</div>
+          <button onClick={save} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), flex: 1, background: saved ? '#22c55e' : '#10b981', transition: 'background 0.3s', padding: isMobile ? '12px 16px' : '11px 0', fontSize: 14 }}>{saved ? '✓ SAVED' : '儲存 Prompt'}</button>
+          <div style={{ fontSize: 11, color: '#6b7280', ...S.mono, whiteSpace: 'nowrap' }}>{prompt.length} 字</div>
         </div>
       </div>
 

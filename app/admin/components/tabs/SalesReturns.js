@@ -2,14 +2,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet } from '@/lib/admin/api';
-import { fmt, fmtP, getPresetDateRange, useViewportWidth, exportCsv } from '@/lib/admin/helpers';
+import { fmt, fmtP, getPresetDateRange, useResponsive, exportCsv } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton, SaleDetailDrawer } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
 export default function SalesReturns() {
-  const width = useViewportWidth();
-  const isMobile = width < 820;
-  const isTablet = width < 1180;
+  const { isMobile, isTablet } = useResponsive();
   const { colWidths, gridTemplate, ResizableHeader } = useResizableColumns(
     isTablet ? 'sales_returns_list_tablet' : 'sales_returns_list',
     isTablet ? [96, 150, 220, 110, 120] : [96, 160, 220, 110, 150, 130, 130]
@@ -82,28 +80,30 @@ export default function SalesReturns() {
         }
       />
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: rangePreset === key ? '#3b82f6' : '#fff', color: rangePreset === key ? '#fff' : '#4b5563', borderColor: rangePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
-          ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setRangePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setRangePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, fontSize: 13, padding: '6px 10px' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile && { flexDirection: 'column' }), ...(isMobile && { alignItems: 'stretch' }) }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', ...(isMobile && { width: '100%' }) }}>
+            {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
+              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: rangePreset === key ? '#3b82f6' : '#fff', color: rangePreset === key ? '#fff' : '#4b5563', borderColor: rangePreset === key ? '#3b82f6' : '#e5e7eb', flex: isMobile ? 1 : 'auto', minWidth: 60 }}>{label}</button>
+            ))}
+          </div>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setRangePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono }} />
+          <span style={{ color: '#6b7280', fontSize: 13, display: isMobile ? 'none' : 'block' }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setRangePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono }} />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 13, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : 'auto' }}>
             <option value="">全部狀態</option>
             <option value="pending">待處理</option>
             <option value="approved">已核准</option>
             <option value="completed">已完成</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: '6px 16px', fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: isMobile ? 1 : 1, minWidth: 160, fontSize: 13, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : 'auto' }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, ...(isMobile ? { width: '100%', minHeight: 44, padding: '12px 16px' } : { padding: '6px 16px' }), fontSize: 13 }}>查詢</button>
         </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_sales_return_summary` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入銷退貨 CSV。</div>}
       <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>
         共 {fmt(data.total)} 筆單據{dateFrom || dateTo ? ` · ${dateFrom || '...'} → ${dateTo || '...'}` : ''}{statusFilter ? ` · ${statusFilter}` : ''}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
+      <div style={{ ...S.statGrid, ...(isMobile && { gridTemplateColumns: 'repeat(2, 1fr)' }), marginBottom: 10 }}>
         <StatCard code="AMT" label="未稅金額" value={fmtP(data.summary?.amount)} tone="blue" />
         <StatCard code="TAX" label="稅額" value={fmtP(data.summary?.tax)} tone="yellow" />
         <StatCard code="TOTAL" label="總金額" value={fmtP(data.summary?.total)} tone="green" />

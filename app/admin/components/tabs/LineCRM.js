@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+import { useResponsive } from '@/lib/admin/helpers';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard } from '../shared/ui';
@@ -17,6 +18,7 @@ const TAG_COLORS = {
 };
 
 export default function LineCRM() {
+  const { isMobile } = useResponsive();
   const [customers, setCustomers] = useState([]);
   const [tagSummary, setTagSummary] = useState({});
   const [availableTags, setAvailableTags] = useState([]);
@@ -29,7 +31,6 @@ export default function LineCRM() {
   const [broadcastLoading, setBroadcastLoading] = useState(false);
   const [broadcastStatus, setBroadcastStatus] = useState(null);
 
-  // Load initial data
   useEffect(() => {
     loadCustomers();
   }, []);
@@ -123,9 +124,9 @@ export default function LineCRM() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '2rem' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-start', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 12 : 0 }}>
         <PageLead
           eyebrow="LINE CRM"
           title="客戶標籤管理"
@@ -134,7 +135,9 @@ export default function LineCRM() {
         <button
           style={{
             ...S.btnPrimary,
-            marginTop: '0.5rem',
+            ...(isMobile ? S.mobile.btnPrimary : {}),
+            minHeight: isMobile ? 44 : 'auto',
+            marginTop: isMobile ? 0 : '0.5rem',
           }}
           onClick={handleAutoTag}
           disabled={autoTagging}
@@ -144,7 +147,7 @@ export default function LineCRM() {
       </div>
 
       {/* Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.625rem', marginBottom: '0.625rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? '0.5rem' : '0.625rem', marginBottom: isMobile ? 0 : '0.625rem' }}>
         <StatCard
           label="總客戶數"
           value={fmt(totalCustomers)}
@@ -168,7 +171,7 @@ export default function LineCRM() {
       </div>
 
       {/* Tag Filter Bar */}
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', paddingBottom: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
+      <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.75rem', flexWrap: 'wrap', paddingBottom: '0.5rem', borderBottom: '1px solid #e5e7eb', overflowX: isMobile ? 'auto' : 'visible' }}>
         <button
           onClick={() => handleTagFilter(null)}
           style={{
@@ -176,11 +179,13 @@ export default function LineCRM() {
             backgroundColor: !selectedTag ? '#06c755' : '#f3f4f6',
             color: !selectedTag ? '#fff' : '#374151',
             cursor: 'pointer',
-            padding: '0.5rem 1rem',
+            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
             borderRadius: '9999px',
-            fontSize: '0.875rem',
+            fontSize: isMobile ? '0.8rem' : '0.875rem',
             fontWeight: '500',
             border: 'none',
+            whiteSpace: 'nowrap',
+            minHeight: isMobile ? 36 : 'auto',
           }}
         >
           全部 ({fmt(totalCustomers)})
@@ -194,11 +199,13 @@ export default function LineCRM() {
               backgroundColor: selectedTag === tag ? '#06c755' : '#f3f4f6',
               color: selectedTag === tag ? '#fff' : '#374151',
               cursor: 'pointer',
-              padding: '0.5rem 1rem',
+              padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
               borderRadius: '9999px',
-              fontSize: '0.875rem',
+              fontSize: isMobile ? '0.8rem' : '0.875rem',
               fontWeight: '500',
               border: 'none',
+              whiteSpace: 'nowrap',
+              minHeight: isMobile ? 36 : 'auto',
             }}
           >
             {tag} ({fmt(tagSummary[tag] || 0)})
@@ -207,7 +214,7 @@ export default function LineCRM() {
       </div>
 
       {/* Customer List */}
-      <div style={{ display: 'grid', gap: '0.625rem' }}>
+      <div style={{ display: 'grid', gap: isMobile ? '0.5rem' : '0.625rem' }}>
         {customers.length === 0 ? (
           <EmptyState message="沒有客戶" />
         ) : (
@@ -217,16 +224,18 @@ export default function LineCRM() {
               style={{
                 ...S.card,
                 display: 'flex',
-                gap: '0.625rem',
+                gap: isMobile ? '0.5rem' : '0.625rem',
                 alignItems: 'flex-start',
-                marginBottom: '0.625rem',
+                marginBottom: isMobile ? '0.5rem' : '0.625rem',
+                padding: isMobile ? '8px 12px' : '12px 16px',
+                flexDirection: isMobile ? 'column' : 'row',
               }}
             >
               {/* Avatar */}
               <div
                 style={{
-                  width: '3rem',
-                  height: '3rem',
+                  width: isMobile ? '2.5rem' : '3rem',
+                  height: isMobile ? '2.5rem' : '3rem',
                   borderRadius: '9999px',
                   backgroundColor: '#06c755',
                   display: 'flex',
@@ -234,7 +243,7 @@ export default function LineCRM() {
                   justifyContent: 'center',
                   color: '#fff',
                   fontWeight: 'bold',
-                  fontSize: '1.125rem',
+                  fontSize: isMobile ? '1rem' : '1.125rem',
                   flexShrink: 0,
                 }}
               >
@@ -242,10 +251,10 @@ export default function LineCRM() {
               </div>
 
               {/* Content */}
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : 'auto' }}>
                 {/* Name and Tags */}
-                <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', marginBottom: '0.625rem', flexWrap: 'wrap' }}>
-                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: '#111827' }}>
+                <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', marginBottom: isMobile ? '0.375rem' : '0.625rem', flexWrap: 'wrap' }}>
+                  <h3 style={{ margin: 0, fontSize: isMobile ? '0.95rem' : '1rem', fontWeight: '600', color: '#111827' }}>
                     {customer.display_name}
                   </h3>
                   {customer.tags?.map(tag => (
@@ -253,9 +262,9 @@ export default function LineCRM() {
                       key={tag}
                       style={{
                         display: 'inline-block',
-                        padding: '0.25rem 0.75rem',
+                        padding: isMobile ? '0.2rem 0.5rem' : '0.25rem 0.75rem',
                         borderRadius: '0.375rem',
-                        fontSize: '0.75rem',
+                        fontSize: isMobile ? '0.7rem' : '0.75rem',
                         fontWeight: '500',
                         backgroundColor: TAG_COLORS[tag] || '#d1d5db',
                         color: '#fff',
@@ -267,27 +276,27 @@ export default function LineCRM() {
                 </div>
 
                 {/* Stats */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.625rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(120px, 1fr))', gap: isMobile ? '0.375rem' : '0.625rem', fontSize: isMobile ? '0.8rem' : '0.875rem', color: '#6b7280' }}>
                   <div>
-                    <span style={{ display: 'block', fontWeight: '500', color: '#111827' }}>
+                    <span style={{ display: 'block', fontWeight: '500', color: '#111827', fontSize: isMobile ? '0.9rem' : 'inherit' }}>
                       {fmt(customer.order_count || 0)}
                     </span>
                     <span>訂單</span>
                   </div>
                   <div>
-                    <span style={{ display: 'block', fontWeight: '500', color: '#111827' }}>
+                    <span style={{ display: 'block', fontWeight: '500', color: '#111827', fontSize: isMobile ? '0.9rem' : 'inherit' }}>
                       {fmtP(customer.total_spent || 0)}
                     </span>
                     <span>消費金額</span>
                   </div>
                   <div>
-                    <span style={{ display: 'block', fontWeight: '500', color: '#111827' }}>
+                    <span style={{ display: 'block', fontWeight: '500', color: '#111827', fontSize: isMobile ? '0.9rem' : 'inherit' }}>
                       {customer.last_order_date ? new Date(customer.last_order_date).toLocaleDateString('zh-TW') : '無'}
                     </span>
                     <span>最後訂單</span>
                   </div>
                   <div>
-                    <span style={{ display: 'block', fontWeight: '500', color: '#111827' }}>
+                    <span style={{ display: 'block', fontWeight: '500', color: '#111827', fontSize: isMobile ? '0.9rem' : 'inherit' }}>
                       {fmt(customer.message_count || 0)}
                     </span>
                     <span>訊息</span>
@@ -312,19 +321,21 @@ export default function LineCRM() {
           transform: broadcastOpen ? 'translateY(0)' : 'translateY(100%)',
           transition: 'transform 0.3s ease-out',
           zIndex: 40,
+          maxHeight: isMobile ? '70vh' : 'auto',
+          overflowY: isMobile ? 'auto' : 'visible',
         }}
       >
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1.5rem' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem' }}>
           {/* Status Message */}
           {broadcastStatus && (
             <div
               style={{
                 marginBottom: '0.625rem',
-                padding: '0.625rem 0.625rem',
+                padding: isMobile ? '0.5rem' : '0.625rem',
                 borderRadius: '0.375rem',
                 backgroundColor: broadcastStatus.type === 'success' ? '#d1fae5' : '#fee2e2',
                 color: broadcastStatus.type === 'success' ? '#065f46' : '#7f1d1d',
-                fontSize: '0.875rem',
+                fontSize: isMobile ? '0.8rem' : '0.875rem',
               }}
             >
               {broadcastStatus.message}
@@ -332,14 +343,15 @@ export default function LineCRM() {
           )}
 
           {/* Message Input */}
-          <div style={{ marginBottom: '0.625rem' }}>
+          <div style={{ marginBottom: isMobile ? '0.5rem' : '0.625rem' }}>
             <label style={{ ...S.label, display: 'block', marginBottom: '0.375rem' }}>
               訊息內容
             </label>
             <textarea
               style={{
                 ...S.input,
-                minHeight: '100px',
+                ...(isMobile ? S.mobile.input : {}),
+                minHeight: isMobile ? '80px' : '100px',
                 fontFamily: 'inherit',
                 resize: 'vertical',
               }}
@@ -350,11 +362,11 @@ export default function LineCRM() {
           </div>
 
           {/* Tag Filter */}
-          <div style={{ marginBottom: '0.625rem' }}>
-            <label style={{ ...S.label, display: 'block', marginBottom: '0.469rem' }}>
+          <div style={{ marginBottom: isMobile ? '0.5rem' : '0.625rem' }}>
+            <label style={{ ...S.label, display: 'block', marginBottom: '0.375rem' }}>
               篩選標籤 (留空則發送給全部)
             </label>
-            <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: isMobile ? '0.375rem' : '0.625rem', flexWrap: 'wrap' }}>
               {availableTags.map(tag => (
                 <label
                   key={tag}
@@ -362,11 +374,12 @@ export default function LineCRM() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    padding: '0.5rem 1rem',
+                    padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
                     borderRadius: '0.375rem',
                     backgroundColor: '#f3f4f6',
                     cursor: 'pointer',
-                    fontSize: '0.875rem',
+                    fontSize: isMobile ? '0.8rem' : '0.875rem',
+                    minHeight: isMobile ? 36 : 'auto',
                   }}
                 >
                   <input
@@ -379,7 +392,7 @@ export default function LineCRM() {
                         setBroadcastTags(broadcastTags.filter(t => t !== tag));
                       }
                     }}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', width: 18, height: 18 }}
                   />
                   {tag}
                 </label>
@@ -388,13 +401,13 @@ export default function LineCRM() {
           </div>
 
           {/* Preview and Send */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 10 : 0 }}>
+            <div style={{ fontSize: isMobile ? '0.8rem' : '0.875rem', color: '#6b7280' }}>
               將發送給 <span style={{ fontWeight: 'bold', color: '#111827' }}>{fmt(recipientCount)}</span> 位用戶
             </div>
-            <div style={{ display: 'flex', gap: '0.469rem' }}>
+            <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.469rem', width: isMobile ? '100%' : 'auto' }}>
               <button
-                style={S.btnGhost}
+                style={{ ...S.btnGhost, ...(isMobile ? { flex: 1, minHeight: 40 } : {}), fontSize: isMobile ? 13 : 14 }}
                 onClick={() => {
                   setBroadcastOpen(false);
                   setBroadcastMessage('');
@@ -404,7 +417,7 @@ export default function LineCRM() {
                 取消
               </button>
               <button
-                style={S.btnPrimary}
+                style={{ ...S.btnPrimary, ...(isMobile ? { flex: 1, minHeight: 44 } : {}), fontSize: isMobile ? 13 : 14 }}
                 onClick={handleBroadcast}
                 disabled={broadcastLoading || !broadcastMessage.trim()}
               >
@@ -419,17 +432,17 @@ export default function LineCRM() {
       <button
         style={{
           position: 'fixed',
-          bottom: '2rem',
-          right: '2rem',
+          bottom: isMobile ? '1.5rem' : '2rem',
+          right: isMobile ? '1rem' : '2rem',
           ...S.btnPrimary,
-          width: '3rem',
-          height: '3rem',
+          width: isMobile ? '2.5rem' : '3rem',
+          height: isMobile ? '2.5rem' : '3rem',
           borderRadius: '9999px',
           padding: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '1.5rem',
+          fontSize: isMobile ? '1.2rem' : '1.5rem',
           zIndex: 39,
         }}
         onClick={() => setBroadcastOpen(!broadcastOpen)}
@@ -438,7 +451,7 @@ export default function LineCRM() {
       </button>
 
       {/* Bottom Padding for Fixed Panel */}
-      {broadcastOpen && <div style={{ height: '300px' }} />}
+      {broadcastOpen && <div style={{ height: isMobile ? '250px' : '300px' }} />}
     </div>
   );
 }

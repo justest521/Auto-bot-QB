@@ -2,25 +2,11 @@
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet } from '@/lib/admin/api';
-import { fmt } from '@/lib/admin/helpers';
+import { fmt, useResponsive } from '@/lib/admin/helpers';
 import { Loading, PageLead, StatCard, PanelHeader, ReportShortcut, RankingPanel } from '../shared/ui';
 
-function useViewportWidth() {
-  const [width, setWidth] = useState(1400);
-
-  useEffect(() => {
-    const update = () => setWidth(window.innerWidth);
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
-
-  return width;
-}
-
 export default function ReportCenter({ setTab }) {
-  const width = useViewportWidth();
-  const isMobile = width < 820;
+  const { isMobile } = useResponsive();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +21,6 @@ export default function ReportCenter({ setTab }) {
   const counts = data?.counts || {};
   const rankings = data?.rankings || {};
   const returns = data?.returns || {};
-
   return (
     <div>
       <PageLead
@@ -44,7 +29,7 @@ export default function ReportCenter({ setTab }) {
         description="用鼎新 A1 的邏輯整理我們現在的 ERP 模組，讓客戶、供應商、銷退貨、利潤與排行報表都能直接對應到現有系統。"
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, minmax(0, 1fr))', gap: 12, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, minmax(0, 1fr))', gap: 12, marginBottom: 18, ...(isMobile && S.statGrid) }}>
         <StatCard code="CUST" label="客戶主檔" value={fmt(counts.customers)} tone="blue" />
         <StatCard code="VNDR" label="供應商主檔" value={fmt(counts.vendors)} tone="green" />
         <StatCard code="RETN" label="銷退貨單" value={fmt(counts.sales_returns)} tone="yellow" />

@@ -1,29 +1,15 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+import { useResponsive } from '@/lib/admin/helpers';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard, PanelHeader } from '../shared/ui';
 import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
-function useViewportWidth() {
-  const [width, setWidth] = useState(1400);
-
-  useEffect(() => {
-    const update = () => setWidth(window.innerWidth);
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
-
-  return width;
-}
-
 export default function Customers() {
   const { setDirty } = useUnsavedGuard();
-  const width = useViewportWidth();
-  const isTablet = width < 1180;
-  const isMobile = width < 820;
+  const { isMobile, isTablet } = useResponsive();
   const [data, setData] = useState({ customers: [], total: 0, page: 1, limit: 20, erp_ready: true, customer_stage_ready: false });
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -103,7 +89,6 @@ export default function Customers() {
     setDirty(false);
   }, [detail, setDirty]);
 
-  // 編輯中標記 dirty
   useEffect(() => {
     setDirty(editingProfile);
   }, [editingProfile, setDirty]);
@@ -271,7 +256,7 @@ export default function Customers() {
   const formalProfileComplete = detail?.formal_profile_complete ?? (detailCustomer ? isFormalCustomerBound(detailCustomer) : false);
   const currentStage = getCustomerStage(detailCustomer);
   const detailPanel = (
-    <div style={{ ...S.card, padding: '10px 16px', overflow: 'hidden', wordBreak: 'break-word' }}>
+    <div style={{ ...S.card, padding: isMobile ? '8px 12px' : '10px 16px', overflow: 'hidden', wordBreak: 'break-word' }}>
       {!detailCustomer ? (
         <EmptyState text="選一位客戶後，這裡會顯示客戶檔案與互動摘要" />
       ) : detailLoading ? (
@@ -280,13 +265,13 @@ export default function Customers() {
         <div style={{ display: 'grid', gap: 10 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>{detailCustomer.display_name || '未命名客戶'}</div>
+              <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: '#111827' }}>{detailCustomer.display_name || '未命名客戶'}</div>
               <span style={S.tag('green')}>LINE</span>
               {detailCustomer.linked_customer
                 ? <span style={S.tag(stageMeta[currentStage]?.color || '')}>{stageMeta[currentStage]?.label || '詢問名單'}</span>
                 : <span style={S.tag('red')}>未綁定</span>}
             </div>
-            <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>
+            <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.7 }}>
               {detailCustomer.linked_customer
                 ? `${detailCustomer.linked_customer.company_name || detailCustomer.linked_customer.name || '已建立 ERP 客戶'}`
                 : '目前尚未建立正式客戶連結'}
@@ -296,23 +281,23 @@ export default function Customers() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))', gap: 10 }}>
             <div style={S.panelMuted}>
               <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>MSG</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{fmt(detailSummary.message_count)}</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{fmt(detailSummary.message_count)}</div>
             </div>
             <div style={S.panelMuted}>
               <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>QUOTE</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(detailSummary.quote_count)}</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(detailSummary.quote_count)}</div>
             </div>
             <div style={S.panelMuted}>
               <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>ORDER</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(detailSummary.order_count)}</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(detailSummary.order_count)}</div>
             </div>
             <div style={S.panelMuted}>
               <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>SALE</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(detailSummary.sale_count)}</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(detailSummary.sale_count)}</div>
             </div>
             <div style={S.panelMuted}>
               <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>REVENUE</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#10b981', ...S.mono }}>{fmtP(detailSummary.sales_total)}</div>
+              <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#10b981', ...S.mono }}>{fmtP(detailSummary.sales_total)}</div>
             </div>
           </div>
 
@@ -334,28 +319,28 @@ export default function Customers() {
                       {detailCustomer.linked_customer.company_name || detailCustomer.linked_customer.name || '未命名客戶'}
                     </div>
                   </div>
-                  <button onClick={() => setEditingProfile(!editingProfile)} style={S.btnGhost}>
+                  <button onClick={() => setEditingProfile(!editingProfile)} style={{ ...S.btnGhost, ...(isMobile ? S.mobile.btnPrimary : {}) }}>
                     {editingProfile ? '取消編輯' : '編輯客戶資料'}
                   </button>
                 </div>
                 {editingProfile ? (
                   <div style={{ display: 'grid', gap: 10 }}>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
-                      <input value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="聯絡人姓名" style={S.input} />
-                      <input value={profileForm.company_name} onChange={(e) => setProfileForm({ ...profileForm, company_name: e.target.value })} placeholder="公司名稱" style={S.input} />
-                      <input value={profileForm.phone} onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="電話" style={S.input} />
-                      <input value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="Email" style={S.input} />
-                      <input value={profileForm.tax_id} onChange={(e) => setProfileForm({ ...profileForm, tax_id: e.target.value })} placeholder="統編" style={S.input} />
-                      <input value={profileForm.address} onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })} placeholder="地址" style={S.input} />
+                      <input value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="聯絡人姓名" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} />
+                      <input value={profileForm.company_name} onChange={(e) => setProfileForm({ ...profileForm, company_name: e.target.value })} placeholder="公司名稱" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} />
+                      <input value={profileForm.phone} onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="電話" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} />
+                      <input value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="Email" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} />
+                      <input value={profileForm.tax_id} onChange={(e) => setProfileForm({ ...profileForm, tax_id: e.target.value })} placeholder="統編" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} />
+                      <input value={profileForm.address} onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })} placeholder="地址" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} />
                     </div>
                     <textarea
                       value={profileForm.notes}
                       onChange={(e) => setProfileForm({ ...profileForm, notes: e.target.value })}
                       placeholder="備註"
                       rows={3}
-                      style={{ ...S.input, resize: 'vertical', lineHeight: 1.6 }}
+                      style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), resize: 'vertical', lineHeight: 1.6 }}
                     />
-                    <button onClick={saveCustomerProfile} style={S.btnPrimary} disabled={profileSaving}>
+                    <button onClick={saveCustomerProfile} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto' }} disabled={profileSaving}>
                       {profileSaving ? '儲存中...' : '儲存客戶資料'}
                     </button>
                   </div>
@@ -380,8 +365,9 @@ export default function Customers() {
                           disabled={stageSaving}
                           style={{
                             ...S.btnGhost,
-                            padding: '7px 12px',
-                            fontSize: 12,
+                            padding: isMobile ? '8px 10px' : '7px 12px',
+                            fontSize: isMobile ? 11 : 12,
+                            minHeight: isMobile ? 40 : 'auto',
                             background: currentStage === value ? '#dbeafe' : '#fff',
                             borderColor: currentStage === value ? '#93c5fd' : '#e5e7eb',
                             color: currentStage === value ? '#3b82f6' : '#5b6779',
@@ -412,7 +398,7 @@ export default function Customers() {
                       目前尚未綁定正式客戶。綁定後，這位 LINE 客戶就能連到 ERP 客戶主檔、報價、訂單與銷貨資料。
                     </div>
                   </div>
-                  <button onClick={() => bindingLineId === detailCustomer.line_user_id ? closeBinder() : openBinder(detailCustomer)} style={S.btnPrimary} disabled={!data.erp_ready}>
+                  <button onClick={() => bindingLineId === detailCustomer.line_user_id ? closeBinder() : openBinder(detailCustomer)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto' }} disabled={!data.erp_ready}>
                     {bindingLineId === detailCustomer.line_user_id ? '收起綁定面板' : '綁定正式客戶'}
                   </button>
                 </div>
@@ -424,9 +410,9 @@ export default function Customers() {
                         onChange={(e) => setLookupKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && lookupErpCustomers()}
                         placeholder="輸入正式客戶姓名、公司或電話..."
-                        style={{ ...S.input, flex: 1 }}
+                        style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1 }}
                       />
-                      <button onClick={lookupErpCustomers} style={S.btnGhost} disabled={lookupLoading}>
+                      <button onClick={lookupErpCustomers} style={{ ...S.btnGhost, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto' }} disabled={lookupLoading}>
                         {lookupLoading ? '查詢中...' : '查 ERP 客戶'}
                       </button>
                     </div>
@@ -434,7 +420,7 @@ export default function Customers() {
                     {lookupResults.length > 0 && (
                       <div style={{ display: 'grid', gap: 10 }}>
                         {lookupResults.map((erpCustomer) => (
-                          <div key={erpCustomer.id} style={{ background: '#fff', border: '1px solid #dbe3ee', borderRadius: 10, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
+                          <div key={erpCustomer.id} style={{ background: '#fff', border: '1px solid #dbe3ee', borderRadius: 10, padding: isMobile ? '8px 12px' : '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
                             <div>
                               <div style={{ fontSize: 14, color: '#111827', fontWeight: 700 }}>
                                 {erpCustomer.company_name || erpCustomer.name || '未命名客戶'}
@@ -446,7 +432,7 @@ export default function Customers() {
                         {erpCustomer.customer_stage && <div><span style={{ color: '#6b7280', ...S.mono }}>STAGE</span> {stageMeta[erpCustomer.customer_stage]?.label || erpCustomer.customer_stage}</div>}
                       </div>
                     </div>
-                    <button onClick={() => bindCustomer(detailCustomer, erpCustomer)} style={S.btnPrimary} disabled={bindLoadingId === detailCustomer.line_user_id}>
+                    <button onClick={() => bindCustomer(detailCustomer, erpCustomer)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto' }} disabled={bindLoadingId === detailCustomer.line_user_id}>
                               {bindLoadingId === detailCustomer.line_user_id ? '綁定中...' : '綁定這位客戶'}
                             </button>
                           </div>
@@ -486,25 +472,25 @@ export default function Customers() {
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && load(1, search)}
           placeholder="搜尋客戶名稱或 LINE ID..."
-          style={{ ...S.input, flex: 1 }}
+          style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minHeight: isMobile ? 44 : 'auto' }}
           onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
           onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
         />
-        <button onClick={() => load(1, search)} style={S.btnPrimary}>搜尋</button>
+        <button onClick={() => load(1, search)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto' }}>搜尋</button>
       </div>
       {!data.erp_ready && (
-        <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', padding: '10px 16px', marginBottom: 10 }}>
+        <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', padding: isMobile ? '8px 12px' : '10px 16px', marginBottom: 10 }}>
           目前還找不到 erp_customers 資料表，人工綁定功能需要先把 docs/erp-schema-v1.sql 跑進 Supabase。
         </div>
       )}
       {bindMessage && (
-        <div style={{ ...S.card, background: '#edf9f2', borderColor: '#bdeccb', color: '#127248', padding: '10px 16px', marginBottom: 10 }}>
+        <div style={{ ...S.card, background: '#edf9f2', borderColor: '#bdeccb', color: '#127248', padding: isMobile ? '8px 12px' : '10px 16px', marginBottom: 10 }}>
           {bindMessage}
         </div>
       )}
       <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>共 {data.total} 位客戶</div>
       {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的客戶資料" /> : (
-        <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : 'minmax(0, 1.25fr) minmax(340px, 0.9fr)', gap: 10, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isTablet || isMobile ? '1fr' : 'minmax(0, 1.25fr) minmax(340px, 0.9fr)', gap: 10, alignItems: 'start' }}>
           <div style={S.card}>
             {!isMobile && (
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 110px 150px 110px', gap: 10, padding: '8px 16px', borderBottom: '1px solid #e6edf5', marginBottom: 8, color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
@@ -527,8 +513,9 @@ export default function Customers() {
                       background: selected ? '#dbeafe' : '#fff',
                       border: `1px solid ${selected ? '#93c5fd' : '#e5e7eb'}`,
                       borderRadius: 12,
-                      padding: '12px 14px',
+                      padding: isMobile ? '10px 12px' : '12px 14px',
                       cursor: 'pointer',
+                      minHeight: isMobile ? 44 : 'auto',
                     }}
                   >
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr auto' : 'minmax(0, 1.6fr) 110px 150px 110px', gap: 10, alignItems: 'center' }}>
@@ -564,20 +551,16 @@ export default function Customers() {
               })}
             </div>
           </div>
-          <div style={{ position: isTablet ? 'relative' : 'sticky', top: isTablet ? 'auto' : 80, maxHeight: isTablet ? 'none' : 'calc(100vh - 96px)', overflowY: isTablet ? 'visible' : 'auto', minWidth: 0 }}>
+          <div style={{ position: isTablet || isMobile ? 'relative' : 'sticky', top: isTablet || isMobile ? 'auto' : 80, maxHeight: isTablet || isMobile ? 'none' : 'calc(100vh - 96px)', overflowY: isTablet || isMobile ? 'visible' : 'auto', minWidth: 0 }}>
               {detailPanel}
           </div>
         </div>
       )}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 }}>
-        {data.page > 1 && <button onClick={() => load(data.page - 1)} style={S.btnGhost}>← 上一頁</button>}
+        {data.page > 1 && <button onClick={() => load(data.page - 1)} style={{ ...S.btnGhost, minHeight: isMobile ? 40 : 'auto' }}>← 上一頁</button>}
         <span style={{ color: '#666', padding: '8px 0', fontSize: 12, ...S.mono }}>P{data.page}</span>
-        {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={S.btnGhost}>下一頁 →</button>}
+        {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={{ ...S.btnGhost, minHeight: isMobile ? 40 : 'auto' }}>下一頁 →</button>}
       </div>
     </div>
   );
-}
-
-/* ========================================= PRODUCT SEARCH ========================================= */
-function ProductSearch() {
 }

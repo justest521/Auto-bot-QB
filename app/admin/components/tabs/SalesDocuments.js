@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtP, useViewportWidth, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
+import { fmt, fmtP, useResponsive, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
@@ -423,9 +423,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
 
 // ========== 銷貨單主元件 ==========
 export default function SalesDocuments({ setTab }) {
-  const width = useViewportWidth();
-  const isMobile = width < 820;
-  const isTablet = width < 1180;
+  const { isMobile, isTablet } = useResponsive();
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { total: 0, gross_profit: 0 } });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -546,27 +544,62 @@ export default function SalesDocuments({ setTab }) {
   // ★ 銷貨單列表
   return (
     <div>
-      <PageLead eyebrow="SALES" title="銷貨單" description="查看實際銷貨單、發票號碼與毛利，並可點單號查看完整銷貨單內容。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><CsvImportButton datasetId="qb_sales_history" onImported={() => load(1, search, pageSize)} compact /><button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button></div>} />
+      <PageLead eyebrow="SALES" title="銷貨單" description="查看實際銷貨單、發票號碼與毛利，並可點單號查看完整銷貨單內容。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', ...(isMobile ? { width: '100%' } : {}) }}><CsvImportButton datasetId="qb_sales_history" onImported={() => load(1, search, pageSize)} compact /><button onClick={handleExport} style={{ ...S.btnGhost, ...(isMobile ? { flex: 1 } : {}) }}>匯出 CSV</button></div>} />
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
-          ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 14 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋銷貨單號、客戶、業務或發票..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 14, padding: '6px 10px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 14 }}>查詢</button>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 8, flexWrap: 'wrap', alignItems: isMobile ? 'stretch' : 'center' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
+            {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
+              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 14 : 14, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 14, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+            <span style={{ color: '#6b7280', fontSize: 14, flexShrink: 0 }}>~</span>
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 14, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋銷貨單號、客戶、業務或發票..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? 14 : 14, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }} />
+            <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '10px 16px' : '6px 18px', fontSize: isMobile ? 14 : 14, minHeight: isMobile ? 44 : undefined, flexShrink: 0 }}>查詢</button>
+          </div>
         </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 qb_sales_history 或目前資料不可讀。</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 10 }}>
+      <div style={{ ...S.statGrid, ...(isMobile ? S.mobile.statGrid : { gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }), gap: 10, marginBottom: 10 }}>
         <StatCard code="STOT" label="銷貨筆數" value={fmt(data.total)} tone="blue" />
         <StatCard code="REV" label="本頁營收" value={fmtP(data.summary?.total)} tone="green" />
         <StatCard code="GP" label="本頁毛利" value={fmtP(data.summary?.gross_profit)} tone="yellow" />
       </div>
-      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷貨單資料" /> : (
-        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
+      {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有銷貨單資料" /> : isMobile ? (
+        data.rows.map((row) => (
+          <div key={row.id} style={{ ...S.mobileCard, marginBottom: 10, cursor: 'pointer' }} onClick={() => setSelectedSale(row)}>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>銷貨單號</span>
+              <span style={{ ...S.mobileCardValue, color: '#3b82f6' }}>{row.slip_number || '-'}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>客戶</span>
+              <span style={S.mobileCardValue}>{row.customer_name || '未命名客戶'}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>日期</span>
+              <span style={S.mobileCardValue}>{row.sale_date || '-'}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>未稅</span>
+              <span style={S.mobileCardValue}>{fmtP(row.subtotal)}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>總額</span>
+              <span style={{ ...S.mobileCardValue, color: '#10b981', fontWeight: 700 }}>{fmtP(row.total)}</span>
+            </div>
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => handleSalesReturn(row)} style={{ ...S.btnGhost, flex: 1, minHeight: 44, fontSize: 14 }}>退回</button>
+              <button onClick={() => handlePayment(row)} style={{ ...S.btnGhost, flex: 1, minHeight: 44, fontSize: 14, color: row.payment_status === 'paid' ? '#10b981' : '#374151' }}>{row.payment_status === 'paid' ? '已沖' : '沖帳'}</button>
+            </div>
+          </div>
+        ))
+      ) : (
+        <div style={{ ...S.card, padding: 0, ...S.tableScroll, border: '1px solid #d1d5db' }}>
           <ResizableHeader
             headers={isTablet ? [
               { label: '序', align: 'center' },

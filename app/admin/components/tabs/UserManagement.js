@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
+import { useResponsive } from '@/lib/admin/helpers';
 
 export default function UserManagement() {
+  const { isMobile } = useResponsive();
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [allPermissions, setAllPermissions] = useState([]);
@@ -92,14 +94,14 @@ export default function UserManagement() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 12 : 0 }}>
         <div>
           <div style={{ ...S.eyebrow, fontSize: 11, letterSpacing: 1.2, marginBottom: 4 }}>SYSTEM</div>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>使用者與權限管理</h2>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => setActiveTab('users')} style={{ ...( activeTab === 'users' ? S.btnPrimary : S.btnGhost), padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>使用者</button>
-          <button onClick={() => setActiveTab('roles')} style={{ ...(activeTab === 'roles' ? S.btnPrimary : S.btnGhost), padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>角色權限</button>
+        <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto' }}>
+          <button onClick={() => setActiveTab('users')} style={{ ...( activeTab === 'users' ? S.btnPrimary : S.btnGhost), padding: '8px 16px', fontSize: 13, cursor: 'pointer', flex: isMobile ? 1 : 'auto' }}>使用者</button>
+          <button onClick={() => setActiveTab('roles')} style={{ ...(activeTab === 'roles' ? S.btnPrimary : S.btnGhost), padding: '8px 16px', fontSize: 13, cursor: 'pointer', flex: isMobile ? 1 : 'auto' }}>角色權限</button>
         </div>
       </div>
 
@@ -109,13 +111,13 @@ export default function UserManagement() {
       {activeTab === 'users' && (
         <div>
           <div style={{ marginBottom: 16 }}>
-            <button onClick={() => setShowCreateForm(!showCreateForm)} style={{ ...S.btnPrimary, padding: '9px 18px', fontSize: 13, cursor: 'pointer' }}>{showCreateForm ? '取消' : '+ 新增使用者'}</button>
+            <button onClick={() => setShowCreateForm(!showCreateForm)} style={{ ...(isMobile ? S.mobile.btnPrimary : { ...S.btnPrimary, padding: '9px 18px' }), fontSize: 13, cursor: 'pointer' }}>{showCreateForm ? '取消' : '+ 新增使用者'}</button>
           </div>
 
           {showCreateForm && (
-            <div style={{ ...S.card, padding: 24, marginBottom: 20 }}>
+            <div style={{ ...S.card, padding: isMobile ? 16 : 24, marginBottom: 20 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 16 }}>新增使用者</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 12 : 14 }}>
                 {[
                   { key: 'username', label: '帳號', placeholder: '英文帳號' },
                   { key: 'display_name', label: '顯示名稱', placeholder: '使用者姓名' },
@@ -124,25 +126,25 @@ export default function UserManagement() {
                 ].map(f => (
                   <div key={f.key}>
                     <div style={{ ...S.label, fontSize: 12, marginBottom: 4 }}>{f.label}</div>
-                    <input value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder} type={f.type || 'text'} style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box' }} />
+                    <input value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder} type={f.type || 'text'} style={{ width: '100%', ...(isMobile ? S.mobile.input : { padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box' }) }} />
                   </div>
                 ))}
                 <div>
                   <div style={{ ...S.label, fontSize: 12, marginBottom: 4 }}>角色</div>
-                  <select value={form.role_code} onChange={e => setForm(p => ({ ...p, role_code: e.target.value }))} style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', background: '#fff', boxSizing: 'border-box' }}>
+                  <select value={form.role_code} onChange={e => setForm(p => ({ ...p, role_code: e.target.value }))} style={{ width: '100%', ...(isMobile ? S.mobile.input : { padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', background: '#fff', boxSizing: 'border-box' }) }}>
                     {roles.map(r => <option key={r.code} value={r.code}>{r.label}</option>)}
                   </select>
                 </div>
               </div>
               <div style={{ marginTop: 16 }}>
-                <button onClick={handleCreate} disabled={saving} style={{ ...S.btnPrimary, padding: '9px 24px', fontSize: 13, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>{saving ? '處理中...' : '建立帳號'}</button>
+                <button onClick={handleCreate} disabled={saving} style={{ ...(isMobile ? S.mobile.btnPrimary : { ...S.btnPrimary, padding: '9px 24px' }), fontSize: 13, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>{saving ? '處理中...' : '建立帳號'}</button>
               </div>
             </div>
           )}
 
           {/* Users table */}
-          <div style={{ ...S.card, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ ...S.card, overflow: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: isMobile ? 600 : 'auto' }}>
               <thead>
                 <tr style={{ background: '#f9fafb' }}>
                   {['帳號', '名稱', 'Email', '角色', '狀態', '最後登入', '操作'].map(h => (
@@ -171,39 +173,39 @@ export default function UserManagement() {
 
           {/* Edit user modal */}
           {editingUser && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => setEditingUser(null)}>
-              <div style={{ ...S.card, padding: 28, maxWidth: 480, width: '90%' }} onClick={e => e.stopPropagation()}>
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: isMobile ? 16 : 0 }} onClick={() => setEditingUser(null)}>
+              <div style={{ ...S.card, padding: isMobile ? 20 : 28, maxWidth: 480, width: '100%' }} onClick={e => e.stopPropagation()}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 20 }}>編輯使用者 — {editingUser.username}</div>
-                <div style={{ display: 'grid', gap: 14 }}>
+                <div style={{ display: 'grid', gap: isMobile ? 12 : 14 }}>
                   <div>
                     <div style={{ ...S.label, fontSize: 12, marginBottom: 4 }}>顯示名稱</div>
-                    <input value={editingUser._display_name} onChange={e => setEditingUser(p => ({ ...p, _display_name: e.target.value }))} style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box' }} />
+                    <input value={editingUser._display_name} onChange={e => setEditingUser(p => ({ ...p, _display_name: e.target.value }))} style={{ width: '100%', ...(isMobile ? S.mobile.input : { padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box' }) }} />
                   </div>
                   <div>
                     <div style={{ ...S.label, fontSize: 12, marginBottom: 4 }}>Email</div>
-                    <input value={editingUser._email} onChange={e => setEditingUser(p => ({ ...p, _email: e.target.value }))} style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box' }} />
+                    <input value={editingUser._email} onChange={e => setEditingUser(p => ({ ...p, _email: e.target.value }))} style={{ width: '100%', ...(isMobile ? S.mobile.input : { padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box' }) }} />
                   </div>
                   <div>
                     <div style={{ ...S.label, fontSize: 12, marginBottom: 4 }}>角色</div>
-                    <select value={editingUser._role_code} onChange={e => setEditingUser(p => ({ ...p, _role_code: e.target.value }))} style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', background: '#fff', boxSizing: 'border-box' }}>
+                    <select value={editingUser._role_code} onChange={e => setEditingUser(p => ({ ...p, _role_code: e.target.value }))} style={{ width: '100%', ...(isMobile ? S.mobile.input : { padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', background: '#fff', boxSizing: 'border-box' }) }}>
                       {roles.map(r => <option key={r.code} value={r.code}>{r.label}</option>)}
                     </select>
                   </div>
                   <div>
                     <div style={{ ...S.label, fontSize: 12, marginBottom: 4 }}>狀態</div>
-                    <select value={editingUser._status} onChange={e => setEditingUser(p => ({ ...p, _status: e.target.value }))} style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', background: '#fff', boxSizing: 'border-box' }}>
+                    <select value={editingUser._status} onChange={e => setEditingUser(p => ({ ...p, _status: e.target.value }))} style={{ width: '100%', ...(isMobile ? S.mobile.input : { padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', background: '#fff', boxSizing: 'border-box' }) }}>
                       <option value="active">啟用</option>
                       <option value="disabled">停用</option>
                     </select>
                   </div>
                   <div>
                     <div style={{ ...S.label, fontSize: 12, marginBottom: 4 }}>新密碼（留空不變更）</div>
-                    <input value={editingUser._new_password} onChange={e => setEditingUser(p => ({ ...p, _new_password: e.target.value }))} type="password" placeholder="留空保持原密碼" style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box' }} />
+                    <input value={editingUser._new_password} onChange={e => setEditingUser(p => ({ ...p, _new_password: e.target.value }))} type="password" placeholder="留空保持原密碼" style={{ width: '100%', ...(isMobile ? S.mobile.input : { padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111827', outline: 'none', boxSizing: 'border-box' }) }} />
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end' }}>
-                  <button onClick={() => setEditingUser(null)} style={{ ...S.btnGhost, padding: '9px 18px', fontSize: 13, cursor: 'pointer' }}>取消</button>
-                  <button onClick={handleUpdate} disabled={saving} style={{ ...S.btnPrimary, padding: '9px 18px', fontSize: 13, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>{saving ? '處理中...' : '儲存'}</button>
+                <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+                  <button onClick={() => setEditingUser(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : { ...S.btnGhost, padding: '9px 18px' }), fontSize: 13, cursor: 'pointer' }}>取消</button>
+                  <button onClick={handleUpdate} disabled={saving} style={{ ...(isMobile ? S.mobile.btnPrimary : { ...S.btnPrimary, padding: '9px 18px' }), fontSize: 13, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>{saving ? '處理中...' : '儲存'}</button>
                 </div>
               </div>
             </div>
@@ -215,9 +217,9 @@ export default function UserManagement() {
       {activeTab === 'roles' && (
         <div>
           <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>選擇角色後勾選該角色可存取的功能頁面。系統管理員擁有所有權限，無法修改。</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 20, minHeight: 400 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '220px 1fr', gap: isMobile ? 12 : 20, minHeight: 400 }}>
             {/* Role list */}
-            <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+            <div style={{ ...S.card, padding: 0, overflow: 'hidden', order: isMobile && editingRole ? 2 : 0 }}>
               {roles.map(r => (
                 <div
                   key={r.id}
@@ -231,21 +233,21 @@ export default function UserManagement() {
             </div>
 
             {/* Permission editor */}
-            <div style={{ ...S.card, padding: 24 }}>
+            <div style={{ ...S.card, padding: isMobile ? 16 : 24, order: isMobile && editingRole ? 1 : 0 }}>
               {!editingRole ? (
-                <div style={{ color: '#6b7280', fontSize: 14, textAlign: 'center', paddingTop: 40 }}>請從左側選擇角色</div>
+                <div style={{ color: '#6b7280', fontSize: 14, textAlign: 'center', paddingTop: 40 }}>請從{isMobile ? '上方' : '左側'}選擇角色</div>
               ) : (
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 12 : 0 }}>
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{editingRole.label}</div>
                       <div style={{ fontSize: 12, color: '#6b7280' }}>{editingRole.description || editingRole.code}</div>
                     </div>
                     {editingRole.code !== 'admin' && (
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => { const allIds = allPermissions.map(p => p.id); setRolePermMap(prev => ({ ...prev, [editingRole.id]: allIds })); }} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 11, cursor: 'pointer' }}>全選</button>
-                        <button onClick={() => { setRolePermMap(prev => ({ ...prev, [editingRole.id]: [] })); }} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 11, cursor: 'pointer' }}>清除</button>
-                        <button onClick={() => handleSaveRolePerms(editingRole.id, rolePermMap[editingRole.id] || [])} disabled={saving} style={{ ...S.btnPrimary, padding: '6px 16px', fontSize: 11, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>{saving ? '儲存中...' : '儲存權限'}</button>
+                      <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto' }}>
+                        <button onClick={() => { const allIds = allPermissions.map(p => p.id); setRolePermMap(prev => ({ ...prev, [editingRole.id]: allIds })); }} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 11, cursor: 'pointer', flex: isMobile ? 1 : 'auto' }}>全選</button>
+                        <button onClick={() => { setRolePermMap(prev => ({ ...prev, [editingRole.id]: [] })); }} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 11, cursor: 'pointer', flex: isMobile ? 1 : 'auto' }}>清除</button>
+                        <button onClick={() => handleSaveRolePerms(editingRole.id, rolePermMap[editingRole.id] || [])} disabled={saving} style={{ ...S.btnPrimary, padding: '6px 16px', fontSize: 11, cursor: 'pointer', opacity: saving ? 0.6 : 1, flex: isMobile ? 1 : 'auto' }}>{saving ? '儲存中...' : '儲存權限'}</button>
                       </div>
                     )}
                   </div>
@@ -274,7 +276,7 @@ export default function UserManagement() {
                               <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>{moduleLabels[mod] || mod}</span>
                               <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 'auto' }}>{perms.filter(p => currentPerms.includes(p.id)).length}/{perms.length}</span>
                             </div>
-                            <div style={{ padding: '8px 16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 4 }}>
+                            <div style={{ padding: '8px 16px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(180px, 1fr))', gap: 4 }}>
                               {perms.map(p => {
                                 const checked = currentPerms.includes(p.id);
                                 return (

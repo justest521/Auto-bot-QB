@@ -4,7 +4,7 @@ import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
-import { useViewportWidth } from '@/lib/admin/helpers';
+import { useResponsive } from '@/lib/admin/helpers';
 import { useResizableColumns } from '../shared/ResizableTable';
 import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
@@ -14,6 +14,7 @@ const ORDER_FOCUS_KEY = 'qb_order_focus';
 
 // ========== 採購單詳情頁 ==========
 function PODetailView({ po, onBack, onRefresh, setTab }) {
+  const { isMobile, isTablet } = useResponsive();
   const { setDirty, confirmIfDirty } = useUnsavedGuard();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -383,24 +384,24 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
 
   return (
-    <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
+    <div style={{ animation: 'fadeIn 0.25s ease', padding: isMobile ? '0 8px' : '0 12px' }}>
       {/* ====== Header ====== */}
-      <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+      <div style={{ ...cardStyle, padding: isMobile ? '12px 12px' : '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: isMobile ? 8 : 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10 }}>
+          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 16 : 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 20, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{po.po_no || '-'}</span>
-              <span style={{ padding: '3px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: `${PO_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: PO_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${PO_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 10, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+              <span style={{ fontSize: isMobile ? 16 : 20, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{po.po_no || '-'}</span>
+              <span style={{ padding: isMobile ? '3px 8px' : '3px 10px', borderRadius: 10, fontSize: 11, fontWeight: 700, background: `${PO_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: PO_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${PO_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
                 {PO_STATUS_MAP[statusKey] || statusKey}
               </span>
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, ...S.mono }}>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, ...S.mono }}>
               {po.po_date || '-'}
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile && { width: '100%' }) }}>
           {/* 送審 / 審核中 / 已駁回重送 */}
           {!isApproved && statusKey === 'draft' && (
             <button onClick={submitForApproval} disabled={submittingApproval || isPending}
@@ -420,7 +421,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 10, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: isMobile ? 8 : 10, alignItems: 'start' }}>
           {/* ====== Left: Items ====== */}
           <div style={{ ...cardStyle, padding: 0, overflow: 'visible' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
@@ -711,7 +712,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                     placeholder="搜尋廠商名稱、編號、聯絡人..."
                     value={vendorSearch}
                     onChange={e => setVendorSearch(e.target.value)}
-                    style={{ ...S.input, fontSize: 13, padding: '6px 10px', width: '100%', marginBottom: 6 }}
+                    style={{ ...S.input, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', width: '100%', marginBottom: 6, minHeight: isMobile ? 40 : 'auto' }}
                   />
                   {vendorLoading ? (
                     <div style={{ textAlign: 'center', padding: 12, fontSize: 12, color: '#9ca3af' }}>載入中...</div>
@@ -881,6 +882,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
 // ========== 新增採購單 Modal ==========
 function CreatePOModal({ onClose, onCreated }) {
+  const { isMobile, isTablet } = useResponsive();
   const { setDirty, confirmIfDirty } = useUnsavedGuard();
   const [vendorSearch, setVendorSearch] = useState('');
   const [allVendors, setAllVendors] = useState([]);
@@ -994,7 +996,7 @@ function CreatePOModal({ onClose, onCreated }) {
         </div>
         {error && <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10 }}>{error}</div>}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 12 }}>
           {/* Vendor selection */}
           <div style={S.card}>
             <div style={{ padding: '12px 16px' }}>
@@ -1127,10 +1129,8 @@ function CreatePOModal({ onClose, onCreated }) {
 
 // ========== 採購單主元件 ==========
 export default function PurchaseOrders({ setTab }) {
-  const width = useViewportWidth();
-  const isMobile = width < 820;
-  const isTablet = width < 1180;
-  const { gridTemplate, ResizableHeader } = useResizableColumns('po_list_v2', isTablet ? [32, 42, 160, 90, 72, 200, 90, 40] : [32, 42, 180, 90, 72, 250, 100, 100, 40]);
+  const { isMobile, isTablet } = useResponsive();
+  const { gridTemplate, ResizableHeader } = useResizableColumns('po_list_v2', isMobile ? [32, 42, 140, 80, 60, 140, 70, 40] : isTablet ? [32, 42, 160, 90, 72, 200, 90, 40] : [32, 42, 180, 90, 72, 250, 100, 100, 40]);
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -1262,26 +1262,28 @@ export default function PurchaseOrders({ setTab }) {
               setMsg('已匯出並標記');
               setTimeout(() => setMsg(''), 2000);
             } catch (e) { setMsg('匯出失敗: ' + (e.message || '')); }
-          }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: 14 }}>匯出{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}</button>
-          <button onClick={() => setShowCreatePO(true)} style={S.btnPrimary}>+ 新增採購單</button>
+          }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: 14, minHeight: isMobile ? 40 : 'auto' }}>匯出{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}</button>
+          <button onClick={() => setShowCreatePO(true)} style={{ ...S.btnPrimary, minHeight: isMobile ? 40 : 'auto', ...(isMobile && { width: '100%' }) }}>+ 新增採購單</button>
         </div>} />
       {msg && <div style={{ ...S.card, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#dc2626' : '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
-      <div style={S.statGrid}>
+      <div style={{ ...S.statGrid, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : S.statGrid.gridTemplateColumns, gap: isMobile ? 8 : 10 }}>
         <StatCard code="DFT" label="草稿" value={fmt(sm.draft)} tone="blue" />
         <StatCard code="SENT" label="已寄出" value={fmt(sm.sent)} tone="blue" accent="#6366f1" />
         <StatCard code="CNF" label="已核准" value={fmt(sm.confirmed)} tone="blue" accent="#3b82f6" />
         <StatCard code="SHIP" label="已出貨" value={fmt(sm.shipped)} tone="blue" accent="#f59e0b" />
         <StatCard code="RCV" label="已到貨" value={fmt(sm.received)} tone="blue" accent="#16a34a" />
       </div>
-      <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '10px 12px' : '10px 16px' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 13 : 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', ...(isMobile && { flex: 1 }) }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 14 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />
-          <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(1, search, e.target.value); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+            {!isMobile && <span style={{ color: '#6b7280', fontSize: 14 }}>~</span>}
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+          </div>
+          <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(1, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }}>
             <option value="">全部狀態</option>
             <option value="draft">草稿</option>
             <option value="sent">已寄出</option>
@@ -1290,13 +1292,15 @@ export default function PurchaseOrders({ setTab }) {
             <option value="received">已到貨</option>
             <option value="rejected">退回</option>
           </select>
-          <select value={exportFilter || ''} onChange={(e) => { setExportFilter(e.target.value); }} style={{ ...S.input, width: 120, fontSize: 14, padding: '6px 10px' }}>
+          <select value={exportFilter || ''} onChange={(e) => { setExportFilter(e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 120, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }}>
             <option value="">全部</option>
             <option value="exported">已匯出</option>
             <option value="not_exported">未匯出</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋採購單號..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 14, padding: '6px 10px' }} />
-          <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 14 }}>查詢</button>
+          <div style={{ display: 'flex', gap: 6, flex: 1, width: isMobile ? '100%' : 'auto' }}>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋採購單號..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 'auto' : 160, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
+            <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: 14, minHeight: isMobile ? 40 : 'auto', whiteSpace: 'nowrap' }}>查詢</button>
+          </div>
         </div>
       </div>
       {(() => {
@@ -1330,12 +1334,12 @@ export default function PurchaseOrders({ setTab }) {
             const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13 };
             const cCenter = { ...cell, justifyContent: 'center' };
             const cRight = { ...cell, justifyContent: 'flex-end' };
-            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'flex-end' };
             return (
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s', borderBottom: idx < filteredRows.length - 1 ? '1px solid #e5e7eb' : 'none' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }} style={cCenter}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
                 <div style={{ ...cCenter, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
-                <div style={{ ...cCenter, color: '#3b82f6', fontWeight: 700, ...S.mono, gap: 4, whiteSpace: 'nowrap' }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}</div>
+                <div style={{ ...cell, color: '#3b82f6', fontWeight: 700, ...S.mono, gap: 4, whiteSpace: 'nowrap' }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}</div>
                 <div style={{ ...cCenter, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.po_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
                 <div style={{ ...cell, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.remark || '-'}</div>

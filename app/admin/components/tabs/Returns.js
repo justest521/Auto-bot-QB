@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtP, fmtDate, exportCsv, getPresetDateRange, useViewportWidth } from '@/lib/admin/helpers';
+import { fmt, fmtP, fmtDate, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
@@ -231,8 +231,7 @@ function ReturnDetailView({ ret: initRet, onBack, onRefresh }) {
 
 // ========== 退貨管理主元件 ==========
 export default function Returns() {
-  const width = useViewportWidth();
-  const isMobile = width < 820;
+  const { isMobile, isTablet } = useResponsive();
   const { colWidths, gridTemplate, ResizableHeader } = useResizableColumns('returns_list', [40, 160, 200, 110, 100, 100, 140]);
   const [data, setData] = useState({ returns: [], total: 0, page: 1, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true);
@@ -314,9 +313,9 @@ export default function Returns() {
   return (
     <div>
       <PageLead eyebrow="Returns" title="退貨管理" description="管理客戶退貨申請、審核退貨並自動回補庫存。"
-        action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button><button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 建立退貨</button></div>} />
+        action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', ...(isMobile ? { width: '100%' } : {}) }}><button onClick={handleExport} style={{ ...S.btnGhost, ...(isMobile ? { flex: 1 } : {}) }}>匯出 CSV</button><button onClick={() => setCreateOpen(true)} style={{ ...S.btnPrimary, ...(isMobile ? { flex: 1, minHeight: 44 } : {}) }}>+ 建立退貨</button></div>} />
 
-      <div style={S.statGrid}>
+      <div style={{ ...S.statGrid, ...(isMobile ? S.mobile.statGrid : {}) }}>
         <StatCard code="PEND" label="待審核" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
         <StatCard code="APVD" label="已核准" value={fmt(sm.approved)} tone="blue" accent="#16a34a" />
         <StatCard code="REFN" label="退款總額" value={fmtP(sm.total_refund)} tone="blue" accent="#ef4444" />
@@ -324,28 +323,66 @@ export default function Returns() {
 
       {/* Filter bar */}
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
-          ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px' }}>
-            <option value="">全部狀態</option>
-            <option value="pending">待審核</option>
-            <option value="approved">已核准</option>
-            <option value="rejected">已拒絕</option>
-            <option value="refunded">已退款</option>
-          </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 13 }}>查詢</button>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 8, flexWrap: 'wrap', alignItems: isMobile ? 'stretch' : 'center' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
+            {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
+              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+            <span style={{ color: '#6b7280', fontSize: 13, flexShrink: 0 }}>~</span>
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
+            <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }}>
+              <option value="">全部狀態</option>
+              <option value="pending">待審核</option>
+              <option value="approved">已核准</option>
+              <option value="rejected">已拒絕</option>
+              <option value="refunded">已退款</option>
+            </select>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }} />
+            <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, padding: isMobile ? '10px 16px' : '6px 18px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, flexShrink: 0 }}>查詢</button>
+          </div>
         </div>
       </div>
 
       {/* Table */}
-      {loading ? <Loading /> : data.returns.length === 0 ? <EmptyState text="目前沒有退貨記錄" /> : (
-        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
+      {loading ? <Loading /> : data.returns.length === 0 ? <EmptyState text="目前沒有退貨記錄" /> : isMobile ? (
+        data.returns.map((r, idx) => (
+          <div key={r.id} style={{ ...S.mobileCard, marginBottom: 10, cursor: 'pointer' }} onClick={() => setSelectedReturn(r)}>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>退貨單號</span>
+              <span style={{ ...S.mobileCardValue, color: '#3b82f6' }}>{r.return_no || '-'}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>原因</span>
+              <span style={S.mobileCardValue}>{r.reason || '-'}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>退款金額</span>
+              <span style={{ ...S.mobileCardValue, color: '#ef4444' }}>{fmtP(r.refund_amount)}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>日期</span>
+              <span style={S.mobileCardValue}>{fmtDate(r.return_date || r.created_at)}</span>
+            </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>狀態</span>
+              <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `${STATUS_COLOR[r.status] || '#6b7280'}14`, color: STATUS_COLOR[r.status] || '#6b7280', border: `1px solid ${STATUS_COLOR[r.status] || '#6b7280'}30` }}>
+                {STATUS_MAP[r.status] || r.status}
+              </span>
+            </div>
+            {r.status === 'pending' && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
+                <button onClick={(e) => handleApprove(e, r.id)} style={{ ...S.btnPrimary, width: '100%', minHeight: 44, fontSize: 14 }}>核准退貨</button>
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <div style={{ ...S.card, padding: 0, ...S.tableScroll, border: '1px solid #d1d5db' }}>
           <ResizableHeader headers={[
             { label: '#', align: 'center' },
             { label: '退貨單號', align: 'center' },
@@ -383,7 +420,46 @@ export default function Returns() {
       </div>
 
       {/* Create modal */}
-      {createOpen && (
+      {createOpen && isMobile ? (
+        <div style={{ ...S.mobileModal }}>
+          <div style={{ ...S.mobileModalHeader }}>
+            <div>
+              <div style={S.eyebrow}>Sales Return</div>
+              <h3 style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 700 }}>建立退貨單</h3>
+            </div>
+            <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, padding: '8px 12px' }}>關閉</button>
+          </div>
+          <div style={{ ...S.mobileModalBody }}>
+            <div style={{ marginBottom: 16 }}><label style={S.label}>客戶 ID (選填)</label><input value={form.customer_id} onChange={(e) => setForm(p => ({ ...p, customer_id: e.target.value }))} style={{ ...S.input, ...S.mobile.input, width: '100%' }} /></div>
+            <div style={{ marginBottom: 16 }}><label style={S.label}>退貨原因</label><input value={form.reason} onChange={(e) => setForm(p => ({ ...p, reason: e.target.value }))} style={{ ...S.input, ...S.mobile.input, width: '100%' }} /></div>
+            <div style={{ marginBottom: 16 }}><label style={S.label}>備註</label><input value={form.remark} onChange={(e) => setForm(p => ({ ...p, remark: e.target.value }))} style={{ ...S.input, ...S.mobile.input, width: '100%' }} /></div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>退貨明細</span>
+                <span style={{ fontSize: 12, color: '#9ca3af' }}>{items.length} 項</span>
+              </div>
+              <div style={{ display: 'grid', gap: 8 }}>
+                {items.map((it, idx) => (
+                  <div key={idx} style={{ background: '#f9fafb', border: '1px solid #f0f2f5', borderRadius: 8, padding: '12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value)} style={{ ...S.input, ...S.mobile.input, width: '100%' }} placeholder="料號" />
+                    <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, ...S.mobile.input, width: '100%' }} placeholder="品名" />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input type="number" value={it.qty_returned} onChange={(e) => updateItem(idx, 'qty_returned', e.target.value)} style={{ ...S.input, ...S.mobile.input, flex: 1 }} placeholder="數量" />
+                      <input type="number" value={it.unit_price} onChange={(e) => updateItem(idx, 'unit_price', e.target.value)} style={{ ...S.input, ...S.mobile.input, flex: 1, ...S.mono }} placeholder="單價" />
+                    </div>
+                    <div style={{ fontSize: 13, color: '#10b981', fontWeight: 700, ...S.mono, textAlign: 'right' }}>小計: {fmtP(it.line_total)}</div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_returned: 1, unit_price: 0, line_total: 0 }])} style={{ ...S.btnGhost, fontSize: 14, marginTop: 12, width: '100%', minHeight: 44 }}>+ 新增品項</button>
+            </div>
+          </div>
+          <div style={{ ...S.mobileModalFooter }}>
+            <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, flex: 1, minHeight: 44 }}>取消</button>
+            <button onClick={handleCreate} style={{ ...S.btnPrimary, ...S.mobile.btnPrimary, flex: 1 }}>建立退貨</button>
+          </div>
+        </div>
+      ) : createOpen ? (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setCreateOpen(false)}>
           <div style={{ width: 'min(620px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -424,7 +500,7 @@ export default function Returns() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

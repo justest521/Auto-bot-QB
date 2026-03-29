@@ -2,15 +2,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmt, fmtP, fmtDate, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
+import { fmt, fmtP, fmtDate, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
-import { useViewportWidth } from '@/lib/admin/helpers';
 import { StatCard } from '../shared/ui';
 
 /* ============================================================
    明細頁
    ============================================================ */
 function StockInDetailView({ id, onBack }) {
+  const { isMobile } = useResponsive();
   const [si, setSi] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,23 +49,23 @@ function StockInDetailView({ id, onBack }) {
   return (
     <div>
       {/* 頂部列 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
         <button onClick={onBack} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13 }}>← 返回</button>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={S.eyebrow}>Stock In Detail</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>{si.stock_in_no || '進貨單明細'}</div>
+          <div style={{ fontSize: isMobile ? 16 : 20, fontWeight: 700, color: '#111827' }}>{si.stock_in_no || '進貨單明細'}</div>
         </div>
         <span style={S.tag(si.status === 'confirmed' ? 'green' : 'default')}>
           {si.status === 'confirmed' ? '已入庫' : '待確認'}
         </span>
         {si.status === 'pending' && (
-          <button onClick={handleConfirm} style={{ ...S.btnPrimary, padding: '8px 20px', fontSize: 13 }}>確認入庫</button>
+          <button onClick={handleConfirm} style={{ ...S.btnPrimary, ...(isMobile ? { minHeight: 44 } : {}), padding: '8px 20px', fontSize: 13 }}>確認入庫</button>
         )}
       </div>
 
       {/* 基本資訊 */}
       <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
           <div>
             <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>進貨單號</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{si.stock_in_no || '-'}</div>
@@ -99,55 +99,95 @@ function StockInDetailView({ id, onBack }) {
           </div>
         </div>
         {items.length === 0 ? <EmptyState text="無明細項目" /> : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={{ ...thStyle, width: 40 }}>#</th>
-                  <th style={thStyle}>料號</th>
-                  <th style={thStyle}>品名</th>
-                  <th style={{ ...thStyle, textAlign: 'center', width: 60 }}>單位</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 80 }}>數量</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 100 }}>單價</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 120 }}>小計</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, idx) => (
-                  <tr key={item.id || idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
-                    <td style={{ ...tdStyle, color: '#9ca3af', fontSize: 12, textAlign: 'center' }}>{idx + 1}</td>
-                    <td style={tdStyle}>
-                      <span style={{ ...S.mono, fontWeight: 700, color: '#2563eb' }}>{item.item_number || '-'}</span>
-                    </td>
-                    <td style={tdStyle}>{item.description || '-'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: '#6b7280', fontSize: 12 }}>{item.unit || '-'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600 }}>{fmt(item.qty_received)}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', ...S.mono }}>
+          isMobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {items.map((item, i) => (
+                <div key={item.id || i} style={{ ...S.mobileCard, padding: '10px' }}>
+                  <div style={S.mobileCardRow}>
+                    <span style={S.mobileCardLabel}>料號</span>
+                    <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: 700, color: '#2563eb' }}>{item.item_number || '-'}</span>
+                  </div>
+                  <div style={S.mobileCardRow}>
+                    <span style={S.mobileCardLabel}>品名</span>
+                    <span style={S.mobileCardValue}>{item.description || '-'}</span>
+                  </div>
+                  <div style={S.mobileCardRow}>
+                    <span style={S.mobileCardLabel}>單位</span>
+                    <span style={S.mobileCardValue}>{item.unit || '-'}</span>
+                  </div>
+                  <div style={S.mobileCardRow}>
+                    <span style={S.mobileCardLabel}>數量</span>
+                    <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: 600 }}>{fmt(item.qty_received)}</span>
+                  </div>
+                  <div style={S.mobileCardRow}>
+                    <span style={S.mobileCardLabel}>單價</span>
+                    <span style={S.mobileCardValue}>
                       {(Number(item.unit_cost) || 0) === 0
                         ? <span style={{ fontSize: 10, color: '#a855f7', fontWeight: 700, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
-                        : fmtP(item.unit_cost)
+                        : <span style={{ ...S.mono }}>{fmtP(item.unit_cost)}</span>
                       }
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, color: (Number(item.unit_cost) || 0) === 0 ? '#a855f7' : '#10b981' }}>
+                    </span>
+                  </div>
+                  <div style={S.mobileCardRow}>
+                    <span style={S.mobileCardLabel}>小計</span>
+                    <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: 700, color: (Number(item.unit_cost) || 0) === 0 ? '#a855f7' : '#10b981' }}>
                       {(Number(item.unit_cost) || 0) === 0 ? '$0' : fmtP(item.line_total)}
-                    </td>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={S.tableScroll}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ ...thStyle, width: 40 }}>#</th>
+                    <th style={thStyle}>料號</th>
+                    <th style={thStyle}>品名</th>
+                    <th style={{ ...thStyle, textAlign: 'center', width: 60 }}>單位</th>
+                    <th style={{ ...thStyle, textAlign: 'right', width: 80 }}>數量</th>
+                    <th style={{ ...thStyle, textAlign: 'right', width: 100 }}>單價</th>
+                    <th style={{ ...thStyle, textAlign: 'right', width: 120 }}>小計</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {items.map((item, idx) => (
+                    <tr key={item.id || idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
+                      <td style={{ ...tdStyle, color: '#9ca3af', fontSize: 12, textAlign: 'center' }}>{idx + 1}</td>
+                      <td style={tdStyle}>
+                        <span style={{ ...S.mono, fontWeight: 700, color: '#2563eb' }}>{item.item_number || '-'}</span>
+                      </td>
+                      <td style={tdStyle}>{item.description || '-'}</td>
+                      <td style={{ ...tdStyle, textAlign: 'center', color: '#6b7280', fontSize: 12 }}>{item.unit || '-'}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600 }}>{fmt(item.qty_received)}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono }}>
+                        {(Number(item.unit_cost) || 0) === 0
+                          ? <span style={{ fontSize: 10, color: '#a855f7', fontWeight: 700, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
+                          : fmtP(item.unit_cost)
+                        }
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, color: (Number(item.unit_cost) || 0) === 0 ? '#a855f7' : '#10b981' }}>
+                        {(Number(item.unit_cost) || 0) === 0 ? '$0' : fmtP(item.line_total)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
         )}
 
         {/* 合計 */}
         {items.length > 0 && (
-          <div style={{ padding: '12px 8px 4px', borderTop: '2px solid #bfdbfe', marginTop: 4, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 20 }}>
+          <div style={{ padding: '12px 8px 4px', borderTop: '2px solid #bfdbfe', marginTop: 4, display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'flex-end', alignItems: isMobile ? 'flex-end' : 'center', gap: 20 }}>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 13, color: '#6b7280' }}>
                 小計 <span style={{ ...S.mono, fontWeight: 700, color: '#111827' }}>{fmtP(totalAmount)}</span>
                 <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 6 }}>({items.length} 項 / {totalQty} 件)</span>
               </div>
             </div>
-            <div style={{ borderLeft: '3px solid #16a34a', paddingLeft: 16, textAlign: 'right' }}>
+            <div style={{ borderLeft: isMobile ? 'none' : '3px solid #16a34a', borderTop: isMobile ? '3px solid #16a34a' : 'none', paddingLeft: isMobile ? 0 : 16, paddingTop: isMobile ? 8 : 0, textAlign: 'right' }}>
               <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, marginBottom: 2 }}>進貨合計</div>
               <div style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
             </div>
@@ -162,7 +202,7 @@ function StockInDetailView({ id, onBack }) {
    列表主頁
    ============================================================ */
 export default function StockIn() {
-  const width = useViewportWidth(); const isMobile = width < 820;
+  const { isMobile } = useResponsive();
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true); const [search, setSearch] = useState('');
   const [statusF, setStatusF] = useState('');
@@ -244,9 +284,9 @@ export default function StockIn() {
       <PageLead eyebrow="Stock In" title="進貨單" description="記錄廠商進貨入庫，確認後自動增加庫存。"
         action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button>
-          <button onClick={() => setCreateOpen(true)} style={S.btnPrimary}>+ 新增進貨</button>
+          <button onClick={() => setCreateOpen(true)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}) }}>+ 新增進貨</button>
         </div>} />
-      <div style={S.statGrid}>
+      <div style={{ ...S.statGrid, gridTemplateColumns: isMobile ? '1fr 1fr' : S.statGrid.gridTemplateColumns }}>
         <StatCard code="PEND" label="待確認" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
         <StatCard code="CONF" label="已入庫" value={fmt(sm.confirmed)} tone="blue" accent="#16a34a" />
       </div>
@@ -257,70 +297,112 @@ export default function StockIn() {
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, width: 150, fontSize: 13, padding: '6px 10px' }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
+          <span style={{ color: '#6b7280', fontSize: 13, display: isMobile ? 'none' : 'inline' }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
+          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="pending">待確認</option>
             <option value="confirmed">已入庫</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, padding: '6px 18px', fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
+          <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: '6px 18px', fontSize: 13 }}>查詢</button>
         </div>
       </div>
 
       {/* 表格列表 */}
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有進貨單" /> : (
-        <div style={{ ...S.card, borderRadius: 10, border: '1px solid #eaeff5', overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#f9fafb' }}>
-                  <th style={thStyle}>進貨單號</th>
-                  <th style={thStyle}>日期</th>
-                  <th style={thStyle}>廠商</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>金額</th>
-                  <th style={{ ...thStyle, textAlign: 'center', width: 80 }}>狀態</th>
-                  <th style={thStyle}>備註</th>
-                  <th style={{ ...thStyle, textAlign: 'right', width: 100, borderRight: 'none' }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.rows.map((r, idx) => (
-                  <tr key={r.id}
-                    onClick={() => setDetailId(r.id)}
-                    style={{ background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
-                    onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}
-                  >
-                    <td style={tdStyle}>
-                      <span style={{ fontWeight: 700, color: '#3b82f6', ...S.mono, fontSize: 13 }}>{r.stock_in_no || '-'}</span>
-                    </td>
-                    <td style={{ ...tdStyle, ...S.mono, fontSize: 13 }}>{fmtDateOnly(r.stock_in_date)}</td>
-                    <td style={{ ...tdStyle, fontSize: 13, color: '#374151' }}>{r.vendor_name || '-'}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, fontSize: 14 }}>
-                      {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: '#d1d5db' }}>-</span>}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <span style={S.tag(r.status === 'confirmed' ? 'green' : 'default')}>
-                        {r.status === 'confirmed' ? '已入庫' : '待確認'}
-                      </span>
-                    </td>
-                    <td style={{ ...tdStyle, color: '#6b7280', fontSize: 13, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {r.remark || '-'}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'right', borderRight: 'none' }}>
-                      {r.status === 'pending' && (
-                        <button onClick={(e) => handleConfirm(r.id, e)} style={{ ...S.btnPrimary, padding: '5px 12px', fontSize: 12 }}>確認入庫</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {data.rows.map((r, idx) => (
+              <div key={r.id} onClick={() => setDetailId(r.id)} style={{ ...S.mobileCard, padding: '12px', cursor: 'pointer' }}>
+                <div style={S.mobileCardRow}>
+                  <span style={S.mobileCardLabel}>進貨單號</span>
+                  <span style={{ ...S.mobileCardValue, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{r.stock_in_no || '-'}</span>
+                </div>
+                <div style={S.mobileCardRow}>
+                  <span style={S.mobileCardLabel}>日期</span>
+                  <span style={{ ...S.mobileCardValue, ...S.mono }}>{fmtDateOnly(r.stock_in_date)}</span>
+                </div>
+                <div style={S.mobileCardRow}>
+                  <span style={S.mobileCardLabel}>廠商</span>
+                  <span style={S.mobileCardValue}>{r.vendor_name || '-'}</span>
+                </div>
+                <div style={S.mobileCardRow}>
+                  <span style={S.mobileCardLabel}>金額</span>
+                  <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: 700 }}>
+                    {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: '#d1d5db' }}>-</span>}
+                  </span>
+                </div>
+                <div style={S.mobileCardRow}>
+                  <span style={S.mobileCardLabel}>狀態</span>
+                  <span style={S.mobileCardValue}><span style={S.tag(r.status === 'confirmed' ? 'green' : 'default')}>{r.status === 'confirmed' ? '已入庫' : '待確認'}</span></span>
+                </div>
+                {r.remark && (
+                  <div style={S.mobileCardRow}>
+                    <span style={S.mobileCardLabel}>備註</span>
+                    <span style={{ ...S.mobileCardValue, fontSize: 12, color: '#6b7280' }}>{r.remark}</span>
+                  </div>
+                )}
+                {r.status === 'pending' && (
+                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb' }}>
+                    <button onClick={(e) => handleConfirm(r.id, e)} style={{ ...S.btnPrimary, width: '100%', minHeight: 44 }}>確認入庫</button>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        </div>
+        ) : (
+          <div style={{ ...S.card, borderRadius: 10, border: '1px solid #eaeff5', overflow: 'hidden' }}>
+            <div style={S.tableScroll}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f9fafb' }}>
+                    <th style={thStyle}>進貨單號</th>
+                    <th style={thStyle}>日期</th>
+                    <th style={thStyle}>廠商</th>
+                    <th style={{ ...thStyle, textAlign: 'right' }}>金額</th>
+                    <th style={{ ...thStyle, textAlign: 'center', width: 80 }}>狀態</th>
+                    <th style={thStyle}>備註</th>
+                    <th style={{ ...thStyle, textAlign: 'right', width: 100, borderRight: 'none' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.rows.map((r, idx) => (
+                    <tr key={r.id}
+                      onClick={() => setDetailId(r.id)}
+                      style={{ background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
+                      onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}
+                    >
+                      <td style={tdStyle}>
+                        <span style={{ fontWeight: 700, color: '#3b82f6', ...S.mono, fontSize: 13 }}>{r.stock_in_no || '-'}</span>
+                      </td>
+                      <td style={{ ...tdStyle, ...S.mono, fontSize: 13 }}>{fmtDateOnly(r.stock_in_date)}</td>
+                      <td style={{ ...tdStyle, fontSize: 13, color: '#374151' }}>{r.vendor_name || '-'}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, fontSize: 14 }}>
+                        {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: '#d1d5db' }}>-</span>}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <span style={S.tag(r.status === 'confirmed' ? 'green' : 'default')}>
+                          {r.status === 'confirmed' ? '已入庫' : '待確認'}
+                        </span>
+                      </td>
+                      <td style={{ ...tdStyle, color: '#6b7280', fontSize: 13, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {r.remark || '-'}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'right', borderRight: 'none' }}>
+                        {r.status === 'pending' && (
+                          <button onClick={(e) => handleConfirm(r.id, e)} style={{ ...S.btnPrimary, padding: '5px 12px', fontSize: 12 }}>確認入庫</button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
       )}
 
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, statusF, dateFrom, dateTo)} />
@@ -331,10 +413,10 @@ export default function StockIn() {
         const formQty = items.reduce((s, i) => s + (Number(i.qty_received) || 0), 0);
         const validItems = items.filter(i => i.item_number?.trim());
         const modalLabel = { fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4, display: 'block' };
-        const modalInput = { ...S.input, fontSize: 13, padding: '8px 10px', borderRadius: 8 };
+        const modalInput = { ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 13, padding: '8px 10px', borderRadius: 8 };
         return (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setCreateOpen(false)}>
-            <div style={{ width: 'min(680px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#fff', borderRadius: 16, boxShadow: '0 24px 70px rgba(8,12,20,0.25)' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ ...(isMobile ? S.mobileModalOverlay : { position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }), minHeight: '100vh' }} onClick={() => setCreateOpen(false)}>
+            <div style={{ ...(isMobile ? S.mobileModal : { width: 'min(680px, 100%)', maxHeight: '90vh', overflowY: 'auto' }), background: '#fff', borderRadius: isMobile ? 0 : 16, boxShadow: isMobile ? 'none' : '0 24px 70px rgba(8,12,20,0.25)' }} onClick={(e) => e.stopPropagation()}>
               {/* Header */}
               <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -347,7 +429,7 @@ export default function StockIn() {
               </div>
 
               {/* Form body */}
-              <div style={{ padding: '16px 24px' }}>
+              <div style={{ padding: '16px 24px', maxHeight: isMobile ? 'calc(100vh - 220px)' : 'auto', overflowY: isMobile ? 'auto' : 'visible' }}>
                 {/* 新增廠商展開面板 */}
                 {newVendorMode && (
                   <div style={{ background: '#f0f9ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '14px 16px', marginBottom: 14 }}>
@@ -355,7 +437,7 @@ export default function StockIn() {
                       <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af' }}>新增廠商</div>
                       <button type="button" onClick={resetNewVendor} style={{ fontSize: 12, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}>✕ 取消</button>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }}>
                       {[
                         { key: 'vendor_name', label: '廠商名稱 *', ph: '必填', autoFocus: true },
                         { key: 'contact_name', label: '聯絡人', ph: '選填' },
@@ -372,17 +454,17 @@ export default function StockIn() {
                         </div>
                       ))}
                     </div>
-                    <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+                    <div style={{ marginTop: 10, display: 'flex', gap: 8, flexDirection: isMobile ? 'column-reverse' : 'row' }}>
                       <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorForm.vendor_name.trim()}
-                        style={{ padding: '8px 20px', fontSize: 13, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorForm.vendor_name.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer' }}>
+                        style={{ ...(isMobile ? { flex: 1, minHeight: 44 } : {}), padding: '8px 20px', fontSize: 13, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorForm.vendor_name.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer' }}>
                         {creatingVendor ? '建立中...' : '建立廠商'}
                       </button>
-                      <button type="button" onClick={resetNewVendor} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
+                      <button type="button" onClick={resetNewVendor} style={{ ...(isMobile ? { flex: 1, minHeight: 44 } : {}), padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
                     </div>
                   </div>
                 )}
                 {/* Vendor + PO */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 14 }}>
                   <div>
                     <label style={modalLabel}>進貨廠商</label>
                     <div style={{ display: 'flex', gap: 6 }}>
@@ -413,48 +495,106 @@ export default function StockIn() {
                     {formTotal > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: '#059669', ...S.mono }}>{fmtP(formTotal)}</span>}
                   </div>
                   {/* Column headers */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 60px 80px 70px 28px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
-                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>料號</span>
-                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>品名</span>
-                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>數量</span>
-                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>單位</span>
-                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>單價</span>
-                    <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>小計</span>
-                    <span></span>
-                  </div>
+                  {!isMobile && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 60px 80px 70px 28px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
+                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>料號</span>
+                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>品名</span>
+                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>數量</span>
+                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>單位</span>
+                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>單價</span>
+                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>小計</span>
+                      <span></span>
+                    </div>
+                  )}
                   <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {items.map((it, idx) => (
-                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 60px 80px 70px 28px', gap: 6, alignItems: 'center', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 8px' }}>
-                        <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value.toUpperCase())} style={{ ...S.input, fontSize: 12, padding: '5px 8px', ...S.mono, fontWeight: 600 }} placeholder="料號" />
-                        <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, fontSize: 12, padding: '5px 8px' }} placeholder="品名" />
-                        <input type="number" value={it.qty_received || ''} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'qty_received', 1); }} style={{ ...S.input, fontSize: 12, padding: '5px 4px', textAlign: 'center' }} />
-                        <select value={it.unit || ''} onChange={(e) => updateItem(idx, 'unit', e.target.value)} style={{ ...S.input, fontSize: 11, padding: '5px 2px', textAlign: 'center', color: it.unit ? '#374151' : '#9ca3af' }}>
-                          <option value="">—</option>
-                          <option value="個">個</option>
-                          <option value="組">組</option>
-                          <option value="箱">箱</option>
-                          <option value="瓶">瓶</option>
-                          <option value="支">支</option>
-                          <option value="條">條</option>
-                          <option value="包">包</option>
-                          <option value="片">片</option>
-                          <option value="台">台</option>
-                          <option value="套">套</option>
-                          <option value="罐">罐</option>
-                          <option value="盒">盒</option>
-                          <option value="捲">捲</option>
-                          <option value="張">張</option>
-                          <option value="把">把</option>
-                        </select>
-                        <input type="number" value={it.unit_cost || ''} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'unit_cost', 0); }} style={{ ...S.input, fontSize: 12, padding: '5px 6px', textAlign: 'right', ...S.mono }} />
-                        <div style={{ fontSize: 12, fontWeight: 700, textAlign: 'right' }}>
-                          {(Number(it.unit_cost) || 0) === 0
-                            ? <span style={{ fontSize: 10, color: '#a855f7', background: '#faf5ff', padding: '1px 6px', borderRadius: 4 }}>贈品</span>
-                            : <span style={{ ...S.mono, color: '#059669' }}>{fmtP(it.line_total)}</span>
-                          }
+                      isMobile ? (
+                        <div key={idx} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                            <div>
+                              <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>料號</label>
+                              <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value.toUpperCase())} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 12, padding: '5px 8px', ...S.mono, fontWeight: 600, width: '100%' }} placeholder="料號" />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>品名</label>
+                              <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 12, padding: '5px 8px', width: '100%' }} placeholder="品名" />
+                            </div>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                            <div>
+                              <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>數量</label>
+                              <input type="number" value={it.qty_received || ''} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'qty_received', 1); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 12, padding: '5px 8px', width: '100%' }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>單位</label>
+                              <select value={it.unit || ''} onChange={(e) => updateItem(idx, 'unit', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 11, padding: '5px 8px', width: '100%' }}>
+                                <option value="">—</option>
+                                <option value="個">個</option>
+                                <option value="組">組</option>
+                                <option value="箱">箱</option>
+                                <option value="瓶">瓶</option>
+                                <option value="支">支</option>
+                                <option value="條">條</option>
+                                <option value="包">包</option>
+                                <option value="片">片</option>
+                                <option value="台">台</option>
+                                <option value="套">套</option>
+                                <option value="罐">罐</option>
+                                <option value="盒">盒</option>
+                                <option value="捲">捲</option>
+                                <option value="張">張</option>
+                                <option value="把">把</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div>
+                            <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>單價</label>
+                            <input type="number" value={it.unit_cost || ''} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'unit_cost', 0); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 12, padding: '5px 8px', width: '100%', ...S.mono }} />
+                          </div>
+                          <div style={{ paddingTop: 8, borderTop: '1px solid #e5e7eb' }}>
+                            <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>小計: </span>
+                            {(Number(it.unit_cost) || 0) === 0
+                              ? <span style={{ fontSize: 10, color: '#a855f7', background: '#faf5ff', padding: '1px 6px', borderRadius: 4, marginLeft: 4 }}>贈品</span>
+                              : <span style={{ ...S.mono, color: '#059669', fontWeight: 700 }}>{fmtP(it.line_total)}</span>
+                            }
+                          </div>
+                          {items.length > 1 && (
+                            <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: '100%', padding: '8px', marginTop: 8, background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>刪除此項</button>
+                          )}
                         </div>
-                        <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: items.length > 1 ? '#fee2e2' : 'transparent', color: items.length > 1 ? '#ef4444' : '#d1d5db', cursor: items.length > 1 ? 'pointer' : 'default', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                      </div>
+                      ) : (
+                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 60px 80px 70px 28px', gap: 6, alignItems: 'center', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 8px' }}>
+                          <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value.toUpperCase())} style={{ ...S.input, fontSize: 12, padding: '5px 8px', ...S.mono, fontWeight: 600 }} placeholder="料號" />
+                          <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, fontSize: 12, padding: '5px 8px' }} placeholder="品名" />
+                          <input type="number" value={it.qty_received || ''} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'qty_received', 1); }} style={{ ...S.input, fontSize: 12, padding: '5px 4px', textAlign: 'center' }} />
+                          <select value={it.unit || ''} onChange={(e) => updateItem(idx, 'unit', e.target.value)} style={{ ...S.input, fontSize: 11, padding: '5px 2px', textAlign: 'center', color: it.unit ? '#374151' : '#9ca3af' }}>
+                            <option value="">—</option>
+                            <option value="個">個</option>
+                            <option value="組">組</option>
+                            <option value="箱">箱</option>
+                            <option value="瓶">瓶</option>
+                            <option value="支">支</option>
+                            <option value="條">條</option>
+                            <option value="包">包</option>
+                            <option value="片">片</option>
+                            <option value="台">台</option>
+                            <option value="套">套</option>
+                            <option value="罐">罐</option>
+                            <option value="盒">盒</option>
+                            <option value="捲">捲</option>
+                            <option value="張">張</option>
+                            <option value="把">把</option>
+                          </select>
+                          <input type="number" value={it.unit_cost || ''} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'unit_cost', 0); }} style={{ ...S.input, fontSize: 12, padding: '5px 6px', textAlign: 'right', ...S.mono }} />
+                          <div style={{ fontSize: 12, fontWeight: 700, textAlign: 'right' }}>
+                            {(Number(it.unit_cost) || 0) === 0
+                              ? <span style={{ fontSize: 10, color: '#a855f7', background: '#faf5ff', padding: '1px 6px', borderRadius: 4 }}>贈品</span>
+                              : <span style={{ ...S.mono, color: '#059669' }}>{fmtP(it.line_total)}</span>
+                            }
+                          </div>
+                          <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: items.length > 1 ? '#fee2e2' : 'transparent', color: items.length > 1 ? '#ef4444' : '#d1d5db', cursor: items.length > 1 ? 'pointer' : 'default', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                        </div>
+                      )
                     ))}
                   </div>
                   <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }])} style={{ width: '100%', marginTop: 8, padding: '8px', fontSize: 12, fontWeight: 600, color: '#2563eb', background: '#eff6ff', border: '1px dashed #93c5fd', borderRadius: 8, cursor: 'pointer' }}>+ 新增品項</button>
@@ -462,12 +602,12 @@ export default function StockIn() {
               </div>
 
               {/* Footer */}
-              <div style={{ padding: '14px 24px 20px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: 10 }}>
+              <div style={{ padding: '14px 24px 20px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: 10, flexDirection: isMobile ? 'column-reverse' : 'row' }}>
                 <button onClick={handleCreate} disabled={!validItems.length} style={{
-                  flex: 2, padding: '12px', fontSize: 15, fontWeight: 700, color: '#fff', borderRadius: 10, border: 'none', cursor: validItems.length ? 'pointer' : 'default',
+                  flex: isMobile ? 1 : 2, padding: isMobile ? '12px' : '12px', minHeight: isMobile ? 44 : 'auto', fontSize: isMobile ? 14 : 15, fontWeight: 700, color: '#fff', borderRadius: 10, border: 'none', cursor: validItems.length ? 'pointer' : 'default',
                   background: validItems.length ? '#16a34a' : '#d1d5db', boxShadow: validItems.length ? '0 2px 8px rgba(22,163,74,0.25)' : 'none', transition: 'all 0.15s',
                 }}>建立進貨 ({validItems.length} 項)</button>
-                <button onClick={() => setCreateOpen(false)} style={{ flex: 1, padding: '12px', fontSize: 14, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 10, cursor: 'pointer' }}>取消</button>
+                <button onClick={() => setCreateOpen(false)} style={{ flex: isMobile ? 1 : 1, padding: '12px', minHeight: isMobile ? 44 : 'auto', fontSize: 14, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 10, cursor: 'pointer' }}>取消</button>
               </div>
             </div>
           </div>

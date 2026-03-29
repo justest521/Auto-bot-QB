@@ -2,42 +2,43 @@
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
-import { fmtP } from '@/lib/admin/helpers';
+import { fmtP, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead } from '../shared/ui';
 
 /* Customer History Modal */
 function CustomerHistoryModal({ history, customerName, onClose }) {
   const [expandedOrderId, setExpandedOrderId] = useState(null);
+  const { isMobile } = useResponsive();
   if (!history) return null;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
-      <div style={{ ...S.card, width: 680, maxWidth: '92vw', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
-        <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 680, maxWidth: '92vw', maxHeight: isMobile ? '85vh' : '80vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+        <div style={{ ...(isMobile ? S.mobileModalHeader : {}), padding: isMobile ? '14px 14px' : '14px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{customerName} — 歷史訂單</div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+            <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, color: '#111827' }}>{customerName} — 歷史訂單</div>
+            <div style={{ fontSize: isMobile ? 10 : 11, color: '#6b7280', marginTop: 2 }}>
               共 {history.order_count} 筆訂單，累計 <span style={{ ...S.mono, color: '#2563eb', fontWeight: 800 }}>{fmtP(history.total_spent)}</span>
             </div>
           </div>
           <button onClick={onClose} style={{ ...S.btnGhost, padding: '2px 10px', fontSize: 16, lineHeight: 1 }}>✕</button>
         </div>
-        <div style={{ overflow: 'auto', flex: 1, padding: '10px 18px' }}>
+        <div style={{ ...(isMobile ? S.mobileModalBody : {}), overflow: 'auto', flex: 1, padding: isMobile ? '10px 12px' : '10px 18px' }}>
           {(history.recent_orders || []).map((o, idx) => {
             const isOpen = expandedOrderId === (o.order_id || idx);
             const statusColor = o.status === 'confirmed' ? '#16a34a' : o.status === 'pending' ? '#f59e0b' : '#6b7280';
             return (
               <div key={o.order_id || idx} style={{ border: '1px solid #e5e7eb', borderRadius: 8, marginBottom: 6, overflow: 'hidden' }}>
-                <div style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, background: isOpen ? '#f8fafc' : '#fff' }} onClick={() => setExpandedOrderId(isOpen ? null : (o.order_id || idx))}>
-                  <span style={{ ...S.mono, fontSize: 12, fontWeight: 700, color: '#1f2937' }}>{o.order_no}</span>
-                  <span style={{ fontSize: 11, color: '#6b7280' }}>{o.date}</span>
-                  <span style={{ fontSize: 11, color: statusColor, fontWeight: 600 }}>{o.status === 'confirmed' ? '已核准' : o.status === 'pending' ? '待處理' : o.status}</span>
-                  <span style={{ flex: 1 }} />
-                  <span style={{ ...S.mono, fontSize: 13, fontWeight: 800, color: '#10b981' }}>{fmtP(o.amount)}</span>
-                  <span style={{ fontSize: 10, color: '#9ca3af' }}>{o.items?.length || 0} 品項 {isOpen ? '▲' : '▼'}</span>
+                <div style={{ padding: isMobile ? '8px 10px' : '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10, background: isOpen ? '#f8fafc' : '#fff', flexWrap: isMobile ? 'wrap' : 'nowrap' }} onClick={() => setExpandedOrderId(isOpen ? null : (o.order_id || idx))}>
+                  <span style={{ ...S.mono, fontSize: isMobile ? 11 : 12, fontWeight: 700, color: '#1f2937' }}>{o.order_no}</span>
+                  <span style={{ fontSize: isMobile ? 10 : 11, color: '#6b7280' }}>{o.date}</span>
+                  <span style={{ fontSize: isMobile ? 10 : 11, color: statusColor, fontWeight: 600 }}>{o.status === 'confirmed' ? '已核准' : o.status === 'pending' ? '待處理' : o.status}</span>
+                  <span style={{ flex: isMobile ? undefined : 1 }} />
+                  <span style={{ ...S.mono, fontSize: isMobile ? 12 : 13, fontWeight: 800, color: '#10b981' }}>{fmtP(o.amount)}</span>
+                  <span style={{ fontSize: isMobile ? 9 : 10, color: '#9ca3af' }}>{o.items?.length || 0} 品項 {isOpen ? '▲' : '▼'}</span>
                 </div>
                 {isOpen && o.items && o.items.length > 0 && (
-                  <div style={{ borderTop: '1px solid #f0f0f0', padding: '6px 12px', background: '#fafbfd' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                  <div style={{ borderTop: '1px solid #f0f0f0', padding: isMobile ? '6px 10px' : '6px 12px', background: '#fafbfd', ...(isMobile ? S.tableScroll : {}) }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 10 : 11 }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
                           <th style={{ textAlign: 'left', padding: '3px 6px', color: '#6b7280', fontWeight: 600 }}>料號</th>
@@ -71,6 +72,7 @@ function CustomerHistoryModal({ history, customerName, onClose }) {
 }
 
 export default function Approvals() {
+  const { isMobile } = useResponsive();
   const [data, setData] = useState({ rows: [], total: 0, pending_count: 0 });
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('pending');
@@ -114,36 +116,38 @@ export default function Approvals() {
       {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 8, padding: '8px 14px', fontSize: 12, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
 
       {/* Compact header: stats + filters in one row */}
-      <div style={{ ...S.card, padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+      <div style={{ ...S.card, padding: isMobile ? '10px 12px' : '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 16, flexWrap: 'wrap' }}>
         {/* Stats chips */}
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 6, background: '#fef3c7' }}>
-            <span style={{ ...S.mono, fontSize: 16, fontWeight: 800, color: '#d97706' }}>{data.pending_count || 0}</span>
-            <span style={{ fontSize: 11, color: '#92400e' }}>待審核</span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, background: '#fef3c7' }}>
+            <span style={{ ...S.mono, fontSize: isMobile ? 14 : 16, fontWeight: 800, color: '#d97706' }}>{data.pending_count || 0}</span>
+            <span style={{ fontSize: isMobile ? 10 : 11, color: '#92400e' }}>待審核</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 6, background: '#dbeafe' }}>
-            <span style={{ ...S.mono, fontSize: 16, fontWeight: 800, color: '#2563eb' }}>{data.total}</span>
-            <span style={{ fontSize: 11, color: '#1e40af' }}>全部</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, background: '#dbeafe' }}>
+            <span style={{ ...S.mono, fontSize: isMobile ? 14 : 16, fontWeight: 800, color: '#2563eb' }}>{data.total}</span>
+            <span style={{ fontSize: isMobile ? 10 : 11, color: '#1e40af' }}>全部</span>
           </div>
         </div>
 
-        <div style={{ width: 1, height: 24, background: '#e5e7eb' }} />
+        {!isMobile && <div style={{ width: 1, height: 24, background: '#e5e7eb' }} />}
 
         {/* Status filters */}
         <div style={{ display: 'flex', gap: 4 }}>
           {Object.entries(STATUS_MAP).map(([k, v]) => (
-            <button key={k} onClick={() => { setStatusFilter(k); load(k); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, borderColor: statusFilter === k ? v.color : '#e5e7eb', background: statusFilter === k ? v.color : '#fff', color: statusFilter === k ? '#fff' : v.color }}>{v.label}</button>
+            <button key={k} onClick={() => { setStatusFilter(k); load(k); }} style={{ ...S.btnGhost, padding: isMobile ? '3px 8px' : '3px 10px', fontSize: isMobile ? 10 : 11, borderColor: statusFilter === k ? v.color : '#e5e7eb', background: statusFilter === k ? v.color : '#fff', color: statusFilter === k ? '#fff' : v.color }}>{v.label}</button>
           ))}
         </div>
 
-        <div style={{ width: 1, height: 24, background: '#e5e7eb' }} />
+        {!isMobile && <div style={{ width: 1, height: 24, background: '#e5e7eb' }} />}
 
         {/* Type filters */}
-        <div style={{ display: 'flex', gap: 4 }}>
-          {[['', '全部'], ['order', '訂單'], ['purchase_order', '採購單']].map(([k, label]) => (
-            <button key={k} onClick={() => setTypeFilter(k)} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, background: typeFilter === k ? '#374151' : '#fff', color: typeFilter === k ? '#fff' : '#6b7280', borderColor: typeFilter === k ? '#374151' : '#e5e7eb' }}>{label}</button>
-          ))}
-        </div>
+        {!isMobile && (
+          <div style={{ display: 'flex', gap: 4 }}>
+            {[['', '全部'], ['order', '訂單'], ['purchase_order', '採購單']].map(([k, label]) => (
+              <button key={k} onClick={() => setTypeFilter(k)} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, background: typeFilter === k ? '#374151' : '#fff', color: typeFilter === k ? '#fff' : '#6b7280', borderColor: typeFilter === k ? '#374151' : '#e5e7eb' }}>{label}</button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Approval list */}
@@ -159,17 +163,17 @@ export default function Approvals() {
               return (
                 <div key={a.id} style={{ ...S.card, marginBottom: 0, overflow: 'hidden', padding: 0 }}>
                   {/* Header row */}
-                  <div style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }} onClick={() => setExpandedId(isExpanded ? null : a.id)}>
+                  <div style={{ padding: isMobile ? '10px 12px' : '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12, flexWrap: isMobile ? 'wrap' : 'nowrap' }} onClick={() => setExpandedId(isExpanded ? null : a.id)}>
                     {/* Status badge */}
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: st.color, padding: '3px 8px', borderRadius: 4, whiteSpace: 'nowrap', minWidth: 42, textAlign: 'center' }}>{st.label}</span>
+                    <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, color: '#fff', background: st.color, padding: '3px 8px', borderRadius: 4, whiteSpace: 'nowrap', minWidth: isMobile ? 40 : 42, textAlign: 'center' }}>{st.label}</span>
 
                     {/* Doc info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{TYPE_MAP[a.doc_type] || a.doc_type}</span>
-                        <span style={{ ...S.mono, fontSize: 12, color: '#6b7280' }}>{a.doc_no || a.doc_id}</span>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: '#111827' }}>{TYPE_MAP[a.doc_type] || a.doc_type}</span>
+                        <span style={{ ...S.mono, fontSize: isMobile ? 11 : 12, color: '#6b7280' }}>{a.doc_no || a.doc_id}</span>
                       </div>
-                      <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <div style={{ fontSize: isMobile ? 10 : 11, color: '#9ca3af', marginTop: 2, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                         {customerName && <span style={{ color: '#4b5563', fontWeight: 600 }}>{customerName}</span>}
                         <span>申請人：{a.requested_by || '-'}</span>
                         <span>{a.created_at?.slice(0, 10)}</span>
@@ -177,21 +181,23 @@ export default function Approvals() {
                     </div>
 
                     {/* Amount + items count */}
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: a.amount ? '#10b981' : '#d1d5db', ...S.mono }}>{a.amount ? fmtP(a.amount) : '-'}</div>
-                      {items.length > 0 && <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 1 }}>{items.length} 品項 {isExpanded ? '▲' : '▼'}</div>}
-                    </div>
+                    {!isMobile && (
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: a.amount ? '#10b981' : '#d1d5db', ...S.mono }}>{a.amount ? fmtP(a.amount) : '-'}</div>
+                        {items.length > 0 && <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 1 }}>{items.length} 品項 {isExpanded ? '▲' : '▼'}</div>}
+                      </div>
+                    )}
 
                     {/* Action buttons */}
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: 'flex', gap: isMobile ? 3 : 4, alignItems: 'center', flexShrink: 0, ...(isMobile ? { width: '100%', marginTop: 8 } : {}) }} onClick={e => e.stopPropagation()}>
                       {a.customer_history && (
-                        <button onClick={() => setHistoryModal({ history: a.customer_history, customerName })} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 10, borderColor: '#2563eb', color: '#2563eb' }}>客戶歷史</button>
+                        <button onClick={() => setHistoryModal({ history: a.customer_history, customerName })} style={{ ...S.btnGhost, padding: isMobile ? '4px 6px' : '4px 8px', fontSize: isMobile ? 9 : 10, borderColor: '#2563eb', color: '#2563eb', minHeight: isMobile ? 44 : undefined }}>{isMobile ? '歷史' : '客戶歷史'}</button>
                       )}
-                      <button onClick={() => { const pdfType = a.doc_type === 'purchase_order' ? 'purchase_order' : a.doc_type === 'quote' ? 'quote' : a.doc_type === 'sale' ? 'sale' : 'order'; window.open(`/api/pdf?type=${pdfType}&id=${a.doc_id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 10 }}>PDF</button>
+                      <button onClick={() => { const pdfType = a.doc_type === 'purchase_order' ? 'purchase_order' : a.doc_type === 'quote' ? 'quote' : a.doc_type === 'sale' ? 'sale' : 'order'; window.open(`/api/pdf?type=${pdfType}&id=${a.doc_id}`, '_blank'); }} style={{ ...S.btnGhost, padding: isMobile ? '4px 6px' : '4px 8px', fontSize: isMobile ? 9 : 10, minHeight: isMobile ? 44 : undefined }}>PDF</button>
                       {a.status === 'pending' && (
                         <>
-                          <button onClick={() => handleProcess(a, 'approved')} style={{ ...S.btnPrimary, padding: '4px 12px', fontSize: 11 }}>核准</button>
-                          <button onClick={() => { setNoteDialog(a); setNote(''); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 11, borderColor: '#dc2626', color: '#dc2626' }}>駁回</button>
+                          <button onClick={() => handleProcess(a, 'approved')} style={{ ...S.btnPrimary, padding: isMobile ? '4px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, minHeight: isMobile ? 44 : undefined }}>核准</button>
+                          <button onClick={() => { setNoteDialog(a); setNote(''); }} style={{ ...S.btnGhost, padding: isMobile ? '4px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: '#dc2626', color: '#dc2626', minHeight: isMobile ? 44 : undefined }}>駁回</button>
                         </>
                       )}
                     </div>
@@ -206,8 +212,8 @@ export default function Approvals() {
                     const totalProfit = totalSell - totalCost;
                     const marginPct = totalSell > 0 ? ((totalProfit / totalSell) * 100).toFixed(1) : '0.0';
                     return (
-                      <div style={{ borderTop: '1px solid #f0f0f0', padding: '8px 14px', background: '#fafbfd' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                      <div style={{ borderTop: '1px solid #f0f0f0', padding: isMobile ? '8px 12px' : '8px 14px', background: '#fafbfd', ...(isMobile ? S.tableScroll : {}) }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 10 : 11 }}>
                           <thead>
                             <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
                               <th style={{ textAlign: 'left', padding: '4px 6px', color: '#6b7280', fontWeight: 600 }}>料號</th>
@@ -247,15 +253,15 @@ export default function Approvals() {
                           </tbody>
                         </table>
                         {hasCost && !isPO && (
-                          <div style={{ marginTop: 8, padding: '8px 10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
-                            <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#374151' }}>
+                          <div style={{ marginTop: 8, padding: isMobile ? '8px 8px' : '8px 10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6, flexDirection: isMobile ? 'column' : 'row' }}>
+                            <div style={{ display: 'flex', gap: isMobile ? 8 : 12, fontSize: isMobile ? 10 : 11, color: '#374151' }}>
                               <span>售價 <strong style={{ ...S.mono, color: '#111827' }}>{fmtP(totalSell)}</strong></span>
                               <span>成本 <strong style={{ ...S.mono, color: '#6b7280' }}>{fmtP(totalCost)}</strong></span>
                             </div>
                             <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-                              <span style={{ fontSize: 11, color: '#374151' }}>毛利</span>
-                              <span style={{ ...S.mono, fontSize: 15, fontWeight: 800, color: totalProfit >= 0 ? '#16a34a' : '#dc2626' }}>{fmtP(totalProfit)}</span>
-                              <span style={{ ...S.mono, fontSize: 12, fontWeight: 700, color: totalProfit >= 0 ? '#16a34a' : '#dc2626', background: totalProfit >= 0 ? '#dcfce7' : '#fee2e2', padding: '1px 6px', borderRadius: 4 }}>{marginPct}%</span>
+                              <span style={{ fontSize: isMobile ? 10 : 11, color: '#374151' }}>毛利</span>
+                              <span style={{ ...S.mono, fontSize: isMobile ? 13 : 15, fontWeight: 800, color: totalProfit >= 0 ? '#16a34a' : '#dc2626' }}>{fmtP(totalProfit)}</span>
+                              <span style={{ ...S.mono, fontSize: isMobile ? 11 : 12, fontWeight: 700, color: totalProfit >= 0 ? '#16a34a' : '#dc2626', background: totalProfit >= 0 ? '#dcfce7' : '#fee2e2', padding: '1px 6px', borderRadius: 4 }}>{marginPct}%</span>
                             </div>
                           </div>
                         )}
@@ -265,7 +271,7 @@ export default function Approvals() {
 
                   {/* Approved/Rejected info */}
                   {a.status !== 'pending' && (
-                    <div style={{ borderTop: '1px solid #f0f0f0', padding: '8px 14px', background: a.status === 'approved' ? '#f0fdf4' : '#fef2f2', display: 'flex', gap: 8, alignItems: 'center', fontSize: 11 }}>
+                    <div style={{ borderTop: '1px solid #f0f0f0', padding: isMobile ? '8px 12px' : '8px 14px', background: a.status === 'approved' ? '#f0fdf4' : '#fef2f2', display: 'flex', gap: 8, alignItems: 'center', fontSize: isMobile ? 10 : 11, flexWrap: 'wrap' }}>
                       <span style={{ fontWeight: 700, color: a.status === 'approved' ? '#16a34a' : '#dc2626' }}>{a.status === 'approved' ? '已核准' : '已駁回'}</span>
                       <span style={{ color: '#6b7280' }}>審核人：{a.approved_by || '-'}</span>
                       <span style={{ color: '#6b7280' }}>{a.approved_at?.slice(0, 16).replace('T', ' ')}</span>
@@ -285,12 +291,12 @@ export default function Approvals() {
 
       {noteDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 400, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 10px', fontSize: 15 }}>駁回原因</h3>
-            <div style={{ marginBottom: 8 }}><textarea value={note} onChange={e => setNote(e.target.value)} placeholder="請說明駁回原因..." style={{ ...S.input, minHeight: 70 }} /></div>
+          <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 400, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 10px', fontSize: isMobile ? 14 : 15 }}>駁回原因</h3>
+            <div style={{ marginBottom: 8 }}><textarea value={note} onChange={e => setNote(e.target.value)} placeholder="請說明駁回原因..." style={{ ...(isMobile ? S.mobile.input : S.input), minHeight: 70 }} /></div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button onClick={() => setNoteDialog(null)} style={S.btnGhost}>取消</button>
-              <button onClick={() => handleProcess(noteDialog, 'rejected')} style={{ ...S.btnPrimary, background: '#dc2626' }}>確認駁回</button>
+              <button onClick={() => setNoteDialog(null)} style={{ ...S.btnGhost, minHeight: isMobile ? 44 : undefined }}>取消</button>
+              <button onClick={() => handleProcess(noteDialog, 'rejected')} style={{ ...S.btnPrimary, background: '#dc2626', minHeight: isMobile ? 44 : undefined }}>確認駁回</button>
             </div>
           </div>
         </div>

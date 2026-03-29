@@ -822,3 +822,226 @@ export function ReportShortcut({ code, title, desc, onClick, tone = 'blue' }) {
     </button>
   );
 }
+
+// ═══════════════════════════════════════════════════════════
+//  RWD 響應式共用元件
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * ResponsiveTable — 桌面用 table，手機自動轉卡片
+ * @param {Array} columns - [{ key, label, width?, render?, align?, hideOnMobile? }]
+ * @param {Array} data - 資料陣列
+ * @param {boolean} isMobile
+ * @param {function} onRowClick - (row) => void
+ * @param {string} mobileTitle - 手機卡片的主標題欄位 key
+ * @param {string} mobileSub - 手機卡片的副標題欄位 key
+ * @param {function} renderMobileCard - 自訂手機卡片渲染 (row, index) => JSX
+ * @param {object} headerStyle - 額外 header style
+ * @param {string} emptyText
+ */
+export function ResponsiveTable({ columns = [], data = [], isMobile = false, onRowClick, mobileTitle, mobileSub, renderMobileCard, headerStyle = {}, emptyText = '暫無資料', rowKey = 'id' }) {
+  if (!data || data.length === 0) {
+    return <EmptyState text={emptyText} />;
+  }
+
+  // ── 手機卡片模式 ──
+  if (isMobile) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {data.map((row, idx) => {
+          if (renderMobileCard) return renderMobileCard(row, idx);
+          const titleCol = columns.find(c => c.key === mobileTitle) || columns[0];
+          const subCol = columns.find(c => c.key === mobileSub) || columns[1];
+          const detailCols = columns.filter(c => c.key !== titleCol?.key && !c.hideOnMobile);
+          return (
+            <div key={row[rowKey] || idx} onClick={() => onRowClick?.(row)} style={{ ...S.mobileCard, cursor: onRowClick ? 'pointer' : 'default' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
+                    {titleCol?.render ? titleCol.render(row[titleCol.key], row) : row[titleCol?.key]}
+                  </div>
+                  {subCol && (
+                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                      {subCol?.render ? subCol.render(row[subCol.key], row) : row[subCol?.key]}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {detailCols.slice(0, 5).map(col => (
+                <div key={col.key} style={S.mobileCardRow}>
+                  <span style={S.mobileCardLabel}>{col.label}</span>
+                  <span style={S.mobileCardValue}>
+                    {col.render ? col.render(row[col.key], row) : (row[col.key] ?? '-')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // ── 桌面表格模式 ──
+  return (
+    <div style={S.tableScroll}>
+      <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 13 }}>
+        <thead>
+          <tr style={{ background: '#f3f4f6', ...headerStyle }}>
+            {columns.filter(c => !c.hideOnMobile || !isMobile).map(col => (
+              <th key={col.key} style={{ padding: '8px 14px', textAlign: col.align || 'left', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', width: col.width, borderBottom: '1px solid #e5e7eb' }}>{col.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, idx) => (
+            <tr key={row[rowKey] || idx} onClick={() => onRowClick?.(row)} style={{ cursor: onRowClick ? 'pointer' : 'default', borderBottom: '1px solid #f3f4f6' }}>
+              {columns.filter(c => !c.hideOnMobile || !isMobile).map(col => (
+                <td key={col.key} style={{ padding: '8px 14px', textAlign: col.align || 'left', color: '#111827', borderBottom: '1px solid #f3f4f6' }}>
+                  {col.render ? col.render(row[col.key], row) : (row[col.key] ?? '-')}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/**
+ * ResponsiveModal — 桌面居中 modal，手機全螢幕
+ * @param {boolean} open
+ * @param {function} onClose
+ * @param {string} title
+ * @param {boolean} isMobile
+ * @param {number} maxWidth - 桌面最大寬度 (default 640)
+ * @param {ReactNode} footer - 底部操作按鈕
+ * @param {ReactNode} children
+ */
+export function ResponsiveModal({ open, onClose, title, isMobile = false, maxWidth = 640, footer, children }) {
+  if (!open) return null;
+
+  // ── 手機全螢幕 ──
+  if (isMobile) {
+    return createPortal(
+      <div style={S.mobileModal}>
+        <div style={S.mobileModalHeader}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{title}</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, color: '#9ca3af', cursor: 'pointer', padding: '2px 6px', lineHeight: 1 }}>✕</button>
+        </div>
+        <div style={S.mobileModalBody}>{children}</div>
+        {footer && <div style={S.mobileModalFooter}>{footer}</div>}
+      </div>,
+      document.body
+    );
+  }
+
+  // ── 桌面居中 modal ──
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+      <div style={{ ...S.card, width: maxWidth, maxWidth: '90vw', maxHeight: '85vh', borderRadius: 14, padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{title}</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, color: '#9ca3af', cursor: 'pointer', padding: '2px 6px', lineHeight: 1 }}>✕</button>
+        </div>
+        <div style={{ flex: 1, padding: '16px 18px', overflowY: 'auto' }}>{children}</div>
+        {footer && <div style={{ padding: '12px 18px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>{footer}</div>}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+/**
+ * ResponsiveFormGrid — 響應式表單網格
+ * @param {boolean} isMobile
+ * @param {boolean} isTablet
+ * @param {number} columns - 桌面版欄數 (default 4)
+ * @param {number} gap - default 10
+ * @param {ReactNode} children
+ * @param {object} style - 額外 style
+ */
+export function ResponsiveFormGrid({ isMobile = false, isTablet = false, columns = 4, gap = 10, children, style = {} }) {
+  const cols = isMobile ? '1fr' : isTablet ? `repeat(${Math.min(columns, 2)}, 1fr)` : `repeat(${columns}, 1fr)`;
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: cols, gap, ...style }}>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * ResponsiveActionBar — 手機版固定底部操作列，桌面版 inline
+ * @param {boolean} isMobile
+ * @param {ReactNode} children - 按鈕們
+ * @param {object} style
+ */
+export function ResponsiveActionBar({ isMobile = false, children, style = {} }) {
+  if (isMobile) {
+    return (
+      <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 9998, background: '#fff', borderTop: '1px solid #e5e7eb', padding: '10px 14px', paddingBottom: 'calc(10px + env(safe-area-inset-bottom))', display: 'flex', gap: 8, justifyContent: 'stretch', boxShadow: '0 -2px 8px rgba(0,0,0,0.06)', ...style }}>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...style }}>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * BottomSheet — 手機底部抽屜（半螢幕）
+ * @param {boolean} open
+ * @param {function} onClose
+ * @param {string} title
+ * @param {ReactNode} children
+ */
+export function BottomSheet({ open, onClose, title, children }) {
+  if (!open) return null;
+  return createPortal(
+    <>
+      <div style={S.mobileDrawerBackdrop} onClick={onClose} />
+      <div style={S.bottomSheet}>
+        <div style={S.bottomSheetHandle} />
+        {title && (
+          <div style={{ padding: '8px 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{title}</div>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, color: '#9ca3af', cursor: 'pointer' }}>✕</button>
+          </div>
+        )}
+        <div style={{ padding: '12px 16px 24px', maxHeight: '70vh', overflowY: 'auto' }}>{children}</div>
+      </div>
+    </>,
+    document.body
+  );
+}
+
+/**
+ * MobileSearchBar — 手機版搜尋列 + 篩選按鈕
+ * @param {string} value
+ * @param {function} onChange
+ * @param {string} placeholder
+ * @param {function} onFilter - 如果提供，顯示篩選按鈕
+ * @param {boolean} filterActive - 篩選是否啟用中
+ * @param {ReactNode} action - 右側額外按鈕
+ */
+export function MobileSearchBar({ value, onChange, placeholder = '搜尋...', onFilter, filterActive = false, action }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+      <div style={{ flex: 1, position: 'relative' }}>
+        <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{ ...S.input, padding: '10px 12px 10px 36px', fontSize: 14, minHeight: 44 }} />
+        <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 15, color: '#9ca3af', pointerEvents: 'none' }}>🔍</span>
+      </div>
+      {onFilter && (
+        <button onClick={onFilter} style={{ ...S.btnGhost, minHeight: 44, minWidth: 44, padding: '0 12px', fontSize: 14, position: 'relative', color: filterActive ? '#16a34a' : '#374151', borderColor: filterActive ? '#16a34a' : '#e5e7eb' }}>
+          ☰
+          {filterActive && <span style={{ position: 'absolute', top: 4, right: 4, width: 6, height: 6, borderRadius: '50%', background: '#16a34a' }} />}
+        </button>
+      )}
+      {action}
+    </div>
+  );
+}
