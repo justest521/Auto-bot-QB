@@ -27,7 +27,7 @@ import ProfitAnalysis from './components/tabs/ProfitAnalysis';
 import Promotions from './components/tabs/Promotions';
 import PricingRules from './components/tabs/PricingRules';
 import Inventory from './components/tabs/Inventory';
-import Payments from './components/tabs/Payments';
+// import Payments from './components/tabs/Payments'; // removed
 import Shipments from './components/tabs/Shipments';
 import Returns from './components/tabs/Returns';
 
@@ -119,7 +119,6 @@ const SECTIONS = [
       { id: 'sales_documents', label: '銷貨單', code: 'SALE' },
       { id: 'shipments', label: '出貨管理', code: 'SHIP' },
       { id: 'returns', label: '退貨管理', code: 'RTN' },
-      { id: 'payments', label: '收款管理', code: 'PAY' },
       { id: 'parts_exchange', label: '🔮 零件交易所', code: 'PTEX' },
       { id: 'equipment_lease', label: '🔮 設備租賃', code: 'LEAS' },
     ],
@@ -230,7 +229,6 @@ const TAB_META = {
   sales_documents: { eyebrow: 'Sales', title: '銷貨單', desc: '查看銷貨單、發票號碼與毛利。' },
   shipments: { eyebrow: 'Shipments', title: '出貨管理', desc: '追蹤訂單出貨進度與物流資訊。' },
   returns: { eyebrow: 'Returns', title: '退貨管理', desc: '管理客戶退貨申請、審核與庫存回補。' },
-  payments: { eyebrow: 'Payments', title: '收款管理', desc: '記錄客戶付款，自動更新訂單進度。' },
   promotions: { eyebrow: 'Campaigns', title: '活動管理', desc: '建立促銷活動與優惠檔期。' },
   pricing: { eyebrow: 'Pricing', title: '報價規則', desc: '調整折扣、免運門檻與提示文字。' },
   parts_exchange: { eyebrow: 'Parts Exchange', title: '零件交易所' },
@@ -287,7 +285,6 @@ const TAB_COMPONENTS = {
   promotions: Promotions,
   pricing: PricingRules,
   inventory: Inventory,
-  payments: Payments,
   shipments: Shipments,
   returns: Returns,
 

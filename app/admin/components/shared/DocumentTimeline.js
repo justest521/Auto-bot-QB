@@ -17,7 +17,7 @@ const TAB_NAMES = {
   order: 'orders',
   quote: 'quotes',
   shipment: 'shipments',
-  payment: '收款管理',
+  payment: 'accounts_receivable',
   invoice: 'accounts_receivable',
 };
 
