@@ -107,7 +107,6 @@ const SECTIONS = [
       { id: 'procurement_center', label: '採購中心', code: 'PC' },
       { id: 'stock_in', label: '進貨單', code: 'SI' },
       { id: 'purchase_returns', label: '進貨退出', code: 'PRTN' },
-      { id: 'vendor_payments', label: '付款單', code: 'VP' },
     ],
   },
   {
@@ -160,6 +159,7 @@ const SECTIONS = [
       { id: 'reconciliation', label: '對帳單', code: 'RCON' },
       { id: 'payment_records', label: '收款登錄', code: 'RCPT' },
       { id: 'payment_matching', label: '沖帳配對', code: 'MTCH' },
+      { id: 'vendor_payments', label: '付款單', code: 'VP' },
     ],
   },
   {
