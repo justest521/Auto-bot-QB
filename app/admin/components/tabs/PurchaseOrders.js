@@ -1130,7 +1130,7 @@ function CreatePOModal({ onClose, onCreated }) {
 // ========== 採購單主元件 ==========
 export default function PurchaseOrders({ setTab }) {
   const { isMobile, isTablet } = useResponsive();
-  const { gridTemplate, ResizableHeader } = useResizableColumns('po_list_v2', isMobile ? [32, 42, 140, 80, 60, 140, 70, 40] : isTablet ? [32, 42, 160, 90, 72, 200, 90, 40] : [32, 42, 180, 90, 72, 250, 100, 100, 40]);
+  const { gridTemplate, ResizableHeader } = useResizableColumns('po_list_v2', isMobile ? [32, 42, 140, 80, 60, 140, 70, 50] : isTablet ? [32, 42, 160, 90, 72, 200, 90, 50] : [32, 42, 180, 90, 72, 250, 100, 100, 55]);
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 30, summary: {} });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
