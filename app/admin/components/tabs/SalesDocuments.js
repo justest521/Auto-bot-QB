@@ -544,7 +544,6 @@ export default function SalesDocuments({ setTab }) {
             </div>
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
               <button onClick={() => handleSalesReturn(row)} style={{ ...S.btnGhost, flex: 1, minHeight: 44, fontSize: 14 }}>退回</button>
-              <button onClick={() => handlePayment(row)} style={{ ...S.btnGhost, flex: 1, minHeight: 44, fontSize: 14, color: row.payment_status === 'paid' ? '#10b981' : '#374151' }}>{row.payment_status === 'paid' ? '已沖' : '沖帳'}</button>
             </div>
           </div>
         ))
@@ -583,7 +582,6 @@ export default function SalesDocuments({ setTab }) {
                 {!isTablet && <div style={{ ...cRight, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total)}</div>}
                 {!isTablet && <div style={{ ...cellLast, justifyContent: 'flex-end', gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                   <button onClick={() => handleSalesReturn(row)} title="銷貨退回" style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, whiteSpace: 'nowrap' }}>退回</button>
-                  <button onClick={() => handlePayment(row)} title="沖帳" style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, whiteSpace: 'nowrap', color: row.payment_status === 'paid' ? '#10b981' : '#374151' }}>{row.payment_status === 'paid' ? '已沖' : '沖帳'}</button>
                 </div>}
               </div>
             );
