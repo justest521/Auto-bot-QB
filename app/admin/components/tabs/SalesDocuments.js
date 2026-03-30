@@ -289,9 +289,12 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 // 付款狀態
                 entries.push({ dot: statusKey === 'paid' ? '#16a34a' : '#d1d5db', label: '付款', detail: { draft: '草稿', issued: '未付款', paid: '已收款', void: '作廢' }[statusKey] || statusKey, status: statusKey === 'paid' ? 'done' : statusKey === 'issued' ? 'pending' : statusKey === 'void' ? 'rejected' : 'pending' });
 
-                // 出貨紀錄 — from shipments state, with clickable ref
+                // 出貨紀錄 — from shipments state, with clickable ref + LINE status
+                const shipTlEv = timeline?.find(ev => (ev.event || '').match(/出貨單/));
                 shipments.forEach(sh => {
-                  entries.push({ dot: '#16a34a', label: '出貨', ref: sh.shipment_no, refType: 'shipment', detail: sh.carrier ? `${sh.carrier}${sh.tracking_no ? ` #${sh.tracking_no}` : ''}` : '已出貨', time: sh.created_at, status: 'done' });
+                  const shLineNote = shipTlEv?.note || '';
+                  const shLineSent = shipTlEv?.line_sent ?? false;
+                  entries.push({ dot: '#16a34a', label: '出貨', ref: sh.shipment_no, refType: 'shipment', detail: sh.carrier ? `${sh.carrier}${sh.tracking_no ? ` #${sh.tracking_no}` : ''}` : '已出貨', time: sh.created_at, status: 'done', note: shLineNote, lineSent: shLineSent });
                 });
 
                 // 其他timeline事件 (exclude shipments since we handle them above)
@@ -324,6 +327,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                             })()}
                             {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.detailColor || (e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af'), background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
                           </div>
+                          {e.note && <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: 4, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
                           {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
                         </div>
                       );

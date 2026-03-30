@@ -889,8 +889,11 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 } else {
                   entries.push({ dot: payKey === 'paid' ? '#16a34a' : '#d1d5db', label: '付款', detail: PAY_STATUS_MAP[payKey] || payKey, status: payKey === 'paid' ? 'done' : 'pending' });
                 }
-                // Shipping
-                entries.push({ dot: (shipKey === 'shipped' || shipKey === 'delivered') ? '#16a34a' : '#d1d5db', label: '出貨', detail: SHIP_STATUS_MAP[shipKey] || shipKey, status: (shipKey === 'shipped' || shipKey === 'delivered') ? 'done' : 'pending' });
+                // Shipping — with LINE notification status
+                const shipTimelineEv = timeline.find(e => (e.event || '').match(/出貨單/));
+                const shipLineNote = shipTimelineEv?.note || ((shipKey === 'shipped' || shipKey === 'delivered') ? (order.customer?.line_user_id ? '✅ 已發送 LINE 出貨通知' : '⚠️ 未綁定 LINE，未推播') : '');
+                const shipLineSent = shipTimelineEv?.line_sent ?? !!order.customer?.line_user_id;
+                entries.push({ dot: (shipKey === 'shipped' || shipKey === 'delivered') ? '#16a34a' : '#d1d5db', label: '出貨', detail: SHIP_STATUS_MAP[shipKey] || shipKey, status: (shipKey === 'shipped' || shipKey === 'delivered') ? 'done' : 'pending', note: (shipKey === 'shipped' || shipKey === 'delivered') ? shipLineNote : '', lineSent: shipLineSent });
                 // Completion
                 const isCompleted = statusKey === 'completed' || (payKey === 'paid' && (shipKey === 'shipped' || shipKey === 'delivered'));
                 if (isCompleted) {
@@ -927,6 +930,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                               ))}
                             </div>
                           )}
+                          {e.note && <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: 4, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
                           {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
                         </div>
                       );
