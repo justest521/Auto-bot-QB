@@ -24,7 +24,7 @@ function StatCard({ code, label, value, tone }) {
   );
 }
 
-const AR_DEFAULT_WIDTHS = [50, 160, 140, 110, 110, 90, 120, 110, 120, 80, 80];
+const AR_DEFAULT_WIDTHS = [40, 155, 120, 70, 100, 100, 75, 110, 100, 110, 65, 65];
 
 export default function AccountsReceivable() {
   const { isMobile, isTablet } = useResponsive();
@@ -158,16 +158,16 @@ export default function AccountsReceivable() {
         <StatCard code="BLNC" label="未沖餘額" value={fmtP(s.unmatched_balance)} tone="blue" />
       </div>
 
-      {/* Unified filter card */}
-      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '12px 14px' : '10px 16px' }}>
-        <div style={{ display: 'flex', gap: isMobile ? 6 : 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      {/* Compact filter row */}
+      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '10px 12px' : '8px 12px' }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: isMobile ? 'wrap' : 'nowrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: isMobile ? 12 : 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', lineHeight: 1.2 }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
-          {!isMobile && <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>}
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
-          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(1, e.target.value, search, pageSize); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 125, fontSize: 12, padding: '4px 6px', ...S.mono }} />
+          <span style={{ color: '#9ca3af', fontSize: 12 }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 125, fontSize: 12, padding: '4px 6px', ...S.mono }} />
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(1, e.target.value, search, pageSize); }} style={{ ...S.input, width: isMobile ? '100%' : 110, fontSize: 12, padding: '4px 6px' }}>
             <option value="">全部狀態</option>
             <option value="unpaid">未付款</option>
             <option value="partial">部分付款</option>
@@ -175,8 +175,8 @@ export default function AccountsReceivable() {
             <option value="overdue">逾期</option>
             <option value="cancelled">已取消</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋應收單號、客戶..." style={{ ...S.input, flex: isMobile ? '1 1 100%' : '1 1 auto', minWidth: isMobile ? 0 : 160, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋單號、客戶..." style={{ ...S.input, flex: '1 1 auto', minWidth: isMobile ? 0 : 120, fontSize: 12, padding: '4px 8px' }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: '4px 14px', fontSize: 12 }}>查詢</button>
         </div>
       </div>
 
@@ -217,6 +217,7 @@ export default function AccountsReceivable() {
             { label: '序', align: 'center' },
             { label: '應收單號', align: 'left' },
             { label: '客戶', align: 'left' },
+            { label: '業務', align: 'center' },
             { label: '開單日', align: 'center' },
             { label: '到期日', align: 'center' },
             { label: '狀態', align: 'center' },
@@ -242,6 +243,7 @@ export default function AccountsReceivable() {
                 <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{((page - 1) * pageSize) + idx + 1}</div>
                 <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{ar.invoice_no || '-'}</div>
                 <div style={cell}><span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ar.customer_name || '-'}</span></div>
+                <div style={{ ...cCenter, fontSize: 12, color: '#374151' }}>{ar.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>
                 <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{ar.invoice_date?.slice(0, 10) || '-'}</div>
                 <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{ar.due_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(ar.payment_status === 'paid' ? 'green' : ar.payment_status === 'partial' ? 'yellow' : ar.payment_status === 'overdue' ? 'red' : 'gray')}>{st.label}</span></div>
