@@ -1344,8 +1344,8 @@ export default function PurchaseOrders({ setTab }) {
                 <div style={cCenter}><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
                 <div style={{ ...cell, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.remark || '-'}</div>
                 <div style={{ ...cRight, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>
-                {!isTablet && <div style={{ ...cell, color: '#374151', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.vendor?.vendor_name || '-'}</div>}
-                <div style={cellLast}>→</div>
+                {!isTablet && <div style={{ ...cCenter, color: '#374151', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.vendor?.vendor_name || '-'}</div>}
+                <div style={{ ...cell, borderRight: 'none', justifyContent: 'flex-end' }}>→</div>
               </div>
             );
           })}
