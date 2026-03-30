@@ -23,7 +23,7 @@ function StatCard({ code, label, value, tone }) {
   );
 }
 
-const AR_DEFAULT_WIDTHS = [50, 160, 140, 110, 110, 90, 120, 110, 120, 80];
+const AR_DEFAULT_WIDTHS = [50, 160, 140, 110, 110, 90, 120, 110, 120, 80, 80];
 
 export default function AccountsReceivable() {
   const { isMobile, isTablet } = useResponsive();
@@ -42,6 +42,9 @@ export default function AccountsReceivable() {
   const [detailData, setDetailData] = useState(null);
   const [createDialog, setCreateDialog] = useState(false);
   const [newAr, setNewAr] = useState({ customer_id: '', amount: '', due_date: '', remark: '' });
+  const [payDialog, setPayDialog] = useState(null);
+  const [payForm, setPayForm] = useState({ amount: '', method: 'transfer' });
+  const [paying, setPaying] = useState(false);
 
   const load = async (p = page, status = statusFilter, q = search, limit = pageSize) => {
     setLoading(true);
@@ -98,6 +101,25 @@ export default function AccountsReceivable() {
       setNewAr({ customer_id: '', amount: '', due_date: '', remark: '' });
       await load(1);
     } catch (e) { setMsg(e.message); }
+  };
+
+  const openPayDialog = (ar, e) => {
+    if (e) e.stopPropagation();
+    const balance = Number(ar.total_amount || 0) - Number(ar.paid_amount || 0);
+    setPayDialog(ar);
+    setPayForm({ amount: balance > 0 ? String(balance) : '', method: 'transfer' });
+  };
+
+  const handlePay = async () => {
+    if (!payDialog || !payForm.amount || Number(payForm.amount) <= 0) { setMsg('請填寫收款金額'); return; }
+    setPaying(true);
+    try {
+      const res = await apiPost({ action: 'record_payment', invoice_id: payDialog.id, amount: Number(payForm.amount), payment_method: payForm.method });
+      setMsg(res.message || '沖帳成功');
+      setPayDialog(null);
+      await load(page, statusFilter, search, pageSize);
+    } catch (e) { setMsg(e.message || '沖帳失敗'); }
+    finally { setPaying(false); }
   };
 
   const handleExport = async () => {
@@ -178,7 +200,12 @@ export default function AccountsReceivable() {
                   <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontSize: 14, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div></div>
                   <div><span style={{ color: '#6b7280' }}>到期日</span><div style={{ fontSize: 12, color: '#111827', ...S.mono }}>{ar.due_date?.slice(0, 10) || '-'}</div></div>
                 </div>
-                {daysOverdue > 0 && <div style={{ fontSize: 11, color: '#dc2626', fontWeight: 600 }}>逾期 {daysOverdue} 天</div>}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  {daysOverdue > 0 && <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 600 }}>逾期 {daysOverdue} 天</span>}
+                  {ar.payment_status !== 'paid' && ar.payment_status !== 'cancelled' && (
+                    <button onClick={(e) => { e.stopPropagation(); openPayDialog(ar, e); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 12, color: '#3b82f6', borderColor: '#bfdbfe', marginLeft: 'auto' }}>沖帳</button>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -196,6 +223,7 @@ export default function AccountsReceivable() {
             { label: '已收金額', align: 'right' },
             { label: '未沖餘額', align: 'right' },
             { label: '逾期天數', align: 'center' },
+            { label: '操作', align: 'center' },
           ]} />
           {(data.rows || []).map((ar, idx) => {
             const st = STATUS_MAP[ar.payment_status] || STATUS_MAP.unpaid;
@@ -219,7 +247,12 @@ export default function AccountsReceivable() {
                 <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(ar.total_amount)}</div>
                 <div style={{ ...cRight, fontSize: 13, color: '#16a34a', ...S.mono }}>{fmtP(ar.paid_amount)}</div>
                 <div style={{ ...cRight, fontSize: 13, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div>
-                <div style={{ ...cellLast, fontSize: 13, color: daysOverdue > 0 ? '#dc2626' : '#6b7280', fontWeight: daysOverdue > 0 ? 600 : 400 }}>{daysOverdue > 0 ? daysOverdue : '-'}</div>
+                <div style={{ ...cCenter, fontSize: 13, color: daysOverdue > 0 ? '#dc2626' : '#6b7280', fontWeight: daysOverdue > 0 ? 600 : 400 }}>{daysOverdue > 0 ? daysOverdue : '-'}</div>
+                <div style={{ ...cellLast, gap: 4 }} onClick={e => e.stopPropagation()}>
+                  {ar.payment_status !== 'paid' && ar.payment_status !== 'cancelled' ? (
+                    <button onClick={(e) => openPayDialog(ar, e)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, color: '#3b82f6', borderColor: '#bfdbfe', whiteSpace: 'nowrap' }}>沖帳</button>
+                  ) : <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 600 }}>已沖</span>}
+                </div>
               </div>
             );
           })}
@@ -306,6 +339,48 @@ export default function AccountsReceivable() {
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => setDetailDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : S.btnGhost) }}>關閉</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment dialog */}
+      {payDialog && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 20 : 0 }} onClick={() => setPayDialog(null)}>
+          <div style={{ ...S.card, width: isMobile ? '90vw' : 420, maxWidth: '90vw', borderRadius: 14, padding: isMobile ? '16px 18px' : '16px 18px 20px' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>沖帳收款</h3>
+              <button onClick={() => setPayDialog(null)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#6b7280' }}>×</button>
+            </div>
+            <div style={{ ...S.card, background: '#f9fafb', padding: 12, marginBottom: 16, borderRadius: 8, fontSize: 13 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div><span style={{ color: '#6b7280' }}>應收單號</span><div style={{ fontWeight: 700, color: '#111827', ...S.mono }}>{payDialog.invoice_no}</div></div>
+                <div><span style={{ color: '#6b7280' }}>客戶</span><div style={{ fontWeight: 700, color: '#111827' }}>{payDialog.customer_name}</div></div>
+                <div><span style={{ color: '#6b7280' }}>應收金額</span><div style={{ fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(payDialog.total_amount)}</div></div>
+                <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontWeight: 700, color: '#dc2626', ...S.mono }}>{fmtP(Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0))}</div></div>
+              </div>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={S.label}>收款金額</label>
+              <input type="number" value={payForm.amount} onChange={e => setPayForm(f => ({ ...f, amount: e.target.value }))} placeholder="0" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), ...S.mono }} />
+              <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                {[['全額', Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0)], ['50%', Math.round((Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0)) * 0.5)], ['30%', Math.round((Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0)) * 0.3)]].map(([label, val]) => (
+                  <button key={label} onClick={() => setPayForm(f => ({ ...f, amount: String(val) }))} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, color: '#3b82f6', borderColor: '#bfdbfe' }}>{label}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={S.label}>收款方式</label>
+              <select value={payForm.method} onChange={e => setPayForm(f => ({ ...f, method: e.target.value }))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }}>
+                <option value="transfer">匯款</option>
+                <option value="cash">現金</option>
+                <option value="check">支票</option>
+                <option value="monthly">月結沖帳</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+              <button onClick={() => setPayDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>
+              <button onClick={handlePay} disabled={paying} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnPrimary), opacity: paying ? 0.6 : 1 }}>{paying ? '處理中...' : '確認沖帳'}</button>
             </div>
           </div>
         </div>
