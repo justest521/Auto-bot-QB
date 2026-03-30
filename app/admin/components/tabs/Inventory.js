@@ -16,6 +16,13 @@ export default function Inventory() {
   const [adjQty, setAdjQty] = useState('');
   const [adjType, setAdjType] = useState('in');
   const [adjNotes, setAdjNotes] = useState('');
+  const [sortKey, setSortKey] = useState('');
+  const [sortDir, setSortDir] = useState('asc');
+
+  const toggleSort = (key) => {
+    if (sortKey === key) { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); }
+    else { setSortKey(key); setSortDir('asc'); }
+  };
 
   const load = useCallback(async (page = 1, q = search, f = filter) => {
     setLoading(true);
@@ -46,6 +53,26 @@ export default function Inventory() {
       ], `庫存清單_${new Date().toISOString().slice(0, 10)}.csv`);
     } catch { alert('匯出失敗'); }
   };
+
+  const cols = [
+    { key: 'item_number', label: '料號' },
+    { key: 'description', label: '品名' },
+    { key: 'category', label: '分類' },
+    { key: 'stock_qty', label: '庫存' },
+    { key: 'safety_stock', label: '安全水位' },
+    { key: 'product_status', label: '狀態' },
+    { key: null, label: '操作' },
+  ];
+
+  const sorted = [...(data.items || [])].sort((a, b) => {
+    if (!sortKey) return 0;
+    let av = a[sortKey], bv = b[sortKey];
+    if (sortKey === 'stock_qty' || sortKey === 'safety_stock') { av = Number(av || 0); bv = Number(bv || 0); }
+    else { av = String(av || '').toLowerCase(); bv = String(bv || '').toLowerCase(); }
+    if (av < bv) return sortDir === 'asc' ? -1 : 1;
+    if (av > bv) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   const sm = data.summary || {};
   return (
@@ -106,16 +133,20 @@ export default function Inventory() {
           <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
             <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 13 }}>
               <thead><tr style={{ background: '#f3f4f6' }}>
-                {['料號','品名','分類','庫存','安全水位','狀態','操作'].map(h => <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontSize: 12, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #dbe3ee' }}>{h}</th>)}
+                {cols.map((c, ci) => (
+                  <th key={c.label} onClick={c.key ? () => toggleSort(c.key) : undefined} style={{ padding: '8px 16px', textAlign: 'left', fontSize: 12, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #dbe3ee', borderRight: ci < cols.length - 1 ? '1px solid #e5e7eb' : 'none', cursor: c.key ? 'pointer' : 'default', userSelect: 'none', whiteSpace: 'nowrap' }}>
+                    {c.label}{c.key && sortKey === c.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : c.key ? ' ⇅' : ''}
+                  </th>
+                ))}
               </tr></thead>
-              <tbody>{data.items.map(it => (
-                <tr key={it.item_number} style={{ borderBottom: '1px solid #edf0f5' }}>
-                  <td style={{ padding: '10px 16px', ...S.mono, color: '#3b82f6', fontWeight: 600 }}>{it.item_number}</td>
-                  <td style={{ padding: '10px 16px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.description || '-'}</td>
-                  <td style={{ padding: '10px 16px', color: '#374151' }}>{it.category || '-'}</td>
-                  <td style={{ padding: '10px 16px', fontWeight: 700, color: Number(it.stock_qty || 0) <= 0 ? '#ef4444' : Number(it.stock_qty) <= Number(it.safety_stock) ? '#f59e0b' : '#16a34a' }}>{it.stock_qty ?? 0}</td>
-                  <td style={{ padding: '10px 16px', color: '#374151' }}>{it.safety_stock ?? 0}</td>
-                  <td style={{ padding: '10px 16px' }}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></td>
+              <tbody>{sorted.map((it, idx) => (
+                <tr key={it.item_number} style={{ borderBottom: '1px solid #edf0f5', background: idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
+                  <td style={{ padding: '10px 16px', ...S.mono, color: '#3b82f6', fontWeight: 600, borderRight: '1px solid #e5e7eb' }}>{it.item_number}</td>
+                  <td style={{ padding: '10px 16px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: '1px solid #e5e7eb' }}>{it.description || '-'}</td>
+                  <td style={{ padding: '10px 16px', color: '#374151', borderRight: '1px solid #e5e7eb' }}>{it.category || '-'}</td>
+                  <td style={{ padding: '10px 16px', fontWeight: 700, color: Number(it.stock_qty || 0) <= 0 ? '#ef4444' : Number(it.stock_qty) <= Number(it.safety_stock) ? '#f59e0b' : '#16a34a', borderRight: '1px solid #e5e7eb' }}>{it.stock_qty ?? 0}</td>
+                  <td style={{ padding: '10px 16px', color: '#374151', borderRight: '1px solid #e5e7eb' }}>{it.safety_stock ?? 0}</td>
+                  <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></td>
                   <td style={{ padding: '10px 16px' }}><button onClick={() => setAdjOpen(it.item_number)} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: 12 }}>異動</button></td>
                 </tr>
               ))}</tbody>
