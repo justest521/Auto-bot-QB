@@ -6,7 +6,7 @@ import { fmtP, exportCsv, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
-const RECEIPT_DEFAULT_WIDTHS = [120, 120, 120, 120, 120, 80];
+const RECEIPT_DEFAULT_WIDTHS = [50, 120, 120, 120, 120, 120, 80];
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
@@ -210,6 +210,7 @@ export default function PaymentMatching() {
             ) : !isMobile ? (
               <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
                 <ReceiptHeader headers={[
+                  { label: '序', align: 'center' },
                   { label: '收款單號', align: 'left' },
                   { label: '客戶', align: 'left' },
                   { label: '收款日期', align: 'center' },
@@ -227,6 +228,7 @@ export default function PaymentMatching() {
                       <div key={receipt.id} onClick={() => handleReceiptClick(receipt)} style={{ display: 'grid', gridTemplateColumns: receiptGridTemplate, borderBottom: '1px solid #e5e7eb', background: selectedReceipt?.id === receipt.id ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
                         onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
                         onMouseLeave={e => e.currentTarget.style.background = selectedReceipt?.id === receipt.id ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+                        <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{idx + 1}</div>
                         <div style={{ ...cell, fontSize: 13, fontWeight: 600, color: '#2563eb', ...S.mono }}>{receipt.receipt_no || '-'}</div>
                         <div style={cell}><span style={{ fontSize: 13, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receipt.customer_name || '-'}</span></div>
                         <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono }}>{receipt.receipt_date?.slice(0, 10) || '-'}</div>

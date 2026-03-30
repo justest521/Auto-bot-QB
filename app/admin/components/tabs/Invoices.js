@@ -6,7 +6,7 @@ import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
-const INVOICE_DEFAULT_WIDTHS = [100, 140, 100, 100, 100, 100, 120, 100];
+const INVOICE_DEFAULT_WIDTHS = [50, 100, 140, 100, 100, 100, 100, 120, 100];
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
@@ -164,6 +164,7 @@ export default function Invoices() {
       ) : (
         <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
           <InvoiceHeader headers={[
+            { label: '序', align: 'center' },
             { label: '發票號', align: 'left' },
             { label: '客戶', align: 'left' },
             { label: '狀態', align: 'center' },
@@ -185,15 +186,16 @@ export default function Invoices() {
               <div key={inv.id} style={{ display: 'grid', gridTemplateColumns: invoiceGridTemplate, borderBottom: '1px solid #e5e7eb', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
                 onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'}
                 onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+                <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{idx + 1}</div>
                 <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{inv.invoice_no || '-'}</div>
                 <div style={cell}>
                   <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.customer_name || '-'}</span>
                 </div>
                 <div style={cCenter}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></div>
-                <div style={{ ...cRight, fontWeight: 700, ...S.mono }}>{fmtP(inv.total_amount)}</div>
-                <div style={{ ...cRight, color: '#16a34a', ...S.mono }}>{fmtP(inv.paid_amount)}</div>
-                <div style={{ ...cRight, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div>
-                <div style={{ ...cCenter, fontSize: 12, ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</div>
+                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(inv.total_amount)}</div>
+                <div style={{ ...cRight, fontSize: 13, color: '#16a34a', ...S.mono }}>{fmtP(inv.paid_amount)}</div>
+                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div>
+                <div style={{ ...cCenter, fontSize: 13, ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</div>
                 <div style={cellLast}>
                   {balance > 0 && inv.status !== 'cancelled' && (
                     <button onClick={() => { setPayDialog(inv); setPayAmount(String(balance)); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>收款</button>

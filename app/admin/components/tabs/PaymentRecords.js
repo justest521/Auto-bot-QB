@@ -8,8 +8,8 @@ import { useResizableColumns } from '../shared/ResizableTable';
 
 function GridTable({ data, onRowClick }) {
   const { widths, setWidth } = useResizableColumns('payment_records', DEFAULT_COLUMN_WIDTHS);
-  const colKeys = ['receipt_no', 'customer_name', 'receipt_date', 'total_amount', 'payment_method', 'status', 'reference_no', 'actions'];
-  const colLabels = ['收款單號', '客戶', '收款日期', '金額', '付款方式', '狀態', '參考號', '操作'];
+  const colKeys = ['seq', 'receipt_no', 'customer_name', 'receipt_date', 'total_amount', 'payment_method', 'status', 'reference_no', 'actions'];
+  const colLabels = ['序', '收款單號', '客戶', '收款日期', '金額', '付款方式', '狀態', '參考號', '操作'];
   const gridTemplate = colKeys.map(k => `${widths[k]}px`).join(' ');
 
   const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
@@ -21,7 +21,7 @@ function GridTable({ data, onRowClick }) {
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, background: '#f3f4f6', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#6b7280', minWidth: 'min-content' }}>
         {colKeys.map((key, idx) => (
-          <div key={key} style={{ ...(idx === colKeys.length - 1 ? cellLast : cell), justifyContent: key.includes('amount') || key === 'actions' ? 'center' : 'flex-start' }}>
+          <div key={key} style={{ ...(idx === colKeys.length - 1 ? cellLast : cell), justifyContent: key === 'seq' || key.includes('amount') || key === 'actions' ? 'center' : 'flex-start' }}>
             {idx < colKeys.length - 1 ? (
               <ResizableHeader label={colLabels[idx]} width={widths[key]} onResize={(w) => setWidth(key, w)} />
             ) : (
@@ -38,13 +38,14 @@ function GridTable({ data, onRowClick }) {
             onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
             onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}
             onClick={() => onRowClick(rec)}>
-            <div style={{ ...cell, fontWeight: 600, color: '#3b82f6', ...S.mono }}>{rec.receipt_no || '-'}</div>
-            <div style={cell}>{rec.customer_name || '-'}</div>
-            <div style={{ ...cCenter, fontSize: 11, ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</div>
-            <div style={{ ...cRight, fontWeight: 700, ...S.mono }}>{fmtP(rec.total_amount)}</div>
-            <div style={{ ...cCenter, fontSize: 11 }}>{methodLabel}</div>
+            <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{idx + 1}</div>
+            <div style={{ ...cell, fontSize: 13, fontWeight: 600, color: '#3b82f6', ...S.mono }}>{rec.receipt_no || '-'}</div>
+            <div style={cell}><span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.customer_name || '-'}</span></div>
+            <div style={{ ...cCenter, fontSize: 13, ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</div>
+            <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(rec.total_amount)}</div>
+            <div style={{ ...cCenter, fontSize: 13 }}>{methodLabel}</div>
             <div style={{ ...cCenter }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></div>
-            <div style={{ ...cell, fontSize: 11, ...S.mono }}>{rec.reference_no || '-'}</div>
+            <div style={{ ...cell, fontSize: 13, ...S.mono }}>{rec.reference_no || '-'}</div>
             <div style={{ ...cCenter }}>
               <button onClick={(e) => { e.stopPropagation(); onRowClick(rec); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>詳情</button>
             </div>
@@ -99,6 +100,7 @@ const STATUS_MAP = {
 };
 
 const DEFAULT_COLUMN_WIDTHS = {
+  seq: 50,
   receipt_no: 120,
   customer_name: 150,
   receipt_date: 110,

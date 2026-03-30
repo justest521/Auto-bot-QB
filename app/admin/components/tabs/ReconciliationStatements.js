@@ -7,6 +7,7 @@ import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
 const DEFAULT_COLUMN_WIDTHS = {
+  'seq': 50,
   'statement_no': 140,
   'customer_name': 150,
   'period_start': 160,
@@ -185,6 +186,7 @@ export default function ReconciliationStatements() {
       ) : (
         <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
           <ResizableHeader headers={[
+            { label: '序', align: 'center' },
             { label: '對帳單號', align: 'left' },
             { label: '客戶', align: 'left' },
             { label: '期間', align: 'left' },
@@ -214,19 +216,20 @@ export default function ReconciliationStatements() {
                 onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd')}
                 onClick={() => setDetailDialog(stmt)}
               >
-                <div style={{ ...cell, fontWeight: 600, color: '#3b82f6', ...S.mono }}>
+                <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{idx + 1}</div>
+                <div style={{ ...cell, fontSize: 13, fontWeight: 600, color: '#3b82f6', ...S.mono }}>
                   {stmt.statement_no || '-'}
                 </div>
-                <div style={cell}>
-                  {stmt.customer_name || '-'}
+                <div style={{ ...cell, fontSize: 13 }}>
+                  <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{stmt.customer_name || '-'}</span>
                 </div>
-                <div style={{ ...cell, fontSize: 12, ...S.mono }}>
+                <div style={{ ...cell, fontSize: 13, ...S.mono }}>
                   {stmt.period_start?.slice(0, 10)} ~ {stmt.period_end?.slice(0, 10)}
                 </div>
-                <div style={{ ...cRight, fontWeight: 700, ...S.mono }}>
+                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>
                   {fmtP(stmt.net_amount)}
                 </div>
-                <div style={{ ...cRight, fontWeight: 700, color: stmt.current_balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>
+                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, color: stmt.current_balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>
                   {fmtP(stmt.current_balance)}
                 </div>
                 <div style={cCenter}>
