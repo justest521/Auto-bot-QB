@@ -61,6 +61,25 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const invoice = detail?.invoice;
   const items = detail?.items || [];
 
+  // ── Calculate shipped vs ordered to determine remaining ──
+  const shippedQtyMap = {};
+  (shipments || []).filter(sh => sh.status !== 'cancelled').forEach(sh => {
+    (sh.erp_shipment_items || sh.items || []).forEach(si => {
+      const pid = si.product_id;
+      if (pid) shippedQtyMap[pid] = (shippedQtyMap[pid] || 0) + Number(si.qty_shipped || 0);
+    });
+  });
+  const allFullyShipped = items.length > 0 && items.every(it => {
+    const ordered = Number(it.quantity || it.qty || 0);
+    const shipped = shippedQtyMap[it.product_id] || 0;
+    return shipped >= ordered;
+  });
+  const remainingItems = items.map(it => {
+    const ordered = Number(it.quantity || it.qty || 0);
+    const shipped = shippedQtyMap[it.product_id] || 0;
+    return { ...it, shipped, remaining: Math.max(0, ordered - shipped) };
+  }).filter(it => it.remaining > 0);
+
   // 追蹤發票/出貨表單是否有未儲存變更
   useEffect(() => {
     const invoiceDirty = invoiceNumber !== origInvoice.number || invoiceDate !== origInvoice.date;
@@ -179,7 +198,11 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 已建立出貨單 {shipments.map(sh => sh.shipment_no).join(', ')}
               </span>
             )}
-            <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
+            {allFullyShipped ? (
+              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>✓ 已全部出貨完畢</span>
+            ) : (
+              <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
+            )}
           </div>
           </div>
 
@@ -390,13 +413,13 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' }}>備註</label>
                 <textarea value={shipForm.remark} onChange={e => setShipForm(p => ({ ...p, remark: e.target.value }))} placeholder="出貨備註（選填）" rows={2} style={{ padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
               </div>
-              {/* Items preview */}
+              {/* Items preview — only remaining unshipped items */}
               <div style={{ background: '#f9fafb', borderRadius: 10, padding: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 8 }}>出貨品項</div>
-                {items.map((it, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#374151', padding: '4px 0', borderBottom: i < items.length - 1 ? '1px solid #f0f2f5' : 'none' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 8 }}>出貨品項{shipments.length > 0 && <span style={{ color: '#f59e0b', marginLeft: 6 }}>（剩餘未出）</span>}</div>
+                {remainingItems.map((it, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#374151', padding: '4px 0', borderBottom: i < remainingItems.length - 1 ? '1px solid #f0f2f5' : 'none' }}>
                     <span style={{ flex: 1 }}>{it.product_name || it.item_number || it.product_id}</span>
-                    <span style={{ width: 60, textAlign: 'right', fontWeight: 600 }}>×{it.quantity || it.qty}</span>
+                    <span style={{ width: 60, textAlign: 'right', fontWeight: 600 }}>×{it.remaining}</span>
                   </div>
                 ))}
               </div>
