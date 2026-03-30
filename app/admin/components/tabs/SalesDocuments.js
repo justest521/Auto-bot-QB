@@ -124,6 +124,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
               <span style={{ padding: '3px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce714', color: '#16a34a', border: '1px solid #16a34a30' }}>
                 銷貨單
               </span>
+              <span style={{ fontSize: 9, background: s.tax_inclusive ? '#dcfce7' : '#fef3c7', color: s.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3 }}>{s.tax_inclusive ? '含稅' : '未稅'}</span>
             </div>
             <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, ...S.mono }}>
               {s.sale_date || sale.sale_date || '-'}
@@ -652,7 +653,7 @@ export default function SalesDocuments({ setTab }) {
             return (
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedSale(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
                 <div style={{ ...cCenter, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ ...cCenter, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{row.slip_number || '-'}</div>
+                <div style={{ ...cCenter, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', gap: 4 }}>{row.slip_number || '-'}<span style={{ fontSize: 9, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
                 <div style={{ ...cell, fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
                 <div style={{ ...cCenter, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.sale_date || '-'}</div>
                 {!isTablet && <div style={{ ...cCenter, color: '#374151' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}

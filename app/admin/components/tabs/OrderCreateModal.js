@@ -214,6 +214,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
         remark: form.remark,
         discount_amount: Number(form.discount_amount || 0),
         shipping_fee: Number(form.shipping_fee || 0),
+        tax_excluded: form.tax_excluded,
         tax_amount: taxAmount,
         subtotal: subtotal,
         total_amount: totalAmount,

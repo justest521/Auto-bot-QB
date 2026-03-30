@@ -302,6 +302,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
               <span style={{ padding: '3px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: `${QUOTE_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: QUOTE_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${QUOTE_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
                 {QUOTE_STATUS_MAP[statusKey] || statusKey}
               </span>
+              <span style={{ fontSize: 9, background: q.tax_inclusive ? '#dcfce7' : '#fef3c7', color: q.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3 }}>{q.tax_inclusive ? '含稅' : '未稅'}</span>
             </div>
             <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, ...S.mono }}>{q.quote_date || '-'}</div>
           </div>
@@ -998,7 +999,7 @@ export default function Quotes({ setTab }) {
                     <input type="checkbox" checked={isChecked} onChange={() => { setCheckedIds(prev => { const next = new Set(prev); if (next.has(row.id)) next.delete(row.id); else next.add(row.id); return next; }); }} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }} />
                   </div>
                   <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                  <div style={{ ...cCenter, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.quote_no || '-'}</div>
+                  <div style={{ ...cCenter, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', gap: 4 }}>{row.quote_no || '-'}<span style={{ fontSize: 9, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
                   <div style={cell}>
                     <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                   </div>
