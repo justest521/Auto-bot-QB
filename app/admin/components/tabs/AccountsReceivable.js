@@ -44,7 +44,7 @@ export default function AccountsReceivable() {
   const [createDialog, setCreateDialog] = useState(false);
   const [newAr, setNewAr] = useState({ customer_id: '', amount: '', due_date: '', remark: '' });
   const [payDialog, setPayDialog] = useState(null);
-  const [payForm, setPayForm] = useState({ amount: '', method: 'transfer' });
+  const [payForm, setPayForm] = useState({ amount: '', method: 'transfer', remark: '' });
   const [paying, setPaying] = useState(false);
 
   const load = async (p = page, status = statusFilter, q = search, limit = pageSize) => {
@@ -108,14 +108,14 @@ export default function AccountsReceivable() {
     if (e) e.stopPropagation();
     const balance = Number(ar.total_amount || 0) - Number(ar.paid_amount || 0);
     setPayDialog(ar);
-    setPayForm({ amount: balance > 0 ? String(balance) : '', method: 'transfer' });
+    setPayForm({ amount: balance > 0 ? String(balance) : '', method: 'transfer', remark: '' });
   };
 
   const handlePay = async () => {
     if (!payDialog || !payForm.amount || Number(payForm.amount) <= 0) { setMsg('請填寫收款金額'); return; }
     setPaying(true);
     try {
-      const res = await apiPost({ action: 'record_payment', invoice_id: payDialog.id, amount: Number(payForm.amount), payment_method: payForm.method });
+      const res = await apiPost({ action: 'record_payment', invoice_id: payDialog.id, amount: Number(payForm.amount), payment_method: payForm.method, remark: payForm.remark || '' });
       setMsg(res.message || '沖帳成功');
       setPayDialog(null);
       await load(page, statusFilter, search, pageSize);
@@ -282,6 +282,11 @@ export default function AccountsReceivable() {
                 <div><span style={{ color: '#6b7280' }}>應收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(currentInvoice.total_amount)}</div></div>
                 <div><span style={{ color: '#6b7280' }}>已收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(currentInvoice.paid_amount)}</div></div>
               </div>
+              {currentInvoice.remark && (
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb', fontSize: 12, color: '#6b7280' }}>
+                  <span style={{ fontWeight: 600 }}>備註：</span>{currentInvoice.remark}
+                </div>
+              )}
             </div>
 
             {/* Allocation history */}
@@ -375,7 +380,7 @@ export default function AccountsReceivable() {
                 ))}
               </div>
             </div>
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 12 }}>
               <label style={S.label}>收款方式</label>
               <select value={payForm.method} onChange={e => setPayForm(f => ({ ...f, method: e.target.value }))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }}>
                 <option value="transfer">匯款</option>
@@ -383,6 +388,10 @@ export default function AccountsReceivable() {
                 <option value="check">支票</option>
                 <option value="monthly">月結沖帳</option>
               </select>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={S.label}>備註</label>
+              <textarea value={payForm.remark} onChange={e => setPayForm(f => ({ ...f, remark: e.target.value }))} placeholder="可選填備註" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), minHeight: 50, resize: 'vertical' }} />
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
               <button onClick={() => setPayDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>
