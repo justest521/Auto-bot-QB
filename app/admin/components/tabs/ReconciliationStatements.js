@@ -3,7 +3,18 @@ import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
-import { Loading, EmptyState, PageLead } from '../shared/ui';
+import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
+
+const DEFAULT_COLUMN_WIDTHS = {
+  'statement_no': 140,
+  'customer_name': 150,
+  'period_start': 160,
+  'net_amount': 120,
+  'current_balance': 120,
+  'status': 100,
+  'action': 90,
+};
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
@@ -37,6 +48,7 @@ export default function ReconciliationStatements() {
   const [genCustomer, setGenCustomer] = useState('');
   const [genPeriodStart, setGenPeriodStart] = useState('');
   const [genPeriodEnd, setGenPeriodEnd] = useState('');
+  const { gridTemplate, ResizableHeader } = useResizableColumns('reconciliation_statements', DEFAULT_COLUMN_WIDTHS);
 
   const STATUS_MAP = {
     draft: { label: '草稿', color: '#9ca3af' },
@@ -171,34 +183,66 @@ export default function ReconciliationStatements() {
           })}
         </div>
       ) : (
-        <div style={{ ...S.card, padding: 0, overflow: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead><tr style={{ background: '#f3f4f6' }}>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>對帳單號</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>客戶</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>期間</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>淨額</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>目前餘額</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>狀態</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>操作</th>
-            </tr></thead>
-            <tbody>{(data.rows || []).map(stmt => {
-              const st = STATUS_MAP[stmt.status] || STATUS_MAP.draft;
-              return (
-                <tr key={stmt.id} style={{ borderTop: '1px solid #f0f0f0', cursor: 'pointer' }} onClick={() => setDetailDialog(stmt)}>
-                  <td style={{ padding: '10px 12px', fontWeight: 600, color: '#3b82f6', ...S.mono }}>{stmt.statement_no || '-'}</td>
-                  <td style={{ padding: '10px 12px' }}>{stmt.customer_name || '-'}</td>
-                  <td style={{ padding: '10px 12px', fontSize: 12, ...S.mono }}>{stmt.period_start?.slice(0, 10)} ~ {stmt.period_end?.slice(0, 10)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(stmt.net_amount)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: stmt.current_balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(stmt.current_balance)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                    <button onClick={(e) => { e.stopPropagation(); setDetailDialog(stmt); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>詳情</button>
-                  </td>
-                </tr>
-              );
-            })}</tbody>
-          </table>
+        <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
+          <ResizableHeader headers={[
+            { label: '對帳單號', align: 'left' },
+            { label: '客戶', align: 'left' },
+            { label: '期間', align: 'left' },
+            { label: '淨額', align: 'right' },
+            { label: '目前餘額', align: 'right' },
+            { label: '狀態', align: 'center' },
+            { label: '操作', align: 'center' },
+          ]} />
+          {(data.rows || []).map((stmt, idx) => {
+            const st = STATUS_MAP[stmt.status] || STATUS_MAP.draft;
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
+            const cCenter = { ...cell, justifyContent: 'center' };
+            const cRight = { ...cell, justifyContent: 'flex-end' };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
+            return (
+              <div
+                key={stmt.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: gridTemplate,
+                  borderBottom: '1px solid #e5e7eb',
+                  background: idx % 2 === 0 ? '#fff' : '#fafbfd',
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f7ff')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd')}
+                onClick={() => setDetailDialog(stmt)}
+              >
+                <div style={{ ...cell, fontWeight: 600, color: '#3b82f6', ...S.mono }}>
+                  {stmt.statement_no || '-'}
+                </div>
+                <div style={cell}>
+                  {stmt.customer_name || '-'}
+                </div>
+                <div style={{ ...cell, fontSize: 12, ...S.mono }}>
+                  {stmt.period_start?.slice(0, 10)} ~ {stmt.period_end?.slice(0, 10)}
+                </div>
+                <div style={{ ...cRight, fontWeight: 700, ...S.mono }}>
+                  {fmtP(stmt.net_amount)}
+                </div>
+                <div style={{ ...cRight, fontWeight: 700, color: stmt.current_balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>
+                  {fmtP(stmt.current_balance)}
+                </div>
+                <div style={cCenter}>
+                  <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span>
+                </div>
+                <div style={cellLast}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setDetailDialog(stmt); }}
+                    style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}
+                  >
+                    詳情
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 

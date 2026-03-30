@@ -3,7 +3,73 @@ import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
-import { Loading, EmptyState, PageLead } from '../shared/ui';
+import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
+
+function GridTable({ data, onRowClick }) {
+  const { widths, setWidth } = useResizableColumns('payment_records', DEFAULT_COLUMN_WIDTHS);
+  const colKeys = ['receipt_no', 'customer_name', 'receipt_date', 'total_amount', 'payment_method', 'status', 'reference_no', 'actions'];
+  const colLabels = ['收款單號', '客戶', '收款日期', '金額', '付款方式', '狀態', '參考號', '操作'];
+  const gridTemplate = colKeys.map(k => `${widths[k]}px`).join(' ');
+
+  const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
+  const cCenter = { ...cell, justifyContent: 'center' };
+  const cRight = { ...cell, justifyContent: 'flex-end' };
+  const cellLast = { ...cell, borderRight: 'none' };
+
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, background: '#f3f4f6', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#6b7280', minWidth: 'min-content' }}>
+        {colKeys.map((key, idx) => (
+          <div key={key} style={{ ...(idx === colKeys.length - 1 ? cellLast : cell), justifyContent: key.includes('amount') || key === 'actions' ? 'center' : 'flex-start' }}>
+            {idx < colKeys.length - 1 ? (
+              <ResizableHeader label={colLabels[idx]} width={widths[key]} onResize={(w) => setWidth(key, w)} />
+            ) : (
+              colLabels[idx]
+            )}
+          </div>
+        ))}
+      </div>
+      {data.map((rec, idx) => {
+        const st = STATUS_MAP[rec.status] || STATUS_MAP.pending;
+        const methodLabel = PAYMENT_METHOD_MAP[rec.payment_method] || rec.payment_method;
+        return (
+          <div key={rec.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: '1px solid #e5e7eb', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s', minWidth: 'min-content' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
+            onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}
+            onClick={() => onRowClick(rec)}>
+            <div style={{ ...cell, fontWeight: 600, color: '#3b82f6', ...S.mono }}>{rec.receipt_no || '-'}</div>
+            <div style={cell}>{rec.customer_name || '-'}</div>
+            <div style={{ ...cCenter, fontSize: 11, ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</div>
+            <div style={{ ...cRight, fontWeight: 700, ...S.mono }}>{fmtP(rec.total_amount)}</div>
+            <div style={{ ...cCenter, fontSize: 11 }}>{methodLabel}</div>
+            <div style={{ ...cCenter }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></div>
+            <div style={{ ...cell, fontSize: 11, ...S.mono }}>{rec.reference_no || '-'}</div>
+            <div style={{ ...cCenter }}>
+              <button onClick={(e) => { e.stopPropagation(); onRowClick(rec); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>詳情</button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ResizableHeader({ label, width, onResize }) {
+  const [isResizing, setIsResizing] = useState(false);
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', width: '100%', userSelect: 'none' }}>
+      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+      <div
+        onMouseDown={() => setIsResizing(true)}
+        onMouseUp={() => setIsResizing(false)}
+        onMouseLeave={() => setIsResizing(false)}
+        style={{ width: 4, height: '100%', cursor: 'col-resize', background: isResizing ? '#3b82f6' : 'transparent' }}
+      />
+    </div>
+  );
+}
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
@@ -30,6 +96,17 @@ const STATUS_MAP = {
   pending: { label: '待確認', color: '#f59e0b' },
   confirmed: { label: '已確認', color: '#16a34a' },
   cancelled: { label: '已取消', color: '#6b7280' },
+};
+
+const DEFAULT_COLUMN_WIDTHS = {
+  receipt_no: 120,
+  customer_name: 150,
+  receipt_date: 110,
+  total_amount: 100,
+  payment_method: 110,
+  status: 90,
+  reference_no: 120,
+  actions: 80,
 };
 
 export default function PaymentRecords() {
@@ -209,38 +286,12 @@ export default function PaymentRecords() {
           })}
         </div>
       ) : (
-        <div style={{ ...S.card, padding: 0, overflow: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead><tr style={{ background: '#f3f4f6' }}>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>收款單號</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>客戶</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>收款日期</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>金額</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>付款方式</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>狀態</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>參考號</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>操作</th>
-            </tr></thead>
-            <tbody>{(data.rows || []).map(rec => {
-              const st = STATUS_MAP[rec.status] || STATUS_MAP.pending;
-              const methodLabel = PAYMENT_METHOD_MAP[rec.payment_method] || rec.payment_method;
-              return (
-                <tr key={rec.id} style={{ borderTop: '1px solid #f0f0f0', cursor: 'pointer' }}>
-                  <td style={{ padding: '10px 12px', fontWeight: 600, color: '#3b82f6', ...S.mono }}>{rec.receipt_no || '-'}</td>
-                  <td style={{ padding: '10px 12px' }}>{rec.customer_name || '-'}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 11, ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(rec.total_amount)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 11 }}>{methodLabel}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></td>
-                  <td style={{ padding: '10px 12px', fontSize: 11, ...S.mono }}>{rec.reference_no || '-'}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                    <button onClick={() => setDetailDialog(rec)} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>詳情</button>
-                  </td>
-                </tr>
-              );
-            })}</tbody>
-          </table>
-        </div>
+        <>
+          <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
+            <GridTable data={data.rows || []} onRowClick={setDetailDialog} />
+          </div>
+          {data.total > 20 && <Pager />}
+        </>
       )}
 
       {/* Create Dialog */}

@@ -3,7 +3,10 @@ import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, useResponsive } from '@/lib/admin/helpers';
-import { Loading, EmptyState, PageLead } from '../shared/ui';
+import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
+
+const RECEIPT_DEFAULT_WIDTHS = [120, 120, 120, 120, 120, 80];
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
@@ -38,6 +41,7 @@ export default function PaymentMatching() {
   const [writeOffType, setWriteOffType] = useState('discount');
   const [writeOffAmount, setWriteOffAmount] = useState('');
   const [writeOffRemark, setWriteOffRemark] = useState('');
+  const { gridTemplate: receiptGridTemplate, ResizableHeader: ReceiptHeader } = useResizableColumns('receipt_matching_list', RECEIPT_DEFAULT_WIDTHS);
 
   const loadData = useCallback(async (cid = customerId) => {
     setLoading(true);
@@ -203,6 +207,37 @@ export default function PaymentMatching() {
             <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 700, color: '#111827' }}>未沖收款</h3>
             {(receipts || []).length === 0 ? (
               <EmptyState text="沒有待沖收款" />
+            ) : !isMobile ? (
+              <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
+                <ReceiptHeader headers={[
+                  { label: '收款單號', align: 'left' },
+                  { label: '客戶', align: 'left' },
+                  { label: '收款日期', align: 'center' },
+                  { label: '收款金額', align: 'right' },
+                  { label: '已沖金額', align: 'right' },
+                  { label: '未沖金額', align: 'right' },
+                ]} />
+                <div>
+                  {(receipts || []).map((receipt, idx) => {
+                    const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
+                    const cCenter = { ...cell, justifyContent: 'center' };
+                    const cRight = { ...cell, justifyContent: 'flex-end' };
+                    const cellLast = { ...cell, borderRight: 'none' };
+                    return (
+                      <div key={receipt.id} onClick={() => handleReceiptClick(receipt)} style={{ display: 'grid', gridTemplateColumns: receiptGridTemplate, borderBottom: '1px solid #e5e7eb', background: selectedReceipt?.id === receipt.id ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
+                        onMouseLeave={e => e.currentTarget.style.background = selectedReceipt?.id === receipt.id ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+                        <div style={{ ...cell, fontSize: 13, fontWeight: 600, color: '#2563eb', ...S.mono }}>{receipt.receipt_no || '-'}</div>
+                        <div style={cell}><span style={{ fontSize: 13, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receipt.customer_name || '-'}</span></div>
+                        <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono }}>{receipt.receipt_date?.slice(0, 10) || '-'}</div>
+                        <div style={{ ...cRight, fontSize: 13, color: '#111827', fontWeight: 600, ...S.mono }}>{fmtP(receipt.total_amount)}</div>
+                        <div style={{ ...cRight, fontSize: 13, color: '#16a34a', fontWeight: 600, ...S.mono }}>{fmtP(receipt.allocated_amount)}</div>
+                        <div style={{ ...cellLast, ...cRight, fontSize: 13, fontWeight: 600, color: Number(receipt.remaining_amount) > 0 ? '#dc2626' : '#6b7280', ...S.mono }}>{fmtP(receipt.remaining_amount)}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {(receipts || []).map(receipt => (

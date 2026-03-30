@@ -3,7 +3,10 @@ import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
-import { Loading, EmptyState, PageLead } from '../shared/ui';
+import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
+
+const INVOICE_DEFAULT_WIDTHS = [100, 140, 100, 100, 100, 100, 120, 100];
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
@@ -34,6 +37,7 @@ export default function Invoices() {
   const [msg, setMsg] = useState('');
   const [payDialog, setPayDialog] = useState(null);
   const [payAmount, setPayAmount] = useState('');
+  const { gridTemplate: invoiceGridTemplate, ResizableHeader: InvoiceHeader } = useResizableColumns('invoices_list', INVOICE_DEFAULT_WIDTHS);
 
   const load = async (status = statusFilter, q = search) => {
     setLoading(true);
@@ -158,41 +162,55 @@ export default function Invoices() {
           })}
         </div>
       ) : (
-        <div style={{ ...S.card, padding: 0, overflow: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead><tr style={{ background: '#f3f4f6' }}>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>發票號</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>客戶</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>狀態</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>金額</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>已付</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>餘額</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>到期日</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>操作</th>
-            </tr></thead>
-            <tbody>{(data.rows || []).map(inv => {
-              const st = STATUS_MAP[inv.status] || STATUS_MAP.draft;
-              const balance = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
-              return (
-                <tr key={inv.id} style={{ borderTop: '1px solid #f0f0f0' }}>
-                  <td style={{ padding: '10px 12px', fontWeight: 600, color: '#3b82f6', ...S.mono }}>{inv.invoice_no || '-'}</td>
-                  <td style={{ padding: '10px 12px' }}>{inv.customer_name || '-'}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(inv.total_amount)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a', ...S.mono }}>{fmtP(inv.paid_amount)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 11, ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                    {balance > 0 && inv.status !== 'cancelled' && (
-                      <button onClick={() => { setPayDialog(inv); setPayAmount(String(balance)); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>收款</button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}</tbody>
-          </table>
+        <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
+          <InvoiceHeader headers={[
+            { label: '發票號', align: 'left' },
+            { label: '客戶', align: 'left' },
+            { label: '狀態', align: 'center' },
+            { label: '金額', align: 'right' },
+            { label: '已付', align: 'right' },
+            { label: '餘額', align: 'right' },
+            { label: '到期日', align: 'center' },
+            { label: '操作', align: 'center' },
+          ]} />
+          {(data.rows || []).map((inv, idx) => {
+            const st = STATUS_MAP[inv.status] || STATUS_MAP.draft;
+            const balance = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
+            const cCenter = { ...cell, justifyContent: 'center' };
+            const cRight = { ...cell, justifyContent: 'flex-end' };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
+
+            return (
+              <div key={inv.id} style={{ display: 'grid', gridTemplateColumns: invoiceGridTemplate, borderBottom: '1px solid #e5e7eb', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'}
+                onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+                <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{inv.invoice_no || '-'}</div>
+                <div style={cell}>
+                  <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.customer_name || '-'}</span>
+                </div>
+                <div style={cCenter}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></div>
+                <div style={{ ...cRight, fontWeight: 700, ...S.mono }}>{fmtP(inv.total_amount)}</div>
+                <div style={{ ...cRight, color: '#16a34a', ...S.mono }}>{fmtP(inv.paid_amount)}</div>
+                <div style={{ ...cRight, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div>
+                <div style={{ ...cCenter, fontSize: 12, ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</div>
+                <div style={cellLast}>
+                  {balance > 0 && inv.status !== 'cancelled' && (
+                    <button onClick={() => { setPayDialog(inv); setPayAmount(String(balance)); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>收款</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
+      <Pager
+        page={data.page || 1}
+        limit={data.limit || 20}
+        total={data.total || 0}
+        onPageChange={(nextPage) => load()}
+        onLimitChange={(nextLimit) => load()}
+      />
 
       {payDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

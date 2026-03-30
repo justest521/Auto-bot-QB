@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
-import { Loading, EmptyState, PageLead } from '../shared/ui';
+import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
+import { useResizableColumns } from '../shared/ResizableTable';
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
@@ -22,8 +23,11 @@ function StatCard({ code, label, value, tone }) {
   );
 }
 
+const AR_DEFAULT_WIDTHS = [50, 160, 140, 110, 110, 90, 120, 110, 120, 80];
+
 export default function AccountsReceivable() {
   const { isMobile, isTablet } = useResponsive();
+  const { gridTemplate: arGridTemplate, ResizableHeader: ARHeader } = useResizableColumns('ar_list', AR_DEFAULT_WIDTHS);
   const [data, setData] = useState({ rows: [], total: 0, summary: {} });
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -31,23 +35,26 @@ export default function AccountsReceivable() {
   const [dateFrom, setDateFrom] = useState(() => getPresetDateRange('month').from);
   const [dateTo, setDateTo] = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(30);
   const [msg, setMsg] = useState('');
   const [detailDialog, setDetailDialog] = useState(null);
   const [detailData, setDetailData] = useState(null);
   const [createDialog, setCreateDialog] = useState(false);
   const [newAr, setNewAr] = useState({ customer_id: '', amount: '', due_date: '', remark: '' });
 
-  const load = async (status = statusFilter, q = search) => {
+  const load = async (p = page, status = statusFilter, q = search, limit = pageSize) => {
     setLoading(true);
     try {
-      const params = { action: 'accounts_receivable', status, search: q };
+      const params = { action: 'accounts_receivable', status, search: q, page: p, limit };
       if (dateFrom) params.date_from = dateFrom;
       if (dateTo) params.date_to = dateTo;
       const res = await apiGet(params);
       setData(res);
+      setPage(p);
     } finally { setLoading(false); }
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(1); }, []);
 
   const STATUS_MAP = {
     unpaid: { label: '未付款', color: '#f59e0b' },
@@ -63,7 +70,7 @@ export default function AccountsReceivable() {
     else { const range = getPresetDateRange(preset); setDateFrom(range.from); setDateTo(range.to); }
   };
 
-  const doSearch = () => load(statusFilter, search);
+  const doSearch = () => load(1, statusFilter, search, pageSize);
 
   const loadDetail = async (invoiceId) => {
     try {
@@ -89,7 +96,7 @@ export default function AccountsReceivable() {
       setMsg('應收帳款已新增');
       setCreateDialog(false);
       setNewAr({ customer_id: '', amount: '', due_date: '', remark: '' });
-      await load();
+      await load(1);
     } catch (e) { setMsg(e.message); }
   };
 
@@ -117,15 +124,15 @@ export default function AccountsReceivable() {
 
   return (
     <div>
-      <PageLead eyebrow="ACCOUNTS RECEIVABLE" title="應收帳款管理" description="管理應收帳款、收款狀態追蹤，參考 Odoo 會計模組。"
+      <PageLead eyebrow="ACCOUNTS RECEIVABLE" title="應收帳款" description="追蹤客戶應收帳款餘額與帳齡分析。"
         action={<button onClick={handleExport} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnGhost) }}>匯出 CSV</button>} />
       {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12 }}>
-        <StatCard code="RECV" label="應收總額" value={fmtP(s.total_amount)} tone="red" />
-        <StatCard code="PAID" label="已收總額" value={fmtP(s.paid_amount)} tone="green" />
+        <StatCard code="RECV" label="應收總額" value={fmtP(s.total_receivable)} tone="red" />
+        <StatCard code="PAID" label="已收總額" value={fmtP(s.total_paid)} tone="green" />
         <StatCard code="OVRD" label="逾期總額" value={fmtP(s.overdue_amount)} tone="yellow" />
-        <StatCard code="BLNC" label="未沖餘額" value={fmtP(s.balance_amount)} tone="blue" />
+        <StatCard code="BLNC" label="未沖餘額" value={fmtP(s.unmatched_balance)} tone="blue" />
       </div>
 
       {/* Unified filter card */}
@@ -137,7 +144,7 @@ export default function AccountsReceivable() {
           <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
           {!isMobile && <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>}
           <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
-          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(e.target.value, search); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }}>
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(1, e.target.value, search, pageSize); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="unpaid">未付款</option>
             <option value="partial">部分付款</option>
@@ -153,7 +160,7 @@ export default function AccountsReceivable() {
       {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有應收帳款資料" /> : isMobile ? (
         <div>
           {(data.rows || []).map(ar => {
-            const st = STATUS_MAP[ar.status] || STATUS_MAP.unpaid;
+            const st = STATUS_MAP[ar.payment_status] || STATUS_MAP.unpaid;
             const balance = Number(ar.total_amount || 0) - Number(ar.paid_amount || 0);
             const daysOverdue = ar.due_date ? Math.max(0, Math.floor((new Date() - new Date(ar.due_date)) / (1000 * 60 * 60 * 24))) : 0;
             return (
@@ -177,40 +184,50 @@ export default function AccountsReceivable() {
           })}
         </div>
       ) : (
-        <div style={{ ...S.card, padding: 0, overflow: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead><tr style={{ background: '#f3f4f6' }}>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>應收單號</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>客戶</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>開單日</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>到期日</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>狀態</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>應收金額</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>已收金額</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>未沖餘額</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>逾期天數</th>
-            </tr></thead>
-            <tbody>{(data.rows || []).map(ar => {
-              const st = STATUS_MAP[ar.status] || STATUS_MAP.unpaid;
-              const balance = Number(ar.total_amount || 0) - Number(ar.paid_amount || 0);
-              const daysOverdue = ar.due_date ? Math.max(0, Math.floor((new Date() - new Date(ar.due_date)) / (1000 * 60 * 60 * 24))) : 0;
-              return (
-                <tr key={ar.id} onClick={() => loadDetail(ar.id)} style={{ borderTop: '1px solid #f0f0f0', cursor: 'pointer' }}>
-                  <td style={{ padding: '10px 12px', fontWeight: 600, color: '#3b82f6', ...S.mono }}>{ar.invoice_no || '-'}</td>
-                  <td style={{ padding: '10px 12px' }}>{ar.customer_name || '-'}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 11, ...S.mono }}>{ar.invoice_date?.slice(0, 10) || '-'}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 11, ...S.mono }}>{ar.due_date?.slice(0, 10) || '-'}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(ar.total_amount)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a', ...S.mono }}>{fmtP(ar.paid_amount)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', color: daysOverdue > 0 ? '#dc2626' : '#6b7280', fontWeight: daysOverdue > 0 ? 600 : 400 }}>{daysOverdue > 0 ? daysOverdue : '-'}</td>
-                </tr>
-              );
-            })}</tbody>
-          </table>
+        <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
+          <ARHeader headers={[
+            { label: '序', align: 'center' },
+            { label: '應收單號', align: 'left' },
+            { label: '客戶', align: 'left' },
+            { label: '開單日', align: 'center' },
+            { label: '到期日', align: 'center' },
+            { label: '狀態', align: 'center' },
+            { label: '應收金額', align: 'right' },
+            { label: '已收金額', align: 'right' },
+            { label: '未沖餘額', align: 'right' },
+            { label: '逾期天數', align: 'center' },
+          ]} />
+          {(data.rows || []).map((ar, idx) => {
+            const st = STATUS_MAP[ar.payment_status] || STATUS_MAP.unpaid;
+            const balance = Number(ar.total_amount || 0) - Number(ar.paid_amount || 0);
+            const daysOverdue = ar.due_date ? Math.max(0, Math.floor((new Date() - new Date(ar.due_date)) / (1000 * 60 * 60 * 24))) : 0;
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
+            const cCenter = { ...cell, justifyContent: 'center' };
+            const cRight = { ...cell, justifyContent: 'flex-end' };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
+            return (
+              <div key={ar.id} onClick={() => loadDetail(ar.id)}
+                style={{ display: 'grid', gridTemplateColumns: arGridTemplate, borderBottom: idx < (data.rows || []).length - 1 ? '1px solid #e5e7eb' : 'none', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
+                onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
+                <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{((page - 1) * pageSize) + idx + 1}</div>
+                <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{ar.invoice_no || '-'}</div>
+                <div style={cell}><span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ar.customer_name || '-'}</span></div>
+                <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{ar.invoice_date?.slice(0, 10) || '-'}</div>
+                <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{ar.due_date?.slice(0, 10) || '-'}</div>
+                <div style={cCenter}><span style={S.tag(ar.payment_status === 'paid' ? 'green' : ar.payment_status === 'partial' ? 'yellow' : ar.payment_status === 'overdue' ? 'red' : 'gray')}>{st.label}</span></div>
+                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(ar.total_amount)}</div>
+                <div style={{ ...cRight, fontSize: 13, color: '#16a34a', ...S.mono }}>{fmtP(ar.paid_amount)}</div>
+                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div>
+                <div style={{ ...cellLast, fontSize: 13, color: daysOverdue > 0 ? '#dc2626' : '#6b7280', fontWeight: daysOverdue > 0 ? 600 : 400 }}>{daysOverdue > 0 ? daysOverdue : '-'}</div>
+              </div>
+            );
+          })}
         </div>
       )}
+      <Pager page={page} limit={pageSize} total={data.total || 0}
+        onPageChange={(p) => load(p, statusFilter, search, pageSize)}
+        onLimitChange={(l) => { setPageSize(l); load(1, statusFilter, search, l); }} />
 
       {/* Detail modal - showing allocation history */}
       {detailDialog && currentInvoice && (
