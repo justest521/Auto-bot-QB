@@ -158,16 +158,18 @@ export default function AccountsReceivable() {
         <StatCard code="BLNC" label="未沖餘額" value={fmtP(s.unmatched_balance)} tone="blue" />
       </div>
 
-      {/* Compact filter row */}
-      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '10px 12px' : '8px 12px' }}>
-        <div style={{ display: 'flex', gap: 6, flexWrap: isMobile ? 'wrap' : 'nowrap', alignItems: 'center' }}>
+      {/* Filter row — same style as PurchaseOrders */}
+      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '10px 12px' : '10px 16px' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', lineHeight: 1.2 }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 13 : 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', ...(isMobile && { flex: 1 }) }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 125, fontSize: 12, padding: '4px 6px', ...S.mono }} />
-          <span style={{ color: '#9ca3af', fontSize: 12 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 125, fontSize: 12, padding: '4px 6px', ...S.mono }} />
-          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(1, e.target.value, search, pageSize); }} style={{ ...S.input, width: isMobile ? '100%' : 110, fontSize: 12, padding: '4px 6px' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+            {!isMobile && <span style={{ color: '#6b7280', fontSize: 14 }}>~</span>}
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+          </div>
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(1, e.target.value, search, pageSize); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }}>
             <option value="">全部狀態</option>
             <option value="unpaid">未付款</option>
             <option value="partial">部分付款</option>
@@ -175,8 +177,10 @@ export default function AccountsReceivable() {
             <option value="overdue">逾期</option>
             <option value="cancelled">已取消</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋單號、客戶..." style={{ ...S.input, flex: '1 1 auto', minWidth: isMobile ? 0 : 120, fontSize: 12, padding: '4px 8px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: '4px 14px', fontSize: 12 }}>查詢</button>
+          <div style={{ display: 'flex', gap: 6, flex: 1, width: isMobile ? '100%' : 'auto' }}>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋應收單號、客戶..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 'auto' : 160, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
+            <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: 14, minHeight: isMobile ? 40 : 'auto', whiteSpace: 'nowrap' }}>查詢</button>
+          </div>
         </div>
       </div>
 
