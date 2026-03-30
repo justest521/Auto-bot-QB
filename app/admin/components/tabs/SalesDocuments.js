@@ -6,6 +6,7 @@ import { fmt, fmtP, useResponsive, exportCsv, getPresetDateRange } from '@/lib/a
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
+import { DocumentTimeline } from '../shared/DocumentTimeline';
 
 const SALES_DOCUMENT_FOCUS_KEY = 'qb_sales_document_focus';
 const PO_FOCUS_KEY = 'qb_purchase_order_focus';
@@ -279,86 +280,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
 
             {/* 3. Unified Sales Record Timeline */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
-              <div style={labelStyle}>銷貨紀錄</div>
-              {(() => {
-                const fmtTime = (t) => { if (!t) return ''; const d = new Date(t); if (isNaN(d.getTime())) return typeof t === 'string' ? t.slice(0, 10) : ''; const pad = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-                const saleStatusMap = { draft: '草稿', issued: '已開立', paid: '已收款', void: '作廢' };
-                const saleColorMap = { draft: '#f59e0b', issued: '#3b82f6', paid: '#16a34a', void: '#ef4444' };
-
-                const entries = [];
-                const statusKey = String(s.status || 'issued').toLowerCase();
-
-                // 銷貨建立
-                entries.push({ dot: '#16a34a', label: '銷貨建立', ref: s.slip_number, refType: 'sale', time: s.sale_date, status: 'done' });
-
-                // 審核狀態 — 銷貨免審（方案 A），顯示自動核准
-                if (approvalData) {
-                  const apSt = approvalData.status;
-                  const isAutoApproved = approvalData.approved_by === 'system';
-                  const apDot = apSt === 'approved' ? '#16a34a' : apSt === 'rejected' ? '#dc2626' : apSt === 'pending' ? '#2563eb' : '#d1d5db';
-                  const apText = apSt === 'approved' ? (isAutoApproved ? '自動核准（訂單已審）' : '已核准') : apSt === 'rejected' ? '已駁回' : apSt === 'pending' ? '待審核' : apSt;
-                  entries.push({ dot: apDot, label: '審核簽核', detail: apText, time: approvalData.reviewed_at || approvalData.created_at, status: apSt === 'approved' ? 'done' : apSt === 'pending' ? 'current' : apSt === 'rejected' ? 'rejected' : 'pending' });
-                } else {
-                  entries.push({ dot: '#16a34a', label: '審核', detail: '免審（銷貨自動通過）', status: 'done' });
-                }
-
-                // 發票
-                if (invoice || s.invoice_number) {
-                  entries.push({ dot: s.invoice_number ? '#16a34a' : '#d1d5db', label: '發票', ref: s.invoice_number, refType: 'invoice', detail: invoice?.invoice_type || (s.invoice_number ? '已開' : '未開'), status: s.invoice_number ? 'done' : 'pending' });
-                }
-
-                // 毛利信息
-                entries.push({ dot: (s.gross_profit || 0) >= 0 ? '#16a34a' : '#ef4444', label: '毛利', detail: `NT$${Number(s.gross_profit || 0).toLocaleString()} · ${s.total > 0 ? ((s.gross_profit || 0) / s.total * 100).toFixed(1) : '0'}%`, status: (s.gross_profit || 0) >= 0 ? 'done' : 'warning' });
-
-                // 付款狀態
-                entries.push({ dot: statusKey === 'paid' ? '#16a34a' : '#d1d5db', label: '付款', detail: { draft: '草稿', issued: '未付款', paid: '已收款', void: '作廢' }[statusKey] || statusKey, status: statusKey === 'paid' ? 'done' : statusKey === 'issued' ? 'pending' : statusKey === 'void' ? 'rejected' : 'pending' });
-
-                // 出貨紀錄 — from shipments state, with clickable ref + LINE status
-                const shipTlEv = timeline?.find(ev => (ev.event || '').match(/出貨單/));
-                shipments.forEach(sh => {
-                  const shLineNote = shipTlEv?.note || '';
-                  const shLineSent = shipTlEv?.line_sent ?? false;
-                  entries.push({ dot: '#16a34a', label: '出貨', ref: sh.shipment_no, refType: 'shipment', detail: sh.carrier ? `${sh.carrier}${sh.tracking_no ? ` #${sh.tracking_no}` : ''}` : '已出貨', time: sh.created_at, status: 'done', note: shLineNote, lineSent: shLineSent });
-                });
-
-                // 其他timeline事件 (exclude shipments since we handle them above)
-                timeline?.forEach(ev => {
-                  const eventText = ev.event || '';
-                  if (!eventText.match(/銷貨|審核|approval|批准|出貨單/i) && eventText.trim()) {
-                    const dotColor = ev.status === 'done' ? '#16a34a' : ev.status === 'pending' ? '#f59e0b' : ev.status === 'rejected' ? '#ef4444' : '#d1d5db';
-                    entries.push({ dot: dotColor, label: eventText, time: ev.time, status: ev.status || 'pending' });
-                  }
-                });
-
-                return (
-                  <div style={{ position: 'relative', paddingLeft: 18 }}>
-                    {entries.map((e, i) => {
-                      const isLast = i === entries.length - 1;
-                      const isCurrent = e.status === 'current' || e.status === 'warning';
-                      return (
-                        <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 14, minHeight: isLast ? 'auto' : 28 }}>
-                          {!isLast && <div style={{ position: 'absolute', left: -11, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
-                          <div style={{ position: 'absolute', left: -14, top: 3, width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8, borderRadius: '50%', background: e.dot, border: '2px solid #fff', boxShadow: isCurrent ? `0 0 0 3px ${e.dot}25` : `0 0 0 1.5px ${e.dot}30` }} />
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', lineHeight: 1.3 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
-                            {e.ref && (() => {
-                              const clickHandler = e.refType === 'sale' ? () => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
-                                : e.refType === 'shipment' ? () => { window.localStorage.setItem('qb_shipment_focus', e.ref); setTab?.('shipments'); }
-                                : e.refType === 'payment' ? () => { setTab?.('收款管理'); }
-                                : e.refType === 'order' ? () => { window.localStorage.setItem(ORDER_FOCUS_KEY, e.ref); setTab?.('orders'); }
-                                : null;
-                              return <span style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
-                            })()}
-                            {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.detailColor || (e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af'), background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
-                          </div>
-                          {e.note && <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: 4, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
-                          {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
+              <DocumentTimeline type="sale" id={sale.id} setTab={setTab} title="單據記錄" />
             </div>
 
             {/* 4. Remark card — editable */}

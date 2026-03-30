@@ -5,6 +5,7 @@ import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
+import { DocumentTimeline } from '../shared/DocumentTimeline';
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
@@ -327,6 +328,11 @@ export default function AccountsReceivable() {
                 </table>
               </div>
             )}
+
+            {/* Document chain timeline */}
+            <div style={{ marginBottom: 16 }}>
+              <DocumentTimeline type="invoice" id={currentInvoice.id} title="單據記錄" />
+            </div>
 
             {/* Remaining balance footer */}
             <div style={{ ...S.card, background: '#f0fdf4', borderColor: '#bbf7d0', padding: 12, marginBottom: 16, borderRadius: 6, fontSize: 13 }}>
