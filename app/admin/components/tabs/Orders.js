@@ -123,7 +123,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
 
   const startEditItem = (item, e) => {
     e.stopPropagation();
-    if (item.sale_ref) return;
+    if (isEditLocked || item.sale_ref) return;
     setEditingItemId(item.id);
     setEditValues({
       qty: item.qty,
@@ -169,6 +169,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
 
   const deleteItem = async (itemId, e) => {
     if (e) e.stopPropagation();
+    if (isEditLocked) return;
     if (!confirm('確定刪除此品項？')) return;
     try {
       await apiPost({ action: 'delete_order_item', item_id: itemId });
@@ -207,6 +208,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   };
 
   const handleAddItem = async (product) => {
+    if (isEditLocked) return;
     setMsg('');
     try {
       await apiPost({ action: 'add_order_item', order_id: order.id, item_number: product.item_number });
@@ -265,6 +267,18 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
       setMsg(error.message || '送審失敗');
     } finally {
       setConvertingId('');
+    }
+  };
+
+  const revertToDraft = async () => {
+    if (!confirm(`確定將訂單 ${order.order_no} 退回草稿？退回後可重新編輯品項與金額。`)) return;
+    setMsg('');
+    try {
+      await apiPost({ action: 'update_order_status', order_id: order.id, status: 'draft' });
+      setMsg('已退回草稿，可重新編輯');
+      onRefresh?.();
+    } catch (error) {
+      setMsg(error.message || '退回失敗');
     }
   };
 
@@ -394,6 +408,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const isPending = orderStatus === 'pending_approval';
   const isRejected = orderStatus === 'rejected';
   const isLocked = isPending; // 審核中鎖定所有操作
+  const isEditLocked = !['draft', 'rejected'].includes(orderStatus); // 非草稿/駁回 → 鎖定品項編輯
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
@@ -650,7 +665,11 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     );
                   })}
                   {/* Add Item Row */}
-                  {!showAddItem ? (
+                  {isEditLocked ? (
+                    <div style={{ padding: '10px 24px', borderTop: '1px dashed #e5e7eb' }}>
+                      <span style={{ fontSize: 12, color: '#9ca3af' }}>訂單已審核，如需修改請先「退回草稿」</span>
+                    </div>
+                  ) : !showAddItem ? (
                     <div style={{ padding: '10px 24px', borderTop: '1px dashed #e5e7eb' }}>
                       <button onClick={() => setShowAddItem(true)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 12, color: '#3b82f6', borderColor: '#bfdbfe' }}>＋ 新增品項</button>
                     </div>
@@ -761,6 +780,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               {/* 送審 / 建立出貨 / PDF — moved from top bar */}
               {!canConvert && !isConverted && !isPending && (statusKey === 'draft' || statusKey === 'rejected') && (
                 <button onClick={submitForApproval} disabled={convertingId === order.id} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: isRejected ? '#ef4444' : '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: convertingId === order.id ? 0.7 : 1 }}>{convertingId === order.id ? '送審中...' : isRejected ? '重新送審' : '送審'}</button>
+              )}
+              {canConvert && linkedSales.length === 0 && (
+                <button onClick={revertToDraft} style={{ ...S.btnGhost, padding: '8px 18px', fontSize: 13, color: '#f59e0b', borderColor: '#fde68a' }}>退回草稿</button>
               )}
             </div>
             )}
