@@ -163,7 +163,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
           item_number_snapshot: product.item_number || '',
           description_snapshot: product.description || '',
           qty: 1,
-          unit_price: Number(product.tw_reseller_price || product.tw_retail_price || 0),
+          unit_price: Number(product.tw_retail_price || product.tw_reseller_price || 0),
         },
       ],
     }));
@@ -354,7 +354,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                       <button key={product.item_number} onClick={() => addProduct(product)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer', border: '1px solid #f0f2f5', background: '#fafbfc' }}>
                         <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{product.item_number}</div>
                         <div style={{ fontSize: 13, color: '#111827', marginTop: 2 }}>{product.description || '-'}</div>
-                        <div style={{ fontSize: 12, color: '#10b981', marginTop: 2, ...S.mono }}>{fmtP(product.tw_reseller_price || product.tw_retail_price)}</div>
+                        <div style={{ fontSize: 12, color: '#10b981', marginTop: 2, ...S.mono }}>{fmtP(product.tw_retail_price || product.tw_reseller_price)}</div>
                       </button>
                     ))}
                   </div>
