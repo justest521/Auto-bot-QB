@@ -288,7 +288,7 @@ export default function AccountsReceivable() {
                 <div><span style={{ color: '#6b7280' }}>開單日</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{currentInvoice.invoice_date?.slice(0, 10)}</div></div>
                 <div><span style={{ color: '#6b7280' }}>到期日</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{currentInvoice.due_date?.slice(0, 10)}</div></div>
                 <div><span style={{ color: '#6b7280' }}>應收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(currentInvoice.total_amount)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>已收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(currentInvoice.paid_amount)}</div></div>
+                <div><span style={{ color: '#6b7280' }}>已收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(currentInvoice.paid_amount_display != null ? currentInvoice.paid_amount_display : currentInvoice.paid_amount)}</div></div>
               </div>
               {currentInvoice.remark && (
                 <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb', fontSize: 12, color: '#6b7280' }}>
@@ -351,8 +351,8 @@ export default function AccountsReceivable() {
             <div style={{ ...S.card, background: '#f0fdf4', borderColor: '#bbf7d0', padding: 12, marginBottom: 16, borderRadius: 6, fontSize: 13 }}>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
                 <div><span style={{ color: '#6b7280' }}>應收總額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(currentInvoice.total_amount)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>已沖帳</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(currentInvoice.paid_amount)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#dc2626', ...S.mono }}>{fmtP(Number(currentInvoice.total_amount || 0) - Number(currentInvoice.paid_amount || 0))}</div></div>
+                <div><span style={{ color: '#6b7280' }}>已沖帳</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(currentInvoice.paid_amount_display != null ? currentInvoice.paid_amount_display : currentInvoice.paid_amount)}</div></div>
+                <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#dc2626', ...S.mono }}>{fmtP(currentInvoice.balance != null ? currentInvoice.balance : Number(currentInvoice.total_amount || 0) - Number(currentInvoice.paid_amount || 0))}</div></div>
               </div>
             </div>
 
