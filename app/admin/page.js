@@ -41,6 +41,8 @@ import PurchaseReturns from './components/tabs/PurchaseReturns';
 import VendorPayments from './components/tabs/VendorPayments';
 import Stocktake from './components/tabs/Stocktake';
 import StockAdjustments from './components/tabs/StockAdjustments';
+import StockTransfer from './components/tabs/StockTransfer';
+import StockAssembly from './components/tabs/StockAssembly';
 import PSIReport from './components/tabs/PSIReport';
 import FinancialReport from './components/tabs/FinancialReport';
 import DealerUsers from './components/tabs/DealerUsers';
@@ -130,6 +132,8 @@ const SECTIONS = [
       { id: 'reorder', label: '補貨建議', code: 'REOD' },
       { id: 'stocktake', label: '盤點作業', code: 'STTK' },
       { id: 'stock_adjustments', label: '調整單', code: 'ADJ' },
+      { id: 'stock_transfers', label: '調撥單', code: 'TRF' },
+      { id: 'stock_assemblies', label: '組合單', code: 'ASM' },
     ],
   },
   {
@@ -238,6 +242,8 @@ const TAB_META = {
   reorder: { eyebrow: 'Reorder', title: '補貨建議', desc: '根據安全庫存自動產生補貨建議。' },
   stocktake: { eyebrow: 'Stocktake', title: '盤點精靈', desc: '建立盤點單並調整庫存差異。' },
   stock_adjustments: { eyebrow: 'Adjustments', title: '調整單', desc: '手動調整商品庫存數量。' },
+  stock_transfers: { eyebrow: 'Transfer', title: '調撥單', desc: '記錄商品在不同儲位間的調撥異動。' },
+  stock_assemblies: { eyebrow: 'Assembly', title: '組合單', desc: '將原料組合成套件或成品。' },
   psi_report: { eyebrow: 'PSI Report', title: '進銷存報表', desc: '銷貨、進貨、退貨金額彙總。' },
   financial_report: { eyebrow: 'Financial', title: '財務報表', desc: '應收帳款、應付帳款與淨現金流。' },
   sales_returns: { eyebrow: 'Returns', title: '銷退貨彙總', desc: '銷貨與退貨單據彙總。' },
@@ -298,6 +304,8 @@ const TAB_COMPONENTS = {
   vendor_payments: VendorPayments,
   stocktake: Stocktake,
   stock_adjustments: StockAdjustments,
+  stock_transfers: StockTransfer,
+  stock_assemblies: StockAssembly,
   psi_report: PSIReport,
   financial_report: FinancialReport,
   dealer_users: DealerUsers,
