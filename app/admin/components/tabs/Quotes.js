@@ -674,6 +674,8 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
               ref: ref,
               refType: refType,
               detail: ev.by ? `由 ${ev.by}` : '',
+              note: ev.note || '',
+              lineSent: ev.line_sent,
               time: ev.time,
               status: ev.status || 'pending'
             });
@@ -714,6 +716,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                     })()}
                     {e.detail && <span style={{ fontSize: isMobile ? 10 : 11, fontWeight: 600, color: e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af', background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
                   </div>
+                  {e.note && <div style={{ fontSize: isMobile ? 9 : 11, fontWeight: 600, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: 4, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
                   {e.time && <div style={{ fontSize: isMobile ? 9 : 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
                 </div>
               );
