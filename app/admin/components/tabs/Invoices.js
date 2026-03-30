@@ -53,6 +53,7 @@ export default function Invoices() {
 
   const STATUS_MAP = {
     draft: { label: '草稿', color: '#9ca3af' },
+    issued: { label: '已開立', color: '#3b82f6' },
     sent: { label: '已寄送', color: '#3b82f6' },
     unpaid: { label: '未付款', color: '#f59e0b' },
     partial: { label: '部分付款', color: '#f97316' },

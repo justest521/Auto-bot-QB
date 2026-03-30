@@ -1201,7 +1201,7 @@ export default function Orders({ setTab }) {
   // ★ 可拖拉欄寬
   const ORDER_DEFAULT_WIDTHS = isTablet
     ? [32, 50, 140, 200, 90, 80, 80]
-    : [32, 50, 150, 200, 80, 90, 80, 80, 80, 100, 130];
+    : [32, 50, 180, 200, 80, 90, 80, 80, 80, 100, 130];
   const { gridTemplate: orderGridTemplate, ResizableHeader: OrderHeader } = useResizableColumns('orders_list', ORDER_DEFAULT_WIDTHS);
 
   // ★ 批次出貨
