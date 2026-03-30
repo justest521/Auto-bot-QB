@@ -6,71 +6,6 @@ import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
-function GridTable({ data, onRowClick }) {
-  const { widths, setWidth } = useResizableColumns('payment_records', DEFAULT_COLUMN_WIDTHS);
-  const colKeys = ['seq', 'receipt_no', 'customer_name', 'receipt_date', 'total_amount', 'payment_method', 'status', 'reference_no', 'actions'];
-  const colLabels = ['序', '收款單號', '客戶', '收款日期', '金額', '付款方式', '狀態', '參考號', '操作'];
-  const gridTemplate = colKeys.map(k => `${widths[k]}px`).join(' ');
-
-  const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
-  const cCenter = { ...cell, justifyContent: 'center' };
-  const cRight = { ...cell, justifyContent: 'flex-end' };
-  const cellLast = { ...cell, borderRight: 'none' };
-
-  return (
-    <div>
-      <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, background: '#f3f4f6', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#6b7280', minWidth: 'min-content' }}>
-        {colKeys.map((key, idx) => (
-          <div key={key} style={{ ...(idx === colKeys.length - 1 ? cellLast : cell), justifyContent: key === 'seq' || key.includes('amount') || key === 'actions' ? 'center' : 'flex-start' }}>
-            {idx < colKeys.length - 1 ? (
-              <ResizableHeader label={colLabels[idx]} width={widths[key]} onResize={(w) => setWidth(key, w)} />
-            ) : (
-              colLabels[idx]
-            )}
-          </div>
-        ))}
-      </div>
-      {data.map((rec, idx) => {
-        const st = STATUS_MAP[rec.status] || STATUS_MAP.pending;
-        const methodLabel = PAYMENT_METHOD_MAP[rec.payment_method] || rec.payment_method;
-        return (
-          <div key={rec.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: '1px solid #e5e7eb', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s', minWidth: 'min-content' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
-            onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}
-            onClick={() => onRowClick(rec)}>
-            <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{idx + 1}</div>
-            <div style={{ ...cell, fontSize: 13, fontWeight: 600, color: '#3b82f6', ...S.mono }}>{rec.receipt_no || '-'}</div>
-            <div style={cell}><span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.customer_name || '-'}</span></div>
-            <div style={{ ...cCenter, fontSize: 13, ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</div>
-            <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(rec.total_amount)}</div>
-            <div style={{ ...cCenter, fontSize: 13 }}>{methodLabel}</div>
-            <div style={{ ...cCenter }}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></div>
-            <div style={{ ...cell, fontSize: 13, ...S.mono }}>{rec.reference_no || '-'}</div>
-            <div style={{ ...cCenter }}>
-              <button onClick={(e) => { e.stopPropagation(); onRowClick(rec); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>詳情</button>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function ResizableHeader({ label, width, onResize }) {
-  const [isResizing, setIsResizing] = useState(false);
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', width: '100%', userSelect: 'none' }}>
-      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-      <div
-        onMouseDown={() => setIsResizing(true)}
-        onMouseUp={() => setIsResizing(false)}
-        onMouseLeave={() => setIsResizing(false)}
-        style={{ width: 4, height: '100%', cursor: 'col-resize', background: isResizing ? '#3b82f6' : 'transparent' }}
-      />
-    </div>
-  );
-}
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
@@ -99,20 +34,11 @@ const STATUS_MAP = {
   cancelled: { label: '已取消', color: '#6b7280' },
 };
 
-const DEFAULT_COLUMN_WIDTHS = {
-  seq: 50,
-  receipt_no: 120,
-  customer_name: 150,
-  receipt_date: 110,
-  total_amount: 100,
-  payment_method: 110,
-  status: 90,
-  reference_no: 120,
-  actions: 80,
-};
+const DEFAULT_COLUMN_WIDTHS = [50, 120, 150, 110, 100, 110, 90, 120, 80];
 
 export default function PaymentRecords() {
   const { isMobile, isTablet } = useResponsive();
+  const { gridTemplate, ResizableHeader } = useResizableColumns('payment_records', DEFAULT_COLUMN_WIDTHS);
   const [data, setData] = useState({ rows: [], total: 0, summary: {} });
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -288,12 +214,45 @@ export default function PaymentRecords() {
           })}
         </div>
       ) : (
-        <>
-          <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
-            <GridTable data={data.rows || []} onRowClick={setDetailDialog} />
-          </div>
-          {data.total > 20 && <Pager />}
-        </>
+        <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
+          <ResizableHeader headers={[
+            { label: '序', align: 'center' },
+            { label: '收款單號', align: 'left' },
+            { label: '客戶', align: 'left' },
+            { label: '收款日期', align: 'center' },
+            { label: '金額', align: 'right' },
+            { label: '付款方式', align: 'center' },
+            { label: '狀態', align: 'center' },
+            { label: '參考號', align: 'left' },
+            { label: '操作', align: 'center' },
+          ]} />
+          {(data.rows || []).map((rec, idx) => {
+            const st = STATUS_MAP[rec.status] || STATUS_MAP.pending;
+            const methodLabel = PAYMENT_METHOD_MAP[rec.payment_method] || rec.payment_method;
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
+            const cCenter = { ...cell, justifyContent: 'center' };
+            const cRight = { ...cell, justifyContent: 'flex-end' };
+            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
+            return (
+              <div key={rec.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: '1px solid #e5e7eb', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
+                onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}
+                onClick={() => setDetailDialog(rec)}>
+                <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{idx + 1}</div>
+                <div style={{ ...cell, fontSize: 13, fontWeight: 600, color: '#3b82f6', ...S.mono }}>{rec.receipt_no || '-'}</div>
+                <div style={cell}><span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.customer_name || '-'}</span></div>
+                <div style={{ ...cCenter, fontSize: 13, ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</div>
+                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(rec.total_amount)}</div>
+                <div style={{ ...cCenter, fontSize: 13 }}>{methodLabel}</div>
+                <div style={cCenter}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></div>
+                <div style={{ ...cell, fontSize: 13, ...S.mono }}>{rec.reference_no || '-'}</div>
+                <div style={cellLast}>
+                  <button onClick={(e) => { e.stopPropagation(); setDetailDialog(rec); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>詳情</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {/* Create Dialog */}

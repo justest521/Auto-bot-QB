@@ -6,16 +6,7 @@ import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
-const DEFAULT_COLUMN_WIDTHS = {
-  'seq': 50,
-  'statement_no': 140,
-  'customer_name': 150,
-  'period_start': 160,
-  'net_amount': 120,
-  'current_balance': 120,
-  'status': 100,
-  'action': 90,
-};
+const DEFAULT_COLUMN_WIDTHS = [50, 140, 150, 160, 120, 120, 100, 90];
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
