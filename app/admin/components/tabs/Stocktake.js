@@ -47,7 +47,7 @@ export default function Stocktake() {
               </div>
             </div>
             <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-              <div style={{ maxHeight: isMobile ? 300 : 420, overflowY: 'auto', ...S.tableScroll }}>
+              <div style={{ maxHeight: isMobile ? 300 : 420, overflowY: 'auto', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: isMobile ? 11 : 12 }}>
                   <thead><tr style={{ background: '#f3f4f6', position: 'sticky', top: 0, zIndex: 2 }}>{['料號','品名','系統數量','實際數量','差異'].map(h => <th key={h} style={{ padding: isMobile ? '6px 8px' : '8px 16px', textAlign: 'left', fontSize: isMobile ? 10 : 12, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #dbe3ee' }}>{h}</th>)}</tr></thead>
                   <tbody>{detailItems.map(it => (

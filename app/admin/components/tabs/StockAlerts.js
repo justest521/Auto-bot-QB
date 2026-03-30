@@ -43,7 +43,7 @@ export default function StockAlerts() {
         <StatCard code="WARN" label="注意" value={alerts.filter(a => a.urgency === 'medium').length} tone="blue" />
       </div>
       {loading ? <Loading /> : alerts.length === 0 ? <EmptyState text="所有商品庫存正常" /> : (
-        <div style={S.tableScroll}>
+        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 12 : 13 }}>
           <thead><tr style={{ background: '#f3f4f6' }}>
             <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600, fontSize: isMobile ? 11 : 13 }}>狀態</th>

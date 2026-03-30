@@ -155,7 +155,7 @@ export default function ProcurementCenter({ setTab }) {
 
       {/* ── Table ── */}
       {loading ? <Loading /> : data.rows?.length === 0 ? <EmptyState text="目前沒有採購中的品項" /> : (
-        <div style={{ ...S.card, padding: 0, overflow: isMobile ? 'auto' : 'hidden', border: '1px solid #e5e7eb', ...(isMobile && S.tableScroll) }}>
+        <div style={{ ...S.card, padding: 0, overflow: isMobile ? 'auto' : 'hidden', border: '1px solid #e5e7eb', ...(isMobile ? { overflowX: 'auto', WebkitOverflowScrolling: 'touch' } : {}) }}>
           {/* Header */}
           <div style={{ display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0, padding: '10px 16px', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', alignItems: 'center', minWidth: isMobile ? 'min-content' : 'auto' }}>
             {SORT_COLS.map(col => (

@@ -64,7 +64,7 @@ export default function StockAdjustments() {
                 <span style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>調整明細</span>
                 <span style={{ fontSize: 12, color: '#9ca3af' }}>正數=增加, 負數=減少</span>
               </div>
-              <div style={{ maxHeight: isMobile ? 200 : 280, overflowY: 'auto', display: 'grid', gap: 5, paddingRight: 4, ...S.tableScroll }}>
+              <div style={{ maxHeight: isMobile ? 200 : 280, overflowY: 'auto', overflowX: 'auto', WebkitOverflowScrolling: 'touch', display: 'grid', gap: 5, paddingRight: 4 }}>
                 {items.map((it, idx) => (
                   <div key={idx} style={{ background: '#f9fafb', border: '1px solid #f0f2f5', borderRadius: 8, padding: isMobile ? '8px 10px' : '7px 10px', display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? '1fr' : 'auto', gap: isMobile ? 8 : 6, alignItems: isMobile ? 'stretch' : 'center' }}>
                     <input value={it.item_number} onChange={(e) => setItems(p => { const n = [...p]; n[idx] = { ...n[idx], item_number: e.target.value }; return n; })} style={{ ...S.input, ...S.mobile.input, fontSize: isMobile ? 13 : 12, padding: isMobile ? '10px 12px' : '4px 6px', ...S.mono }} placeholder="料號" />

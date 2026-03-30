@@ -199,7 +199,7 @@ export default function Flowchart({ setTab }) {
       </div>
 
       {/* Flowchart */}
-      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', overflow: 'auto', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', ...(isMobile && S.tableScroll) }}>
+      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', overflow: 'auto', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', ...(isMobile ? { WebkitOverflowScrolling: 'touch' } : {}) }}>
         <div style={{ position: 'relative', width: isMobile ? 'min-content' : totalW, minHeight: totalH, margin: '0 auto', padding: '10px 0', minWidth: '100%' }}>
 
           {/* SVG layer */}

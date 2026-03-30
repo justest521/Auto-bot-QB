@@ -45,7 +45,7 @@ export default function ReorderSuggestions() {
       <ComingSoonBanner tabId="reorder" />
       {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
       {loading ? <Loading /> : suggestions.length === 0 ? <EmptyState text="目前沒有補貨建議，點擊「掃描庫存」檢查" /> : (
-        <div style={S.tableScroll}>
+        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 12 : 13 }}>
           <thead><tr style={{ background: '#f3f4f6' }}>
             <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'center', width: isMobile ? 30 : 40, fontSize: isMobile ? 11 : 13 }}><input type="checkbox" checked={selected.length === suggestions.length} onChange={toggleAll} /></th>

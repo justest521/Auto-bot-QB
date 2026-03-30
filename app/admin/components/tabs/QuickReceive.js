@@ -577,7 +577,7 @@ export default function QuickReceive({ setTab }) {
             </div>
 
             <div style={{ overflowX: 'auto', maxHeight: 400, overflowY: 'auto' }}>
-              <div style={S.tableScroll}><table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ position: 'sticky', top: 0, background: '#eef2ff', zIndex: 1 }}>
                     <th style={{ ...thStyle, textAlign: 'center', width: 36, borderBottom: '2px solid #c7d2fe' }}>
@@ -655,7 +655,7 @@ export default function QuickReceive({ setTab }) {
             </div>
           </div>
           <div style={{ overflowX: 'auto' }}>
-            <div style={S.tableScroll}><table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}><table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
                   <th style={{ ...thStyle, textAlign: 'center', width: 36 }}>

@@ -138,7 +138,7 @@ function StockInDetailView({ id, onBack }) {
               ))}
             </div>
           ) : (
-            <div style={S.tableScroll}>
+            <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>

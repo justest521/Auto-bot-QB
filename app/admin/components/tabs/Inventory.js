@@ -103,7 +103,7 @@ export default function Inventory() {
             ))}
           </div>
         ) : (
-          <div style={S.tableScroll}>
+          <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
             <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 13 }}>
               <thead><tr style={{ background: '#f3f4f6' }}>
                 {['料號','品名','分類','庫存','安全水位','狀態','操作'].map(h => <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontSize: 12, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #dbe3ee' }}>{h}</th>)}

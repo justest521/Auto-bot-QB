@@ -37,7 +37,7 @@ function CustomerHistoryModal({ history, customerName, onClose }) {
                   <span style={{ fontSize: isMobile ? 9 : 10, color: '#9ca3af' }}>{o.items?.length || 0} 品項 {isOpen ? '▲' : '▼'}</span>
                 </div>
                 {isOpen && o.items && o.items.length > 0 && (
-                  <div style={{ borderTop: '1px solid #f0f0f0', padding: isMobile ? '6px 10px' : '6px 12px', background: '#fafbfd', ...(isMobile ? S.tableScroll : {}) }}>
+                  <div style={{ borderTop: '1px solid #f0f0f0', padding: isMobile ? '6px 10px' : '6px 12px', background: '#fafbfd', ...(isMobile ? { overflowX: 'auto', WebkitOverflowScrolling: 'touch' } : {}) }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 10 : 11 }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
@@ -212,7 +212,7 @@ export default function Approvals() {
                     const totalProfit = totalSell - totalCost;
                     const marginPct = totalSell > 0 ? ((totalProfit / totalSell) * 100).toFixed(1) : '0.0';
                     return (
-                      <div style={{ borderTop: '1px solid #f0f0f0', padding: isMobile ? '8px 12px' : '8px 14px', background: '#fafbfd', ...(isMobile ? S.tableScroll : {}) }}>
+                      <div style={{ borderTop: '1px solid #f0f0f0', padding: isMobile ? '8px 12px' : '8px 14px', background: '#fafbfd', ...(isMobile ? { overflowX: 'auto', WebkitOverflowScrolling: 'touch' } : {}) }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 10 : 11 }}>
                           <thead>
                             <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
