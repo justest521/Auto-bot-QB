@@ -150,6 +150,7 @@ export default function ProcurementCenter({ setTab }) {
             <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#9ca3af', pointerEvents: 'none' }}>&#x1F50D;</span>
           </div>
           <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, ...(isMobile ? { width: '100%', minHeight: 44 } : {}), padding: isMobile ? '12px 16px' : '6px 18px', fontSize: 12, borderRadius: 6 }}>查詢</button>
+          {search && <button onClick={() => { setSearch(''); load(1, '', statusF); }} style={{ ...S.btnGhost, ...(isMobile ? { width: '100%', minHeight: 44 } : {}), padding: isMobile ? '12px 16px' : '6px 18px', fontSize: 12, borderRadius: 6, color: '#6b7280' }}>清除</button>}
         </div>
       </div>
 
