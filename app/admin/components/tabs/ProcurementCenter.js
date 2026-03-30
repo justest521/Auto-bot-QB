@@ -19,11 +19,12 @@ const STATUS_BADGE = {
 const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
 const PO_STATUS_COLOR = { draft: { bg: '#f3f4f6', color: '#6b7280' }, sent: { bg: '#dbeafe', color: '#2563eb' }, confirmed: { bg: '#dcfce7', color: '#16a34a' }, shipped: { bg: '#fef3c7', color: '#b45309' }, received: { bg: '#dcfce7', color: '#15803d' }, rejected: { bg: '#fee2e2', color: '#dc2626' }, cancelled: { bg: '#f3f4f6', color: '#9ca3af' } };
 
-const GRID_COLS = '120px minmax(0,1fr) 60px 60px 60px 70px 70px 80px 100px';
+const GRID_COLS = '120px minmax(0,1fr) 55px 60px 60px 60px 70px 70px 80px 100px';
 
 const SORT_COLS = [
   { key: 'item_number', label: '料號' },
   { key: 'description', label: '品名' },
+  { key: 'stock_qty', label: '庫存', center: true },
   { key: 'total_ordered', label: '已採', center: true },
   { key: 'total_received', label: '已到', center: true },
   { key: 'still_needed', label: '尚缺', center: true },
@@ -198,6 +199,7 @@ export default function ProcurementCenter({ setTab }) {
                 >
                   <div style={{ fontWeight: 700, ...S.mono, fontSize: 12, color: '#1e40af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.item_number}</div>
                   <div style={{ fontSize: 12, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>{row.description || '-'}</div>
+                  <div style={{ textAlign: 'center', fontWeight: 600, ...S.mono, fontSize: 13, color: row.stock_qty > 0 ? '#2563eb' : '#d1d5db' }}>{row.stock_qty || 0}</div>
                   <div style={{ textAlign: 'center', fontWeight: 600, ...S.mono, fontSize: 13, color: '#374151' }}>{row.total_ordered}</div>
                   <div style={{ textAlign: 'center', fontWeight: 700, ...S.mono, fontSize: 13, color: row.total_received > 0 ? '#059669' : '#d1d5db' }}>{row.total_received}</div>
                   <div style={{ textAlign: 'center', fontWeight: 700, ...S.mono, fontSize: 13, color: row.still_needed > 0 ? '#dc2626' : '#16a34a' }}>{row.still_needed}</div>
