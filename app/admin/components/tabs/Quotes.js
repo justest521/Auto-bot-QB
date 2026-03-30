@@ -6,6 +6,7 @@ import { fmt, fmtP, exportCsv, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard, PanelHeader, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 import { QuoteCreateModal } from './QuoteCreateModal';
+import { DocumentTimeline } from '../shared/DocumentTimeline';
 
 function getPresetDateRange(preset) {
   const todayInTaipei = () => {
@@ -644,88 +645,8 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
 
           {/* 4. 進度 timeline */}
           <div style={{ ...cardStyle, marginBottom: 0, padding: '10px 16px' }}>
-            <div style={labelStyle}>進度</div>
-        {(() => {
-        // Build unified timeline entries
-        const entries = [];
-
-        // Quote created
-        entries.push({ dot: '#16a34a', label: '報價建立', ref: quote.quote_no, refType: 'quote', time: quote.quote_date || quote.created_at, status: 'done' });
-
-        // Process existing timeline events if available
-        if (detail?.timeline && detail.timeline.length > 0) {
-          detail.timeline.forEach(ev => {
-            const dotColor = ev.status === 'done' ? '#16a34a' : ev.status === 'pending' ? '#f59e0b' : ev.status === 'rejected' ? '#ef4444' : ev.status === 'expired' ? '#9ca3af' : '#d1d5db';
-            const text = ev.event || '';
-            const saMatch = text.match(/(SA-\d+)/);
-            const qtMatch = text.match(/(QT\d+)/);
-            const poMatch = text.match(/(PO-[\w-]+)/);
-            const soMatch = text.match(/(SO\d+)/);
-
-            let refType = null;
-            let ref = null;
-            if (saMatch) { refType = 'sale'; ref = saMatch[1]; }
-            else if (qtMatch) { refType = 'quote'; ref = qtMatch[1]; }
-            else if (poMatch) { refType = 'po'; ref = poMatch[1]; }
-            else if (soMatch) { refType = 'order'; ref = soMatch[1]; }
-
-            entries.push({
-              dot: dotColor,
-              label: ev.event ? ((text.includes('轉訂單') || text.includes('轉為訂單')) ? '轉訂單' : text.includes('建立') ? '建立' : text) : '事件',
-              ref: ref,
-              refType: refType,
-              detail: ev.by ? `由 ${ev.by}` : '',
-              note: ev.note || '',
-              lineSent: ev.line_sent,
-              time: ev.time,
-              status: ev.status || 'pending'
-            });
-          });
-        }
-
-        // Add current status based on quote status (skip if timeline already has a matching event)
-        const hasConvertEvent = entries.some(e => e.label === '轉訂單');
-        const hasSentEvent = entries.some(e => e.label.includes('發送'));
-        if (statusKey === 'sent' && !hasSentEvent) {
-          entries.push({ dot: '#3b82f6', label: '已發送', detail: '等待客戶回應', status: 'current' });
-        } else if (statusKey === 'approved') {
-          entries.push({ dot: '#16a34a', label: '已核准', detail: '客戶已核准', status: 'done' });
-        } else if (statusKey === 'converted' && !hasConvertEvent) {
-          entries.push({ dot: '#059669', label: '轉訂單', detail: '已轉為訂單', status: 'done' });
-        } else if (statusKey === 'closed') {
-          entries.push({ dot: '#9ca3af', label: '已結案', detail: '報價已結案', status: 'pending' });
-        }
-
-        return entries.length > 0 ? (
-          <div style={{ position: 'relative', paddingLeft: isMobile ? 14 : 18 }}>
-            {entries.map((e, i) => {
-              const isLast = i === entries.length - 1;
-              const isCurrent = e.status === 'current' || e.status === 'warning';
-              return (
-                <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 14, minHeight: isLast ? 'auto' : 28 }}>
-                  {!isLast && <div style={{ position: 'absolute', left: isMobile ? -11 : -11, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
-                  <div style={{ position: 'absolute', left: isMobile ? -14 : -14, top: 3, width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8, borderRadius: '50%', background: e.dot, border: '2px solid #fff', boxShadow: isCurrent ? `0 0 0 3px ${e.dot}25` : `0 0 0 1.5px ${e.dot}30` }} />
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', lineHeight: 1.3 }}>
-                    <span style={{ fontSize: isMobile ? 11 : 12, fontWeight: 700, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
-                    {e.ref && (() => {
-                      const clickHandler = e.refType === 'sale' ? () => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
-                        : e.refType === 'po' ? () => { window.localStorage.setItem(PO_FOCUS_KEY, e.ref); setTab?.('purchase_orders'); }
-                        : e.refType === 'quote' ? () => { window.localStorage.setItem('qb_quote_focus', e.ref); setTab?.('quotes'); }
-                        : e.refType === 'order' ? () => { window.localStorage.setItem(ORDER_FOCUS_KEY, e.ref); setTab?.('orders'); }
-                        : null;
-                      return <span style={{ fontSize: isMobile ? 10 : 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
-                    })()}
-                    {e.detail && <span style={{ fontSize: isMobile ? 10 : 11, fontWeight: 600, color: e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af', background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
-                  </div>
-                  {e.note && <div style={{ fontSize: isMobile ? 9 : 11, fontWeight: 600, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: 4, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
-                  {e.time && <div style={{ fontSize: isMobile ? 9 : 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
-                </div>
-              );
-            })}
+            <DocumentTimeline type="quote" id={quote.id} setTab={setTab} title="單據記錄" />
           </div>
-        ) : null;
-      })()}
-      </div>
 
           {/* 5. 備註 */}
           <div style={{ ...cardStyle, marginBottom: 0, padding: '10px 16px' }}>
