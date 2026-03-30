@@ -154,8 +154,8 @@ export default function AccountsReceivable() {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12 }}>
         <StatCard code="RECV" label="應收總額" value={fmtP(s.total_receivable)} tone="red" />
         <StatCard code="PAID" label="已收總額" value={fmtP(s.total_paid)} tone="green" />
-        <StatCard code="OVRD" label="逾期總額" value={fmtP(s.overdue_amount)} tone="yellow" />
-        <StatCard code="BLNC" label="未沖餘額" value={fmtP(s.unmatched_balance)} tone="blue" />
+        <StatCard code="UNPD" label="未收總額" value={fmtP(s.total_unpaid)} tone="yellow" />
+        <StatCard code="RATE" label="收款達成率" value={`${s.achieve_rate || 0}%`} tone="blue" />
       </div>
 
       {/* Filter row — same style as PurchaseOrders */}
