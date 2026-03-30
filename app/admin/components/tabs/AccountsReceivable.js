@@ -106,7 +106,7 @@ export default function AccountsReceivable() {
 
   const openPayDialog = (ar, e) => {
     if (e) e.stopPropagation();
-    const balance = Number(ar.total_amount || 0) - Number(ar.paid_amount || 0);
+    const balance = ar.balance != null ? Number(ar.balance) : Number(ar.total_amount || 0) - Number(ar.paid_amount_display || ar.paid_amount || 0);
     setPayDialog(ar);
     setPayForm({ amount: balance > 0 ? String(balance) : '', method: 'transfer', remark: '' });
   };
@@ -134,8 +134,8 @@ export default function AccountsReceivable() {
         { key: 'customer_name', label: '客戶' },
         { key: 'status', label: '狀態' },
         { key: 'total_amount', label: '應收金額' },
-        { key: 'paid_amount', label: '已收金額' },
-        { key: r => Number(r.total_amount || 0) - Number(r.paid_amount || 0), label: '未沖餘額' },
+        { key: r => r.paid_amount_display != null ? r.paid_amount_display : r.paid_amount, label: '已收金額' },
+        { key: r => r.balance != null ? r.balance : Number(r.total_amount || 0) - Number(r.paid_amount_display || r.paid_amount || 0), label: '未沖餘額' },
         { key: r => r.invoice_date?.slice(0, 10) || '', label: '開單日' },
         { key: r => r.due_date?.slice(0, 10) || '', label: '到期日' },
       ], `應收帳款清單_${new Date().toISOString().slice(0, 10)}.csv`);
@@ -188,7 +188,8 @@ export default function AccountsReceivable() {
         <div>
           {(data.rows || []).map(ar => {
             const st = STATUS_MAP[ar.payment_status] || STATUS_MAP.unpaid;
-            const balance = Number(ar.total_amount || 0) - Number(ar.paid_amount || 0);
+            const paidDisplay = ar.paid_amount_display != null ? ar.paid_amount_display : ar.paid_amount;
+            const balance = ar.balance != null ? Number(ar.balance) : Number(ar.total_amount || 0) - Number(paidDisplay || 0);
             const daysOverdue = ar.due_date ? Math.max(0, Math.floor((new Date() - new Date(ar.due_date)) / (1000 * 60 * 60 * 24))) : 0;
             return (
               <div key={ar.id} onClick={() => loadDetail(ar.id)} style={{ ...S.card, padding: '12px 16px', marginBottom: 8, cursor: 'pointer' }}>
@@ -201,7 +202,7 @@ export default function AccountsReceivable() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12, color: '#6b7280', marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #e5e7eb' }}>
                   <div><span style={{ color: '#6b7280' }}>應收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(ar.total_amount)}</div></div>
-                  <div><span style={{ color: '#6b7280' }}>已收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(ar.paid_amount)}</div></div>
+                  <div><span style={{ color: '#6b7280' }}>已收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(paidDisplay)}</div></div>
                   <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontSize: 14, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div></div>
                   <div><span style={{ color: '#6b7280' }}>到期日</span><div style={{ fontSize: 12, color: '#111827', ...S.mono }}>{ar.due_date?.slice(0, 10) || '-'}</div></div>
                 </div>
@@ -233,7 +234,8 @@ export default function AccountsReceivable() {
           ]} />
           {(data.rows || []).map((ar, idx) => {
             const st = STATUS_MAP[ar.payment_status] || STATUS_MAP.unpaid;
-            const balance = Number(ar.total_amount || 0) - Number(ar.paid_amount || 0);
+            const paidDisplay = ar.paid_amount_display != null ? ar.paid_amount_display : ar.paid_amount;
+            const balance = ar.balance != null ? Number(ar.balance) : Number(ar.total_amount || 0) - Number(paidDisplay || 0);
             const daysOverdue = ar.due_date ? Math.max(0, Math.floor((new Date() - new Date(ar.due_date)) / (1000 * 60 * 60 * 24))) : 0;
             const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
             const cCenter = { ...cell, justifyContent: 'center' };
@@ -252,7 +254,7 @@ export default function AccountsReceivable() {
                 <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{ar.due_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(ar.payment_status === 'paid' ? 'green' : ar.payment_status === 'partial' ? 'yellow' : ar.payment_status === 'overdue' ? 'red' : 'gray')}>{st.label}</span></div>
                 <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(ar.total_amount)}</div>
-                <div style={{ ...cRight, fontSize: 13, color: '#16a34a', ...S.mono }}>{fmtP(ar.paid_amount)}</div>
+                <div style={{ ...cRight, fontSize: 13, color: '#16a34a', ...S.mono }}>{fmtP(paidDisplay)}</div>
                 <div style={{ ...cRight, fontSize: 13, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div>
                 <div style={{ ...cCenter, fontSize: 13, color: daysOverdue > 0 ? '#dc2626' : '#6b7280', fontWeight: daysOverdue > 0 ? 600 : 400 }}>{daysOverdue > 0 ? daysOverdue : '-'}</div>
                 <div style={{ ...cellLast, gap: 4 }} onClick={e => e.stopPropagation()}>
@@ -374,14 +376,14 @@ export default function AccountsReceivable() {
                 <div><span style={{ color: '#6b7280' }}>應收單號</span><div style={{ fontWeight: 700, color: '#111827', ...S.mono }}>{payDialog.invoice_no}</div></div>
                 <div><span style={{ color: '#6b7280' }}>客戶</span><div style={{ fontWeight: 700, color: '#111827' }}>{payDialog.customer_name}</div></div>
                 <div><span style={{ color: '#6b7280' }}>應收金額</span><div style={{ fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(payDialog.total_amount)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontWeight: 700, color: '#dc2626', ...S.mono }}>{fmtP(Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0))}</div></div>
+                <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontWeight: 700, color: '#dc2626', ...S.mono }}>{fmtP(payDialog.balance != null ? payDialog.balance : Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount_display || payDialog.paid_amount || 0))}</div></div>
               </div>
             </div>
             <div style={{ marginBottom: 12 }}>
               <label style={S.label}>收款金額</label>
               <input type="number" value={payForm.amount} onChange={e => setPayForm(f => ({ ...f, amount: e.target.value }))} placeholder="0" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), ...S.mono }} />
               <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-                {[['全額', Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0)], ['50%', Math.round((Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0)) * 0.5)], ['30%', Math.round((Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0)) * 0.3)]].map(([label, val]) => (
+                {(() => { const bal = payDialog.balance != null ? Number(payDialog.balance) : Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount_display || payDialog.paid_amount || 0); return [['全額', bal], ['50%', Math.round(bal * 0.5)], ['30%', Math.round(bal * 0.3)]]; })().map(([label, val]) => (
                   <button key={label} onClick={() => setPayForm(f => ({ ...f, amount: String(val) }))} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, color: '#3b82f6', borderColor: '#bfdbfe' }}>{label}</button>
                 ))}
               </div>
