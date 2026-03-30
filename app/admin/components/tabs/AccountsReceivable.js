@@ -46,6 +46,9 @@ export default function AccountsReceivable() {
   const [payDialog, setPayDialog] = useState(null);
   const [payForm, setPayForm] = useState({ amount: '', method: 'transfer', remark: '' });
   const [paying, setPaying] = useState(false);
+  const [sortKey, setSortKey] = useState('');
+  const [sortDir, setSortDir] = useState('desc');
+  const toggleSort = (key) => { if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSortKey(key); setSortDir('desc'); } };
 
   const load = async (p = page, status = statusFilter, q = search, limit = pageSize) => {
     setLoading(true);
@@ -218,25 +221,56 @@ export default function AccountsReceivable() {
         </div>
       ) : (
         <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
-          <ARHeader headers={[
-            { label: '序', align: 'center' },
-            { label: '應收單號', align: 'left' },
-            { label: '客戶', align: 'left' },
-            { label: '業務', align: 'center' },
-            { label: '開單日', align: 'center' },
-            { label: '到期日', align: 'center' },
-            { label: '狀態', align: 'center' },
-            { label: '應收金額', align: 'right' },
-            { label: '已收金額', align: 'right' },
-            { label: '未沖餘額', align: 'right' },
-            { label: '逾期天數', align: 'center' },
-            { label: '操作', align: 'center' },
-          ]} />
-          {(data.rows || []).map((ar, idx) => {
+          {(() => {
+            const arCols = [
+              { key: null, label: '序', align: 'center' },
+              { key: 'invoice_no', label: '應收單號', align: 'left' },
+              { key: 'customer_name', label: '客戶', align: 'left' },
+              { key: 'sales_person', label: '業務', align: 'center' },
+              { key: 'invoice_date', label: '開單日', align: 'center' },
+              { key: 'due_date', label: '到期日', align: 'center' },
+              { key: 'payment_status', label: '狀態', align: 'center' },
+              { key: 'total_amount', label: '應收金額', align: 'right' },
+              { key: '_paid', label: '已收金額', align: 'right' },
+              { key: '_balance', label: '未沖餘額', align: 'right' },
+              { key: '_overdue', label: '逾期天數', align: 'center' },
+              { key: null, label: '操作', align: 'center' },
+            ];
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: arGridTemplate, borderBottom: '2px solid #d1d5db', background: '#f3f4f6' }}>
+                {arCols.map((c, ci) => (
+                  <div key={ci} onClick={c.key ? () => toggleSort(c.key) : undefined}
+                    style={{ padding: '8px 10px', borderRight: ci < arCols.length - 1 ? '1px solid #d1d5db' : 'none', display: 'flex', alignItems: 'center', justifyContent: c.align === 'right' ? 'flex-end' : c.align === 'center' ? 'center' : 'flex-start', fontSize: 13, fontWeight: 600, color: sortKey === c.key ? '#1d4ed8' : '#374151', cursor: c.key ? 'pointer' : 'default', userSelect: 'none', whiteSpace: 'nowrap', gap: 2 }}>
+                    {c.label}
+                    {c.key && <span style={{ fontSize: 9, opacity: sortKey === c.key ? 1 : 0.3 }}>{sortKey === c.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}</span>}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+          {(() => {
+            const enriched = (data.rows || []).map(ar => {
+              const pd = ar.paid_amount_display != null ? ar.paid_amount_display : ar.paid_amount;
+              const bal = ar.balance != null ? Number(ar.balance) : Number(ar.total_amount || 0) - Number(pd || 0);
+              const ov = ar.due_date ? Math.max(0, Math.floor((new Date() - new Date(ar.due_date)) / (1000 * 60 * 60 * 24))) : 0;
+              return { ...ar, _paid: Number(pd || 0), _balance: bal, _overdue: ov };
+            });
+            if (sortKey) {
+              enriched.sort((a, b) => {
+                let av = a[sortKey], bv = b[sortKey];
+                if (typeof av === 'number' || sortKey === 'total_amount' || sortKey === '_paid' || sortKey === '_balance' || sortKey === '_overdue') { av = Number(av || 0); bv = Number(bv || 0); }
+                else { av = String(av || '').toLowerCase(); bv = String(bv || '').toLowerCase(); }
+                if (av < bv) return sortDir === 'asc' ? -1 : 1;
+                if (av > bv) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+              });
+            }
+            return enriched;
+          })().map((ar, idx) => {
             const st = STATUS_MAP[ar.payment_status] || STATUS_MAP.unpaid;
-            const paidDisplay = ar.paid_amount_display != null ? ar.paid_amount_display : ar.paid_amount;
-            const balance = ar.balance != null ? Number(ar.balance) : Number(ar.total_amount || 0) - Number(paidDisplay || 0);
-            const daysOverdue = ar.due_date ? Math.max(0, Math.floor((new Date() - new Date(ar.due_date)) / (1000 * 60 * 60 * 24))) : 0;
+            const paidDisplay = ar._paid;
+            const balance = ar._balance;
+            const daysOverdue = ar._overdue;
             const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
             const cCenter = { ...cell, justifyContent: 'center' };
             const cRight = { ...cell, justifyContent: 'flex-end' };
