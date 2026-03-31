@@ -1033,7 +1033,7 @@ export function MobileSearchBar({ value, onChange, placeholder = '搜尋...', on
     <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
       <div style={{ flex: 1, position: 'relative' }}>
         <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{ ...S.input, padding: '10px 12px 10px 36px', fontSize: 14, minHeight: 44 }} />
-        <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 15, color: '#9ca3af', pointerEvents: 'none' }}>🔍</span>
+        <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 15, color: '#9ca3af', pointerEvents: 'none' }}>⌕</span>
       </div>
       {onFilter && (
         <button onClick={onFilter} style={{ ...S.btnGhost, minHeight: 44, minWidth: 44, padding: '0 12px', fontSize: 14, position: 'relative', color: filterActive ? '#16a34a' : '#374151', borderColor: filterActive ? '#16a34a' : '#e5e7eb' }}>

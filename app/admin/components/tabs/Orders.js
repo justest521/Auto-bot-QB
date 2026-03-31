@@ -329,7 +329,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
       return;
     }
     const warnText = alreadyHasPO.length > 0
-      ? `\n⚠️ 其中 ${alreadyHasPO.length} 項已有採購單將自動跳過（${alreadyHasPO.map(i => i.item_number_snapshot).join(', ')}）`
+      ? `\n其中 ${alreadyHasPO.length} 項已有採購單將自動跳過（${alreadyHasPO.map(i => i.item_number_snapshot).join(', ')}）`
       : '';
     if (!confirm(`確定將 ${canPurchase.length} 項轉為採購單草稿？${warnText}`)) return;
     setProcessingAction('po');
@@ -915,7 +915,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 }
                 // Shipping — with LINE notification status
                 const shipTimelineEv = timeline.find(e => (e.event || '').match(/出貨單/));
-                const shipLineNote = shipTimelineEv?.note || ((shipKey === 'shipped' || shipKey === 'delivered') ? (order.customer?.line_user_id ? '✅ 已發送 LINE 出貨通知' : '⚠️ 未綁定 LINE，未推播') : '');
+                const shipLineNote = shipTimelineEv?.note || ((shipKey === 'shipped' || shipKey === 'delivered') ? (order.customer?.line_user_id ? '[已送] LINE 出貨通知已發送' : '[未送] 未綁定 LINE，未推播') : '');
                 const shipLineSent = shipTimelineEv?.line_sent ?? !!order.customer?.line_user_id;
                 entries.push({ dot: (shipKey === 'shipped' || shipKey === 'delivered') ? '#16a34a' : '#d1d5db', label: '出貨', detail: SHIP_STATUS_MAP[shipKey] || shipKey, status: (shipKey === 'shipped' || shipKey === 'delivered') ? 'done' : 'pending', note: (shipKey === 'shipped' || shipKey === 'delivered') ? shipLineNote : '', lineSent: shipLineSent });
                 // Completion

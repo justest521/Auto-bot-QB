@@ -166,7 +166,7 @@ export default function LineChat() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: t.color.bg, minWidth: 0, height: isMobile && selected ? 'calc(100vh - 52px - 100px)' : 'auto' }}>
           {!selected ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, padding: isMobile ? '20px' : 0 }}>
-              <div style={{ fontSize: 48, opacity: 0.15 }}>💬</div>
+              <div style={{ fontSize: 48, opacity: 0.15 }}>◌</div>
               <div style={{ fontSize: t.fontSize.h3, color: t.color.textDisabled, textAlign: 'center' }}>{isMobile ? '選擇對話開始' : '點選左側用戶開始聊天'}</div>
             </div>
           ) : (

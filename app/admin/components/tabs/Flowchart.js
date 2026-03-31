@@ -17,35 +17,35 @@ const py = (row) => 40 + row * GY;
 
 const NODES = [
   // ── Row 0: Master Data ──
-  { id: 'customers',  label: '客 戶', sub: '客戶主檔', icon: '👤', col: 1, row: 0, color: t.color.info, tab: 'customers' },
-  { id: 'vendors',    label: '廠 商', sub: '廠商主檔', icon: '🏭', col: 4, row: 0, color: t.color.purple, tab: 'vendors' },
-  { id: 'products',   label: '商 品', sub: '產品查價', icon: '📦', col: 6, row: 0, color: t.color.brand, tab: 'products' },
+  { id: 'customers',  label: '客 戶', sub: '客戶主檔', icon: '◉', col: 1, row: 0, color: t.color.info, tab: 'customers' },
+  { id: 'vendors',    label: '廠 商', sub: '廠商主檔', icon: '◈', col: 4, row: 0, color: t.color.purple, tab: 'vendors' },
+  { id: 'products',   label: '商 品', sub: '產品查價', icon: 'PKG', col: 6, row: 0, color: t.color.brand, tab: 'products' },
 
   // ── Row 1: Documents (銷售 left | 採購 right) ──
-  { id: 'quotes',      label: '報價單',   sub: '建立報價',   icon: '📋', col: 0, row: 1, color: t.color.warning, tab: 'quotes' },
-  { id: 'sales',       label: '銷 貨',    sub: '銷貨開立',   icon: '💰', col: 1, row: 1, color: t.color.warning, tab: 'sales_documents' },
-  { id: 'returns_s',   label: '銷貨退回', sub: '退貨管理',   icon: '↩️', col: 2, row: 1, color: t.color.error, tab: 'returns' },
-  { id: 'purchase',    label: '採 購',    sub: '採購單',     icon: '🛒', col: 4, row: 1, color: t.color.success, tab: 'purchase_orders' },
-  { id: 'stock_in',    label: '進 貨',    sub: '進貨入庫',   icon: '📥', col: 5, row: 1, color: t.color.success, tab: 'stock_in' },
-  { id: 'returns_p',   label: '進貨退出', sub: '退回廠商',   icon: '📤', col: 6, row: 1, color: t.color.error, tab: 'purchase_returns' },
-  { id: 'adjustments', label: '調整商品', sub: '調整單',     icon: '🔧', col: 7, row: 1, color: t.color.info, tab: 'stock_adjustments' },
+  { id: 'quotes',      label: '報價單',   sub: '建立報價',   icon: 'QT', col: 0, row: 1, color: t.color.warning, tab: 'quotes' },
+  { id: 'sales',       label: '銷 貨',    sub: '銷貨開立',   icon: 'SA', col: 1, row: 1, color: t.color.warning, tab: 'sales_documents' },
+  { id: 'returns_s',   label: '銷貨退回', sub: '退貨管理',   icon: '↩', col: 2, row: 1, color: t.color.error, tab: 'returns' },
+  { id: 'purchase',    label: '採 購',    sub: '採購單',     icon: '◦', col: 4, row: 1, color: t.color.success, tab: 'purchase_orders' },
+  { id: 'stock_in',    label: '進 貨',    sub: '進貨入庫',   icon: 'IN', col: 5, row: 1, color: t.color.success, tab: 'stock_in' },
+  { id: 'returns_p',   label: '進貨退出', sub: '退回廠商',   icon: 'OUT', col: 6, row: 1, color: t.color.error, tab: 'purchase_returns' },
+  { id: 'adjustments', label: '調整商品', sub: '調整單',     icon: 'ADJ', col: 7, row: 1, color: t.color.info, tab: 'stock_adjustments' },
 
   // ── Row 2: Downstream actions ──
-  { id: 'orders',     label: '訂 單',   sub: '確認訂購',   icon: '📝', col: 0, row: 2, color: t.color.warning, tab: 'orders' },
-  { id: 'payments',   label: '收 款',   sub: '收款管理',   icon: '💵', col: 1, row: 2, color: t.color.warning, tab: 'payments' },
-  { id: 'shipments',  label: '出 貨',   sub: '出貨管理',   icon: '🚚', col: 2, row: 2, color: t.color.warning, tab: 'shipments' },
-  { id: 'vendor_pay', label: '付 款',   sub: '廠商付款',   icon: '🏦', col: 5, row: 2, color: t.color.success, tab: 'vendor_payments' },
-  { id: 'stocktake',  label: '盤點精靈', sub: '盤點作業',   icon: '📊', col: 7, row: 2, color: t.color.info, tab: 'stocktake' },
+  { id: 'orders',     label: '訂 單',   sub: '確認訂購',   icon: 'PO', col: 0, row: 2, color: t.color.warning, tab: 'orders' },
+  { id: 'payments',   label: '收 款',   sub: '收款管理',   icon: '◆', col: 1, row: 2, color: t.color.warning, tab: 'payments' },
+  { id: 'shipments',  label: '出 貨',   sub: '出貨管理',   icon: 'SHP', col: 2, row: 2, color: t.color.warning, tab: 'shipments' },
+  { id: 'vendor_pay', label: '付 款',   sub: '廠商付款',   icon: '◣', col: 5, row: 2, color: t.color.success, tab: 'vendor_payments' },
+  { id: 'stocktake',  label: '盤點精靈', sub: '盤點作業',   icon: 'STK', col: 7, row: 2, color: t.color.info, tab: 'stocktake' },
 
   // ── Row 3: Reports ──
-  { id: 'inventory', label: '庫存總覽', sub: '即時庫存',   icon: '🏬', col: 3, row: 3, color: t.color.info, tab: 'inventory' },
-  { id: 'psi',      label: '進銷存報表', sub: '綜合報表', icon: '📈', col: 4, row: 3, color: t.color.info, tab: 'psi_report' },
-  { id: 'finance',  label: '財務報表', sub: '損益分析',   icon: '📉', col: 5, row: 3, color: t.color.info, tab: 'financial_report' },
+  { id: 'inventory', label: '庫存總覽', sub: '即時庫存',   icon: '◯', col: 3, row: 3, color: t.color.info, tab: 'inventory' },
+  { id: 'psi',      label: '進銷存報表', sub: '綜合報表', icon: 'RPT', col: 4, row: 3, color: t.color.info, tab: 'psi_report' },
+  { id: 'finance',  label: '財務報表', sub: '損益分析',   icon: '▼', col: 5, row: 3, color: t.color.info, tab: 'financial_report' },
 
   // ── Row 4: Approvals (bottom center) ──
-  { id: 'approvals', label: '審批簽核', sub: '簽核管理', icon: '✅', col: 3, row: 2, color: t.color.purple, tab: 'approvals' },
-  { id: 'alerts',    label: '庫存警示', sub: '補貨建議', icon: '⚠️', col: 6, row: 2, color: t.color.error, tab: 'stock_alerts' },
-  { id: 'profit',    label: '利潤分析', sub: '毛利統計', icon: '💎', col: 6, row: 3, color: t.color.info, tab: 'profit_analysis' },
+  { id: 'approvals', label: '審批簽核', sub: '簽核管理', icon: 'APR', col: 3, row: 2, color: t.color.purple, tab: 'approvals' },
+  { id: 'alerts',    label: '庫存警示', sub: '補貨建議', icon: 'ALT', col: 6, row: 2, color: t.color.error, tab: 'stock_alerts' },
+  { id: 'profit',    label: '利潤分析', sub: '毛利統計', icon: '◊', col: 6, row: 3, color: t.color.info, tab: 'profit_analysis' },
 ];
 
 // ═══ Arrows: only straight orthogonal lines ═══
@@ -317,10 +317,10 @@ export default function Flowchart({ setTab }) {
       {/* Compact workflow summary */}
       <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
         {[
-          { icon: '📦', label: '銷售', text: '報價→訂單→銷貨→出貨→收款', bg: t.color.warningBg, border: '#fde68a', color: t.color.textMuted },
-          { icon: '🏭', label: '採購', text: '缺貨→採購→進貨入庫→付款', bg: t.color.successBg, border: t.color.border, color: t.color.brand },
-          { icon: '🔄', label: '退貨', text: '銷退→加庫存 ｜ 進退→扣庫存', bg: t.color.infoBg, border: t.color.infoBg, color: t.color.info },
-          { icon: '✅', label: '審批', text: '訂單/採購/銷貨→送審→通過', bg: t.color.warningBg, border: t.color.borderLight, color: '#6b21a8' },
+          { icon: 'PKG', label: '銷售', text: '報價→訂單→銷貨→出貨→收款', bg: t.color.warningBg, border: '#fde68a', color: t.color.textMuted },
+          { icon: 'MFG', label: '採購', text: '缺貨→採購→進貨入庫→付款', bg: t.color.successBg, border: t.color.border, color: t.color.brand },
+          { icon: '◄►', label: '退貨', text: '銷退→加庫存 ｜ 進退→扣庫存', bg: t.color.infoBg, border: t.color.infoBg, color: t.color.info },
+          { icon: 'APR', label: '審批', text: '訂單/採購/銷貨→送審→通過', bg: t.color.warningBg, border: t.color.borderLight, color: '#6b21a8' },
         ].map(c => (
           <div key={c.label} style={{ flex: isMobile ? 1 : 1, minWidth: isMobile ? '100%' : 200, background: c.bg, border: `1px solid ${c.border}`, borderRadius: t.radius.lg, padding: '10px 14px' }}>
             <span style={{ fontSize: t.fontSize.body, fontWeight: 800, color: c.color }}>{c.icon} {c.label}</span>

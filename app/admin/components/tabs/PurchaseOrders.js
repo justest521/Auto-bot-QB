@@ -591,7 +591,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
             <div style={{ gridColumn: '1 / -1', background: '#fff', borderRadius: t.radius.lg, border: '2px solid #059669', padding: 20, boxShadow: '0 4px 16px rgba(5,150,105,0.12)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div>
-                  <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.success }}>📦 收貨登記</span>
+                  <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.success }}>收貨登記</span>
                   <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginLeft: 8 }}>輸入本次到貨數量</span>
                 </div>
                 <button onClick={() => setShowReceiving(false)} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: t.fontSize.caption }}>取消</button>
@@ -672,7 +672,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
             {/* Receive goods button */}
             {canReceive && (
               <button onClick={openReceiving} style={{ width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, border: 'none', borderRadius: t.radius.md, background: showReceiving ? '#94a3b8' : '#059669', color: '#fff', cursor: 'pointer' }}>
-                📦 收貨登記
+                收貨登記
               </button>
             )}
 
