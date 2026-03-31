@@ -130,6 +130,11 @@ export async function POST(request) {
       return Response.json({ error: result.error }, { status: 401 });
     }
 
+    // First-login accounts skip OTP
+    if (result.step === 'first_login') {
+      return Response.json(result);
+    }
+
     // Send OTP email
     await sendOTPEmail(result.email, result._otpCode);
 
@@ -168,6 +173,22 @@ export async function POST(request) {
     return Response.json({ error: auth.error }, { status: auth.status });
   }
 
+  // ── Change own password (first-login or voluntary) ──
+  if (action === 'change_own_password') {
+    const { new_password } = body;
+    if (!new_password || new_password.length < 6) {
+      return Response.json({ error: '密碼至少 6 碼' }, { status: 400 });
+    }
+    const password_hash = await hashPassword(new_password);
+    await supabase.from('admin_users').update({
+      password_hash,
+      must_change_password: false,
+    }).eq('id', auth.user.id);
+
+    await auditLog(auth.user.id, 'change_own_password', {});
+    return Response.json({ ok: true });
+  }
+
   // ── User management actions (admin only) ──
   if (action === 'create_admin_user') {
     if (auth.role.code !== 'admin' && !auth.legacy) {
@@ -192,7 +213,7 @@ export async function POST(request) {
 
     const { data: newUser, error: insertErr } = await supabase
       .from('admin_users')
-      .insert({ username, email, password_hash, display_name, role_id: role.id })
+      .insert({ username, email, password_hash, display_name, role_id: role.id, must_change_password: true })
       .select('id, username, email, display_name')
       .maybeSingle();
 

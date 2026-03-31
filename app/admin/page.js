@@ -492,6 +492,12 @@ function AdminPageInner() {
     return () => clearInterval(interval);
   }, [isAuthed, tab]);
 
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [newPw, setNewPw] = useState('');
+  const [newPwConfirm, setNewPwConfirm] = useState('');
+  const [changePwError, setChangePwError] = useState('');
+  const [changePwLoading, setChangePwLoading] = useState(false);
+
   const handleLoginStep1 = async () => {
     if (!loginUsername.trim() || !loginPassword.trim()) return;
     setAuthLoading(true);
@@ -504,6 +510,18 @@ function AdminPageInner() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '登入失敗');
+
+      // First-login: skip OTP, but must change password
+      if (data.step === 'first_login') {
+        window.localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+        setToken(data.token);
+        setCurrentUser(data.user || null);
+        setMustChangePassword(true);
+        setLoginStep('credentials');
+        setLoginPassword('');
+        return;
+      }
+
       setOtpUserId(data.userId);
       setOtpMaskedEmail(data.maskedEmail);
       setLoginStep('otp');
@@ -511,6 +529,31 @@ function AdminPageInner() {
       setAuthError(error.message);
     } finally {
       setAuthLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setChangePwError('');
+    if (!newPw || newPw.length < 6) { setChangePwError('密碼至少 6 碼'); return; }
+    if (newPw !== newPwConfirm) { setChangePwError('兩次密碼不一致'); return; }
+    setChangePwLoading(true);
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+        body: JSON.stringify({ action: 'change_own_password', new_password: newPw }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '變更失敗');
+      setMustChangePassword(false);
+      setIsAuthed(true);
+      setNewPw('');
+      setNewPwConfirm('');
+      apiGet({ action: 'company_settings' }).then(r => { if (r?.settings) setCompanySettings(r.settings); }).catch(() => {});
+    } catch (e) {
+      setChangePwError(e.message);
+    } finally {
+      setChangePwLoading(false);
     }
   };
 
@@ -626,6 +669,23 @@ function AdminPageInner() {
               <button onClick={() => { setLoginStep('credentials'); setAuthError(''); }} style={{ ...S.btnGhost, width: '100%', marginTop: 8, padding: '10px 20px', fontSize: 12, color: '#6b7280' }}>使用帳密登入</button>
             </>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── FORCE CHANGE PASSWORD SCREEN ──
+  if (mustChangePassword) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+        <div style={{ width: 380, background: '#fff', borderRadius: 16, padding: 36, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: t.color.brand, letterSpacing: 1, marginBottom: 4 }}>FIRST LOGIN</div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: t.color.textPrimary, marginBottom: 8 }}>請設定新密碼</h2>
+          <p style={{ fontSize: 13, color: t.color.textMuted, marginBottom: 24, lineHeight: 1.6 }}>首次登入需要更改密碼才能繼續使用。</p>
+          <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="新密碼（至少 6 碼）" style={{ ...S.input, width: '100%', marginBottom: 12 }} />
+          <input type="password" value={newPwConfirm} onChange={(e) => setNewPwConfirm(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChangePassword()} placeholder="再次輸入新密碼" style={{ ...S.input, width: '100%', marginBottom: 12 }} />
+          {changePwError && <div style={{ color: '#dc2626', fontSize: 12, marginBottom: 10, lineHeight: 1.6 }}>{changePwError}</div>}
+          <button onClick={handleChangePassword} disabled={changePwLoading} style={{ ...S.btnPrimary, width: '100%', padding: '12px 20px', fontSize: 14, opacity: changePwLoading ? 0.7 : 1 }}>{changePwLoading ? '儲存中...' : '確認變更密碼'}</button>
         </div>
       </div>
     );
