@@ -85,6 +85,36 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
 
   const maxAmount = Math.max(...monthlyTrend.map((d) => d.amount), 1);
 
+  const kpiIndicator = (type) => {
+    const indicators = {
+      revenue: { bgColor: '#dcfce7', text: 'NT', textColor: '#16a34a' },
+      orders: { bgColor: '#dbeafe', text: '#', textColor: '#0284c7' },
+      average: { bgColor: '#dcfce7', text: '$', textColor: '#16a34a' },
+      pending: { bgColor: '#fef3c7', text: '!', textColor: '#d97706' },
+    };
+    const indicator = indicators[type];
+    return (
+      <div
+        style={{
+          width: '32px',
+          height: '32px',
+          backgroundColor: indicator.bgColor,
+          borderRadius: D.radius.sm,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: D.size.h3,
+          fontWeight: D.weight.bold,
+          color: indicator.textColor,
+          marginRight: D.size.sm,
+          flexShrink: 0,
+        }}
+      >
+        {indicator.text}
+      </div>
+    );
+  };
+
   return (
     <div style={{ padding: D.size.lg }}>
       <style>{`@keyframes shimmer { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }`}</style>
@@ -119,22 +149,22 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
           {
             label: '本月營業額',
             value: formatCurrency(performance?.total_amount || 0),
-            icon: '💰',
+            type: 'revenue',
           },
           {
             label: '訂單數',
             value: (performance?.total_orders || 0).toString(),
-            icon: '📦',
+            type: 'orders',
           },
           {
             label: '平均單價',
             value: formatCurrency(performance?.avg_order_amount || 0),
-            icon: '📊',
+            type: 'average',
           },
           {
             label: '待收款',
             value: unpaidOrders.length.toString(),
-            icon: '⏳',
+            type: 'pending',
           },
         ].map((kpi, i) => (
           <div
@@ -142,23 +172,37 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
             style={{
               padding: D.size.md,
               backgroundColor: D.color.card,
-              borderRadius: D.radius.md,
+              borderRadius: D.radius.lg,
               border: `1px solid ${D.color.border}`,
               boxShadow: `0 1px 2px rgba(0,0,0,0.05)`,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '140px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: D.size.sm }}>
-              <span style={{ fontSize: '24px', marginRight: D.size.sm }}>{kpi.icon}</span>
-              <p style={{ fontSize: D.size.caption, color: D.color.text2, margin: 0 }}>
+              {kpiIndicator(kpi.type)}
+              <p
+                style={{
+                  fontSize: D.size.caption,
+                  color: D.color.text2,
+                  margin: 0,
+                  fontWeight: D.weight.mono,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
                 {kpi.label}
               </p>
             </div>
             <p
               style={{
-                fontSize: D.size.h2,
+                fontSize: D.size.h1,
                 fontWeight: D.weight.bold,
-                color: D.color.success,
+                color: D.color.text,
                 margin: 0,
+                wordBreak: 'break-word',
               }}
             >
               {kpi.value}
@@ -213,17 +257,18 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
             marginBottom: D.size.xl,
           }}
         >
-          <h3
+          <div
             style={{
-              fontSize: D.size.h3,
-              fontWeight: D.weight.semi,
-              color: D.color.text,
-              marginTop: 0,
+              fontSize: D.size.caption,
+              fontWeight: D.weight.mono,
+              color: D.color.text2,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               marginBottom: D.size.md,
             }}
           >
             本月營業趨勢
-          </h3>
+          </div>
           <div
             style={{
               display: 'flex',
@@ -269,17 +314,18 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
 
       {/* Recent Orders */}
       <div>
-        <h3
+        <div
           style={{
-            fontSize: D.size.h3,
-            fontWeight: D.weight.semi,
-            color: D.color.text,
-            marginTop: 0,
+            fontSize: D.size.caption,
+            fontWeight: D.weight.mono,
+            color: D.color.text2,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
             marginBottom: D.size.md,
           }}
         >
           最近訂單
-        </h3>
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: D.size.sm }}>
           {orders.length > 0 ? (
             orders.map((order) => (
@@ -288,8 +334,9 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
                 style={{
                   padding: D.size.md,
                   backgroundColor: D.color.card,
-                  borderRadius: D.radius.md,
+                  borderRadius: D.radius.lg,
                   border: `1px solid ${D.color.border}`,
+                  borderLeft: `4px solid #16a34a`,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -299,11 +346,11 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
                 onClick={() => onNavigateToOrder?.(order.id)}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#f0fdf4';
-                  e.currentTarget.style.borderColor = '#16a34a';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(22, 163, 74, 0.1)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = D.color.card;
-                  e.currentTarget.style.borderColor = D.color.border;
+                  e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
                 }}
               >
                 <div>
@@ -346,9 +393,40 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
               </div>
             ))
           ) : (
-            <p style={{ color: D.color.text2, textAlign: 'center', padding: D.size.lg }}>
-              暫無訂單
-            </p>
+            <div
+              style={{
+                padding: D.size.lg,
+                backgroundColor: D.color.card,
+                borderRadius: D.radius.lg,
+                border: `1px solid ${D.color.border}`,
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '120px',
+              }}
+            >
+              <p
+                style={{
+                  color: D.color.text2,
+                  margin: 0,
+                  fontSize: D.size.body,
+                }}
+              >
+                暫無訂單
+              </p>
+              <p
+                style={{
+                  color: D.color.text2,
+                  margin: D.size.xs + ' 0 0 0',
+                  fontSize: D.size.caption,
+                  fontWeight: D.weight.mono,
+                }}
+              >
+                最近還沒有新訂單
+              </p>
+            </div>
           )}
         </div>
       </div>

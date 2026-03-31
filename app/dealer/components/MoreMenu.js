@@ -68,13 +68,13 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
   };
 
   const getNotificationIcon = (type) => {
-    const icons = {
-      order: '📦',
-      payment: '💳',
-      notification: '📢',
-      alert: '⚠️',
+    const iconConfig = {
+      order: { text: '單', color: D.color.info },
+      payment: { text: '$', color: D.color.success },
+      alert: { text: '!', color: D.color.error },
+      notification: { text: 'i', color: D.color.warning },
     };
-    return icons[type] || '📌';
+    return iconConfig[type] || { text: 'i', color: D.color.text3 };
   };
 
   const formatTime = (timestamp) => {
@@ -287,7 +287,22 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
             textAlign: 'left',
           }}
         >
-          🔐 修改密碼
+          <span style={{
+            width: 20,
+            height: 20,
+            borderRadius: '50%',
+            background: D.color.primary,
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: D.size.caption,
+            fontWeight: 'bold',
+            flexShrink: 0,
+          }}>
+            ⚙
+          </span>
+          修改密碼
         </button>
       )}
 
@@ -320,10 +335,19 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
                 }}
               >
                 <div style={{
-                  fontSize: D.size.h2,
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
                   flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: getNotificationIcon(notif.type).color,
+                  color: 'white',
+                  fontSize: D.size.body,
+                  fontWeight: 'bold',
                 }}>
-                  {getNotificationIcon(notif.type)}
+                  {getNotificationIcon(notif.type).text}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{

@@ -47,9 +47,9 @@ export default function DealerInventory({ token, dealerGet }) {
   };
 
   const getStockStatus = (qty) => {
-    if (qty > 5) return { color: D.color.success, label: '充足', dot: '🟢' };
-    if (qty > 0) return { color: D.color.warning, label: '偏低', dot: '🟡' };
-    return { color: D.color.error, label: '缺貨', dot: '🔴' };
+    if (qty > 5) return { color: D.color.success, label: '充足', dotColor: D.color.success };
+    if (qty > 0) return { color: D.color.warning, label: '偏低', dotColor: D.color.warning };
+    return { color: D.color.error, label: '缺貨', dotColor: D.color.error };
   };
 
   return (
@@ -185,7 +185,7 @@ export default function DealerInventory({ token, dealerGet }) {
                 paddingTop: 12,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: D.size.h2 }}>{status.dot}</span>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: status.dotColor, display: 'inline-block' }} />
                   <span style={{ fontSize: D.size.body, color: status.color }}>
                     {status.label}
                   </span>
