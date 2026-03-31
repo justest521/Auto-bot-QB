@@ -490,8 +490,8 @@ export default function QuickReceive({ setTab }) {
               { label: 'Excel', color: '#0d9488', bg: '#f0fdfa' },
               { label: 'PDF', color: t.color.error, bg: '#fef2f2' },
               { label: '圖片', color: '#7c3aed', bg: '#f5f3ff' },
-            ].map(t => (
-              <span key={t.label} style={{ fontSize: t.fontSize.tiny, fontWeight: 600, color: t.color, background: t.bg, padding: '2px 10px', borderRadius: 10 }}>{t.label}</span>
+            ].map(ft => (
+              <span key={ft.label} style={{ fontSize: t.fontSize.tiny, fontWeight: 600, color: ft.color, background: ft.bg, padding: '2px 10px', borderRadius: 10 }}>{ft.label}</span>
             ))}
           </div>
         </div>

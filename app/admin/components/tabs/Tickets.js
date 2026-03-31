@@ -186,19 +186,19 @@ export default function Tickets() {
       )}
 
       {/* Ticket list */}
-      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有工單" /> : (data.rows || []).map(t => {
-        const st = STATUS_MAP[t.status] || STATUS_MAP.open;
-        const pr = PRIORITY_MAP[t.priority] || PRIORITY_MAP.medium;
+      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有工單" /> : (data.rows || []).map(tk => {
+        const st = STATUS_MAP[tk.status] || STATUS_MAP.open;
+        const pr = PRIORITY_MAP[tk.priority] || PRIORITY_MAP.medium;
         return (
-          <div key={t.id} style={{ ...S.card, padding: isMobile ? '10px 12px' : '10px 16px', marginBottom: 10, cursor: 'pointer', borderLeft: `3px solid ${st.color}` }} onClick={() => openDetail(t)}>
+          <div key={tk.id} style={{ ...S.card, padding: isMobile ? '10px 12px' : '10px 16px', marginBottom: 10, cursor: 'pointer', borderLeft: `3px solid ${st.color}` }} onClick={() => openDetail(tk)}>
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12, flexWrap: 'wrap' }}>
               <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: isMobile ? 10 : 11 }}>{st.label}</span>
               <span style={{ ...S.tag(''), background: pr.color, color: '#fff', fontSize: isMobile ? 9 : 10 }}>{pr.label}</span>
               <div style={{ flex: 1, minWidth: isMobile ? 120 : 160 }}>
-                <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{t.title}</div>
-                <div style={{ fontSize: isMobile ? 10 : 11, color: t.color.textSecondary }}>{t.customer_name || t.source || '-'} · {t.created_at?.slice(0, 10)}</div>
+                <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{tk.title}</div>
+                <div style={{ fontSize: isMobile ? 10 : 11, color: t.color.textSecondary }}>{tk.customer_name || tk.source || '-'} · {tk.created_at?.slice(0, 10)}</div>
               </div>
-              {t.reply_count > 0 && <span style={{ ...S.tag(''), fontSize: isMobile ? 9 : 10 }}>{t.reply_count} 回覆</span>}
+              {tk.reply_count > 0 && <span style={{ ...S.tag(''), fontSize: isMobile ? 9 : 10 }}>{tk.reply_count} 回覆</span>}
             </div>
           </div>
         );
