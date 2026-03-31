@@ -1,10 +1,10 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import S from '@/lib/admin/styles';
 const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, exportCsv, useResponsive } from '@/lib/admin/helpers';
-import { Loading, EmptyState, PageLead, Pager, ComingSoonBanner } from '../shared/ui';
+import { Loading, EmptyState, PageLead, Pager, ComingSoonBanner, ProductEditModal } from '../shared/ui';
 import { StatCard } from '../shared/ui';
 
 export default function Inventory() {
@@ -19,6 +19,21 @@ export default function Inventory() {
   const [adjNotes, setAdjNotes] = useState('');
   const [sortKey, setSortKey] = useState('');
   const [sortDir, setSortDir] = useState('asc');
+  const [expanded, setExpanded] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [saveMessage, setSaveMessage] = useState('');
+  const tableRef = useRef(null);
+
+  // Close expanded card when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (tableRef.current && !tableRef.current.contains(e.target)) {
+        setExpanded(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const toggleSort = (key) => {
     if (sortKey === key) { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); }
@@ -55,16 +70,6 @@ export default function Inventory() {
     } catch { alert('匯出失敗'); }
   };
 
-  const cols = [
-    { key: 'item_number', label: '料號' },
-    { key: 'description', label: '品名' },
-    { key: 'category', label: '分類' },
-    { key: 'stock_qty', label: '庫存' },
-    { key: 'safety_stock', label: '安全水位' },
-    { key: 'product_status', label: '狀態' },
-    { key: null, label: '操作' },
-  ];
-
   const sorted = [...(data.items || [])].sort((a, b) => {
     if (!sortKey) return 0;
     let av = a[sortKey], bv = b[sortKey];
@@ -75,12 +80,23 @@ export default function Inventory() {
     return 0;
   });
 
+  const stockColor = (it) => {
+    const qty = Number(it.stock_qty || 0);
+    const safe = Number(it.safety_stock || 0);
+    if (qty <= 0) return t.color.error;
+    if (qty <= safe) return t.color.warning;
+    return t.color.brand;
+  };
+
+  const STATUS_LABEL = { Current: '上架中', 'New Announced': '新品預告', Legacy: '舊型', Discontinued: '已停產' };
+
   const sm = data.summary || {};
   return (
     <div>
       <PageLead eyebrow="Inventory" title="庫存管理" description="即時掌握所有商品庫存量、安全庫存水位，並可手動進行入庫/出庫異動。"
         action={<button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button>} />
       <ComingSoonBanner tabId="inventory" />
+      {saveMessage ? <div style={{ padding: '8px 14px', marginBottom: 12, borderRadius: t.radius.md, background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46', fontSize: t.fontSize.caption }}>{saveMessage}</div> : null}
       <div style={{ ...S.statGrid, gridTemplateColumns: isMobile ? '1fr 1fr' : S.statGrid.gridTemplateColumns }}>
         <StatCard code="ALL" label="總商品數" value={fmt(sm.total_products)} tone="blue" />
         <StatCard code="LOW" label="低於安全水位" value={fmt(sm.low_stock)} tone="blue" accent="#f59e0b" />
@@ -96,66 +112,185 @@ export default function Inventory() {
         <button onClick={() => load(1, search, filter)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}) }}>搜尋</button>
       </div>
       {loading ? <Loading /> : data.items.length === 0 ? <EmptyState text="沒有符合條件的商品" /> : (
-        isMobile ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {data.items.map(it => (
-              <div key={it.item_number} style={{ ...S.mobileCard, padding: '12px' }}>
-                <div style={S.mobileCardRow}>
-                  <span style={S.mobileCardLabel}>料號</span>
-                  <span style={{ ...S.mobileCardValue, color: t.color.link, fontWeight: t.fontWeight.semibold, ...S.mono }}>{it.item_number}</span>
+        <div ref={tableRef}>
+          {isMobile ? (
+            /* ── Mobile: Card layout ── */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {sorted.map(it => (
+                <div key={it.item_number}>
+                  <div
+                    onClick={() => setExpanded(expanded === it.item_number ? null : it.item_number)}
+                    style={{ ...S.mobileCard, padding: '12px', cursor: 'pointer', borderColor: expanded === it.item_number ? '#93c5fd' : t.color.border, transition: 'border-color 0.15s' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                      {it.image_url ? (
+                        <div style={{ width: 36, height: 36, borderRadius: 6, overflow: 'hidden', background: t.color.bgMuted, border: `1px solid ${t.color.border}`, flexShrink: 0 }}>
+                          <img src={it.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.parentElement.style.display = 'none'; }} />
+                        </div>
+                      ) : null}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ color: t.color.link, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }}>{it.item_number}</div>
+                        <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.description || '-'}</div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontWeight: t.fontWeight.bold, color: stockColor(it), fontSize: t.fontSize.h3, ...S.mono }}>{it.stock_qty ?? 0}</div>
+                        <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>/ {it.safety_stock ?? 0}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span>
+                      <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{it.category || ''}</span>
+                      <span style={{ marginLeft: 'auto', fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{expanded === it.item_number ? '▲' : '▼'}</span>
+                    </div>
+                  </div>
+                  {/* ── Mobile Expanded Detail ── */}
+                  {expanded === it.item_number && (
+                    <div style={{ background: t.color.infoBg, border: `1px solid ${t.color.borderLight}`, borderRadius: 10, padding: '12px', marginTop: -4, marginBottom: 4 }}>
+                      {it.image_url && (
+                        <div style={{ width: 100, height: 100, borderRadius: 8, overflow: 'hidden', background: t.color.bgCard, border: `1px solid ${t.color.border}`, margin: '0 auto 12px', display: 'block' }}>
+                          <img src={it.image_url} alt={it.item_number} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 4 }} onError={(e) => { e.target.parentElement.style.display = 'none'; }} />
+                        </div>
+                      )}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                        <div><div style={S.label}>牌價</div><div style={{ color: t.color.textPrimary, fontSize: t.fontSize.h3, ...S.mono }}>{fmtP(it.tw_retail_price)}</div></div>
+                        <div><div style={S.label}>進貨價</div><div style={{ color: t.color.warning, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(it.tw_reseller_price)}</div></div>
+                        <div><div style={S.label}>US PRICE</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3, ...S.mono }}>{it.us_price ? `$${Number(it.us_price).toFixed(2)}` : '-'}</div></div>
+                        <div><div style={S.label}>毛利率</div><div style={{ color: it.tw_retail_price > 0 && it.tw_reseller_price > 0 ? t.color.success : t.color.textDisabled, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{it.tw_retail_price > 0 && it.tw_reseller_price > 0 ? `${Math.round((1 - it.tw_reseller_price / it.tw_retail_price) * 100)}%` : '-'}</div></div>
+                        <div><div style={S.label}>重量</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.body, ...S.mono }}>{it.weight_kg ? `${it.weight_kg} kg` : '-'}</div></div>
+                        <div><div style={S.label}>產地</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.body }}>{it.origin_country || '-'}</div></div>
+                        <div><div style={S.label}>替代型號</div><div style={{ color: it.replacement_model ? t.color.link : t.color.textMuted, fontSize: t.fontSize.body, ...S.mono }}>{it.replacement_model || '-'}</div></div>
+                        <div><div style={S.label}>分類</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.body }}>{it.category || '-'}</div></div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={(e) => { e.stopPropagation(); setEditingProduct(it); }} style={{ ...S.btnGhost, flex: 1, minHeight: 40, fontSize: t.fontSize.caption }}>編輯商品</button>
+                        <button onClick={(e) => { e.stopPropagation(); setAdjOpen(it.item_number); }} style={{ ...S.btnPrimary, flex: 1, minHeight: 40, fontSize: t.fontSize.caption }}>庫存異動</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div style={S.mobileCardRow}>
-                  <span style={S.mobileCardLabel}>品名</span>
-                  <span style={S.mobileCardValue}>{it.description || '-'}</span>
-                </div>
-                <div style={S.mobileCardRow}>
-                  <span style={S.mobileCardLabel}>分類</span>
-                  <span style={S.mobileCardValue}>{it.category || '-'}</span>
-                </div>
-                <div style={S.mobileCardRow}>
-                  <span style={S.mobileCardLabel}>庫存</span>
-                  <span style={{ ...S.mobileCardValue, fontWeight: t.fontWeight.bold, color: Number(it.stock_qty || 0) <= 0 ? t.color.error : Number(it.stock_qty) <= Number(it.safety_stock) ? t.color.warning : t.color.brand }}>{it.stock_qty ?? 0}</span>
-                </div>
-                <div style={S.mobileCardRow}>
-                  <span style={S.mobileCardLabel}>安全水位</span>
-                  <span style={S.mobileCardValue}>{it.safety_stock ?? 0}</span>
-                </div>
-                <div style={S.mobileCardRow}>
-                  <span style={S.mobileCardLabel}>狀態</span>
-                  <span style={S.mobileCardValue}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></span>
-                </div>
-                <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${t.color.border}` }}>
-                  <button onClick={() => setAdjOpen(it.item_number)} style={{ ...S.btnPrimary, width: '100%', minHeight: 44 }}>異動</button>
-                </div>
+              ))}
+            </div>
+          ) : (
+            /* ── Desktop: Row-based cards with expand ── */
+            <div>
+              {/* Header row */}
+              <div style={{ display: 'flex', padding: '8px 16px', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textMuted, ...S.mono, borderBottom: `1px solid ${t.color.borderLight}`, marginBottom: 4 }}>
+                <div style={{ width: 40 }}></div>
+                <div style={{ width: 140, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('item_number')}>ITEM_NO{sortKey === 'item_number' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ⇅'}</div>
+                <div style={{ flex: 1 }}>DESCRIPTION</div>
+                <div style={{ width: 100, textAlign: 'center' }}>分類</div>
+                <div style={{ width: 80, textAlign: 'right', cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('stock_qty')}>庫存{sortKey === 'stock_qty' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ⇅'}</div>
+                <div style={{ width: 80, textAlign: 'right', cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('safety_stock')}>安全水位{sortKey === 'safety_stock' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ⇅'}</div>
+                <div style={{ width: 80, textAlign: 'center' }}>狀態</div>
+                <div style={{ width: 80, textAlign: 'center' }}>操作</div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: `1px solid ${t.color.border}`, marginBottom: 10 }}>
-            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: t.fontSize.body }}>
-              <thead><tr style={{ background: t.color.bgMuted }}>
-                {cols.map((c, ci) => (
-                  <th key={c.label} onClick={c.key ? () => toggleSort(c.key) : undefined} style={{ padding: '8px 16px', textAlign: 'left', fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: t.fontWeight.bold, borderBottom: `1px solid ${t.color.border}`, borderRight: ci < cols.length - 1 ? `1px solid ${t.color.border}` : 'none', cursor: c.key ? 'pointer' : 'default', userSelect: 'none', whiteSpace: 'nowrap' }}>
-                    {c.label}{c.key && sortKey === c.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : c.key ? ' ⇅' : ''}
-                  </th>
-                ))}
-              </tr></thead>
-              <tbody>{sorted.map((it, idx) => (
-                <tr key={it.item_number} style={{ borderBottom: `1px solid ${t.color.borderLight}`, background: idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted }}>
-                  <td style={{ padding: '10px 16px', ...S.mono, color: t.color.link, fontWeight: t.fontWeight.semibold, borderRight: `1px solid ${t.color.border}` }}>{it.item_number}</td>
-                  <td style={{ padding: '10px 16px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: `1px solid ${t.color.border}` }}>{it.description || '-'}</td>
-                  <td style={{ padding: '10px 16px', color: t.color.textSecondary, borderRight: `1px solid ${t.color.border}` }}>{it.category || '-'}</td>
-                  <td style={{ padding: '10px 16px', fontWeight: t.fontWeight.bold, color: Number(it.stock_qty || 0) <= 0 ? t.color.error : Number(it.stock_qty) <= Number(it.safety_stock) ? t.color.warning : t.color.brand, borderRight: `1px solid ${t.color.border}` }}>{it.stock_qty ?? 0}</td>
-                  <td style={{ padding: '10px 16px', color: t.color.textSecondary, borderRight: `1px solid ${t.color.border}` }}>{it.safety_stock ?? 0}</td>
-                  <td style={{ padding: '10px 16px', borderRight: `1px solid ${t.color.border}` }}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></td>
-                  <td style={{ padding: '10px 16px' }}><button onClick={() => setAdjOpen(it.item_number)} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: t.fontSize.caption }}>異動</button></td>
-                </tr>
-              ))}</tbody>
-            </table>
-          </div>
-        )
+              {/* Data rows */}
+              {sorted.map(it => (
+                <div key={it.item_number}>
+                  <div
+                    onClick={() => setExpanded(expanded === it.item_number ? null : it.item_number)}
+                    style={{
+                      ...S.card,
+                      cursor: 'pointer',
+                      padding: '10px 16px',
+                      marginBottom: expanded === it.item_number ? 0 : 10,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0,
+                      borderColor: expanded === it.item_number ? '#93c5fd' : t.color.border,
+                      borderBottomLeftRadius: expanded === it.item_number ? 0 : undefined,
+                      borderBottomRightRadius: expanded === it.item_number ? 0 : undefined,
+                      transition: 'border-color 0.15s',
+                    }}
+                  >
+                    {/* Thumbnail */}
+                    <div style={{ width: 40, height: 32, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {it.image_url ? (
+                        <div style={{ width: 32, height: 32, borderRadius: 4, overflow: 'hidden', background: t.color.bgMuted, border: `1px solid ${t.color.border}` }}>
+                          <img src={it.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.parentElement.style.display = 'none'; }} />
+                        </div>
+                      ) : (
+                        <div style={{ width: 32, height: 32, borderRadius: 4, background: t.color.bgMuted, border: `1px dashed ${t.color.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.color.textDisabled, fontSize: 10 }}>--</div>
+                      )}
+                    </div>
+                    {/* Item number */}
+                    <div style={{ width: 140, fontWeight: t.fontWeight.bold, color: t.color.link, fontSize: t.fontSize.h3, ...S.mono, flexShrink: 0 }}>{it.item_number}</div>
+                    {/* Description */}
+                    <div style={{ flex: 1, fontSize: t.fontSize.body, color: t.color.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{it.description || '-'}</div>
+                    {/* Category */}
+                    <div style={{ width: 100, textAlign: 'center', flexShrink: 0 }}>
+                      {it.category ? <span style={{ ...S.tag(''), fontSize: t.fontSize.tiny, maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.category}</span> : <span style={{ color: t.color.textDisabled }}>-</span>}
+                    </div>
+                    {/* Stock qty */}
+                    <div style={{ width: 80, textAlign: 'right', fontWeight: t.fontWeight.bold, color: stockColor(it), ...S.mono, flexShrink: 0 }}>{it.stock_qty ?? 0}</div>
+                    {/* Safety stock */}
+                    <div style={{ width: 80, textAlign: 'right', color: t.color.textSecondary, ...S.mono, flexShrink: 0 }}>{it.safety_stock ?? 0}</div>
+                    {/* Status */}
+                    <div style={{ width: 80, textAlign: 'center', flexShrink: 0 }}>
+                      <span style={S.tag(it.product_status === 'Current' ? 'green' : it.product_status === 'Discontinued' ? 'red' : 'default')}>{STATUS_LABEL[it.product_status] || it.product_status || '-'}</span>
+                    </div>
+                    {/* Actions */}
+                    <div style={{ width: 80, textAlign: 'center', flexShrink: 0 }}>
+                      <button onClick={(e) => { e.stopPropagation(); setAdjOpen(it.item_number); }} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: t.fontSize.caption }}>異動</button>
+                    </div>
+                  </div>
+                  {/* ── Desktop Expanded Detail Card ── */}
+                  {expanded === it.item_number && (
+                    <div style={{
+                      background: t.color.infoBg,
+                      border: `1px solid #93c5fd`,
+                      borderTop: 'none',
+                      borderBottomLeftRadius: 10,
+                      borderBottomRightRadius: 10,
+                      padding: '14px 20px',
+                      marginBottom: 10,
+                      display: 'flex',
+                      gap: 16,
+                    }}>
+                      {/* Image area */}
+                      <div style={{ flexShrink: 0 }}>
+                        {it.image_url ? (
+                          <div style={{ width: 100, height: 100, borderRadius: 8, overflow: 'hidden', background: t.color.bgCard, border: `1px solid ${t.color.border}` }}>
+                            <img src={it.image_url} alt={it.item_number} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 4 }} onError={(e) => { e.target.parentElement.style.display = 'none'; }} />
+                          </div>
+                        ) : (
+                          <div style={{ width: 100, height: 100, borderRadius: 8, border: `2px dashed ${t.color.border}`, background: t.color.bgCard, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: t.color.textDisabled, fontSize: t.fontSize.tiny }}>
+                            <span style={{ fontSize: 20, marginBottom: 2, opacity: 0.4 }}>&#9633;</span>
+                            尚無圖片
+                          </div>
+                        )}
+                      </div>
+                      {/* Detail fields grid */}
+                      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isTablet ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+                        <div><div style={S.label}>牌價</div><div style={{ color: t.color.textPrimary, fontSize: t.fontSize.h3, ...S.mono }}>{fmtP(it.tw_retail_price)}</div></div>
+                        <div><div style={S.label}>進貨價</div><div style={{ color: t.color.warning, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(it.tw_reseller_price)}</div></div>
+                        <div><div style={S.label}>US PRICE</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3, ...S.mono }}>{it.us_price ? `$${Number(it.us_price).toFixed(2)}` : '-'}</div></div>
+                        <div><div style={S.label}>毛利率</div><div style={{ color: it.tw_retail_price > 0 && it.tw_reseller_price > 0 ? t.color.success : t.color.textDisabled, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{it.tw_retail_price > 0 && it.tw_reseller_price > 0 ? `${Math.round((1 - it.tw_reseller_price / it.tw_retail_price) * 100)}%` : '-'}</div></div>
+                        <div><div style={S.label}>狀態</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3 }}>{STATUS_LABEL[it.product_status] || it.product_status || '-'}</div></div>
+                        <div><div style={S.label}>重量</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3, ...S.mono }}>{it.weight_kg ? `${it.weight_kg} kg` : '-'}</div></div>
+                        <div><div style={S.label}>產地</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3 }}>{it.origin_country || '-'}</div></div>
+                        <div><div style={S.label}>替代型號</div><div style={{ color: it.replacement_model ? t.color.link : t.color.textMuted, fontSize: t.fontSize.h3, ...S.mono }}>{it.replacement_model || '-'}</div></div>
+                      </div>
+                      {/* Edit button */}
+                      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-start' }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setEditingProduct(it); }}
+                          style={{ ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.caption }}
+                        >
+                          編輯商品
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
-      <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, filter)} />
+      <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(pg) => load(pg, search, filter)} />
+
+      {/* ── Adjustment Modal ── */}
       {adjOpen && (
         <div style={{ position: 'fixed', inset: 0, background: t.color.overlay, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', ...(isMobile ? S.mobileModalOverlay : {}) }}>
           <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 400, maxWidth: '90vw', borderRadius: t.radius.xl, padding: `${t.spacing.lg}px ${t.spacing.lg + 2}px ${t.spacing.xl}px` }}>
@@ -182,6 +317,19 @@ export default function Inventory() {
           </div>
         </div>
       )}
+
+      {/* ── Product Edit Modal ── */}
+      <ProductEditModal
+        key={editingProduct?.item_number || ''}
+        product={editingProduct}
+        onClose={() => setEditingProduct(null)}
+        categories={[]}
+        onSaved={async () => {
+          setSaveMessage(`商品 ${editingProduct?.item_number || ''} 已更新`);
+          await load(data.page, search, filter);
+          setTimeout(() => setSaveMessage(''), 3000);
+        }}
+      />
     </div>
   );
 }
