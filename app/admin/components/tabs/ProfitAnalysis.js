@@ -6,6 +6,86 @@ import { apiGet } from '@/lib/admin/api';
 import { fmt, fmtP, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton, SaleDetailDrawer, ComingSoonBanner } from '../shared/ui';
 
+const fmtK = (n) => {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
+  return String(Math.round(n || 0));
+};
+
+/* ── Horizontal Bar for Top Customers ── */
+function TopCustomerBars({ rows }) {
+  if (!rows || rows.length === 0) return null;
+  // Aggregate by customer
+  const map = {};
+  rows.forEach(r => {
+    const k = r.customer_name || '未命名';
+    if (!map[k]) map[k] = { name: k, amount: 0, profit: 0 };
+    map[k].amount += Number(r.amount || 0);
+    map[k].profit += Number(r.gross_profit || 0);
+  });
+  const sorted = Object.values(map).sort((a, b) => b.amount - a.amount).slice(0, 6);
+  const max = sorted[0]?.amount || 1;
+
+  return (
+    <div>
+      <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 1, marginBottom: 12 }}>TOP CUSTOMERS</div>
+      {sorted.map((c, i) => {
+        const pct = (c.amount / max) * 100;
+        const marginPct = c.amount > 0 ? (c.profit / c.amount * 100).toFixed(1) : '0.0';
+        return (
+          <div key={i} style={{ marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+              <span style={{ fontSize: 11, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>{c.name}</span>
+              <span style={{ fontSize: 11, color: t.color.textMuted, ...S.mono }}>{fmtK(c.amount)} · {marginPct}%</span>
+            </div>
+            <div style={{ height: 6, background: t.color.borderLight, borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${pct}%`, background: i < 3 ? t.color.brand : t.color.link, borderRadius: 3, transition: 'width 0.4s ease' }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── Margin Distribution Mini Chart ── */
+function MarginDistribution({ rows }) {
+  if (!rows || rows.length === 0) return null;
+  const buckets = [
+    { label: '<0%', min: -Infinity, max: 0, color: t.color.error },
+    { label: '0-10%', min: 0, max: 10, color: t.color.warning },
+    { label: '10-20%', min: 10, max: 20, color: '#f59e0b' },
+    { label: '20-30%', min: 20, max: 30, color: t.color.link },
+    { label: '30%+', min: 30, max: Infinity, color: t.color.brand },
+  ];
+  const counts = buckets.map(b => ({
+    ...b,
+    count: rows.filter(r => {
+      const m = r.amount > 0 ? (r.gross_profit / r.amount * 100) : 0;
+      return m >= b.min && m < b.max;
+    }).length
+  }));
+  const maxCount = Math.max(...counts.map(c => c.count), 1);
+
+  return (
+    <div>
+      <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 1, marginBottom: 12 }}>MARGIN DISTRIBUTION</div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 80 }}>
+        {counts.map((b, i) => {
+          const h = (b.count / maxCount) * 60;
+          return (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: b.color, marginBottom: 3, ...S.mono }}>{b.count}</div>
+              <div style={{ width: '80%', height: Math.max(h, 3), background: b.color, borderRadius: '3px 3px 0 0', opacity: 0.8 }} />
+              <div style={{ fontSize: 8, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{b.label}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function ProfitAnalysis() {
   const { isMobile, isTablet } = useResponsive();
   const initialRange = getPresetDateRange('today');
@@ -106,6 +186,13 @@ export default function ProfitAnalysis() {
         <StatCard code="GP" label="毛利" value={fmtP(data.summary?.gross_profit)} tone="green" />
         <StatCard code="GM" label="毛利率" value={marginPct} tone="red" />
       </div>
+      {/* ── Visual Summary ── */}
+      {!loading && data.rows.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16, marginBottom: 18 }}>
+          <div style={{ ...S.card }}><TopCustomerBars rows={data.rows} /></div>
+          <div style={{ ...S.card }}><MarginDistribution rows={data.rows} /></div>
+        </div>
+      )}
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有利潤分析資料" /> : isMobile ? data.rows.map((row) => (
         <div key={row.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, alignItems: 'center' }}>
