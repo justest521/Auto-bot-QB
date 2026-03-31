@@ -984,10 +984,10 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   <div>
                     <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, marginBottom: 3 }}>類型</div>
                     <select value={payType} onChange={e => {
-                      const t = e.target.value; setPayType(t);
-                      if (t === 'full') setPayAmount(String(order.total_amount || 0));
-                      else if (t === 'deposit') setPayAmount(String(Math.round((order.total_amount || 0) * 0.3)));
-                      else if (t === 'balance') setPayAmount(String(Math.max(0, (order.total_amount || 0) - totalPaidAmount)));
+                      const v = e.target.value; setPayType(v);
+                      if (v === 'full') setPayAmount(String(order.total_amount || 0));
+                      else if (v === 'deposit') setPayAmount(String(Math.round((order.total_amount || 0) * 0.3)));
+                      else if (v === 'balance') setPayAmount(String(Math.max(0, (order.total_amount || 0) - totalPaidAmount)));
                     }} style={{ width: '100%', padding: '7px 8px', borderRadius: 6, border: `1px solid ${t.color.border}`, fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, background: t.color.bgMuted, cursor: 'pointer' }}>
                       <option value="full">全額收款</option>
                       <option value="deposit">訂金</option>

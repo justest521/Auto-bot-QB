@@ -115,46 +115,46 @@ export default function Flowchart({ setTab }) {
 
   // Build arrow path (orthogonal only)
   const buildPath = (arrow) => {
-    const f = nc(arrow.from), t = nc(arrow.to);
-    if (!f.x || !t.x) return null;
+    const f = nc(arrow.from), to = nc(arrow.to);
+    if (!f.x || !to.x) return null;
     const fn = nodeMap[arrow.from], tn = nodeMap[arrow.to];
 
     // Same column → vertical
     if (fn.col === tn.col) {
       const x = f.x;
-      return { path: `M ${x} ${f.b} L ${x} ${t.t}`, lx: x, ly: (f.b + t.t) / 2 };
+      return { path: `M ${x} ${f.b} L ${x} ${to.t}`, lx: x, ly: (f.b + to.t) / 2 };
     }
     // Same row → horizontal
     if (fn.row === tn.row) {
       if (tn.col > fn.col) {
         const y = f.y;
-        return { path: `M ${f.r} ${y} L ${t.l} ${y}`, lx: (f.r + t.l) / 2, ly: y - 10 };
+        return { path: `M ${f.r} ${y} L ${to.l} ${y}`, lx: (f.r + to.l) / 2, ly: y - 10 };
       } else {
         const y = f.y;
-        return { path: `M ${f.l} ${y} L ${t.r} ${y}`, lx: (f.l + t.r) / 2, ly: y - 10 };
+        return { path: `M ${f.l} ${y} L ${to.r} ${y}`, lx: (f.l + to.r) / 2, ly: y - 10 };
       }
     }
     // Different row & col → L-shaped
     if (fn.row < tn.row) {
       // Go down first, then horizontal
-      const midY = f.b + (t.t - f.b) / 2;
+      const midY = f.b + (to.t - f.b) / 2;
       if (tn.col > fn.col) {
         return {
-          path: `M ${f.x} ${f.b} L ${f.x} ${midY} L ${t.x} ${midY} L ${t.x} ${t.t}`,
-          lx: (f.x + t.x) / 2, ly: midY - 10,
+          path: `M ${f.x} ${f.b} L ${f.x} ${midY} L ${to.x} ${midY} L ${to.x} ${to.t}`,
+          lx: (f.x + to.x) / 2, ly: midY - 10,
         };
       } else {
         return {
-          path: `M ${f.x} ${f.b} L ${f.x} ${midY} L ${t.x} ${midY} L ${t.x} ${t.t}`,
-          lx: (f.x + t.x) / 2, ly: midY - 10,
+          path: `M ${f.x} ${f.b} L ${f.x} ${midY} L ${to.x} ${midY} L ${to.x} ${to.t}`,
+          lx: (f.x + to.x) / 2, ly: midY - 10,
         };
       }
     }
     // up
-    const midY = t.b + (f.t - t.b) / 2;
+    const midY = to.b + (f.t - to.b) / 2;
     return {
-      path: `M ${f.x} ${f.t} L ${f.x} ${midY} L ${t.x} ${midY} L ${t.x} ${t.b}`,
-      lx: (f.x + t.x) / 2, ly: midY - 10,
+      path: `M ${f.x} ${f.t} L ${f.x} ${midY} L ${to.x} ${midY} L ${to.x} ${to.b}`,
+      lx: (f.x + to.x) / 2, ly: midY - 10,
     };
   };
 

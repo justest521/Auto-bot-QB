@@ -334,7 +334,7 @@ export default function FormalCustomers() {
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.company_name || customer.name || '未命名客戶'}</span>
-                    {dup && <span style={{ background: dup.groupColor, color: '#fff', borderRadius: t.radius.sm, padding: '1px 5px', fontSize: 9, fontWeight: t.fontWeight.bold, flexShrink: 0 }}>重複 {(dup.matchTypes || []).map(t => t === 'name' ? '名稱' : t === 'phone' ? '電話' : '統編').join('+')}</span>}
+                    {dup && <span style={{ background: dup.groupColor, color: '#fff', borderRadius: t.radius.sm, padding: '1px 5px', fontSize: 9, fontWeight: t.fontWeight.bold, flexShrink: 0 }}>重複 {(dup.matchTypes || []).map(mt => mt === 'name' ? '名稱' : mt === 'phone' ? '電話' : '統編').join('+')}</span>}
                   </div>
                   <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2, ...S.mono }}>{customer.customer_code || ''}</div>
                 </div>
