@@ -678,45 +678,45 @@ function AdminPageInner() {
               <div style={{ padding: '0 14px 12px', borderBottom: '1px solid #e5e7eb', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {companySettings?.logo_url ? (
-                    <img src={companySettings.logo_url} alt="Logo" style={{ width: 34, height: 34, borderRadius: 10, objectFit: 'contain', background: '#f3f4f6' }} />
+                    <img src={companySettings.logo_url} alt="Logo" style={{ width: 32, height: 32, borderRadius: t.radius.md, objectFit: 'contain', background: t.color.bgMuted }} />
                   ) : (
-                    <div style={{ width: 34, height: 34, borderRadius: 10, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 13, ...S.mono }}>QB</div>
+                    <div style={{ width: 32, height: 32, borderRadius: t.radius.md, background: t.color.brand, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.body, ...S.mono }}>QB</div>
                   )}
                   <div>
-                    <div style={{ color: '#111827', fontSize: 14, fontWeight: 700 }}>{companySettings?.company_name || 'Auto-bot QB'}</div>
-                    <div style={{ color: '#9ca3af', fontSize: 10 }}>ERP Console</div>
+                    <div style={{ color: t.color.textPrimary, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold }}>{companySettings?.company_name || 'Auto-bot QB'}</div>
+                    <div style={{ color: t.color.textDisabled, fontSize: t.fontSize.tiny }}>ERP Console</div>
                   </div>
                 </div>
-                <button onClick={() => setMobileDrawerOpen(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#9ca3af', cursor: 'pointer', padding: 4 }}>✕</button>
+                <button onClick={() => setMobileDrawerOpen(false)} style={{ background: 'none', border: 'none', fontSize: 20, color: t.color.textDisabled, cursor: 'pointer', padding: 4 }}>✕</button>
               </div>
               <div style={{ padding: '4px 14px 8px' }}>
-                <input className="qb-sb-search" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} placeholder="🔍 搜尋功能..." style={{ width: '100%', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 12px', color: '#111827', fontSize: 14, outline: 'none', fontFamily: "'Noto Sans TC', sans-serif" }} />
+                <input className="qb-sb-search" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} placeholder="搜尋功能..." style={{ width: '100%', background: t.color.bgMuted, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '8px 12px', color: t.color.textPrimary, fontSize: t.fontSize.body, outline: 'none', fontFamily: t.fontFamily?.body || "'Noto Sans TC', sans-serif" }} />
               </div>
               {(() => {
                 const sq = sidebarSearch.trim().toLowerCase();
-                const permSections = SECTIONS.map((s) => ({ ...s, tabs: s.tabs.filter((t) => hasTab(t.id)) })).filter((s) => s.tabs.length > 0);
+                const permSections = SECTIONS.map((s) => ({ ...s, tabs: s.tabs.filter((tb) => hasTab(tb.id)) })).filter((s) => s.tabs.length > 0);
                 const filteredSections = sq
-                  ? permSections.map((s) => ({ ...s, tabs: s.tabs.filter((t) => t.label.toLowerCase().includes(sq) || t.code.toLowerCase().includes(sq)) })).filter((s) => s.tabs.length > 0)
+                  ? permSections.map((s) => ({ ...s, tabs: s.tabs.filter((tb) => tb.label.toLowerCase().includes(sq) || tb.code.toLowerCase().includes(sq)) })).filter((s) => s.tabs.length > 0)
                   : permSections;
                 return filteredSections.map((section) => {
                   const isCollapsed = !sq && collapsed[section.title];
                   const iconCfg = SECTION_ICONS[section.title] || { icon: '○', bg: '#f3f4f6', fg: '#6b7280' };
-                  const hasActiveTab = section.tabs.some((t) => t.id === tab);
+                  const hasActiveTab = section.tabs.some((tb) => tb.id === tab);
                   return (
                     <div key={section.title}>
-                      <div className="qb-sb-section-hdr" onClick={() => { if (isCollapsed) { expandSection(section.title); } else { toggleCollapsed(section.title); } }} style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, borderRadius: 8, margin: '1px 8px', background: hasActiveTab ? '#f0fdf4' : 'transparent' }}>
-                        <span style={{ width: 28, height: 28, minWidth: 28, borderRadius: 8, background: hasActiveTab ? iconCfg.bg : '#f3f4f6', color: hasActiveTab ? iconCfg.fg : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{iconCfg.icon}</span>
-                        <span style={{ fontSize: 14, color: hasActiveTab ? '#111827' : '#6b7280', fontWeight: 600, flex: 1 }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>
-                        <span style={{ fontSize: 11, color: '#9ca3af', display: 'inline-block', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', transition: 'transform 0.2s' }}>›</span>
+                      <div className="qb-sb-section-hdr" onClick={() => { if (isCollapsed) { expandSection(section.title); } else { toggleCollapsed(section.title); } }} style={{ padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, borderRadius: t.radius.md, margin: '1px 8px', background: hasActiveTab ? t.color.brandLight : 'transparent' }}>
+                        <span style={{ width: 26, height: 26, minWidth: 26, borderRadius: t.radius.sm, background: hasActiveTab ? iconCfg.bg : t.color.bgMuted, color: hasActiveTab ? iconCfg.fg : t.color.textDisabled, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.body }}>{iconCfg.icon}</span>
+                        <span style={{ fontSize: t.fontSize.body, color: hasActiveTab ? t.color.textPrimary : t.color.textMuted, fontWeight: t.fontWeight.semibold, flex: 1 }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>
+                        <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, display: 'inline-block', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', transition: 'transform 0.2s' }}>›</span>
                       </div>
                       {!isCollapsed && (
-                        <div style={{ padding: '2px 8px 4px' }}>
-                          {section.tabs.map((t) => {
-                            const isActive = tab === t.id;
+                        <div style={{ padding: '1px 8px 4px' }}>
+                          {section.tabs.map((tb) => {
+                            const isActive = tab === tb.id;
                             return (
-                              <div key={t.id} className="qb-sb-item" onClick={() => { setTab(t.id); setMobileDrawerOpen(false); setSidebarSearch(''); }} style={{ padding: '10px 12px 10px 42px', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#16a34a' : '#4b5563', background: isActive ? '#dcfce7' : 'transparent', borderRadius: 8, margin: '1px 0', fontWeight: isActive ? 600 : 400, borderLeft: isActive ? '3px solid #16a34a' : '3px solid transparent', minHeight: 44 }}>
-                                <span style={{ flex: 1 }}>{t.label}</span>
-                                {pendingBadges[t.id] > 0 && <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{pendingBadges[t.id]}</span>}
+                              <div key={tb.id} className="qb-sb-item" onClick={() => { setTab(tb.id); setMobileDrawerOpen(false); setSidebarSearch(''); }} style={{ padding: '8px 12px 8px 40px', cursor: 'pointer', fontSize: t.fontSize.body, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? t.color.brand : t.color.textSecondary, background: isActive ? t.color.brandLight : 'transparent', borderRadius: t.radius.md, margin: '1px 0', fontWeight: isActive ? t.fontWeight.semibold : t.fontWeight.normal, borderLeft: isActive ? `3px solid ${t.color.brand}` : '3px solid transparent', minHeight: 40 }}>
+                                <span style={{ flex: 1 }}>{tb.label}</span>
+                                {pendingBadges[tb.id] > 0 && <span style={{ background: t.color.error, color: '#fff', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, borderRadius: t.radius.pill, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{pendingBadges[tb.id]}</span>}
                               </div>
                             );
                           })}
@@ -727,13 +727,13 @@ function AdminPageInner() {
                 });
               })()}
               {currentUser && (
-                <div style={{ padding: '12px 14px', borderTop: '1px solid #e5e7eb', marginTop: 8 }}>
-                  <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ padding: '10px 14px', borderTop: `1px solid ${t.color.border}`, marginTop: 8 }}>
+                  <div style={{ background: t.color.bgMuted, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{currentUser.display_name || currentUser.username}</div>
-                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{currentUser.role_label || currentUser.role}</div>
+                      <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{currentUser.display_name || currentUser.username}</div>
+                      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>{currentUser.role_label || currentUser.role}</div>
                     </div>
-                    <button onClick={logout} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 12px', fontSize: 12, color: '#6b7280', cursor: 'pointer' }}>登出</button>
+                    <button onClick={logout} style={{ background: 'none', border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '5px 12px', fontSize: t.fontSize.caption, color: t.color.textMuted, cursor: 'pointer' }}>登出</button>
                   </div>
                 </div>
               )}
@@ -744,70 +744,74 @@ function AdminPageInner() {
 
         {/* ===== DESKTOP/TABLET SIDEBAR ===== */}
         {!isMobile && (<div className="qb-sb" style={{ ...S.sidebar, width: isTablet ? '100%' : (sidebarCollapsed ? 76 : S.sidebar.width), height: isTablet ? 'auto' : S.sidebar.height, position: isTablet ? 'relative' : S.sidebar.position, transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)', overflow: isTablet ? 'visible' : 'hidden auto' }}>
-          <div style={{ padding: sidebarCollapsed ? '0 6px 10px' : '0 14px 12px', borderBottom: '1px solid #e5e7eb', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
+          {/* ── Logo / Header ── */}
+          <div style={{ padding: sidebarCollapsed ? '0 6px 10px' : '0 14px 10px', borderBottom: `1px solid ${t.color.border}`, marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', width: sidebarCollapsed ? '100%' : 'auto' }}>
               {companySettings?.logo_url ? (
-                <img src={companySettings.logo_url} alt="Logo" onClick={() => { collapseAll(); setSidebarPopup(null); }} style={{ width: sidebarCollapsed ? 38 : 34, height: sidebarCollapsed ? 38 : 34, minWidth: sidebarCollapsed ? 38 : 34, borderRadius: 10, objectFit: 'contain', background: '#f3f4f6', cursor: 'pointer' }} title="收合全部" />
+                <img src={companySettings.logo_url} alt="Logo" onClick={() => { collapseAll(); setSidebarPopup(null); }} style={{ width: sidebarCollapsed ? 36 : 32, height: sidebarCollapsed ? 36 : 32, minWidth: sidebarCollapsed ? 36 : 32, borderRadius: t.radius.md, objectFit: 'contain', background: t.color.bgMuted, cursor: 'pointer' }} title="收合全部" />
               ) : (
-                <div onClick={() => { collapseAll(); setSidebarPopup(null); }} style={{ width: sidebarCollapsed ? 38 : 34, height: sidebarCollapsed ? 38 : 34, minWidth: sidebarCollapsed ? 38 : 34, borderRadius: 10, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer', ...S.mono }} title="收合全部">QB</div>
+                <div onClick={() => { collapseAll(); setSidebarPopup(null); }} style={{ width: sidebarCollapsed ? 36 : 32, height: sidebarCollapsed ? 36 : 32, minWidth: sidebarCollapsed ? 36 : 32, borderRadius: t.radius.md, background: t.color.brand, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.caption, cursor: 'pointer', ...S.mono }} title="收合全部">QB</div>
               )}
               {!sidebarCollapsed && <div style={{ whiteSpace: 'nowrap', minWidth: 0 }}>
-                <div style={{ color: '#111827', fontSize: 14, fontWeight: 700, letterSpacing: -0.2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{companySettings?.company_name || 'Auto-bot QB'}</div>
-                <div style={{ color: '#9ca3af', fontSize: 10 }}>ERP Console</div>
+                <div style={{ color: t.color.textPrimary, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, letterSpacing: -0.2, overflow: 'hidden', textOverflow: 'ellipsis' }}>{companySettings?.company_name || 'Auto-bot QB'}</div>
+                <div style={{ color: t.color.textDisabled, fontSize: t.fontSize.tiny }}>ERP Console</div>
               </div>}
             </div>
-            {!isTablet && <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 16, padding: '4px 6px', borderRadius: 6, transition: 'color 0.15s', lineHeight: 1 }} title={sidebarCollapsed ? '展開' : '收合'}>{sidebarCollapsed ? '›' : '‹'}</button>}
+            {!isTablet && <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', border: 'none', color: t.color.textDisabled, cursor: 'pointer', fontSize: 16, padding: '4px 6px', borderRadius: t.radius.sm, transition: 'color 0.15s', lineHeight: 1 }} title={sidebarCollapsed ? '展開' : '收合'}>{sidebarCollapsed ? '›' : '‹'}</button>}
           </div>
 
+          {/* ── Search ── */}
           {!sidebarCollapsed && (
-            <div style={{ padding: '4px 14px 8px' }}>
-              <input className="qb-sb-search" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} placeholder="🔍 搜尋功能..." style={{ width: '100%', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: '7px 12px', color: '#111827', fontSize: 12, outline: 'none', fontFamily: "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' }} />
+            <div style={{ padding: '4px 14px 6px' }}>
+              <input className="qb-sb-search" value={sidebarSearch} onChange={(e) => setSidebarSearch(e.target.value)} placeholder="搜尋功能..." style={{ width: '100%', background: t.color.bgMuted, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '6px 12px', color: t.color.textPrimary, fontSize: t.fontSize.caption, outline: 'none', fontFamily: t.fontFamily?.body || "'Noto Sans TC', sans-serif", transition: 'border-color 0.2s, box-shadow 0.2s' }} />
             </div>
           )}
 
+          {/* ── Favorites ── */}
           {!sidebarCollapsed && favs.length > 0 && !sidebarSearch && (
             <div>
-              <div style={{ padding: '8px 16px 4px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 12, color: '#f59e0b' }}>{'\u2605'}</span>
-                <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>我的最愛</span>
+              <div style={{ padding: '6px 16px 3px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: t.fontSize.caption, color: t.color.warning }}>{'\u2605'}</span>
+                <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, letterSpacing: 0.5, textTransform: 'uppercase' }}>我的最愛</span>
               </div>
-              {SECTIONS.flatMap((s) => s.tabs).filter((t) => favs.includes(t.id) && hasTab(t.id)).map((t) => (
-                <div key={`fav-${t.id}`} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '7px 12px 7px 20px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: tab === t.id ? '#16a34a' : '#4b5563', background: tab === t.id ? '#dcfce7' : 'transparent', borderRadius: 8, margin: '1px 8px', transition: 'all 0.15s', fontWeight: tab === t.id ? 600 : 400 }}>
-                  <span style={{ fontSize: 9, color: tab === t.id ? '#16a34a' : '#9ca3af', ...S.mono, width: 30, flexShrink: 0 }}>{t.code}</span>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
+              {SECTIONS.flatMap((s) => s.tabs).filter((tb) => favs.includes(tb.id) && hasTab(tb.id)).map((tb) => (
+                <div key={`fav-${tb.id}`} className="qb-sb-item" onClick={() => setTab(tb.id)} style={{ padding: '5px 12px 5px 20px', cursor: 'pointer', fontSize: t.fontSize.body, display: 'flex', alignItems: 'center', gap: 8, color: tab === tb.id ? t.color.brand : t.color.textSecondary, background: tab === tb.id ? t.color.brandLight : 'transparent', borderRadius: t.radius.md, margin: '1px 8px', transition: 'all 0.15s', fontWeight: tab === tb.id ? t.fontWeight.semibold : t.fontWeight.normal }}>
+                  <span style={{ fontSize: t.fontSize.tiny, color: tab === tb.id ? t.color.brand : t.color.textDisabled, ...S.mono, width: 32, flexShrink: 0 }}>{tb.code}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tb.label}</span>
                 </div>
               ))}
-              <div style={{ height: 1, background: '#e5e7eb', margin: '6px 16px' }} />
+              <div style={{ height: 1, background: t.color.border, margin: '6px 16px' }} />
             </div>
           )}
 
+          {/* ── Section list ── */}
           {(() => {
             const sq = sidebarSearch.trim().toLowerCase();
-            const permSections = SECTIONS.map((s) => ({ ...s, tabs: s.tabs.filter((t) => hasTab(t.id)) })).filter((s) => s.tabs.length > 0);
+            const permSections = SECTIONS.map((s) => ({ ...s, tabs: s.tabs.filter((tb) => hasTab(tb.id)) })).filter((s) => s.tabs.length > 0);
             const filteredSections = sq
-              ? permSections.map((s) => ({ ...s, tabs: s.tabs.filter((t) => t.label.toLowerCase().includes(sq) || t.code.toLowerCase().includes(sq)) })).filter((s) => s.tabs.length > 0)
+              ? permSections.map((s) => ({ ...s, tabs: s.tabs.filter((tb) => tb.label.toLowerCase().includes(sq) || tb.code.toLowerCase().includes(sq)) })).filter((s) => s.tabs.length > 0)
               : permSections;
             return filteredSections.map((section, si) => {
               const isCollapsed = !sq && collapsed[section.title];
               const iconCfg = SECTION_ICONS[section.title] || { icon: '○', bg: '#f3f4f6', fg: '#6b7280' };
-              const hasActiveTab = section.tabs.some((t) => t.id === tab);
+              const hasActiveTab = section.tabs.some((tb) => tb.id === tab);
               return (
                 <div key={section.title}>
-                  <div className="qb-sb-section-hdr" ref={(el) => { sectionRefs.current[section.title] = el; }} onClick={() => { if (sidebarCollapsed) { if (sidebarPopup === section.title) { setSidebarPopup(null); } else { const el = sectionRefs.current[section.title]; if (el) { const rect = el.getBoundingClientRect(); setPopupPos({ top: rect.top, left: rect.right + 6 }); } setSidebarPopup(section.title); } return; } if (isCollapsed) { setTab(section.tabs[0].id); } else { toggleCollapsed(section.title); } }} style={{ padding: sidebarCollapsed ? '6px 0 4px' : '8px 12px', cursor: 'pointer', display: 'flex', flexDirection: sidebarCollapsed ? 'column' : 'row', alignItems: 'center', gap: sidebarCollapsed ? 2 : 10, borderRadius: 8, transition: 'background 0.15s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? '0 4px' : '1px 8px', background: hasActiveTab ? '#f0fdf4' : (sidebarPopup === section.title ? '#f3f4f6' : 'transparent'), position: 'relative' }}>
-                    <span style={{ width: sidebarCollapsed ? 36 : 28, height: sidebarCollapsed ? 36 : 28, minWidth: sidebarCollapsed ? 36 : 28, borderRadius: 8, background: hasActiveTab ? iconCfg.bg : '#f3f4f6', color: hasActiveTab ? iconCfg.fg : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: sidebarCollapsed ? 16 : 14, transition: 'all 0.2s', position: 'relative' }}>
+                  <div className="qb-sb-section-hdr" ref={(el) => { sectionRefs.current[section.title] = el; }} onClick={() => { if (sidebarCollapsed) { if (sidebarPopup === section.title) { setSidebarPopup(null); } else { const el = sectionRefs.current[section.title]; if (el) { const rect = el.getBoundingClientRect(); setPopupPos({ top: rect.top, left: rect.right + 6 }); } setSidebarPopup(section.title); } return; } if (isCollapsed) { setTab(section.tabs[0].id); } else { toggleCollapsed(section.title); } }} style={{ padding: sidebarCollapsed ? '6px 0 4px' : '6px 12px', cursor: 'pointer', display: 'flex', flexDirection: sidebarCollapsed ? 'column' : 'row', alignItems: 'center', gap: sidebarCollapsed ? 2 : 10, borderRadius: t.radius.md, transition: 'background 0.15s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? '0 4px' : '1px 8px', background: hasActiveTab ? t.color.brandLight : (sidebarPopup === section.title ? t.color.bgMuted : 'transparent'), position: 'relative' }}>
+                    <span style={{ width: sidebarCollapsed ? 34 : 26, height: sidebarCollapsed ? 34 : 26, minWidth: sidebarCollapsed ? 34 : 26, borderRadius: t.radius.sm, background: hasActiveTab ? iconCfg.bg : t.color.bgMuted, color: hasActiveTab ? iconCfg.fg : t.color.textDisabled, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: sidebarCollapsed ? 15 : 13, transition: 'all 0.2s', position: 'relative' }}>
                       {iconCfg.icon}
-                      {sidebarCollapsed && (() => { const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} /> : null; })()}
+                      {sidebarCollapsed && (() => { const sectionBadge = section.tabs.reduce((s, tb) => s + (pendingBadges[tb.id] || 0), 0); return sectionBadge > 0 ? <span style={{ position: 'absolute', top: -2, right: -2, width: 7, height: 7, borderRadius: '50%', background: t.color.error }} /> : null; })()}
                     </span>
-                    {sidebarCollapsed && <span style={{ fontSize: 9, color: hasActiveTab ? '#16a34a' : '#9ca3af', fontWeight: hasActiveTab ? 600 : 500, lineHeight: 1.1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 56 }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>}
+                    {sidebarCollapsed && <span style={{ fontSize: 9, color: hasActiveTab ? t.color.brand : t.color.textDisabled, fontWeight: hasActiveTab ? t.fontWeight.semibold : t.fontWeight.medium, lineHeight: 1.1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 56 }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>}
                     {sidebarCollapsed && sidebarPopup === section.title && createPortal(
-                      <div style={{ position: 'fixed', top: popupPos.top, left: popupPos.left, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '6px 0', minWidth: 180, zIndex: 99999 }} onClick={(e) => e.stopPropagation()}>
-                        <div style={{ padding: '6px 14px 8px', fontSize: 12, fontWeight: 700, color: '#111827', borderBottom: '1px solid #f3f4f6' }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</div>
-                        {section.tabs.map((t) => {
-                          const isActive = tab === t.id;
+                      <div style={{ position: 'fixed', top: popupPos.top, left: popupPos.left, background: t.color.bgCard, border: `1px solid ${t.color.border}`, borderRadius: t.radius.lg, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '6px 0', minWidth: 180, zIndex: 99999 }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ padding: '6px 14px 8px', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, borderBottom: `1px solid ${t.color.borderLight}` }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</div>
+                        {section.tabs.map((tb) => {
+                          const isActive = tab === tb.id;
                           return (
-                            <div key={t.id} className="qb-sb-item" onClick={() => { setTab(t.id); setSidebarPopup(null); }} style={{ padding: '8px 14px', cursor: 'pointer', fontSize: 13, color: isActive ? '#16a34a' : '#374151', background: isActive ? '#dcfce7' : 'transparent', fontWeight: isActive ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, transition: 'background 0.1s' }}>
-                              <span>{t.label}</span>
-                              {pendingBadges[t.id] > 0 && <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{pendingBadges[t.id]}</span>}
+                            <div key={tb.id} className="qb-sb-item" onClick={() => { setTab(tb.id); setSidebarPopup(null); }} style={{ padding: '7px 14px', cursor: 'pointer', fontSize: t.fontSize.body, color: isActive ? t.color.brand : t.color.textSecondary, background: isActive ? t.color.brandLight : 'transparent', fontWeight: isActive ? t.fontWeight.semibold : t.fontWeight.normal, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, transition: 'background 0.1s' }}>
+                              <span>{tb.label}</span>
+                              {pendingBadges[tb.id] > 0 && <span style={{ background: t.color.error, color: '#fff', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, borderRadius: t.radius.pill, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{pendingBadges[tb.id]}</span>}
                             </div>
                           );
                         })}
@@ -815,54 +819,54 @@ function AdminPageInner() {
                       document.body
                     )}
                     {!sidebarCollapsed && <>
-                      <span style={{ fontSize: 13, color: hasActiveTab ? '#111827' : '#6b7280', fontWeight: 600, letterSpacing: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>
-                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, t) => s + (pendingBadges[t.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
-                      <span style={{ fontSize: 11, color: '#9ca3af', transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', width: 16, textAlign: 'center', flexShrink: 0 }}>›</span>
+                      <span style={{ fontSize: t.fontSize.body, color: hasActiveTab ? t.color.textPrimary : t.color.textMuted, fontWeight: t.fontWeight.semibold, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>
+                      {(() => { if (!isCollapsed) return null; const sectionBadge = section.tabs.reduce((s, tb) => s + (pendingBadges[tb.id] || 0), 0); return sectionBadge > 0 ? <span style={{ background: t.color.error, color: '#fff', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, borderRadius: t.radius.pill, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', animation: 'pulse 2s infinite' }}>{sectionBadge}</span> : null; })()}
+                      <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', width: 16, textAlign: 'center', flexShrink: 0 }}>›</span>
                     </>}
                   </div>
                   {!sidebarCollapsed && !isCollapsed && (
-                    <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', padding: '2px 8px 4px' }}>
-                      {section.tabs.map((t) => {
-                        const isActive = tab === t.id;
+                    <div style={{ display: isTablet ? 'grid' : 'block', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', padding: '1px 8px 4px' }}>
+                      {section.tabs.map((tb) => {
+                        const isActive = tab === tb.id;
                         return (
-                        <div key={t.id} className="qb-sb-item" onClick={() => setTab(t.id)} style={{ padding: '7px 12px 7px 42px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? '#16a34a' : '#4b5563', background: isActive ? '#dcfce7' : 'transparent', borderRadius: 8, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? 600 : 400, borderLeft: isActive ? '3px solid #16a34a' : '3px solid transparent' }}>
-                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>
-                          {pendingBadges[t.id] > 0 && (
-                            <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{pendingBadges[t.id]}</span>
+                        <div key={tb.id} className="qb-sb-item" onClick={() => setTab(tb.id)} style={{ padding: '5px 10px 5px 40px', cursor: 'pointer', fontSize: t.fontSize.body, display: 'flex', alignItems: 'center', gap: 8, color: isActive ? t.color.brand : t.color.textSecondary, background: isActive ? t.color.brandLight : 'transparent', borderRadius: t.radius.md, margin: '1px 0', transition: 'all 0.15s', fontWeight: isActive ? t.fontWeight.semibold : t.fontWeight.normal, borderLeft: isActive ? `3px solid ${t.color.brand}` : '3px solid transparent' }}>
+                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tb.label}</span>
+                          {pendingBadges[tb.id] > 0 && (
+                            <span style={{ background: t.color.error, color: '#fff', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, borderRadius: t.radius.pill, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{pendingBadges[tb.id]}</span>
                           )}
-                          <span className={`qb-sb-star${isFav(t.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(t.id); }} style={{ fontSize: 11, color: '#d1d5db', cursor: 'pointer', width: 18, textAlign: 'center', flexShrink: 0 }} title={isFav(t.id) ? '取消最愛' : '加入最愛'}>{isFav(t.id) ? '\u2605' : '\u2606'}</span>
+                          <span className={`qb-sb-star${isFav(tb.id) ? ' is-fav' : ''}`} onClick={(e) => { e.stopPropagation(); toggleFav(tb.id); }} style={{ fontSize: t.fontSize.tiny, color: t.color.borderLight, cursor: 'pointer', width: 18, textAlign: 'center', flexShrink: 0 }} title={isFav(tb.id) ? '取消最愛' : '加入最愛'}>{isFav(tb.id) ? '\u2605' : '\u2606'}</span>
                         </div>
                         );
                       })}
                     </div>
                   )}
-                  {/* collapsed: no per-tab items, only section icon shown above */}
                 </div>
               );
             });
           })()}
 
+          {/* ── Footer stats ── */}
           {!sidebarCollapsed && (
-            <div style={{ padding: '12px 14px 0', borderTop: '1px solid #e5e7eb', marginTop: 6 }}>
-              <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', fontSize: 11, color: '#6b7280', display: 'grid', gap: 5, marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>產品</span><span style={{ color: '#111827', fontWeight: 600, ...S.mono }}>{sidebarStats?.products?.toLocaleString?.() ?? '...'}</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>對話</span><span style={{ color: '#111827', fontWeight: 600, ...S.mono }}>{sidebarStats?.chats?.toLocaleString?.() ?? '...'}</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Webhook</span><span style={{ color: '#16a34a', fontWeight: 600, ...S.mono }}>ON</span></div>
+            <div style={{ padding: '10px 14px 0', borderTop: `1px solid ${t.color.border}`, marginTop: 6 }}>
+              <div style={{ background: t.color.bgMuted, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '8px 12px', fontSize: t.fontSize.tiny, color: t.color.textMuted, display: 'grid', gap: 4, marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>產品</span><span style={{ color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, ...S.mono }}>{sidebarStats?.products?.toLocaleString?.() ?? '...'}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>對話</span><span style={{ color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, ...S.mono }}>{sidebarStats?.chats?.toLocaleString?.() ?? '...'}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Webhook</span><span style={{ color: t.color.brand, fontWeight: t.fontWeight.semibold, ...S.mono }}>ON</span></div>
               </div>
               {currentUser && (
-                <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ background: t.color.bgMuted, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.display_name || currentUser.username}</div>
-                    <div style={{ fontSize: 10, color: '#9ca3af' }}>{currentUser.role_label || currentUser.role}</div>
+                    <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser.display_name || currentUser.username}</div>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>{currentUser.role_label || currentUser.role}</div>
                   </div>
-                  <button onClick={logout} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 8, padding: '4px 10px', fontSize: 11, color: '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; }}>登出</button>
+                  <button onClick={logout} style={{ background: 'none', border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '4px 10px', fontSize: t.fontSize.tiny, color: t.color.textMuted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = t.color.error; e.currentTarget.style.color = t.color.error; }} onMouseLeave={e => { e.currentTarget.style.borderColor = t.color.border; e.currentTarget.style.color = t.color.textMuted; }}>登出</button>
                 </div>
               )}
             </div>
           )}
           {sidebarCollapsed && currentUser && (
-            <div style={{ padding: '8px 6px', borderTop: '1px solid #F2F2F2', marginTop: 8, textAlign: 'center' }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#16a34a', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px', cursor: 'pointer' }} title={`${currentUser.display_name || currentUser.username} — 點擊登出`} onClick={logout}>{(currentUser.display_name || currentUser.username || '?')[0].toUpperCase()}</div>
+            <div style={{ padding: '8px 6px', borderTop: `1px solid ${t.color.border}`, marginTop: 8, textAlign: 'center' }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: t.color.brand, color: '#fff', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px', cursor: 'pointer' }} title={`${currentUser.display_name || currentUser.username} — 點擊登出`} onClick={logout}>{(currentUser.display_name || currentUser.username || '?')[0].toUpperCase()}</div>
             </div>
           )}
         </div>)}
