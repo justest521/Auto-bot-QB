@@ -11,16 +11,16 @@ const PO_DIRECT_KEY = 'qb_po_direct_open';
 const ORDER_FOCUS_KEY = 'qb_order_focus';
 const ORDER_DIRECT_KEY = 'qb_order_direct_open';
 
-const STATUS_BADGE = {
-  waiting:  { label: '等待到貨', color: t.color.error, bg: '#fef2f2', border: '#fecaca', icon: '⏳' },
-  partial:  { label: '部分到貨', color: '#b45309', bg: '#fffbeb', border: '#fde68a', icon: '📦' },
-  complete: { label: '已齊',     color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', icon: '✓' },
+const STATUS_CFG = {
+  waiting:  { label: '等待到貨', dot: t.color.error,   bg: '#fef2f2', ring: t.color.error },
+  partial:  { label: '部分到貨', dot: '#d97706',       bg: '#fffbeb', ring: '#d97706' },
+  complete: { label: '已齊',     dot: t.color.brand,    bg: '#f0fdf4', ring: t.color.brand },
 };
 
 const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
 const PO_STATUS_COLOR = { draft: { bg: '#f3f4f6', color: t.color.textMuted }, sent: { bg: '#dbeafe', color: '#2563eb' }, confirmed: { bg: t.color.successBg, color: t.color.brand }, shipped: { bg: t.color.warningBg, color: '#b45309' }, received: { bg: t.color.successBg, color: '#15803d' }, rejected: { bg: t.color.errorBg, color: t.color.error }, cancelled: { bg: '#f3f4f6', color: t.color.textDisabled } };
 
-const GRID_COLS = '120px minmax(0,1fr) 55px 60px 60px 60px 70px 70px 80px 100px';
+const GRID_COLS = '110px minmax(0,1fr) 55px 60px 60px 60px 65px 65px 90px 90px';
 
 const SORT_COLS = [
   { key: 'item_number', label: '料號' },
@@ -57,12 +57,33 @@ function sortRows(rows, sortKey, sortDir) {
   });
 }
 
-/* ── Reusable pill chip ── */
-const Chip = ({ label, value, color, icon }) => (
-  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: t.radius.pill, background: `${color}10`, border: `1px solid ${color}30` }}>
-    {icon && <span style={{ fontSize: t.fontSize.tiny }}>{icon}</span>}
-    <span style={{ fontSize: 11, color: t.color.textMuted }}>{label}</span>
-    <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color, ...S.mono }}>{value}</span>
+/* ── Mini ring progress (SVG) ── */
+const RingProgress = ({ pct, size = 32, stroke = 3.5 }) => {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (Math.min(pct, 100) / 100) * circ;
+  const color = pct >= 100 ? t.color.brand : pct >= 50 ? '#d97706' : pct > 0 ? t.color.error : t.color.border;
+  return (
+    <div style={{ position: 'relative', width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={t.color.border} strokeWidth={stroke} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+      </svg>
+      <span style={{ position: 'absolute', fontSize: 9, fontWeight: t.fontWeight.bold, color, ...S.mono }}>{pct}%</span>
+    </div>
+  );
+};
+
+/* ── Summary stat card ── */
+const StatCard = ({ label, value, sub, color, active, onClick }) => (
+  <div onClick={onClick} style={{
+    flex: 1, minWidth: 100, padding: '12px 16px', borderRadius: t.radius.lg, cursor: onClick ? 'pointer' : 'default',
+    background: active ? `${color}10` : t.color.bgCard, border: `1.5px solid ${active ? color : t.color.border}`,
+    transition: 'all 0.2s', display: 'flex', flexDirection: 'column', gap: 2,
+  }}>
+    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.medium }}>{label}</div>
+    <div style={{ fontSize: 22, fontWeight: t.fontWeight.bold, color, ...S.mono, lineHeight: 1.2 }}>{value}</div>
+    {sub && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, ...S.mono }}>{sub}</div>}
   </div>
 );
 
@@ -78,10 +99,10 @@ export default function ProcurementCenter({ setTab }) {
   const [sortKey, setSortKey] = useState('total_received');
   const [sortDir, setSortDir] = useState('desc');
 
-  const load = useCallback(async (p = page, q = search, st = statusF) => {
+  const load = useCallback(async (pg = page, q = search, st = statusF) => {
     setLoading(true);
     try {
-      const params = { action: 'procurement_center', page: String(p), search: q };
+      const params = { action: 'procurement_center', page: String(pg), search: q };
       if (st) params.status = st;
       setData(await apiGet(params));
     } finally { setLoading(false); }
@@ -98,76 +119,78 @@ export default function ProcurementCenter({ setTab }) {
   };
 
   const toggleExpand = (item_number) => {
-    if (expandedItem === item_number) {
-      setExpandedItem(null);
-    } else {
-      setExpandedItem(item_number);
-      loadAllocation(item_number);
-    }
+    if (expandedItem === item_number) { setExpandedItem(null); }
+    else { setExpandedItem(item_number); loadAllocation(item_number); }
   };
 
   const sm = data.summary || {};
   const overallPct = sm.total_ordered > 0 ? Math.round((sm.total_received / sm.total_ordered) * 100) : 0;
+  const pctColor = overallPct >= 80 ? t.color.brand : overallPct >= 30 ? '#d97706' : t.color.error;
+
+  /* Segmented progress: waiting | partial | complete */
+  const total = (sm.waiting || 0) + (sm.partial || 0) + (sm.complete || 0);
+  const segW = total > 0 ? ((sm.waiting || 0) / total) * 100 : 0;
+  const segP = total > 0 ? ((sm.partial || 0) / total) * 100 : 0;
+  const segC = total > 0 ? ((sm.complete || 0) / total) * 100 : 0;
 
   return (
     <div>
       <PageLead eyebrow="Procurement Center" title="採購中心" description="所有採購品項的到貨、配貨總覽" />
 
-      {/* ── Summary Card ── */}
-      <div style={{ ...S.card, marginBottom: 12, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {/* Progress row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#1f2937', whiteSpace: isMobile ? 'normal' : 'nowrap' }}>到貨進度</span>
-          <div style={{ flex: 1, minWidth: 100, height: 8, borderRadius: t.radius.sm, background: t.color.border, overflow: 'hidden' }}>
-            <div style={{ width: `${Math.min(overallPct, 100)}%`, height: '100%', borderRadius: 4, background: overallPct >= 80 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : overallPct >= 30 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #ef4444, #f87171)', transition: 'width 0.6s ease' }} />
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 13, fontWeight: t.fontWeight.bold, ...S.mono, color: overallPct >= 80 ? t.color.brand : overallPct >= 30 ? '#b45309' : t.color.error, whiteSpace: 'nowrap' }}>{overallPct}%</span>
-            <span style={{ fontSize: t.fontSize.caption, ...S.mono, color: t.color.textDisabled, whiteSpace: 'nowrap' }}>{fmt(sm.total_received)}/{fmt(sm.total_ordered)}</span>
-          </div>
-        </div>
-        {/* Chips + filters row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <Chip icon="⏳" label="待到" value={fmt(sm.waiting)} color={t.color.error} />
-          <Chip icon="📦" label="部分" value={fmt(sm.partial)} color={t.color.warning} />
-          <Chip icon="✓" label="已齊" value={fmt(sm.complete)} color={t.color.brand} />
-          <Chip label="總額" value={fmtP(sm.total_cost)} color="#2563eb" />
-          <div style={{ flex: 1, display: isMobile ? 'none' : 'block' }} />
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
-            {[['', '全部'], ['waiting', '等待到貨'], ['partial', '部分到貨'], ['complete', '已齊']].map(([key, label]) => (
-              <button key={key} onClick={() => { setStatusF(key); load(1, search, key); }} style={{
-                padding: '4px 14px', fontSize: 12, fontWeight: t.fontWeight.semibold, borderRadius: t.radius.sm, border: '1px solid',
-                cursor: 'pointer', transition: 'all 0.15s', flex: isMobile ? 1 : 'auto',
-                background: statusF === key ? '#1d4ed8' : t.color.bgCard,
-                color: statusF === key ? t.color.bgCard : t.color.textMuted,
-                borderColor: statusF === key ? '#1d4ed8' : t.color.border,
-              }}>{label}</button>
-            ))}
+      {/* ══ Summary Section ══ */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexDirection: isMobile ? 'column' : 'row' }}>
+        <StatCard label="等待到貨" value={fmt(sm.waiting)} color={t.color.error} active={statusF === 'waiting'} onClick={() => { const nv = statusF === 'waiting' ? '' : 'waiting'; setStatusF(nv); load(1, search, nv); }} />
+        <StatCard label="部分到貨" value={fmt(sm.partial)} color="#d97706" active={statusF === 'partial'} onClick={() => { const nv = statusF === 'partial' ? '' : 'partial'; setStatusF(nv); load(1, search, nv); }} />
+        <StatCard label="已齊" value={fmt(sm.complete)} color={t.color.brand} active={statusF === 'complete'} onClick={() => { const nv = statusF === 'complete' ? '' : 'complete'; setStatusF(nv); load(1, search, nv); }} />
+        <StatCard label="採購總額" value={fmtP(sm.total_cost)} sub={`${fmt(sm.total_received)} / ${fmt(sm.total_ordered)} 件到貨`} color={t.color.link} />
+      </div>
+
+      {/* ══ Progress Bar (segmented) ══ */}
+      <div style={{ ...S.card, marginBottom: 12, padding: '14px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>到貨進度</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+            <span style={{ fontSize: 22, fontWeight: t.fontWeight.bold, ...S.mono, color: pctColor, lineHeight: 1 }}>{overallPct}%</span>
+            <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, ...S.mono }}>{fmt(sm.total_received)}/{fmt(sm.total_ordered)}</span>
           </div>
         </div>
-        {/* Search row */}
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
-          <div style={{ position: 'relative', flex: 1, maxWidth: 300, width: isMobile ? '100%' : 'auto' }}>
-            <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋料號或品名..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: 12, padding: isMobile ? '10px 12px 10px 30px' : '6px 10px 6px 30px', borderRadius: 6 }} />
-            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: t.color.textDisabled, pointerEvents: 'none' }}>&#x1F50D;</span>
-          </div>
-          <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, ...(isMobile ? { width: '100%', minHeight: 44 } : {}), padding: isMobile ? '12px 16px' : '6px 18px', fontSize: 12, borderRadius: 6 }}>查詢</button>
-          {search && <button onClick={() => { setSearch(''); load(1, '', statusF); }} style={{ ...S.btnGhost, ...(isMobile ? { width: '100%', minHeight: 44 } : {}), padding: isMobile ? '12px 16px' : '6px 18px', fontSize: 12, borderRadius: 6, color: t.color.textMuted }}>清除</button>}
+        {/* Segmented bar */}
+        <div style={{ display: 'flex', height: 10, borderRadius: t.radius.pill, overflow: 'hidden', background: t.color.bgMuted, gap: 1 }}>
+          {segC > 0 && <div style={{ width: `${segC}%`, background: `linear-gradient(90deg, ${t.color.brand}, #4ade80)`, transition: 'width 0.5s ease', borderRadius: segW === 0 && segP === 0 ? t.radius.pill : `${t.radius.pill}px 0 0 ${t.radius.pill}px` }} />}
+          {segP > 0 && <div style={{ width: `${segP}%`, background: 'linear-gradient(90deg, #f59e0b, #fbbf24)', transition: 'width 0.5s ease' }} />}
+          {segW > 0 && <div style={{ width: `${segW}%`, background: `linear-gradient(90deg, ${t.color.error}, #f87171)`, transition: 'width 0.5s ease', borderRadius: segC === 0 && segP === 0 ? t.radius.pill : `0 ${t.radius.pill}px ${t.radius.pill}px 0` }} />}
+        </div>
+        {/* Legend */}
+        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: t.fontSize.tiny, color: t.color.textMuted }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: t.color.brand }} /> 已齊 {fmt(sm.complete)}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} /> 部分 {fmt(sm.partial)}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: t.color.error }} /> 待到 {fmt(sm.waiting)}</span>
         </div>
       </div>
 
-      {/* ── Table ── */}
+      {/* ══ Search + Filter ══ */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}>
+        <div style={{ position: 'relative', flex: 1, maxWidth: isMobile ? '100%' : 320 }}>
+          <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋料號或品名..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: t.fontSize.caption, padding: '8px 12px 8px 34px', borderRadius: t.radius.md }} />
+          <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: t.color.textDisabled, pointerEvents: 'none' }}>&#x1F50D;</span>
+        </div>
+        <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '8px 20px', fontSize: t.fontSize.caption, borderRadius: t.radius.md, minHeight: isMobile ? 42 : 'auto' }}>查詢</button>
+        {search && <button onClick={() => { setSearch(''); load(1, '', statusF); }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: t.fontSize.caption, borderRadius: t.radius.md, color: t.color.textMuted }}>清除</button>}
+        {statusF && <button onClick={() => { setStatusF(''); load(1, search, ''); }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: t.fontSize.caption, borderRadius: t.radius.md, color: t.color.textMuted }}>重置篩選</button>}
+      </div>
+
+      {/* ══ Table ══ */}
       {loading ? <Loading /> : data.rows?.length === 0 ? <EmptyState text="目前沒有採購中的品項" /> : (
-        <div style={{ ...S.card, padding: 0, overflow: isMobile ? 'auto' : 'hidden', border: '1px solid #e5e7eb', ...(isMobile ? { overflowX: 'auto', WebkitOverflowScrolling: 'touch' } : {}) }}>
+        <div style={{ ...S.card, padding: 0, overflow: isMobile ? 'auto' : 'hidden', border: `1px solid ${t.color.border}`, ...(isMobile ? { overflowX: 'auto', WebkitOverflowScrolling: 'touch' } : {}) }}>
           {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0, padding: '10px 16px', background: '#f8fafc', borderBottom: '2px solid #e2e8f0', alignItems: 'center', minWidth: isMobile ? 'min-content' : 'auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0, padding: '10px 16px', background: t.color.bgMuted, borderBottom: `2px solid ${t.color.border}`, alignItems: 'center', minWidth: isMobile ? 'min-content' : 'auto' }}>
             {SORT_COLS.map(col => (
               <div key={col.key}
                 onClick={() => { if (sortKey === col.key) { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); } else { setSortKey(col.key); setSortDir('desc'); } }}
-                style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: col.center ? 'center' : 'flex-start', gap: 3, fontSize: 12, fontWeight: 700, color: sortKey === col.key ? '#1d4ed8' : t.color.textMuted, transition: 'color 0.15s' }}
+                style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: col.center ? 'center' : 'flex-start', gap: 3, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: sortKey === col.key ? t.color.link : t.color.textMuted, transition: 'color 0.15s', whiteSpace: 'nowrap' }}
               >
                 {col.label}
-                <span style={{ fontSize: 9, opacity: sortKey === col.key ? 1 : 0.3, transition: 'opacity 0.15s' }}>
+                <span style={{ fontSize: 8, opacity: sortKey === col.key ? 1 : 0.3 }}>
                   {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
                 </span>
               </div>
@@ -176,58 +199,54 @@ export default function ProcurementCenter({ setTab }) {
 
           {/* Rows */}
           {sortRows(data.rows, sortKey, sortDir).map((row, idx) => {
-            const badge = STATUS_BADGE[row.procurement_status] || STATUS_BADGE.waiting;
+            const cfg = STATUS_CFG[row.procurement_status] || STATUS_CFG.waiting;
             const pct = row.total_ordered > 0 ? Math.round((row.total_received / row.total_ordered) * 100) : 0;
             const isExpanded = expandedItem === row.item_number;
             const waiting = allocationData[row.item_number] || [];
-            const pctColor = pct >= 100 ? t.color.brand : pct >= 50 ? t.color.warning : pct > 0 ? '#ea580c' : t.color.border;
 
             return (
               <div key={row.item_number}>
-                {/* Main row */}
                 <div
                   onClick={() => toggleExpand(row.item_number)}
                   style={{
                     display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0, padding: '10px 16px',
-                    borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none', alignItems: 'center', cursor: 'pointer',
-                    background: isExpanded ? '#eef2ff' : idx % 2 === 0 ? t.color.bgCard : '#fafbfd',
+                    borderTop: idx > 0 ? `1px solid ${t.color.borderLight}` : 'none', alignItems: 'center', cursor: 'pointer',
+                    background: isExpanded ? '#eef2ff' : idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted,
                     transition: 'all 0.15s',
-                    borderLeft: isExpanded ? '3px solid #3b82f6' : '3px solid transparent',
+                    borderLeft: isExpanded ? `3px solid ${t.color.link}` : '3px solid transparent',
                     minWidth: isMobile ? 'min-content' : 'auto',
                   }}
                   onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.background = '#f0f7ff'; }}
-                  onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.background = idx % 2 === 0 ? t.color.bgCard : '#fafbfd'; }}
+                  onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.background = isExpanded ? '#eef2ff' : idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted; }}
                 >
-                  <div style={{ fontWeight: 700, ...S.mono, fontSize: 12, color: '#1e40af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.item_number}</div>
-                  <div style={{ fontSize: 12, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>{row.description || '-'}</div>
-                  <div style={{ textAlign: 'center', fontWeight: 600, ...S.mono, fontSize: 13, color: row.stock_qty > 0 ? '#2563eb' : '#d1d5db' }}>{row.stock_qty || 0}</div>
-                  <div style={{ textAlign: 'center', fontWeight: 600, ...S.mono, fontSize: 13, color: t.color.textSecondary }}>{row.total_ordered}</div>
-                  <div style={{ textAlign: 'center', fontWeight: 700, ...S.mono, fontSize: 13, color: row.total_received > 0 ? '#059669' : '#d1d5db' }}>{row.total_received}</div>
-                  <div style={{ textAlign: 'center', fontWeight: 700, ...S.mono, fontSize: 13, color: row.still_needed > 0 ? t.color.error : t.color.brand }}>{row.still_needed}</div>
-                  <div style={{ textAlign: 'center', ...S.mono, fontSize: 12, color: t.color.textMuted }}>{row.demand_qty || 0}</div>
-                  <div style={{ textAlign: 'center', fontWeight: 600, ...S.mono, fontSize: 12, color: row.waiting_to_ship > 0 ? '#b45309' : '#d1d5db' }}>{row.waiting_to_ship}</div>
-                  <div style={{ textAlign: 'center' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: t.radius.lg, fontSize: t.fontSize.tiny, fontWeight: 700, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
-                      <span style={{ fontSize: 9 }}>{badge.icon}</span>{badge.label}
-                    </span>
+                  <div style={{ fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.caption, color: t.color.link, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.item_number}</div>
+                  <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>{row.description || '-'}</div>
+                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.body, color: row.stock_qty > 0 ? t.color.link : t.color.borderLight }}>{row.stock_qty || 0}</div>
+                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.body, color: t.color.textSecondary }}>{row.total_ordered}</div>
+                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.body, color: row.total_received > 0 ? t.color.success : t.color.borderLight }}>{row.total_received}</div>
+                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.body, color: row.still_needed > 0 ? t.color.error : t.color.brand }}>{row.still_needed}</div>
+                  <div style={{ textAlign: 'center', ...S.mono, fontSize: t.fontSize.caption, color: t.color.textMuted }}>{row.demand_qty || 0}</div>
+                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.caption, color: row.waiting_to_ship > 0 ? '#d97706' : t.color.borderLight }}>{row.waiting_to_ship}</div>
+                  {/* Status: dot + text */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
+                    <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: cfg.dot, whiteSpace: 'nowrap' }}>{cfg.label}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'center' }}>
-                    <div style={{ width: 40, height: 5, borderRadius: 3, background: t.color.border, overflow: 'hidden' }}>
-                      <div style={{ width: `${Math.min(pct, 100)}%`, height: '100%', borderRadius: 3, background: pctColor, transition: 'width 0.4s ease' }} />
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 700, ...S.mono, color: pctColor, minWidth: 28 }}>{pct}%</span>
+                  {/* Ring progress */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <RingProgress pct={pct} />
                   </div>
                 </div>
 
                 {/* ── Expanded detail ── */}
                 {isExpanded && (
-                  <div style={{ background: 'linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%)', borderTop: '1px solid #c7d2fe', padding: '16px 20px' }}>
+                  <div style={{ background: 'linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%)', borderTop: `1px solid ${t.color.border}`, padding: '16px 20px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
                       {/* Left: PO list */}
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: '#1e40af' }}>相關採購單</span>
-                          <span style={{ fontSize: 11, padding: '1px 8px', borderRadius: 10, background: '#dbeafe', color: '#2563eb', fontWeight: 600 }}>{row.po_count} 張</span>
+                          <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.link }}>相關採購單</span>
+                          <span style={{ fontSize: t.fontSize.tiny, padding: '1px 8px', borderRadius: t.radius.pill, background: '#dbeafe', color: '#2563eb', fontWeight: t.fontWeight.semibold }}>{row.po_count} 張</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {row.po_list.map(po => {
@@ -235,14 +254,14 @@ export default function ProcurementCenter({ setTab }) {
                             return (
                               <div key={po.po_id}
                                 onClick={e => { e.stopPropagation(); window.localStorage.setItem(PO_DIRECT_KEY, JSON.stringify({ id: po.po_id, po_no: po.po_no, status: po.status, po_date: po.po_date, vendor_id: po.vendor_id })); setTab?.('purchase_orders'); }}
-                                style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: t.color.bgCard, borderRadius: t.radius.md, border: '1px solid #e5e7eb', fontSize: 12, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
+                                style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: t.color.bgCard, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, fontSize: t.fontSize.caption, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
                                 onMouseEnter={e => { e.currentTarget.style.borderColor = t.color.link; e.currentTarget.style.boxShadow = '0 2px 8px rgba(59,130,246,0.12)'; }}
                                 onMouseLeave={e => { e.currentTarget.style.borderColor = t.color.border; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.03)'; }}
                               >
-                                <span style={{ fontWeight: 700, color: '#1e40af', ...S.mono, fontSize: 12 }}>{po.po_no}</span>
-                                <span style={{ padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600, background: sc.bg, color: sc.color }}>{PO_STATUS_MAP[po.status] || po.status}</span>
-                                <span style={{ color: t.color.textDisabled, ...S.mono, fontSize: 11 }}>{po.po_date?.slice(0, 10) || ''}</span>
-                                {po.vendor_name && <span style={{ color: t.color.textSecondary, marginLeft: 'auto', fontSize: 11, fontWeight: t.fontWeight.medium }}>{po.vendor_name}</span>}
+                                <span style={{ fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{po.po_no}</span>
+                                <span style={{ padding: '1px 6px', borderRadius: t.radius.sm, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: sc.bg, color: sc.color }}>{PO_STATUS_MAP[po.status] || po.status}</span>
+                                <span style={{ color: t.color.textDisabled, ...S.mono, fontSize: t.fontSize.tiny }}>{po.po_date?.slice(0, 10) || ''}</span>
+                                {po.vendor_name && <span style={{ color: t.color.textSecondary, marginLeft: 'auto', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.medium }}>{po.vendor_name}</span>}
                               </div>
                             );
                           })}
@@ -252,25 +271,25 @@ export default function ProcurementCenter({ setTab }) {
                       {/* Right: FIFO allocation */}
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: '#6d28d9' }}>配貨建議</span>
-                          <span style={{ fontSize: 11, padding: '1px 8px', borderRadius: 10, background: '#ede9fe', color: '#7c3aed', fontWeight: 600 }}>FIFO</span>
+                          <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.purple }}>配貨建議</span>
+                          <span style={{ fontSize: t.fontSize.tiny, padding: '1px 8px', borderRadius: t.radius.pill, background: '#ede9fe', color: '#7c3aed', fontWeight: t.fontWeight.semibold }}>FIFO</span>
                         </div>
                         {waiting.length === 0 ? (
-                          <div style={{ padding: '16px', background: t.color.bgCard, borderRadius: 8, border: '1px dashed #d1d5db', fontSize: 12, color: t.color.textDisabled, textAlign: 'center' }}>目前無待出貨訂單需要此品項</div>
+                          <div style={{ padding: '16px', background: t.color.bgCard, borderRadius: t.radius.md, border: `1px dashed ${t.color.border}`, fontSize: t.fontSize.caption, color: t.color.textDisabled, textAlign: 'center' }}>目前無待出貨訂單需要此品項</div>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {waiting.map((wo, i) => (
                               <div key={wo.order_id || i}
                                 onClick={e => { e.stopPropagation(); if (wo.order_id) { window.localStorage.setItem(ORDER_DIRECT_KEY, JSON.stringify({ id: wo.order_id, order_no: wo.order_no })); setTab?.('orders'); } }}
-                                style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: t.color.bgCard, borderRadius: 8, border: '1px solid #e9d5ff', fontSize: 12, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
-                                onMouseEnter={e => { e.currentTarget.style.borderColor = '#7c3aed'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(124,58,237,0.12)'; }}
+                                style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 12px', background: t.color.bgCard, borderRadius: t.radius.md, border: `1px solid #e9d5ff`, fontSize: t.fontSize.caption, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = t.color.purple; e.currentTarget.style.boxShadow = '0 2px 8px rgba(124,58,237,0.12)'; }}
                                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#e9d5ff'; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.03)'; }}
                               >
-                                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', background: '#ede9fe', color: '#7c3aed', fontSize: 10, fontWeight: 700 }}>#{i + 1}</span>
-                                <span style={{ fontWeight: 700, color: '#6d28d9', ...S.mono, fontSize: 11 }}>{wo.order_no || '-'}</span>
-                                <span style={{ color: t.color.textSecondary, fontSize: 12 }}>{wo.customer_name}</span>
-                                <span style={{ padding: '1px 6px', borderRadius: 4, background: t.color.warningBg, color: '#b45309', fontWeight: 700, ...S.mono, fontSize: 11 }}>x{wo.qty_needed}</span>
-                                <span style={{ color: t.color.textDisabled, marginLeft: 'auto', ...S.mono, fontSize: 10 }}>{wo.created_at ? fmtDate(wo.created_at) : wo.order_date ? wo.order_date.slice(0, 10) : ''}</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', background: '#ede9fe', color: t.color.purple, fontSize: 10, fontWeight: t.fontWeight.bold }}>#{i + 1}</span>
+                                <span style={{ fontWeight: t.fontWeight.bold, color: t.color.purple, ...S.mono, fontSize: t.fontSize.tiny }}>{wo.order_no || '-'}</span>
+                                <span style={{ color: t.color.textSecondary, fontSize: t.fontSize.caption }}>{wo.customer_name}</span>
+                                <span style={{ padding: '1px 6px', borderRadius: t.radius.sm, background: t.color.warningBg, color: '#b45309', fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.tiny }}>x{wo.qty_needed}</span>
+                                <span style={{ color: t.color.textDisabled, marginLeft: 'auto', ...S.mono, fontSize: t.fontSize.tiny }}>{wo.created_at ? fmtDate(wo.created_at) : wo.order_date ? wo.order_date.slice(0, 10) : ''}</span>
                               </div>
                             ))}
                           </div>
@@ -285,7 +304,7 @@ export default function ProcurementCenter({ setTab }) {
         </div>
       )}
 
-      <Pager page={data.page || 1} limit={data.limit || 50} total={data.total || 0} onPageChange={p => { setPage(p); load(p, search, statusF); }} />
+      <Pager page={data.page || 1} limit={data.limit || 50} total={data.total || 0} onPageChange={pg => { setPage(pg); load(pg, search, statusF); }} />
     </div>
   );
 }
