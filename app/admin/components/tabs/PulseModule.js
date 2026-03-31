@@ -82,7 +82,7 @@ function Field({ label, required, children }) {
 
 /* ── Volume Trend Bar Chart ── */
 function VolumeTrendChart({ data, height = 200 }) {
-  if (!data || data.length === 0) return <div style={{ textAlign: 'center', color: t.color.textMuted, padding: 20 }}>無數據</div>;
+  if (!data || !Array.isArray(data) || data.length === 0) return <div style={{ textAlign: 'center', color: t.color.textMuted, padding: 20 }}>無數據</div>;
 
   const maxValue = Math.max(...data.map(d => d.count || 0), 1);
 
@@ -153,7 +153,7 @@ function DashboardTab() {
         apiGet({ action: 'pulse_dashboard' }),
         apiGet({ action: 'pulse_volume_trend' }),
       ]);
-      setData({ dashboard: dashRes, trend: trendRes });
+      setData({ dashboard: dashRes, trend: Array.isArray(trendRes) ? trendRes : [] });
     } catch (e) {
       console.error('Dashboard load error:', e);
     } finally {
@@ -221,7 +221,7 @@ function DashboardTab() {
       {/* Recent Alerts */}
       <div style={{ ...S.card }}>
         <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 12 }}>最近警示</div>
-        {d.recent_alerts && d.recent_alerts.length > 0 ? (
+        {Array.isArray(d.recent_alerts) && d.recent_alerts.length > 0 ? (
           <div>
             {d.recent_alerts.slice(0, 5).map((alert, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: i < d.recent_alerts.length - 1 ? `1px solid ${t.color.borderLight}` : 'none' }}>
@@ -311,15 +311,15 @@ function PostsTab() {
             <div key={post.id} onClick={() => setSelectedPost(post)} style={{ ...S.card, cursor: 'pointer', marginBottom: 10, transition: 'all 0.2s', ':hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' } }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</div>
+                  <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content || post.title}</div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <Tag label={SENTIMENT_MAP[post.sentiment]?.label || '未分類'} color={SENTIMENT_MAP[post.sentiment]?.color || t.color.textMuted} />
-                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>{post.source}</span>
-                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>{fmtDate(post.created_at, 'YYYY-MM-DD')}</span>
+                    {(() => { const s = Array.isArray(post.sentiment) ? post.sentiment[0]?.sentiment : post.sentiment; return <Tag label={SENTIMENT_MAP[s]?.label || '未分類'} color={SENTIMENT_MAP[s]?.color || t.color.textMuted} />; })()}
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>{post.source_type || post.source}</span>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>{fmtDate(post.created_at)}</span>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, ...S.mono }}>{post.engagement_score}</div>
+                  <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, ...S.mono }}>{Array.isArray(post.sentiment) ? post.sentiment[0]?.confidence_score || '-' : post.engagement_score || '-'}</div>
                 </div>
               </div>
             </div>
@@ -420,7 +420,7 @@ function TopicsTab() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 6 }}>{topic.keyword}</div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
-                    {topic.aliases && topic.aliases.map((alias, i) => (
+                    {Array.isArray(topic.aliases) && topic.aliases.map((alias, i) => (
                       <Tag key={i} label={alias} color={t.color.textMuted} />
                     ))}
                   </div>
