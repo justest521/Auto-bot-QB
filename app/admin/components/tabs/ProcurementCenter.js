@@ -20,7 +20,7 @@ const STATUS_CFG = {
 const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
 const PO_STATUS_COLOR = { draft: { bg: '#f3f4f6', color: t.color.textMuted }, sent: { bg: '#dbeafe', color: '#2563eb' }, confirmed: { bg: t.color.successBg, color: t.color.brand }, shipped: { bg: t.color.warningBg, color: '#b45309' }, received: { bg: t.color.successBg, color: '#15803d' }, rejected: { bg: t.color.errorBg, color: t.color.error }, cancelled: { bg: '#f3f4f6', color: t.color.textDisabled } };
 
-const GRID_COLS = '110px minmax(0,1fr) 55px 60px 60px 60px 65px 65px 90px 90px';
+const GRID_COLS = '110px minmax(0,1fr) 58px 58px 58px 58px 58px 58px 88px 80px';
 
 const SORT_COLS = [
   { key: 'item_number', label: '料號' },
@@ -172,7 +172,7 @@ export default function ProcurementCenter({ setTab }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}>
         <div style={{ position: 'relative', flex: 1, maxWidth: isMobile ? '100%' : 320 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋料號或品名..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: t.fontSize.caption, padding: '8px 12px 8px 34px', borderRadius: t.radius.md }} />
-          <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: t.color.textDisabled, pointerEvents: 'none' }}>&#x1F50D;</span>
+          <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: t.color.textDisabled, pointerEvents: 'none' }}>&#x2315;</span>
         </div>
         <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '8px 20px', fontSize: t.fontSize.caption, borderRadius: t.radius.md, minHeight: isMobile ? 42 : 'auto' }}>查詢</button>
         {search && <button onClick={() => { setSearch(''); load(1, '', statusF); }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: t.fontSize.caption, borderRadius: t.radius.md, color: t.color.textMuted }}>清除</button>}
@@ -183,11 +183,11 @@ export default function ProcurementCenter({ setTab }) {
       {loading ? <Loading /> : data.rows?.length === 0 ? <EmptyState text="目前沒有採購中的品項" /> : (
         <div style={{ ...S.card, padding: 0, overflow: isMobile ? 'auto' : 'hidden', border: `1px solid ${t.color.border}`, ...(isMobile ? { overflowX: 'auto', WebkitOverflowScrolling: 'touch' } : {}) }}>
           {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0, padding: '10px 16px', background: t.color.bgMuted, borderBottom: `2px solid ${t.color.border}`, alignItems: 'center', minWidth: isMobile ? 'min-content' : 'auto' }}>
-            {SORT_COLS.map(col => (
+          <div style={{ display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0, background: t.color.bgMuted, borderBottom: `2px solid ${t.color.border}`, alignItems: 'center', minWidth: isMobile ? 'min-content' : 'auto' }}>
+            {SORT_COLS.map((col, ci) => (
               <div key={col.key}
                 onClick={() => { if (sortKey === col.key) { setSortDir(d => d === 'asc' ? 'desc' : 'asc'); } else { setSortKey(col.key); setSortDir('desc'); } }}
-                style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: col.center ? 'center' : 'flex-start', gap: 3, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: sortKey === col.key ? t.color.link : t.color.textMuted, transition: 'color 0.15s', whiteSpace: 'nowrap' }}
+                style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: col.center ? 'flex-end' : 'flex-start', gap: 3, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: sortKey === col.key ? t.color.link : t.color.textMuted, transition: 'color 0.15s', whiteSpace: 'nowrap', padding: '10px 10px', borderRight: ci < SORT_COLS.length - 1 ? `1px solid ${t.color.border}` : 'none' }}
               >
                 {col.label}
                 <span style={{ fontSize: 8, opacity: sortKey === col.key ? 1 : 0.3 }}>
@@ -209,7 +209,7 @@ export default function ProcurementCenter({ setTab }) {
                 <div
                   onClick={() => toggleExpand(row.item_number)}
                   style={{
-                    display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0, padding: '10px 16px',
+                    display: 'grid', gridTemplateColumns: GRID_COLS, gap: 0,
                     borderTop: idx > 0 ? `1px solid ${t.color.borderLight}` : 'none', alignItems: 'center', cursor: 'pointer',
                     background: isExpanded ? '#eef2ff' : idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted,
                     transition: 'all 0.15s',
@@ -219,23 +219,31 @@ export default function ProcurementCenter({ setTab }) {
                   onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.background = '#f0f7ff'; }}
                   onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.background = isExpanded ? '#eef2ff' : idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted; }}
                 >
-                  <div style={{ fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.caption, color: t.color.link, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.item_number}</div>
-                  <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>{row.description || '-'}</div>
-                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.body, color: row.stock_qty > 0 ? t.color.link : t.color.borderLight }}>{row.stock_qty || 0}</div>
-                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.body, color: t.color.textSecondary }}>{row.total_ordered}</div>
-                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.body, color: row.total_received > 0 ? t.color.success : t.color.borderLight }}>{row.total_received}</div>
-                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.body, color: row.still_needed > 0 ? t.color.error : t.color.brand }}>{row.still_needed}</div>
-                  <div style={{ textAlign: 'center', ...S.mono, fontSize: t.fontSize.caption, color: t.color.textMuted }}>{row.demand_qty || 0}</div>
-                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.caption, color: row.waiting_to_ship > 0 ? '#d97706' : t.color.borderLight }}>{row.waiting_to_ship}</div>
-                  {/* Status: dot + text */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
-                    <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: cfg.dot, whiteSpace: 'nowrap' }}>{cfg.label}</span>
-                  </div>
-                  {/* Ring progress */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <RingProgress pct={pct} />
-                  </div>
+                  {/* -- Cells with dividers -- */}
+                  {(() => {
+                    const bdr = { borderRight: `1px solid ${t.color.borderLight}` };
+                    const numCell = (val, color, bold) => ({ textAlign: 'right', fontWeight: bold ? t.fontWeight.bold : t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.body, color: val > 0 ? color : t.color.borderLight, padding: '12px 10px', ...bdr });
+                    const zero = (v) => v > 0 ? v.toLocaleString() : '-';
+                    return <>
+                      <div style={{ fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.caption, color: t.color.link, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '12px 10px', ...bdr }}>{row.item_number}</div>
+                      <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '12px 10px', ...bdr }}>{row.description || '-'}</div>
+                      <div style={numCell(row.stock_qty, t.color.link, false)}>{zero(row.stock_qty)}</div>
+                      <div style={numCell(row.total_ordered, t.color.textSecondary, false)}>{zero(row.total_ordered)}</div>
+                      <div style={numCell(row.total_received, t.color.success, true)}>{zero(row.total_received)}</div>
+                      <div style={numCell(row.still_needed, row.still_needed > 0 ? t.color.error : t.color.brand, true)}>{zero(row.still_needed)}</div>
+                      <div style={numCell(row.demand_qty, t.color.textMuted, false)}>{zero(row.demand_qty)}</div>
+                      <div style={numCell(row.waiting_to_ship, '#d97706', false)}>{zero(row.waiting_to_ship)}</div>
+                      {/* Status */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '12px 6px', ...bdr }}>
+                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
+                        <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: cfg.dot, whiteSpace: 'nowrap' }}>{cfg.label}</span>
+                      </div>
+                      {/* Ring */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px 6px' }}>
+                        <RingProgress pct={pct} />
+                      </div>
+                    </>;
+                  })()}
                 </div>
 
                 {/* ── Expanded detail ── */}
