@@ -89,16 +89,16 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
   };
 
   return (
-    <div style={{ padding: D.size.lg, maxWidth: '600px', margin: '0 auto' }}>
+    <div style={{ padding: 32, maxWidth: '600px', margin: '0 auto' }}>
       {/* Profile Card */}
       <div style={{
         background: D.color.surface,
         borderRadius: D.radius.lg,
-        padding: D.size.lg,
-        marginBottom: D.size.xl,
+        padding: 32,
+        marginBottom: 32,
         border: `1px solid ${D.color.border}`,
       }}>
-        <div style={{ display: 'flex', gap: D.size.md, marginBottom: D.size.lg }}>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 32 }}>
           <div style={{
             width: '64px',
             height: '64px',
@@ -108,7 +108,7 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
-            fontSize: D.font.lg,
+            fontSize: D.size.h2,
             fontWeight: 'bold',
             flexShrink: 0,
           }}>
@@ -116,23 +116,23 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
           </div>
           <div style={{ flex: 1 }}>
             <div style={{
-              fontSize: D.font.base,
+              fontSize: D.size.body,
               fontWeight: '600',
               color: D.color.text,
-              marginBottom: D.size.xs,
+              marginBottom: 4,
             }}>
               {user?.display_name}
             </div>
             <div style={{
-              fontSize: D.font.sm,
-              color: D.color.textSecondary,
-              marginBottom: D.size.xs,
+              fontSize: D.size.body,
+              color: D.color.text3,
+              marginBottom: 4,
             }}>
               {getRoleLabel(user?.role)}
             </div>
             <div style={{
-              fontSize: D.font.sm,
-              color: D.color.textSecondary,
+              fontSize: D.size.body,
+              color: D.color.text3,
             }}>
               {user?.company_name}
             </div>
@@ -142,20 +142,20 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: D.size.md,
+          gap: 12,
           borderTop: `1px solid ${D.color.border}`,
-          paddingTop: D.size.md,
+          paddingTop: 12,
         }}>
           <div>
             <div style={{
-              fontSize: D.font.xs,
-              color: D.color.textSecondary,
-              marginBottom: D.size.xs,
+              fontSize: D.size.caption,
+              color: D.color.text3,
+              marginBottom: 4,
             }}>
               電話
             </div>
             <div style={{
-              fontSize: D.font.sm,
+              fontSize: D.size.body,
               color: D.color.text,
             }}>
               {user?.phone || '—'}
@@ -163,14 +163,14 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
           </div>
           <div>
             <div style={{
-              fontSize: D.font.xs,
-              color: D.color.textSecondary,
-              marginBottom: D.size.xs,
+              fontSize: D.size.caption,
+              color: D.color.text3,
+              marginBottom: 4,
             }}>
               郵箱
             </div>
             <div style={{
-              fontSize: D.font.sm,
+              fontSize: D.size.body,
               color: D.color.text,
               wordBreak: 'break-all',
             }}>
@@ -185,15 +185,15 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
         <div style={{
           background: D.color.surface,
           borderRadius: D.radius.lg,
-          padding: D.size.lg,
-          marginBottom: D.size.xl,
+          padding: 32,
+          marginBottom: 32,
           border: `1px solid ${D.color.border}`,
         }}>
           <div style={{
-            fontSize: D.font.base,
+            fontSize: D.size.body,
             fontWeight: '600',
             color: D.color.text,
-            marginBottom: D.size.md,
+            marginBottom: 12,
           }}>
             修改密碼
           </div>
@@ -204,13 +204,13 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
             onChange={(e) => setNewPassword(e.target.value)}
             style={{
               width: '100%',
-              padding: D.size.sm,
+              padding: 8,
               border: `1px solid ${D.color.border}`,
               borderRadius: D.radius.sm,
-              fontSize: D.font.sm,
-              marginBottom: D.size.sm,
+              fontSize: D.size.body,
+              marginBottom: 8,
               boxSizing: 'border-box',
-              fontFamily: D.font.family,
+              fontFamily: D.font.mono,
             }}
           />
           <input
@@ -220,29 +220,29 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
             onChange={(e) => setConfirmPassword(e.target.value)}
             style={{
               width: '100%',
-              padding: D.size.sm,
+              padding: 8,
               border: `1px solid ${D.color.border}`,
               borderRadius: D.radius.sm,
-              fontSize: D.font.sm,
-              marginBottom: D.size.md,
+              fontSize: D.size.body,
+              marginBottom: 12,
               boxSizing: 'border-box',
-              fontFamily: D.font.family,
+              fontFamily: D.font.mono,
             }}
           />
-          <div style={{ display: 'flex', gap: D.size.sm }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={handleChangePassword}
               disabled={passwordLoading}
               style={{
                 flex: 1,
-                padding: D.size.sm,
+                padding: 8,
                 background: D.color.primary,
                 color: 'white',
                 border: 'none',
                 borderRadius: D.radius.sm,
                 cursor: 'pointer',
-                fontFamily: D.font.family,
-                fontSize: D.font.sm,
+                fontFamily: D.font.mono,
+                fontSize: D.size.body,
                 opacity: passwordLoading ? 0.6 : 1,
               }}
             >
@@ -256,14 +256,14 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
               }}
               style={{
                 flex: 1,
-                padding: D.size.sm,
+                padding: 8,
                 background: D.color.surface,
                 color: D.color.text,
                 border: `1px solid ${D.color.border}`,
                 borderRadius: D.radius.sm,
                 cursor: 'pointer',
-                fontFamily: D.font.family,
-                fontSize: D.font.sm,
+                fontFamily: D.font.mono,
+                fontSize: D.size.body,
               }}
             >
               取消
@@ -275,15 +275,15 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
           onClick={() => setShowPassword(true)}
           style={{
             width: '100%',
-            padding: D.size.md,
+            padding: 12,
             background: D.color.surface,
             color: D.color.text,
             border: `1px solid ${D.color.border}`,
             borderRadius: D.radius.lg,
             cursor: 'pointer',
-            fontFamily: D.font.family,
-            fontSize: D.font.sm,
-            marginBottom: D.size.xl,
+            fontFamily: D.font.mono,
+            fontSize: D.size.body,
+            marginBottom: 32,
             textAlign: 'left',
           }}
         >
@@ -292,12 +292,12 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
       )}
 
       {/* Notifications */}
-      <div style={{ marginBottom: D.size.xl }}>
+      <div style={{ marginBottom: 32 }}>
         <div style={{
-          fontSize: D.font.base,
+          fontSize: D.size.body,
           fontWeight: '600',
           color: D.color.text,
-          marginBottom: D.size.md,
+          marginBottom: 12,
         }}>
           最近通知 ({notifications.length})
         </div>
@@ -305,7 +305,7 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
           <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: D.size.sm,
+            gap: 8,
           }}>
             {notifications.map((notif, idx) => (
               <div
@@ -314,46 +314,46 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
                   background: D.color.surface,
                   border: `1px solid ${D.color.border}`,
                   borderRadius: D.radius.md,
-                  padding: D.size.md,
+                  padding: 12,
                   display: 'flex',
-                  gap: D.size.md,
+                  gap: 12,
                 }}
               >
                 <div style={{
-                  fontSize: D.font.lg,
+                  fontSize: D.size.h2,
                   flexShrink: 0,
                 }}>
                   {getNotificationIcon(notif.type)}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{
-                    fontSize: D.font.sm,
+                    fontSize: D.size.body,
                     color: D.color.text,
-                    marginBottom: D.size.xs,
+                    marginBottom: 4,
                   }}>
                     {notif.message}
                   </div>
                   {notif.order_no && (
                     <div style={{
-                      fontSize: D.font.xs,
-                      color: D.color.textSecondary,
-                      marginBottom: D.size.xs,
+                      fontSize: D.size.caption,
+                      color: D.color.text3,
+                      marginBottom: 4,
                     }}>
                       訂單: {notif.order_no}
                     </div>
                   )}
                   {notif.amount && (
                     <div style={{
-                      fontSize: D.font.xs,
-                      color: D.color.textSecondary,
-                      marginBottom: D.size.xs,
+                      fontSize: D.size.caption,
+                      color: D.color.text3,
+                      marginBottom: 4,
                     }}>
                       金額: ${notif.amount}
                     </div>
                   )}
                   <div style={{
-                    fontSize: D.font.xs,
-                    color: D.color.textSecondary,
+                    fontSize: D.size.caption,
+                    color: D.color.text3,
                   }}>
                     {formatTime(notif.created_at)}
                   </div>
@@ -364,8 +364,8 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
         ) : (
           <div style={{
             textAlign: 'center',
-            padding: D.size.lg,
-            color: D.color.textSecondary,
+            padding: 32,
+            color: D.color.text3,
             background: D.color.surface,
             borderRadius: D.radius.md,
             border: `1px solid ${D.color.border}`,
@@ -380,16 +380,16 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
         onClick={onLogout}
         style={{
           width: '100%',
-          padding: D.size.md,
+          padding: 12,
           background: D.color.error,
           color: 'white',
           border: 'none',
           borderRadius: D.radius.lg,
           cursor: 'pointer',
-          fontFamily: D.font.family,
-          fontSize: D.font.base,
+          fontFamily: D.font.mono,
+          fontSize: D.size.body,
           fontWeight: '600',
-          marginBottom: D.size.lg,
+          marginBottom: 32,
         }}
       >
         登出
@@ -398,15 +398,15 @@ export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPos
       {/* App Info */}
       <div style={{
         textAlign: 'center',
-        padding: D.size.md,
-        color: D.color.textSecondary,
-        fontSize: D.font.xs,
+        padding: 12,
+        color: D.color.text3,
+        fontSize: D.size.caption,
         borderTop: `1px solid ${D.color.border}`,
       }}>
-        <div style={{ marginBottom: D.size.xs }}>
+        <div style={{ marginBottom: 4 }}>
           QB ERP Dealer Portal
         </div>
-        <div style={{ marginBottom: D.size.xs }}>
+        <div style={{ marginBottom: 4 }}>
           版本 1.0.0
         </div>
         <div>

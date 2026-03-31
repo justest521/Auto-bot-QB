@@ -53,13 +53,13 @@ export default function DealerInventory({ token, dealerGet }) {
   };
 
   return (
-    <div style={{ padding: D.size.lg }}>
+    <div style={{ padding: 32 }}>
       {/* Summary Strip */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: D.size.md,
-        marginBottom: D.size.xl,
+        gap: 12,
+        marginBottom: 32,
       }}>
         {[
           { label: '總產品數', value: stats.total },
@@ -71,13 +71,13 @@ export default function DealerInventory({ token, dealerGet }) {
             background: D.color.background,
             border: `1px solid ${D.color.border}`,
             borderRadius: D.radius.md,
-            padding: D.size.md,
+            padding: 12,
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: D.font.sm, color: D.color.textSecondary }}>
+            <div style={{ fontSize: D.size.body, color: D.color.text3 }}>
               {stat.label}
             </div>
-            <div style={{ fontSize: D.font.xl, fontWeight: 'bold', color: D.color.primary, marginTop: D.size.xs }}>
+            <div style={{ fontSize: D.size.h3, fontWeight: 'bold', color: D.color.primary, marginTop: 4 }}>
               {stat.value}
             </div>
           </div>
@@ -87,8 +87,8 @@ export default function DealerInventory({ token, dealerGet }) {
       {/* Search & Filter */}
       <div style={{
         display: 'flex',
-        gap: D.size.md,
-        marginBottom: D.size.lg,
+        gap: 12,
+        marginBottom: 32,
         flexWrap: 'wrap',
       }}>
         <input
@@ -99,27 +99,27 @@ export default function DealerInventory({ token, dealerGet }) {
           style={{
             flex: 1,
             minWidth: '200px',
-            padding: D.size.sm,
+            padding: 8,
             border: `1px solid ${D.color.border}`,
             borderRadius: D.radius.sm,
-            fontSize: D.font.base,
-            fontFamily: D.font.family,
+            fontSize: D.size.body,
+            fontFamily: D.font.mono,
           }}
         />
-        <div style={{ display: 'flex', gap: D.size.sm }}>
+        <div style={{ display: 'flex', gap: 8 }}>
           {['全部', '有庫存', '缺貨'].map(filter => (
             <button
               key={filter}
               onClick={() => setStockFilter(filter)}
               style={{
-                padding: `${D.size.sm} ${D.size.md}`,
+                padding: `8 12`,
                 border: `1px solid ${stockFilter === filter ? D.color.primary : D.color.border}`,
                 background: stockFilter === filter ? D.color.primary : 'white',
                 color: stockFilter === filter ? 'white' : D.color.text,
                 borderRadius: D.radius.sm,
                 cursor: 'pointer',
-                fontSize: D.font.sm,
-                fontFamily: D.font.family,
+                fontSize: D.size.body,
+                fontFamily: D.font.mono,
               }}
             >
               {filter}
@@ -132,8 +132,8 @@ export default function DealerInventory({ token, dealerGet }) {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: D.size.md,
-        marginBottom: D.size.lg,
+        gap: 12,
+        marginBottom: 32,
       }}>
         {products.map(product => {
           const status = getStockStatus(product.stock_qty);
@@ -143,36 +143,36 @@ export default function DealerInventory({ token, dealerGet }) {
               style={{
                 border: `1px solid ${D.color.border}`,
                 borderRadius: D.radius.md,
-                padding: D.size.md,
+                padding: 12,
                 background: 'white',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
               }}
             >
               <div style={{
                 fontFamily: 'monospace',
-                fontSize: D.font.xs,
-                color: D.color.textSecondary,
-                marginBottom: D.size.xs,
+                fontSize: D.size.caption,
+                color: D.color.text3,
+                marginBottom: 4,
               }}>
                 {product.item_number}
               </div>
               <div style={{
-                fontSize: D.font.base,
+                fontSize: D.size.body,
                 fontWeight: '600',
                 color: D.color.text,
-                marginBottom: D.size.sm,
+                marginBottom: 8,
                 lineHeight: 1.3,
               }}>
                 {product.description}
               </div>
-              <div style={{ marginBottom: D.size.md }}>
+              <div style={{ marginBottom: 12 }}>
                 <span style={{
                   display: 'inline-block',
                   background: D.color.surface,
-                  color: D.color.textSecondary,
-                  padding: `${D.size.xs} ${D.size.sm}`,
+                  color: D.color.text3,
+                  padding: `4 8`,
                   borderRadius: D.radius.sm,
-                  fontSize: D.font.xs,
+                  fontSize: D.size.caption,
                 }}>
                   {product.category}
                 </span>
@@ -182,15 +182,15 @@ export default function DealerInventory({ token, dealerGet }) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderTop: `1px solid ${D.color.border}`,
-                paddingTop: D.size.md,
+                paddingTop: 12,
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: D.size.xs }}>
-                  <span style={{ fontSize: D.font.lg }}>{status.dot}</span>
-                  <span style={{ fontSize: D.font.sm, color: status.color }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: D.size.h2 }}>{status.dot}</span>
+                  <span style={{ fontSize: D.size.body, color: status.color }}>
                     {status.label}
                   </span>
                 </div>
-                <div style={{ fontSize: D.font.base, fontWeight: '600', color: D.color.text }}>
+                <div style={{ fontSize: D.size.body, fontWeight: '600', color: D.color.text }}>
                   {product.stock_qty}
                 </div>
               </div>
@@ -204,19 +204,19 @@ export default function DealerInventory({ token, dealerGet }) {
         <div style={{
           display: 'flex',
           justifyContent: 'center',
-          gap: D.size.md,
-          marginTop: D.size.xl,
+          gap: 12,
+          marginTop: 32,
         }}>
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
             style={{
-              padding: `${D.size.sm} ${D.size.md}`,
+              padding: `8 12`,
               border: `1px solid ${D.color.border}`,
               borderRadius: D.radius.sm,
               cursor: page === 1 ? 'not-allowed' : 'pointer',
               opacity: page === 1 ? 0.5 : 1,
-              fontFamily: D.font.family,
+              fontFamily: D.font.mono,
             }}
           >
             上一頁
@@ -224,8 +224,8 @@ export default function DealerInventory({ token, dealerGet }) {
           <span style={{
             display: 'flex',
             alignItems: 'center',
-            padding: `0 ${D.size.md}`,
-            fontSize: D.font.sm,
+            padding: `0 12`,
+            fontSize: D.size.body,
           }}>
             第 {page} 頁
           </span>
@@ -233,12 +233,12 @@ export default function DealerInventory({ token, dealerGet }) {
             onClick={() => setPage(p => p + 1)}
             disabled={!hasMore}
             style={{
-              padding: `${D.size.sm} ${D.size.md}`,
+              padding: `8 12`,
               border: `1px solid ${D.color.border}`,
               borderRadius: D.radius.sm,
               cursor: !hasMore ? 'not-allowed' : 'pointer',
               opacity: !hasMore ? 0.5 : 1,
-              fontFamily: D.font.family,
+              fontFamily: D.font.mono,
             }}
           >
             下一頁
@@ -247,7 +247,7 @@ export default function DealerInventory({ token, dealerGet }) {
       )}
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: D.size.lg, color: D.color.textSecondary }}>
+        <div style={{ textAlign: 'center', padding: 32, color: D.color.text3 }}>
           加載中...
         </div>
       )}

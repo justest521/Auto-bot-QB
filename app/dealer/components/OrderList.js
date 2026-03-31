@@ -107,7 +107,7 @@ const HealthScoreRing = ({ score, size = 48 }) => {
           fontSize: '10px',
           fontWeight: 600,
           fill: D.color.text,
-          fontFamily: D.font.family,
+          fontFamily: D.font.base,
         }}
       >
         {score}
@@ -143,9 +143,9 @@ const PaymentProgressBar = ({ paid, total }) => {
       <div
         style={{
           fontSize: 12,
-          color: D.color.textSecondary,
+          color: D.color.text3,
           marginTop: 4,
-          fontFamily: D.font.family,
+          fontFamily: D.font.base,
         }}
       >
         {Math.round(percentage)}% 已收
@@ -170,8 +170,8 @@ const OrderCard = ({ order, isSelected, onSelect }) => {
         borderColor: isSelected ? D.color.brand : D.color.border,
         borderWidth: isSelected ? 2 : 1,
         borderStyle: 'solid',
-        padding: D.spacing[3],
-        marginBottom: D.spacing[2],
+        padding: 12,
+        marginBottom: 8,
         animation: 'fadeIn 0.3s ease',
       }}
       onMouseEnter={(e) => {
@@ -182,23 +182,23 @@ const OrderCard = ({ order, isSelected, onSelect }) => {
       }}
     >
       {/* Header: Name + Health Score */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: D.spacing[2] }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div>
           <div
             style={{
-              fontSize: D.fontSize.base,
+              fontSize: D.size.h3,
               fontWeight: 600,
               color: D.color.text,
               marginBottom: 4,
-              fontFamily: D.font.family,
+              fontFamily: D.font.base,
             }}
           >
             {order.customer_name}
           </div>
           <div
             style={{
-              fontSize: D.fontSize.sm,
-              color: D.color.textSecondary,
+              fontSize: D.size.body,
+              color: D.color.text3,
               fontFamily: D.font.mono,
               letterSpacing: '0.5px',
             }}
@@ -210,14 +210,14 @@ const OrderCard = ({ order, isSelected, onSelect }) => {
       </div>
 
       {/* Status Tag */}
-      <div style={{ marginBottom: D.spacing[2] }}>
+      <div style={{ marginBottom: 8 }}>
         <span
           style={{
             ...D.tag,
             backgroundColor: getStatusTagColor(order.status, order.payment_status, order.line_user_id),
             color: D.color.white,
-            fontSize: D.fontSize.xs,
-            padding: `${D.spacing[1]} ${D.spacing[1.5]}`,
+            fontSize: D.size.caption,
+            padding: '4px 6px',
             display: 'inline-block',
           }}
         >
@@ -231,29 +231,29 @@ const OrderCard = ({ order, isSelected, onSelect }) => {
       {/* Footer: Amount + Date */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          <div style={{ fontSize: D.fontSize.xs, color: D.color.textSecondary, marginBottom: 4, fontFamily: D.font.family }}>
+          <div style={{ fontSize: D.size.caption, color: D.color.text3, marginBottom: 4, fontFamily: D.font.base }}>
             金額
           </div>
           <div
             style={{
-              fontSize: D.fontSize.lg,
+              fontSize: D.size.h2,
               fontWeight: 700,
               color: D.color.brand,
-              fontFamily: D.font.family,
+              fontFamily: D.font.base,
             }}
           >
             NT${order.total_amount?.toLocaleString() || '0'}
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: D.fontSize.xs, color: D.color.textSecondary, marginBottom: 4, fontFamily: D.font.family }}>
+          <div style={{ fontSize: D.size.caption, color: D.color.text3, marginBottom: 4, fontFamily: D.font.base }}>
             訂單日期
           </div>
           <div
             style={{
-              fontSize: D.fontSize.sm,
+              fontSize: D.size.body,
               color: D.color.text,
-              fontFamily: D.font.family,
+              fontFamily: D.font.base,
             }}
           >
             {new Date(order.order_date).toLocaleDateString('zh-TW')}
@@ -265,7 +265,7 @@ const OrderCard = ({ order, isSelected, onSelect }) => {
 };
 
 const SectionDivider = ({ title }) => (
-  <div style={{ display: 'flex', alignItems: 'center', margin: `${D.spacing[4]} 0 ${D.spacing[2]} 0` }}>
+  <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0 8px 0' }}>
     <div
       style={{
         flex: 1,
@@ -275,11 +275,11 @@ const SectionDivider = ({ title }) => (
     />
     <div
       style={{
-        fontSize: D.fontSize.sm,
+        fontSize: D.size.body,
         fontWeight: 600,
-        color: D.color.textSecondary,
-        padding: `0 ${D.spacing[2]}`,
-        fontFamily: D.font.family,
+        color: D.color.text3,
+        padding: '0 8px',
+        fontFamily: D.font.base,
       }}
     >
       {title}
@@ -302,9 +302,9 @@ const FilterPill = ({ label, isActive, onClick }) => (
       backgroundColor: isActive ? D.color.brand : D.color.surface,
       color: isActive ? D.color.white : D.color.text,
       border: `1px solid ${isActive ? D.color.brand : D.color.border}`,
-      padding: `${D.spacing[1]} ${D.spacing[2]}`,
-      fontSize: D.fontSize.sm,
-      fontFamily: D.font.family,
+      padding: '4px 8px',
+      fontSize: D.size.body,
+      fontFamily: D.font.base,
       cursor: 'pointer',
       whiteSpace: 'nowrap',
       transition: 'all 0.2s ease',
@@ -382,7 +382,7 @@ export default function OrderList({
       {/* Search Bar */}
       <div
         style={{
-          padding: D.spacing[3],
+          padding: 12,
           borderBottom: `1px solid ${D.color.border}`,
         }}
       >
@@ -393,13 +393,13 @@ export default function OrderList({
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{
             width: '100%',
-            padding: D.spacing[2],
-            fontSize: D.fontSize.sm,
+            padding: 8,
+            fontSize: D.size.body,
             border: `1px solid ${D.color.border}`,
             borderRadius: D.radius.md,
             backgroundColor: D.color.surface,
             color: D.color.text,
-            fontFamily: D.font.family,
+            fontFamily: D.font.base,
             boxSizing: 'border-box',
           }}
         />
@@ -409,8 +409,8 @@ export default function OrderList({
       <div
         style={{
           display: 'flex',
-          gap: D.spacing[2],
-          padding: D.spacing[3],
+          gap: 8,
+          padding: 12,
           borderBottom: `1px solid ${D.color.border}`,
           overflowX: 'auto',
         }}
@@ -430,15 +430,15 @@ export default function OrderList({
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: D.spacing[3],
+          padding: 12,
         }}
       >
         {loading ? (
-          <div style={{ textAlign: 'center', padding: D.spacing[4], color: D.color.textSecondary }}>
+          <div style={{ textAlign: 'center', padding: 16, color: D.color.text3 }}>
             加載中...
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: D.spacing[4], color: D.color.textSecondary }}>
+          <div style={{ textAlign: 'center', padding: 16, color: D.color.text3 }}>
             未找到訂單
           </div>
         ) : (

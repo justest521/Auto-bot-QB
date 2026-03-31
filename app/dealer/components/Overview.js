@@ -7,7 +7,7 @@ const Skeleton = ({ width = '100%', height = '20px', className = '' }) => (
     style={{
       width,
       height,
-      backgroundColor: D.color.light.skeleton,
+      backgroundColor: D.color.muted,
       borderRadius: D.radius.sm,
       animation: 'shimmer 1.5s infinite',
     }}
@@ -93,15 +93,15 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
       <div style={{ marginBottom: D.size.xl }}>
         <h1
           style={{
-            fontSize: D.font.size['3xl'],
-            fontWeight: D.font.weight.bold,
-            color: D.color.dark.primary,
+            fontSize: D.size.h1,
+            fontWeight: D.weight.bold,
+            color: D.color.text,
             margin: '0 0 8px 0',
           }}
         >
           早安，{user?.display_name || '使用者'}
         </h1>
-        <p style={{ color: D.color.dark.secondary, fontSize: D.font.size.sm, margin: 0 }}>
+        <p style={{ color: D.color.text2, fontSize: D.size.body, margin: 0 }}>
           {getDate()}
         </p>
       </div>
@@ -141,23 +141,23 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
             key={i}
             style={{
               padding: D.size.md,
-              backgroundColor: D.color.light.surface,
+              backgroundColor: D.color.card,
               borderRadius: D.radius.md,
-              border: `1px solid ${D.color.light.border}`,
+              border: `1px solid ${D.color.border}`,
               boxShadow: `0 1px 2px rgba(0,0,0,0.05)`,
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: D.size.sm }}>
               <span style={{ fontSize: '24px', marginRight: D.size.sm }}>{kpi.icon}</span>
-              <p style={{ fontSize: D.font.size.xs, color: D.color.dark.secondary, margin: 0 }}>
+              <p style={{ fontSize: D.size.caption, color: D.color.text2, margin: 0 }}>
                 {kpi.label}
               </p>
             </div>
             <p
               style={{
-                fontSize: D.font.size['2xl'],
-                fontWeight: D.font.weight.bold,
-                color: D.color.light.success,
+                fontSize: D.size.h2,
+                fontWeight: D.weight.bold,
+                color: D.color.success,
                 margin: 0,
               }}
             >
@@ -207,17 +207,17 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
         <div
           style={{
             padding: D.size.md,
-            backgroundColor: D.color.light.surface,
+            backgroundColor: D.color.card,
             borderRadius: D.radius.md,
-            border: `1px solid ${D.color.light.border}`,
+            border: `1px solid ${D.color.border}`,
             marginBottom: D.size.xl,
           }}
         >
           <h3
             style={{
-              fontSize: D.font.size.md,
-              fontWeight: D.font.weight.semibold,
-              color: D.color.dark.primary,
+              fontSize: D.size.h3,
+              fontWeight: D.weight.semi,
+              color: D.color.text,
               marginTop: 0,
               marginBottom: D.size.md,
             }}
@@ -253,8 +253,8 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
                 />
                 <p
                   style={{
-                    fontSize: D.font.size.xs,
-                    color: D.color.dark.secondary,
+                    fontSize: D.size.caption,
+                    color: D.color.text2,
                     marginTop: D.size.xs,
                     margin: 0,
                   }}
@@ -271,9 +271,9 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
       <div>
         <h3
           style={{
-            fontSize: D.font.size.md,
-            fontWeight: D.font.weight.semibold,
-            color: D.color.dark.primary,
+            fontSize: D.size.h3,
+            fontWeight: D.weight.semi,
+            color: D.color.text,
             marginTop: 0,
             marginBottom: D.size.md,
           }}
@@ -287,9 +287,9 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
                 key={order.id}
                 style={{
                   padding: D.size.md,
-                  backgroundColor: D.color.light.surface,
+                  backgroundColor: D.color.card,
                   borderRadius: D.radius.md,
-                  border: `1px solid ${D.color.light.border}`,
+                  border: `1px solid ${D.color.border}`,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -302,40 +302,40 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
                   e.currentTarget.style.borderColor = '#16a34a';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = D.color.light.surface;
-                  e.currentTarget.style.borderColor = D.color.light.border;
+                  e.currentTarget.style.backgroundColor = D.color.card;
+                  e.currentTarget.style.borderColor = D.color.border;
                 }}
               >
                 <div>
                   <p
                     style={{
-                      fontWeight: D.font.weight.semibold,
-                      color: D.color.dark.primary,
+                      fontWeight: D.weight.semi,
+                      color: D.color.text,
                       margin: '0 0 4px 0',
-                      fontSize: D.font.size.sm,
+                      fontSize: D.size.body,
                     }}
                   >
                     訂單 {order.order_number}
                   </p>
-                  <p style={{ fontSize: D.font.size.xs, color: D.color.dark.secondary, margin: 0 }}>
+                  <p style={{ fontSize: D.size.caption, color: D.color.text2, margin: 0 }}>
                     {order.created_at}
                   </p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <p
                     style={{
-                      fontWeight: D.font.weight.semibold,
+                      fontWeight: D.weight.semi,
                       color: '#16a34a',
                       margin: '0 0 4px 0',
-                      fontSize: D.font.size.sm,
+                      fontSize: D.size.body,
                     }}
                   >
                     {formatCurrency(order.total_amount)}
                   </p>
                   <p
                     style={{
-                      fontSize: D.font.size.xs,
-                      color: D.color.dark.secondary,
+                      fontSize: D.size.caption,
+                      color: D.color.text2,
                       margin: 0,
                       textTransform: 'uppercase',
                     }}
@@ -346,7 +346,7 @@ export default function Overview({ token, user, roleConfig, dealerGet, onNavigat
               </div>
             ))
           ) : (
-            <p style={{ color: D.color.dark.secondary, textAlign: 'center', padding: D.size.lg }}>
+            <p style={{ color: D.color.text2, textAlign: 'center', padding: D.size.lg }}>
               暫無訂單
             </p>
           )}

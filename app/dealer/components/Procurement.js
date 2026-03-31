@@ -123,10 +123,10 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
             style={{
               width: '100%',
               padding: `${D.size.sm} ${D.size.md}`,
-              border: `1px solid ${D.color.light.border}`,
+              border: `1px solid ${D.color.border}`,
               borderRadius: D.radius.md,
-              fontSize: D.font.size.sm,
-              fontFamily: D.font.family.sans,
+              fontSize: D.size.body,
+              fontFamily: D.font.base,
               boxSizing: 'border-box',
             }}
           />
@@ -138,9 +138,9 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
             alignItems: 'center',
             gap: D.size.sm,
             padding: `${D.size.sm} ${D.size.md}`,
-            backgroundColor: stockOnly ? '#f0fdf4' : D.color.light.surface,
+            backgroundColor: stockOnly ? '#f0fdf4' : D.color.card,
             borderRadius: D.radius.md,
-            border: `1px solid ${D.color.light.border}`,
+            border: `1px solid ${D.color.border}`,
             cursor: 'pointer',
             userSelect: 'none',
             transition: 'all 0.2s',
@@ -154,9 +154,9 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
           />
           <span
             style={{
-              fontSize: D.font.size.sm,
-              color: D.color.dark.primary,
-              fontWeight: D.font.weight.medium,
+              fontSize: D.size.body,
+              color: D.color.text,
+              fontWeight: D.weight.medium,
             }}
           >
             僅顯示有貨
@@ -167,7 +167,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
       {/* Products Grid */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: D.size.xl }}>
-          <p style={{ color: D.color.dark.secondary }}>加載中...</p>
+          <p style={{ color: D.color.text2 }}>加載中...</p>
         </div>
       ) : products.length > 0 ? (
         <>
@@ -186,9 +186,9 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                   key={product.item_number}
                   style={{
                     padding: D.size.md,
-                    backgroundColor: D.color.light.surface,
+                    backgroundColor: D.color.card,
                     borderRadius: D.radius.md,
-                    border: `1px solid ${D.color.light.border}`,
+                    border: `1px solid ${D.color.border}`,
                     display: 'flex',
                     flexDirection: 'column',
                     transition: 'all 0.2s',
@@ -199,7 +199,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.borderColor = D.color.light.border;
+                    e.currentTarget.style.borderColor = D.color.border;
                   }}
                 >
                   <div
@@ -212,10 +212,10 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                   >
                     <code
                       style={{
-                        fontSize: D.font.size.xs,
+                        fontSize: D.size.caption,
                         color: '#16a34a',
-                        fontFamily: D.font.family.mono,
-                        fontWeight: D.font.weight.bold,
+                        fontFamily: D.font.mono,
+                        fontWeight: D.weight.bold,
                       }}
                     >
                       {product.item_number}
@@ -224,9 +224,9 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
 
                   <p
                     style={{
-                      fontSize: D.font.size.sm,
-                      fontWeight: D.font.weight.semibold,
-                      color: D.color.dark.primary,
+                      fontSize: D.size.body,
+                      fontWeight: D.weight.semi,
+                      color: D.color.text,
                       margin: `0 0 ${D.size.sm} 0`,
                       flex: 1,
                     }}
@@ -241,14 +241,14 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                       alignItems: 'center',
                       marginBottom: D.size.md,
                       paddingTop: D.size.md,
-                      borderTop: `1px solid ${D.color.light.border}`,
+                      borderTop: `1px solid ${D.color.border}`,
                     }}
                   >
                     <div>
                       <p
                         style={{
-                          fontSize: D.font.size.xs,
-                          color: D.color.dark.secondary,
+                          fontSize: D.size.caption,
+                          color: D.color.text2,
                           margin: 0,
                         }}
                       >
@@ -256,8 +256,8 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                       </p>
                       <p
                         style={{
-                          fontSize: D.font.size.lg,
-                          fontWeight: D.font.weight.bold,
+                          fontSize: D.size.h2,
+                          fontWeight: D.weight.bold,
                           color: '#16a34a',
                           margin: '4px 0 0 0',
                         }}
@@ -272,8 +272,8 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                     >
                       <p
                         style={{
-                          fontSize: D.font.size.xs,
-                          color: D.color.dark.secondary,
+                          fontSize: D.size.caption,
+                          color: D.color.text2,
                           margin: 0,
                         }}
                       >
@@ -281,12 +281,12 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                       </p>
                       <p
                         style={{
-                          fontSize: D.font.size.lg,
-                          fontWeight: D.font.weight.bold,
+                          fontSize: D.size.h2,
+                          fontWeight: D.weight.bold,
                           color:
                             product.stock_qty > 0
                               ? '#16a34a'
-                              : D.color.dark.secondary,
+                              : D.color.text2,
                           margin: '4px 0 0 0',
                         }}
                       >
@@ -307,11 +307,11 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                         onClick={() => handleUpdateQty(product.item_number, inCart.qty - 1)}
                         style={{
                           padding: '6px 10px',
-                          border: `1px solid ${D.color.light.border}`,
-                          backgroundColor: D.color.light.surface,
+                          border: `1px solid ${D.color.border}`,
+                          backgroundColor: D.color.card,
                           borderRadius: D.radius.sm,
                           cursor: 'pointer',
-                          fontSize: D.font.size.sm,
+                          fontSize: D.size.body,
                         }}
                       >
                         −
@@ -326,21 +326,21 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                         style={{
                           flex: 1,
                           padding: '6px',
-                          border: `1px solid ${D.color.light.border}`,
+                          border: `1px solid ${D.color.border}`,
                           borderRadius: D.radius.sm,
                           textAlign: 'center',
-                          fontSize: D.font.size.sm,
+                          fontSize: D.size.body,
                         }}
                       />
                       <button
                         onClick={() => handleUpdateQty(product.item_number, inCart.qty + 1)}
                         style={{
                           padding: '6px 10px',
-                          border: `1px solid ${D.color.light.border}`,
-                          backgroundColor: D.color.light.surface,
+                          border: `1px solid ${D.color.border}`,
+                          backgroundColor: D.color.card,
                           borderRadius: D.radius.sm,
                           cursor: 'pointer',
-                          fontSize: D.font.size.sm,
+                          fontSize: D.size.body,
                         }}
                       >
                         +
@@ -352,13 +352,13 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                       disabled={product.stock_qty === 0}
                       style={{
                         padding: `${D.size.sm} ${D.size.md}`,
-                        backgroundColor: product.stock_qty === 0 ? D.color.light.border : '#16a34a',
+                        backgroundColor: product.stock_qty === 0 ? D.color.border : '#16a34a',
                         color: 'white',
                         border: 'none',
                         borderRadius: D.radius.md,
                         cursor: product.stock_qty === 0 ? 'not-allowed' : 'pointer',
-                        fontWeight: D.font.weight.semibold,
-                        fontSize: D.font.size.sm,
+                        fontWeight: D.weight.semi,
+                        fontSize: D.size.body,
                         transition: 'all 0.2s',
                         opacity: product.stock_qty === 0 ? 0.6 : 1,
                       }}
@@ -391,11 +391,11 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                 disabled={page === 1}
                 style={{
                   padding: `${D.size.sm} ${D.size.md}`,
-                  border: `1px solid ${D.color.light.border}`,
-                  backgroundColor: page === 1 ? D.color.light.border : 'white',
+                  border: `1px solid ${D.color.border}`,
+                  backgroundColor: page === 1 ? D.color.border : 'white',
                   borderRadius: D.radius.md,
                   cursor: page === 1 ? 'not-allowed' : 'pointer',
-                  fontSize: D.font.size.sm,
+                  fontSize: D.size.body,
                 }}
               >
                 上一頁
@@ -409,13 +409,13 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                     style={{
                       padding: `${D.size.sm} ${D.size.md}`,
                       backgroundColor: pageNum === page ? '#16a34a' : 'white',
-                      color: pageNum === page ? 'white' : D.color.dark.primary,
-                      border: `1px solid ${pageNum === page ? '#16a34a' : D.color.light.border}`,
+                      color: pageNum === page ? 'white' : D.color.text,
+                      border: `1px solid ${pageNum === page ? '#16a34a' : D.color.border}`,
                       borderRadius: D.radius.md,
                       cursor: 'pointer',
-                      fontSize: D.font.size.sm,
+                      fontSize: D.size.body,
                       fontWeight:
-                        pageNum === page ? D.font.weight.semibold : D.font.weight.normal,
+                        pageNum === page ? D.weight.semi : D.weight.normal,
                     }}
                   >
                     {pageNum}
@@ -427,11 +427,11 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                 disabled={page === totalPages}
                 style={{
                   padding: `${D.size.sm} ${D.size.md}`,
-                  border: `1px solid ${D.color.light.border}`,
-                  backgroundColor: page === totalPages ? D.color.light.border : 'white',
+                  border: `1px solid ${D.color.border}`,
+                  backgroundColor: page === totalPages ? D.color.border : 'white',
                   borderRadius: D.radius.md,
                   cursor: page === totalPages ? 'not-allowed' : 'pointer',
-                  fontSize: D.font.size.sm,
+                  fontSize: D.size.body,
                 }}
               >
                 下一頁
@@ -441,7 +441,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
         </>
       ) : (
         <div style={{ textAlign: 'center', padding: D.size.xl }}>
-          <p style={{ color: D.color.dark.secondary }}>未找到相符的產品</p>
+          <p style={{ color: D.color.text2 }}>未找到相符的產品</p>
         </div>
       )}
 
@@ -454,7 +454,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
             left: 0,
             right: 0,
             backgroundColor: 'white',
-            borderTop: `1px solid ${D.color.light.border}`,
+            borderTop: `1px solid ${D.color.border}`,
             boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
             padding: D.size.md,
             display: 'flex',
@@ -464,14 +464,14 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
           }}
         >
           <div>
-            <p style={{ margin: 0, fontSize: D.font.size.sm, color: D.color.dark.secondary }}>
+            <p style={{ margin: 0, fontSize: D.size.body, color: D.color.text2 }}>
               購物車 · {cartItemCount} 項
             </p>
             <p
               style={{
                 margin: '4px 0 0 0',
-                fontSize: D.font.size.lg,
-                fontWeight: D.font.weight.bold,
+                fontSize: D.size.h2,
+                fontWeight: D.weight.bold,
                 color: '#16a34a',
               }}
             >
@@ -484,12 +484,12 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
               onClick={() => setCart([])}
               style={{
                 padding: `${D.size.sm} ${D.size.md}`,
-                border: `1px solid ${D.color.light.border}`,
+                border: `1px solid ${D.color.border}`,
                 backgroundColor: 'white',
                 borderRadius: D.radius.md,
                 cursor: 'pointer',
-                fontWeight: D.font.weight.medium,
-                fontSize: D.font.size.sm,
+                fontWeight: D.weight.medium,
+                fontSize: D.size.body,
               }}
             >
               清空
@@ -504,8 +504,8 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                 border: 'none',
                 borderRadius: D.radius.md,
                 cursor: posting ? 'not-allowed' : 'pointer',
-                fontWeight: D.font.weight.semibold,
-                fontSize: D.font.size.sm,
+                fontWeight: D.weight.semi,
+                fontSize: D.size.body,
                 opacity: posting ? 0.7 : 1,
               }}
             >
