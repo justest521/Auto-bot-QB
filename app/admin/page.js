@@ -60,6 +60,7 @@ import PartsExchange from './components/tabs/PartsExchange';
 import EquipmentLease from './components/tabs/EquipmentLease';
 import AIForecast from './components/tabs/AIForecast';
 import HRModule from './components/tabs/HRModule';
+import PulseModule from './components/tabs/PulseModule';
 import Flowchart from './components/tabs/Flowchart';
 import CompanySettings from './components/tabs/CompanySettings';
 import AccountsReceivable from './components/tabs/AccountsReceivable';
@@ -183,6 +184,13 @@ const SECTIONS = [
     ],
   },
   {
+    title: 'AI 輿情分析',
+    accent: '#f59e0b',
+    tabs: [
+      { id: 'pulse_module', label: 'MoreYou Pulse', code: 'PLSE' },
+    ],
+  },
+  {
     title: '客服工單',
     accent: '#0891b2',
     tabs: [
@@ -259,6 +267,7 @@ const TAB_META = {
   profit_analysis: { eyebrow: 'Profit', title: '利潤分析', desc: '銷貨利潤、成本與毛利分析。' },
   ai_forecast: { eyebrow: 'AI Forecast', title: 'AI 預測' },
   hr_module: { eyebrow: 'HR', title: '人力資源管理', desc: '員工檔案、出勤管理、請假審核、薪資計算。' },
+  pulse_module: { eyebrow: 'MoreYou Pulse', title: 'AI 輿情分析', desc: '產業垂直 AI 輿情監測、情緒分析、趨勢追蹤。' },
   imports: { eyebrow: 'Import', title: '資料匯入', desc: '匯入 CSV 或 Excel 資料。' },
   crm_leads: { eyebrow: 'CRM Pipeline', title: '商機管線', desc: '追蹤線索到成交的完整流程。' },
   invoices: { eyebrow: 'Invoices', title: '發票管理', desc: '管理發票開立與付款狀態追蹤。' },
@@ -336,6 +345,7 @@ const TAB_COMPONENTS = {
   equipment_lease: EquipmentLease,
   ai_forecast: AIForecast,
   hr_module: HRModule,
+  pulse_module: PulseModule,
   company_settings: CompanySettings,
 };
 
