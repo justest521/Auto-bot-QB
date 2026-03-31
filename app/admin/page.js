@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { API, ADMIN_TOKEN_KEY, apiGet, apiPost } from '@/lib/admin/api';
 import { useViewportWidth } from '@/lib/admin/helpers';
 import { HEADER_ACTION_PORTAL_ID } from './components/shared/ui';
