@@ -103,6 +103,7 @@ function LoginScreen({ onLogin }) {
 
 // ── Main App ──
 export default function DealerPortal() {
+  const [mounted, setMounted] = useState(false);
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [roleConfig, setRoleConfig] = useState(null);
@@ -119,7 +120,10 @@ export default function DealerPortal() {
 
   // Responsive detection
   const [isWide, setIsWide] = useState(false);
+
+  // ── Client-only mount (prevents hydration mismatch #425) ──
   useEffect(() => {
+    setMounted(true);
     const check = () => setIsWide(window.innerWidth >= 768);
     check();
     window.addEventListener('resize', check);
@@ -128,7 +132,8 @@ export default function DealerPortal() {
 
   // ── Auth: boot from stored token ──
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+    if (!mounted) return;
+    const stored = localStorage.getItem(TOKEN_KEY);
     if (!stored) { setBooting(false); return; }
     dealerGet({ action: 'me', token: stored })
       .then(res => {
@@ -138,7 +143,7 @@ export default function DealerPortal() {
       })
       .catch(() => { localStorage.removeItem(TOKEN_KEY); })
       .finally(() => setBooting(false));
-  }, []);
+  }, [mounted]);
 
   const handleLogin = (tk, usr, rc) => {
     localStorage.setItem(TOKEN_KEY, tk);
@@ -195,14 +200,14 @@ export default function DealerPortal() {
     }
   }, [token]);
 
-  // ── Booting ──
-  if (booting) {
+  // ── SSR or Booting: show minimal loading shell ──
+  if (!mounted || booting) {
     return (
-      <div style={{ minHeight: '100vh', background: D.color.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: '#f5f6f7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <style>{D.globalCSS}</style>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: `linear-gradient(135deg, ${D.color.brand}, #22c55e)`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: 18, fontFamily: D.font.mono, marginBottom: 12 }}>QB</div>
-          <div style={{ color: D.color.text3, fontSize: D.size.caption }}>載入中...</div>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg, #16a34a, #22c55e)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: 18, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 12 }}>QB</div>
+          <div style={{ color: '#6b7280', fontSize: 12 }}>載入中...</div>
         </div>
       </div>
     );
