@@ -7,37 +7,22 @@ export default function DealerInventory({ token, dealerGet }) {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [stockFilter, setStockFilter] = useState('全部');
+  const [stockFilter, setStockFilter] = useState('all');
   const [hasMore, setHasMore] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const stock_only = stockFilter === '有庫存' ? true : stockFilter === '缺貨' ? false : null;
-      const response = await dealerGet({
-        action: 'products',
-        token,
-        page,
-        limit: '30',
-        q: search,
-        stock_only,
-      });
-      setProducts(response?.data || []);
-      setHasMore(response?.hasMore || false);
-    } catch (error) {
-      console.error('Fetch products error:', error);
-    } finally {
-      setLoading(false);
-    }
+      const stockOnly = stockFilter === 'in' ? '1' : stockFilter === 'out' ? '0' : null;
+      const res = await dealerGet({ action: 'products', token, page: String(page), limit: '30', q: search, ...(stockOnly !== null ? { stock_only: stockOnly } : {}) });
+      setProducts(res?.data?.items || res?.data || []);
+      setHasMore(res?.data?.total_pages ? page < res.data.total_pages : false);
+    } catch (e) { console.error('Inventory fetch:', e); }
+    finally { setLoading(false); }
   }, [token, dealerGet, page, search, stockFilter]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [search, stockFilter]);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  useEffect(() => { setPage(1); }, [search, stockFilter]);
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   const stats = {
     total: products.length,
@@ -46,209 +31,118 @@ export default function DealerInventory({ token, dealerGet }) {
     outOfStock: products.filter(p => p.stock_qty === 0).length,
   };
 
-  const getStockStatus = (qty) => {
-    if (qty > 5) return { color: D.color.success, label: '充足', dotColor: D.color.success };
-    if (qty > 0) return { color: D.color.warning, label: '偏低', dotColor: D.color.warning };
-    return { color: D.color.error, label: '缺貨', dotColor: D.color.error };
+  const getStockInfo = (qty) => {
+    if (qty > 5) return { tone: 'green', label: '充足' };
+    if (qty > 0) return { tone: 'amber', label: '偏低' };
+    return { tone: 'red', label: '缺貨' };
   };
 
+  const FILTERS = [
+    { id: 'all', label: '全部' },
+    { id: 'in', label: '有庫存' },
+    { id: 'out', label: '缺貨' },
+  ];
+
   return (
-    <div style={{ padding: 32 }}>
-      {/* Summary Strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 12,
-        marginBottom: 32,
-      }}>
+    <div style={{ padding: '20px 0 40px' }}>
+      {/* ── Stats Strip ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 20 }}>
         {[
-          { label: '總產品數', value: stats.total },
-          { label: '有庫存', value: stats.inStock },
-          { label: '低庫存', value: stats.lowStock },
-          { label: '缺貨', value: stats.outOfStock },
-        ].map(stat => (
-          <div key={stat.label} style={{
-            background: D.color.background,
-            border: `1px solid ${D.color.border}`,
-            borderRadius: D.radius.md,
-            padding: 12,
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: D.size.body, color: D.color.text3 }}>
-              {stat.label}
-            </div>
-            <div style={{ fontSize: D.size.h3, fontWeight: 'bold', color: D.color.primary, marginTop: 4 }}>
-              {stat.value}
-            </div>
+          { label: 'TOTAL', title: '總產品', value: stats.total, accent: D.color.text },
+          { label: 'IN STOCK', title: '有庫存', value: stats.inStock, accent: D.color.success },
+          { label: 'LOW', title: '低庫存', value: stats.lowStock, accent: D.color.warning },
+          { label: 'OUT', title: '缺貨', value: stats.outOfStock, accent: D.color.error },
+        ].map((s, i) => (
+          <div key={i} style={{ ...D.card, padding: '12px 10px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: s.accent, borderRadius: '12px 12px 0 0' }} />
+            <div style={{ ...D.sectionLabel, marginBottom: 6, marginTop: 2 }}>{s.label}</div>
+            <div style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.text, fontFamily: D.font.mono, lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontSize: D.size.tiny, color: D.color.text3, marginTop: 4 }}>{s.title}</div>
           </div>
         ))}
       </div>
 
-      {/* Search & Filter */}
-      <div style={{
-        display: 'flex',
-        gap: 12,
-        marginBottom: 32,
-        flexWrap: 'wrap',
-      }}>
-        <input
-          type="text"
-          placeholder="搜尋產品..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            flex: 1,
-            minWidth: '200px',
-            padding: 8,
-            border: `1px solid ${D.color.border}`,
-            borderRadius: D.radius.sm,
-            fontSize: D.size.body,
-            fontFamily: D.font.mono,
-          }}
-        />
-        <div style={{ display: 'flex', gap: 8 }}>
-          {['全部', '有庫存', '缺貨'].map(filter => (
-            <button
-              key={filter}
-              onClick={() => setStockFilter(filter)}
-              style={{
-                padding: `8 12`,
-                border: `1px solid ${stockFilter === filter ? D.color.primary : D.color.border}`,
-                background: stockFilter === filter ? D.color.primary : 'white',
-                color: stockFilter === filter ? 'white' : D.color.text,
-                borderRadius: D.radius.sm,
-                cursor: 'pointer',
-                fontSize: D.size.body,
-                fontFamily: D.font.mono,
-              }}
-            >
-              {filter}
+      {/* ── Search & Filter ── */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={D.color.textDisabled} strokeWidth="2" strokeLinecap="round"
+            style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }}>
+            <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input type="text" placeholder="搜尋產品..." value={search} onChange={e => setSearch(e.target.value)}
+            style={{ ...D.input, paddingLeft: 36 }} />
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {FILTERS.map(f => (
+            <button key={f.id} onClick={() => setStockFilter(f.id)} style={D.pill(stockFilter === f.id)}>
+              {f.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Product Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: 12,
-        marginBottom: 32,
-      }}>
-        {products.map(product => {
-          const status = getStockStatus(product.stock_qty);
-          return (
-            <div
-              key={product.item_number}
-              style={{
-                border: `1px solid ${D.color.border}`,
-                borderRadius: D.radius.md,
-                padding: 12,
-                background: 'white',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              }}
-            >
-              <div style={{
-                fontFamily: 'monospace',
-                fontSize: D.size.caption,
-                color: D.color.text3,
-                marginBottom: 4,
-              }}>
-                {product.item_number}
-              </div>
-              <div style={{
-                fontSize: D.size.body,
-                fontWeight: '600',
-                color: D.color.text,
-                marginBottom: 8,
-                lineHeight: 1.3,
-              }}>
-                {product.description}
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <span style={{
-                  display: 'inline-block',
-                  background: D.color.surface,
-                  color: D.color.text3,
-                  padding: `4 8`,
-                  borderRadius: D.radius.sm,
-                  fontSize: D.size.caption,
-                }}>
-                  {product.category}
-                </span>
-              </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderTop: `1px solid ${D.color.border}`,
-                paddingTop: 12,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: status.dotColor, display: 'inline-block' }} />
-                  <span style={{ fontSize: D.size.body, color: status.color }}>
-                    {status.label}
-                  </span>
+      {/* ── Product Cards ── */}
+      {loading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} style={{
+              height: 140, background: `linear-gradient(90deg, ${D.color.muted} 25%, ${D.color.borderLight} 50%, ${D.color.muted} 75%)`,
+              backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: D.radius.lg,
+            }} />
+          ))}
+        </div>
+      ) : products.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={D.color.textDisabled} strokeWidth={1.5} strokeLinecap="round" style={{ marginBottom: 10 }}>
+            <path d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M10 11h4" />
+          </svg>
+          <div style={{ color: D.color.textDisabled, fontSize: D.size.body }}>未找到產品</div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+          {products.map(p => {
+            const si = getStockInfo(p.stock_qty);
+            return (
+              <div key={p.item_number} style={{ ...D.card, padding: '14px 14px 12px' }}>
+                {/* Item number */}
+                <div style={{ fontSize: D.size.tiny, color: D.color.text3, fontFamily: D.font.mono, marginBottom: 4, letterSpacing: '0.03em' }}>
+                  {p.item_number}
                 </div>
-                <div style={{ fontSize: D.size.body, fontWeight: '600', color: D.color.text }}>
-                  {product.stock_qty}
+                {/* Description */}
+                <div style={{ fontSize: D.size.body, fontWeight: D.weight.semi, color: D.color.text, lineHeight: 1.35, marginBottom: 8, minHeight: 36 }}>
+                  {p.description}
+                </div>
+                {/* Category */}
+                {p.category && (
+                  <div style={{ marginBottom: 10 }}>
+                    <span style={D.tag('default')}>{p.category}</span>
+                  </div>
+                )}
+                {/* Stock row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: `1px solid ${D.color.borderLight}` }}>
+                  <span style={D.tag(si.tone)}>{si.label}</span>
+                  <span style={{ fontSize: D.size.h3, fontWeight: D.weight.bold, color: D.color.text, fontFamily: D.font.mono }}>{p.stock_qty}</span>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Pagination */}
-      {!loading && (products.length > 0 || page > 1) && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 12,
-          marginTop: 32,
-        }}>
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            style={{
-              padding: `8 12`,
-              border: `1px solid ${D.color.border}`,
-              borderRadius: D.radius.sm,
-              cursor: page === 1 ? 'not-allowed' : 'pointer',
-              opacity: page === 1 ? 0.5 : 1,
-              fontFamily: D.font.mono,
-            }}
-          >
-            上一頁
-          </button>
-          <span style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: `0 12`,
-            fontSize: D.size.body,
-          }}>
-            第 {page} 頁
-          </span>
-          <button
-            onClick={() => setPage(p => p + 1)}
-            disabled={!hasMore}
-            style={{
-              padding: `8 12`,
-              border: `1px solid ${D.color.border}`,
-              borderRadius: D.radius.sm,
-              cursor: !hasMore ? 'not-allowed' : 'pointer',
-              opacity: !hasMore ? 0.5 : 1,
-              fontFamily: D.font.mono,
-            }}
-          >
-            下一頁
-          </button>
+            );
+          })}
         </div>
       )}
 
-      {loading && (
-        <div style={{ textAlign: 'center', padding: 32, color: D.color.text3 }}>
-          加載中...
+      {/* ── Pagination ── */}
+      {!loading && (products.length > 0 || page > 1) && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 20 }}>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            style={{ ...D.btnGhost, padding: '8px 14px', opacity: page === 1 ? 0.4 : 1, cursor: page === 1 ? 'default' : 'pointer' }}>
+            上一頁
+          </button>
+          <span style={{ display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: D.size.body, fontFamily: D.font.mono, color: D.color.text3 }}>
+            第 {page} 頁
+          </span>
+          <button onClick={() => setPage(p => p + 1)} disabled={!hasMore}
+            style={{ ...D.btnGhost, padding: '8px 14px', opacity: !hasMore ? 0.4 : 1, cursor: !hasMore ? 'default' : 'pointer' }}>
+            下一頁
+          </button>
         </div>
       )}
     </div>

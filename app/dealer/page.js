@@ -334,7 +334,9 @@ export default function DealerPortal() {
       {/* ── Header ── */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 200,
-        background: D.color.card,
+        background: 'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         borderBottom: `1px solid ${D.color.border}`,
         padding: '12px 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',

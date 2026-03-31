@@ -17,10 +17,13 @@ D.color = {
   cardHover: '#fafbfc',
   muted: '#f9fafb',
   panel: '#f3f4f6',
+  surface: '#ffffff',
+  surfaceHover: '#f9fafb',
   // brand
   brand: '#16a34a',
   brandLight: '#dcfce7',
   brandDim: 'rgba(22,163,74,0.08)',
+  brandDark: '#15803d',
   // status
   success: '#10b981',
   successDim: 'rgba(16,185,129,0.08)',
@@ -35,11 +38,16 @@ D.color = {
   text2: '#374151',
   text3: '#6b7280',
   textDisabled: '#9ca3af',
+  white: '#ffffff',
   // border
   border: '#e5e7eb',
   borderLight: '#f0f2f5',
   // overlay
   overlay: 'rgba(0,0,0,0.4)',
+  // aliases for backward compat
+  primary: '#16a34a',
+  background: '#f5f6f7',
+  base: '#6b7280',
 };
 
 D.size = {
@@ -78,12 +86,24 @@ D.space = {
   xxl: 24,
 };
 
+// ── Shadows ──
+D.shadow = {
+  sm: '0 1px 2px rgba(0,0,0,0.04)',
+  md: '0 2px 8px rgba(0,0,0,0.06)',
+  lg: '0 4px 16px rgba(0,0,0,0.08)',
+  xl: '0 8px 32px rgba(0,0,0,0.10)',
+  card: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+  cardHover: '0 4px 12px rgba(0,0,0,0.08)',
+  float: '0 8px 24px rgba(0,0,0,0.12)',
+};
+
 // ── Component Presets ──
 
 D.card = {
   background: D.color.card,
   border: `1px solid ${D.color.border}`,
   borderRadius: D.radius.lg,
+  boxShadow: D.shadow.card,
   transition: 'border-color 0.15s, box-shadow 0.15s',
 };
 
@@ -148,11 +168,11 @@ D.mono = {
 
 D.tag = (tone = 'default') => {
   const tones = {
-    green: { bg: D.color.successDim, color: D.color.success, border: 'rgba(16,185,129,0.2)' },
-    red: { bg: D.color.errorDim, color: D.color.error, border: 'rgba(239,68,68,0.2)' },
-    amber: { bg: D.color.warningDim, color: D.color.warning, border: 'rgba(245,158,11,0.2)' },
-    blue: { bg: D.color.infoDim, color: D.color.info, border: 'rgba(59,130,246,0.2)' },
-    brand: { bg: D.color.brandDim, color: D.color.brand, border: 'rgba(22,163,74,0.2)' },
+    green: { bg: D.color.successDim, color: '#059669', border: 'rgba(16,185,129,0.18)' },
+    red: { bg: D.color.errorDim, color: '#dc2626', border: 'rgba(239,68,68,0.18)' },
+    amber: { bg: D.color.warningDim, color: '#d97706', border: 'rgba(245,158,11,0.18)' },
+    blue: { bg: D.color.infoDim, color: '#2563eb', border: 'rgba(59,130,246,0.18)' },
+    brand: { bg: D.color.brandDim, color: D.color.brand, border: 'rgba(22,163,74,0.18)' },
     default: { bg: D.color.muted, color: D.color.text3, border: D.color.border },
   };
   const s = tones[tone] || tones.default;
@@ -162,13 +182,14 @@ D.tag = (tone = 'default') => {
     gap: 4,
     fontSize: D.size.tiny,
     fontFamily: D.font.mono,
-    fontWeight: D.weight.medium,
+    fontWeight: D.weight.semi,
     borderRadius: D.radius.xs,
-    padding: '2px 8px',
+    padding: '3px 8px',
     background: s.bg,
     color: s.color,
     border: `1px solid ${s.border}`,
     whiteSpace: 'nowrap',
+    lineHeight: 1.4,
   };
 };
 
@@ -207,7 +228,9 @@ D.tabBar = {
   bottom: 0,
   left: 0,
   right: 0,
-  background: D.color.card,
+  background: 'rgba(255,255,255,0.92)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
   borderTop: `1px solid ${D.color.border}`,
   display: 'flex',
   padding: '8px 0',
@@ -230,6 +253,7 @@ D.tabItem = (active = false) => ({
   fontFamily: D.font.base,
   fontWeight: active ? D.weight.semi : D.weight.normal,
   transition: 'color 0.15s',
+  position: 'relative',
 });
 
 // ── Health Ring Sizes ──
@@ -240,6 +264,17 @@ D.healthRing = {
   circumference: 2 * Math.PI * 16, // ~100.53
 };
 
+// ── Section header ──
+D.sectionLabel = {
+  fontSize: 9,
+  fontFamily: D.font.mono,
+  fontWeight: D.weight.semi,
+  color: D.color.text3,
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  marginBottom: 10,
+};
+
 // Global CSS string
 D.globalCSS = `
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Inter:wght@400;500;600;700;800&display=swap');
@@ -248,11 +283,13 @@ html,body{background:${D.color.bg};overflow-x:hidden}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12);border-radius:3px}
+input:focus{border-color:${D.color.brand}!important;box-shadow:0 0 0 3px rgba(22,163,74,0.08)!important}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 @keyframes grow{from{width:0}}
 @keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 `;
 
 export default D;

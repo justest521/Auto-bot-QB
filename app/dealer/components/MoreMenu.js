@@ -5,437 +5,189 @@ import D from './DealerStyles';
 export default function MoreMenu({ token, user, roleConfig, dealerGet, dealerPost, onLogout }) {
   const [notifications, setNotifications] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
+    (async () => {
       try {
-        const response = await dealerGet({
-          action: 'my_notifications',
-          token,
-        });
-        setNotifications((response?.data || []).slice(0, 10));
-      } catch (error) {
-        console.error('Fetch notifications error:', error);
-      }
-    };
-    fetchNotifications();
+        const res = await dealerGet({ action: 'my_notifications', token });
+        setNotifications((res?.data || []).slice(0, 10));
+      } catch (e) { console.error('Notifications:', e); }
+    })();
   }, [token, dealerGet]);
 
-  const handleChangePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      alert('密碼不符合');
-      return;
-    }
-    if (newPassword.length < 6) {
-      alert('密碼至少6個字符');
-      return;
-    }
-
-    setPasswordLoading(true);
+  const handleChangePw = async () => {
+    if (newPw !== confirmPw) { alert('密碼不符合'); return; }
+    if (newPw.length < 6) { alert('密碼至少6個字符'); return; }
+    setPwLoading(true);
     try {
-      await dealerPost({
-        action: 'change_password',
-        token,
-        new_password: newPassword,
-      });
+      await dealerPost({ action: 'change_password', token, new_password: newPw });
       alert('密碼已變更');
-      setNewPassword('');
-      setConfirmPassword('');
-      setShowPassword(false);
-    } catch (error) {
-      alert('變更密碼失敗');
-      console.error(error);
-    } finally {
-      setPasswordLoading(false);
-    }
+      setNewPw(''); setConfirmPw(''); setShowPassword(false);
+    } catch (e) { alert('變更密碼失敗'); console.error(e); }
+    finally { setPwLoading(false); }
   };
 
-  const getRoleLabel = (role) => {
-    const roles = { dealer: '經銷商', sales: '業務', technician: '維修技師' };
-    return roles[role] || role;
+  const ROLE_LABEL = { dealer: '經銷商', sales: '業務', technician: '維修技師' };
+
+  const getInitials = (name) => (name || '?').split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  const formatTime = (ts) => {
+    const diff = Date.now() - new Date(ts).getTime();
+    const hrs = Math.floor(diff / 3600000);
+    if (hrs < 1) return '剛剛';
+    if (hrs < 24) return `${hrs}小時前`;
+    return `${Math.floor(hrs / 24)}天前`;
   };
 
-  const getInitials = (name) => {
-    return name
-      ?.split(/\s+/)
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2) || '?';
-  };
-
-  const getNotificationIcon = (type) => {
-    const iconConfig = {
-      order: { text: '單', color: D.color.info },
-      payment: { text: '$', color: D.color.success },
-      alert: { text: '!', color: D.color.error },
-      notification: { text: 'i', color: D.color.warning },
-    };
-    return iconConfig[type] || { text: 'i', color: D.color.text3 };
-  };
-
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now - date;
-    const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return '剛剛';
-    if (hours < 24) return `${hours}小時前`;
-    const days = Math.floor(hours / 24);
-    return `${days}天前`;
+  const NOTIF_ICON = {
+    order: { char: 'O', color: D.color.info },
+    payment: { char: '$', color: D.color.success },
+    alert: { char: '!', color: D.color.error },
+    notification: { char: 'i', color: D.color.warning },
   };
 
   return (
-    <div style={{ padding: 32, maxWidth: '600px', margin: '0 auto' }}>
-      {/* Profile Card */}
-      <div style={{
-        background: D.color.surface,
-        borderRadius: D.radius.lg,
-        padding: 32,
-        marginBottom: 32,
-        border: `1px solid ${D.color.border}`,
-      }}>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 32 }}>
+    <div style={{ padding: '20px 0 40px', maxWidth: 560, margin: '0 auto' }}>
+
+      {/* ── Profile Card ── */}
+      <div style={{ ...D.card, padding: '24px 20px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
+          {/* Avatar */}
           <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '50%',
-            background: D.color.primary,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontSize: D.size.h2,
-            fontWeight: 'bold',
-            flexShrink: 0,
+            width: 56, height: 56, borderRadius: D.radius.full, flexShrink: 0,
+            background: `linear-gradient(135deg, ${D.color.brand}, #22c55e)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: 18, fontWeight: D.weight.black, fontFamily: D.font.mono,
+            boxShadow: '0 4px 16px rgba(22,163,74,0.2)',
           }}>
             {getInitials(user?.display_name)}
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{
-              fontSize: D.size.body,
-              fontWeight: '600',
-              color: D.color.text,
-              marginBottom: 4,
-            }}>
-              {user?.display_name}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: D.size.h2, fontWeight: D.weight.bold, color: D.color.text, marginBottom: 3 }}>
+              {user?.display_name || user?.username || '--'}
             </div>
-            <div style={{
-              fontSize: D.size.body,
-              color: D.color.text3,
-              marginBottom: 4,
-            }}>
-              {getRoleLabel(user?.role)}
-            </div>
-            <div style={{
-              fontSize: D.size.body,
-              color: D.color.text3,
-            }}>
-              {user?.company_name}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <span style={D.tag('brand')}>{ROLE_LABEL[user?.role] || user?.role}</span>
+              {user?.company_name && <span style={D.tag('default')}>{user.company_name}</span>}
             </div>
           </div>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 12,
-          borderTop: `1px solid ${D.color.border}`,
-          paddingTop: 12,
-        }}>
+        {/* Info grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, paddingTop: 16, borderTop: `1px solid ${D.color.borderLight}` }}>
           <div>
-            <div style={{
-              fontSize: D.size.caption,
-              color: D.color.text3,
-              marginBottom: 4,
-            }}>
-              電話
-            </div>
-            <div style={{
-              fontSize: D.size.body,
-              color: D.color.text,
-            }}>
-              {user?.phone || '—'}
-            </div>
+            <div style={{ fontSize: D.size.tiny, color: D.color.text3, marginBottom: 3 }}>電話</div>
+            <div style={{ fontSize: D.size.body, color: D.color.text, fontFamily: D.font.mono }}>{user?.phone || '--'}</div>
           </div>
           <div>
-            <div style={{
-              fontSize: D.size.caption,
-              color: D.color.text3,
-              marginBottom: 4,
-            }}>
-              郵箱
-            </div>
-            <div style={{
-              fontSize: D.size.body,
-              color: D.color.text,
-              wordBreak: 'break-all',
-            }}>
-              {user?.email || '—'}
-            </div>
+            <div style={{ fontSize: D.size.tiny, color: D.color.text3, marginBottom: 3 }}>郵箱</div>
+            <div style={{ fontSize: D.size.body, color: D.color.text, wordBreak: 'break-all' }}>{user?.email || '--'}</div>
           </div>
         </div>
       </div>
 
-      {/* Change Password Section */}
-      {showPassword ? (
-        <div style={{
-          background: D.color.surface,
-          borderRadius: D.radius.lg,
-          padding: 32,
-          marginBottom: 32,
-          border: `1px solid ${D.color.border}`,
-        }}>
-          <div style={{
-            fontSize: D.size.body,
-            fontWeight: '600',
-            color: D.color.text,
-            marginBottom: 12,
-          }}>
-            修改密碼
-          </div>
-          <input
-            type="password"
-            placeholder="新密碼"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            style={{
-              width: '100%',
-              padding: 8,
-              border: `1px solid ${D.color.border}`,
-              borderRadius: D.radius.sm,
-              fontSize: D.size.body,
-              marginBottom: 8,
-              boxSizing: 'border-box',
-              fontFamily: D.font.mono,
-            }}
-          />
-          <input
-            type="password"
-            placeholder="確認密碼"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            style={{
-              width: '100%',
-              padding: 8,
-              border: `1px solid ${D.color.border}`,
-              borderRadius: D.radius.sm,
-              fontSize: D.size.body,
-              marginBottom: 12,
-              boxSizing: 'border-box',
-              fontFamily: D.font.mono,
-            }}
-          />
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={handleChangePassword}
-              disabled={passwordLoading}
-              style={{
-                flex: 1,
-                padding: 8,
-                background: D.color.primary,
-                color: 'white',
-                border: 'none',
-                borderRadius: D.radius.sm,
-                cursor: 'pointer',
-                fontFamily: D.font.mono,
-                fontSize: D.size.body,
-                opacity: passwordLoading ? 0.6 : 1,
-              }}
-            >
-              {passwordLoading ? '處理中...' : '確認'}
-            </button>
-            <button
-              onClick={() => {
-                setShowPassword(false);
-                setNewPassword('');
-                setConfirmPassword('');
-              }}
-              style={{
-                flex: 1,
-                padding: 8,
-                background: D.color.surface,
-                color: D.color.text,
-                border: `1px solid ${D.color.border}`,
-                borderRadius: D.radius.sm,
-                cursor: 'pointer',
-                fontFamily: D.font.mono,
-                fontSize: D.size.body,
-              }}
-            >
-              取消
-            </button>
-          </div>
-        </div>
-      ) : (
+      {/* ── Menu Items ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 16 }}>
+        {/* Change Password */}
         <button
-          onClick={() => setShowPassword(true)}
+          onClick={() => setShowPassword(!showPassword)}
           style={{
-            width: '100%',
-            padding: 12,
-            background: D.color.surface,
-            color: D.color.text,
-            border: `1px solid ${D.color.border}`,
-            borderRadius: D.radius.lg,
-            cursor: 'pointer',
-            fontFamily: D.font.mono,
-            fontSize: D.size.body,
-            marginBottom: 32,
-            textAlign: 'left',
+            ...D.card, padding: '14px 16px', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: 12, border: `1px solid ${D.color.border}`,
+            borderRadius: showPassword ? `${D.radius.lg}px ${D.radius.lg}px 0 0` : D.radius.lg,
           }}
         >
-          <span style={{
-            width: 20,
-            height: 20,
-            borderRadius: '50%',
-            background: D.color.primary,
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: D.size.caption,
-            fontWeight: 'bold',
-            flexShrink: 0,
-          }}>
-            ⚙
-          </span>
-          修改密碼
-        </button>
-      )}
-
-      {/* Notifications */}
-      <div style={{ marginBottom: 32 }}>
-        <div style={{
-          fontSize: D.size.body,
-          fontWeight: '600',
-          color: D.color.text,
-          marginBottom: 12,
-        }}>
-          最近通知 ({notifications.length})
-        </div>
-        {notifications.length > 0 ? (
           <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
+            width: 32, height: 32, borderRadius: D.radius.sm, flexShrink: 0,
+            background: D.color.infoDim, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            {notifications.map((notif, idx) => (
-              <div
-                key={idx}
-                style={{
-                  background: D.color.surface,
-                  border: `1px solid ${D.color.border}`,
-                  borderRadius: D.radius.md,
-                  padding: 12,
-                  display: 'flex',
-                  gap: 12,
-                }}
-              >
-                <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '50%',
-                  flexShrink: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: getNotificationIcon(notif.type).color,
-                  color: 'white',
-                  fontSize: D.size.body,
-                  fontWeight: 'bold',
-                }}>
-                  {getNotificationIcon(notif.type).text}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{
-                    fontSize: D.size.body,
-                    color: D.color.text,
-                    marginBottom: 4,
-                  }}>
-                    {notif.message}
-                  </div>
-                  {notif.order_no && (
-                    <div style={{
-                      fontSize: D.size.caption,
-                      color: D.color.text3,
-                      marginBottom: 4,
-                    }}>
-                      訂單: {notif.order_no}
-                    </div>
-                  )}
-                  {notif.amount && (
-                    <div style={{
-                      fontSize: D.size.caption,
-                      color: D.color.text3,
-                      marginBottom: 4,
-                    }}>
-                      金額: ${notif.amount}
-                    </div>
-                  )}
-                  <div style={{
-                    fontSize: D.size.caption,
-                    color: D.color.text3,
-                  }}>
-                    {formatTime(notif.created_at)}
-                  </div>
-                </div>
-              </div>
-            ))}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={D.color.info} strokeWidth="2" strokeLinecap="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
           </div>
-        ) : (
+          <span style={{ flex: 1, fontSize: D.size.body, fontWeight: D.weight.medium, color: D.color.text }}>修改密碼</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={D.color.textDisabled} strokeWidth="2"
+            style={{ transform: showPassword ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+
+        {showPassword && (
           <div style={{
-            textAlign: 'center',
-            padding: 32,
-            color: D.color.text3,
-            background: D.color.surface,
-            borderRadius: D.radius.md,
-            border: `1px solid ${D.color.border}`,
+            ...D.card, padding: 16, borderRadius: `0 0 ${D.radius.lg}px ${D.radius.lg}px`,
+            borderTop: 'none', animation: 'slideDown 0.2s ease',
           }}>
-            沒有通知
+            <input type="password" placeholder="新密碼" value={newPw} onChange={e => setNewPw(e.target.value)}
+              style={{ ...D.input, marginBottom: 8 }} />
+            <input type="password" placeholder="確認密碼" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
+              style={{ ...D.input, marginBottom: 12 }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleChangePw} disabled={pwLoading}
+                style={{ ...D.btnPrimary, flex: 1, textAlign: 'center', opacity: pwLoading ? 0.6 : 1 }}>
+                {pwLoading ? '處理中...' : '確認變更'}
+              </button>
+              <button onClick={() => { setShowPassword(false); setNewPw(''); setConfirmPw(''); }}
+                style={{ ...D.btnGhost, flex: 1, textAlign: 'center' }}>
+                取消
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Logout Button */}
-      <button
-        onClick={onLogout}
-        style={{
-          width: '100%',
-          padding: 12,
-          background: D.color.error,
-          color: 'white',
-          border: 'none',
-          borderRadius: D.radius.lg,
-          cursor: 'pointer',
-          fontFamily: D.font.mono,
-          fontSize: D.size.body,
-          fontWeight: '600',
-          marginBottom: 32,
-        }}
-      >
-        登出
+      {/* ── Notifications ── */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ ...D.sectionLabel, marginBottom: 10, paddingLeft: 2 }}>NOTIFICATIONS</div>
+        {notifications.length === 0 ? (
+          <div style={{ ...D.card, padding: '32px 20px', textAlign: 'center' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={D.color.textDisabled} strokeWidth={1.5} strokeLinecap="round" style={{ marginBottom: 8 }}>
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            <div style={{ color: D.color.textDisabled, fontSize: D.size.body }}>暫無通知</div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {notifications.map((n, idx) => {
+              const ic = NOTIF_ICON[n.type] || NOTIF_ICON.notification;
+              return (
+                <div key={idx} style={{ ...D.card, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: D.radius.xs, flexShrink: 0,
+                    background: ic.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: ic.color, fontSize: 11, fontWeight: D.weight.bold, fontFamily: D.font.mono,
+                  }}>
+                    {ic.char}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: D.size.body, color: D.color.text, lineHeight: 1.35, marginBottom: 3 }}>{n.message}</div>
+                    {n.order_no && <div style={{ fontSize: D.size.tiny, color: D.color.text3, fontFamily: D.font.mono }}>#{n.order_no}</div>}
+                    <div style={{ fontSize: D.size.tiny, color: D.color.textDisabled, marginTop: 2 }}>{formatTime(n.created_at)}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── Logout ── */}
+      <button onClick={onLogout} style={{
+        width: '100%', padding: '12px 0', textAlign: 'center',
+        background: D.color.errorDim, color: D.color.error,
+        border: `1px solid rgba(239,68,68,0.18)`, borderRadius: D.radius.lg,
+        cursor: 'pointer', fontSize: D.size.body, fontWeight: D.weight.semi,
+        transition: 'all 0.15s',
+      }}>
+        登出帳號
       </button>
 
-      {/* App Info */}
-      <div style={{
-        textAlign: 'center',
-        padding: 12,
-        color: D.color.text3,
-        fontSize: D.size.caption,
-        borderTop: `1px solid ${D.color.border}`,
-      }}>
-        <div style={{ marginBottom: 4 }}>
-          QB ERP Dealer Portal
-        </div>
-        <div style={{ marginBottom: 4 }}>
-          版本 1.0.0
-        </div>
-        <div>
-          © 2024 QB ERP. 版權所有。
-        </div>
+      {/* ── Footer ── */}
+      <div style={{ textAlign: 'center', padding: '24px 0 0', color: D.color.textDisabled, fontSize: D.size.tiny }}>
+        <div>QB ERP Dealer Portal v1.0</div>
+        <div style={{ marginTop: 2 }}>2024 Quick Buy. All rights reserved.</div>
       </div>
     </div>
   );

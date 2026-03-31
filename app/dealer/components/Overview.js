@@ -1,435 +1,170 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import D from './DealerStyles';
 
-const Skeleton = ({ width = '100%', height = '20px', className = '' }) => (
-  <div
-    style={{
-      width,
-      height,
-      backgroundColor: D.color.muted,
-      borderRadius: D.radius.sm,
-      animation: 'shimmer 1.5s infinite',
-    }}
-    className={className}
-  />
-);
+const fmtNT = (n) => `NT$${Number(n || 0).toLocaleString()}`;
 
 export default function Overview({ token, user, roleConfig, dealerGet, onNavigateToOrder }) {
-  const [performance, setPerformance] = useState(null);
+  const [perf, setPerf] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [monthlyTrend, setMonthlyTrend] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    if (!token) return;
+    (async () => {
       try {
-        const [perfRes, ordersRes] = await Promise.all([
+        const [p, o] = await Promise.all([
           dealerGet({ action: 'my_performance', token, range: 'month' }),
           dealerGet({ action: 'my_orders', token, page: '1', limit: '5' }),
         ]);
+        setPerf(p);
+        setOrders(o.orders || []);
+      } catch (e) { console.error('Overview load:', e); }
+      finally { setLoading(false); }
+    })();
+  }, [token]);
 
-        if (perfRes?.data) {
-          setPerformance(perfRes.data);
-          // Generate mock monthly trend data
-          const trend = Array.from({ length: 7 }, (_, i) => ({
-            day: i + 1,
-            amount: Math.floor(Math.random() * 50000) + 10000,
-          }));
-          setMonthlyTrend(trend);
-        }
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? '早安' : hour < 18 ? '午安' : '晚安';
+  const dateStr = `${now.getMonth() + 1} 月 ${now.getDate()} 日`;
 
-        if (ordersRes?.data?.items) {
-          setOrders(ordersRes.data.items);
-        }
-      } catch (error) {
-        console.error('Failed to fetch overview data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const unpaidCount = orders.filter(o => o.payment_status === 'unpaid' || o.payment_status === 'partial').length;
+  const pendingCount = orders.filter(o => o.status === 'pending_review').length;
+  const trend = perf?.monthly_trend || [];
+  const maxTrend = Math.max(...trend.map(m => m.amount), 1);
 
-    fetchData();
-  }, [token, dealerGet]);
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('zh-TW', {
-      style: 'currency',
-      currency: 'TWD',
-      minimumFractionDigits: 0,
-    }).format(amount || 0);
-  };
-
-  const getDate = () => {
-    const now = new Date();
-    return new Intl.DateTimeFormat('zh-TW', {
-      month: 'long',
-      day: 'numeric',
-    }).format(now);
-  };
+  const STATUS_LABEL = { draft: '草稿', pending_review: '待審', approved: '已核准', processing: '處理中', shipped: '已出貨', delivered: '已送達', completed: '已完成', cancelled: '已取消' };
+  const PAY_LABEL = { unpaid: '未收款', partial: '部分收款', paid: '已結清' };
 
   if (loading) {
     return (
-      <div style={{ padding: D.size.lg }}>
-        <style>{`@keyframes shimmer { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }`}</style>
-        <Skeleton width="200px" height="32px" />
-        <div style={{ marginTop: D.size.md }}>
-          <Skeleton height="140px" />
-        </div>
+      <div style={{ padding: 20 }}>
+        {[1, 2, 3].map(i => (
+          <div key={i} style={{ height: i === 1 ? 32 : 80, background: D.color.muted, borderRadius: D.radius.lg, marginBottom: 12, animation: 'fadeIn 0.6s ease infinite alternate' }} />
+        ))}
       </div>
     );
   }
 
-  const unpaidOrders = orders.filter((o) => o.status === 'unpaid' || o.status === 'partial');
-  const pendingOrders = orders.filter((o) => o.status === 'pending');
-
-  const maxAmount = Math.max(...monthlyTrend.map((d) => d.amount), 1);
-
-  const kpiIndicator = (type) => {
-    const indicators = {
-      revenue: { bgColor: '#dcfce7', text: 'NT', textColor: '#16a34a' },
-      orders: { bgColor: '#dbeafe', text: '#', textColor: '#0284c7' },
-      average: { bgColor: '#dcfce7', text: '$', textColor: '#16a34a' },
-      pending: { bgColor: '#fef3c7', text: '!', textColor: '#d97706' },
-    };
-    const indicator = indicators[type];
-    return (
-      <div
-        style={{
-          width: '32px',
-          height: '32px',
-          backgroundColor: indicator.bgColor,
-          borderRadius: D.radius.sm,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: D.size.h3,
-          fontWeight: D.weight.bold,
-          color: indicator.textColor,
-          marginRight: D.size.sm,
-          flexShrink: 0,
-        }}
-      >
-        {indicator.text}
-      </div>
-    );
-  };
-
   return (
-    <div style={{ padding: D.size.lg }}>
-      <style>{`@keyframes shimmer { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }`}</style>
-
-      {/* Greeting Header */}
-      <div style={{ marginBottom: D.size.xl }}>
-        <h1
-          style={{
-            fontSize: D.size.h1,
-            fontWeight: D.weight.bold,
-            color: D.color.text,
-            margin: '0 0 8px 0',
-          }}
-        >
-          早安，{user?.display_name || '使用者'}
-        </h1>
-        <p style={{ color: D.color.text2, fontSize: D.size.body, margin: 0 }}>
-          {getDate()}
-        </p>
+    <div style={{ padding: '20px 0 40px' }}>
+      {/* ── Greeting ── */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 24, fontWeight: D.weight.bold, color: D.color.text, letterSpacing: -0.5 }}>
+          {greeting}，{user?.display_name || user?.username || 'User'}
+        </div>
+        <div style={{ fontSize: D.size.caption, color: D.color.text3, marginTop: 4, ...D.mono }}>{dateStr}</div>
       </div>
 
-      {/* KPI Strip */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: D.size.md,
-          marginBottom: D.size.xl,
-        }}
-      >
+      {/* ── KPI Cards ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 20 }}>
         {[
-          {
-            label: '本月營業額',
-            value: formatCurrency(performance?.total_amount || 0),
-            type: 'revenue',
-          },
-          {
-            label: '訂單數',
-            value: (performance?.total_orders || 0).toString(),
-            type: 'orders',
-          },
-          {
-            label: '平均單價',
-            value: formatCurrency(performance?.avg_order_amount || 0),
-            type: 'average',
-          },
-          {
-            label: '待收款',
-            value: unpaidOrders.length.toString(),
-            type: 'pending',
-          },
-        ].map((kpi, i) => (
-          <div
-            key={i}
-            style={{
-              padding: D.size.md,
-              backgroundColor: D.color.card,
-              borderRadius: D.radius.lg,
-              border: `1px solid ${D.color.border}`,
-              boxShadow: `0 1px 2px rgba(0,0,0,0.05)`,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: '140px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: D.size.sm }}>
-              {kpiIndicator(kpi.type)}
-              <p
-                style={{
-                  fontSize: D.size.caption,
-                  color: D.color.text2,
-                  margin: 0,
-                  fontWeight: D.weight.mono,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                {kpi.label}
-              </p>
-            </div>
-            <p
-              style={{
-                fontSize: D.size.h1,
-                fontWeight: D.weight.bold,
-                color: D.color.text,
-                margin: 0,
-                wordBreak: 'break-word',
-              }}
-            >
-              {kpi.value}
-            </p>
+          { label: 'REVENUE', title: '本月營業額', value: fmtNT(perf?.total_amount), accent: D.color.brand },
+          { label: 'ORDERS', title: '訂單數', value: String(perf?.total_orders || 0), accent: D.color.info },
+          { label: 'AVG PRICE', title: '平均單價', value: fmtNT(perf?.avg_order_amount), accent: D.color.brand },
+          { label: 'UNPAID', title: '待收款', value: String(unpaidCount), accent: unpaidCount > 0 ? D.color.warning : D.color.textDisabled },
+        ].map((kpi, idx) => (
+          <div key={idx} style={{
+            ...D.card,
+            padding: '16px 14px',
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            {/* accent top bar */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: kpi.accent, borderRadius: `${D.radius.lg}px ${D.radius.lg}px 0 0` }} />
+            <div style={{ ...D.label, fontSize: 9, marginBottom: 10, marginTop: 2 }}>{kpi.label}</div>
+            <div style={{ fontSize: 22, fontWeight: D.weight.black, color: D.color.text, ...D.mono, lineHeight: 1.1, marginBottom: 4 }}>{kpi.value}</div>
+            <div style={{ fontSize: D.size.tiny, color: D.color.text3 }}>{kpi.title}</div>
           </div>
         ))}
       </div>
 
-      {/* Alert Cards */}
-      {(unpaidOrders.length > 0 || pendingOrders.length > 0) && (
-        <div style={{ marginBottom: D.size.xl }}>
-          {unpaidOrders.length > 0 && (
-            <div
-              style={{
-                padding: D.size.md,
-                backgroundColor: '#fef3c7',
-                borderLeft: `4px solid #f59e0b`,
-                borderRadius: D.radius.md,
-                marginBottom: D.size.md,
-              }}
-            >
-              <p style={{ margin: 0, color: '#92400e', fontWeight: 'bold' }}>
-                {unpaidOrders.length} 筆訂單待收款
-              </p>
+      {/* ── Alerts ── */}
+      {(unpaidCount > 0 || pendingCount > 0) && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+          {unpaidCount > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: D.color.warningDim, border: `1px solid rgba(245,158,11,0.2)`, borderRadius: D.radius.md }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: D.color.warning, flexShrink: 0 }} />
+              <div style={{ fontSize: D.size.body, color: '#92400e', fontWeight: D.weight.semi }}>{unpaidCount} 筆訂單待收款</div>
             </div>
           )}
-          {pendingOrders.length > 0 && (
-            <div
-              style={{
-                padding: D.size.md,
-                backgroundColor: '#e0e7ff',
-                borderLeft: `4px solid #6366f1`,
-                borderRadius: D.radius.md,
-              }}
-            >
-              <p style={{ margin: 0, color: '#312e81', fontWeight: 'bold' }}>
-                {pendingOrders.length} 筆訂單待審核
-              </p>
+          {pendingCount > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: D.color.infoDim, border: `1px solid rgba(59,130,246,0.2)`, borderRadius: D.radius.md }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: D.color.info, flexShrink: 0 }} />
+              <div style={{ fontSize: D.size.body, color: '#1e40af', fontWeight: D.weight.semi }}>{pendingCount} 筆訂單待審核</div>
             </div>
           )}
         </div>
       )}
 
-      {/* Monthly Trend Chart */}
-      {monthlyTrend.length > 0 && (
-        <div
-          style={{
-            padding: D.size.md,
-            backgroundColor: D.color.card,
-            borderRadius: D.radius.md,
-            border: `1px solid ${D.color.border}`,
-            marginBottom: D.size.xl,
-          }}
-        >
-          <div
-            style={{
-              fontSize: D.size.caption,
-              fontWeight: D.weight.mono,
-              color: D.color.text2,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              marginBottom: D.size.md,
-            }}
-          >
-            本月營業趨勢
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-end',
-              gap: D.size.sm,
-              height: '150px',
-            }}
-          >
-            {monthlyTrend.map((d, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
-              >
-                <div
-                  style={{
-                    width: '100%',
-                    height: `${(d.amount / maxAmount) * 100}%`,
-                    backgroundColor: '#16a34a',
-                    borderRadius: `${D.radius.sm} ${D.radius.sm} 0 0`,
-                    minHeight: '4px',
-                  }}
-                />
-                <p
-                  style={{
-                    fontSize: D.size.caption,
-                    color: D.color.text2,
-                    marginTop: D.size.xs,
-                    margin: 0,
-                  }}
-                >
-                  {d.day}日
-                </p>
-              </div>
-            ))}
+      {/* ── Monthly Trend ── */}
+      {trend.length > 0 && (
+        <div style={{ ...D.card, padding: '16px', marginBottom: 20 }}>
+          <div style={{ ...D.label, fontSize: 9, marginBottom: 14 }}>MONTHLY TREND</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 100 }}>
+            {trend.map((m, i) => {
+              const pct = maxTrend > 0 ? (m.amount / maxTrend) * 100 : 0;
+              return (
+                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{
+                    width: '100%', maxWidth: 36, minHeight: 4,
+                    height: `${Math.max(pct, 4)}%`,
+                    background: i === trend.length - 1 ? D.color.brand : D.color.brandLight,
+                    borderRadius: '4px 4px 0 0',
+                    transition: 'height 0.4s ease',
+                  }} />
+                  <div style={{ fontSize: 9, color: D.color.text3, marginTop: 4, ...D.mono }}>{m.month?.slice(5) || ''}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Recent Orders */}
-      <div>
-        <div
-          style={{
-            fontSize: D.size.caption,
-            fontWeight: D.weight.mono,
-            color: D.color.text2,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            marginBottom: D.size.md,
-          }}
-        >
-          最近訂單
+      {/* ── Recent Orders ── */}
+      <div style={{ ...D.label, fontSize: 9, marginBottom: 10 }}>RECENT ORDERS</div>
+      {orders.length === 0 ? (
+        <div style={{ ...D.card, padding: '40px 20px', textAlign: 'center' }}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={D.color.textDisabled} strokeWidth={1.5} strokeLinecap="round" style={{ marginBottom: 8 }}>
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <div style={{ color: D.color.textDisabled, fontSize: D.size.body }}>暫無訂單</div>
+          <div style={{ color: D.color.textDisabled, fontSize: D.size.tiny, marginTop: 4 }}>本月尚未有新訂單紀錄</div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: D.size.sm }}>
-          {orders.length > 0 ? (
-            orders.map((order) => (
-              <div
-                key={order.id}
-                style={{
-                  padding: D.size.md,
-                  backgroundColor: D.color.card,
-                  borderRadius: D.radius.lg,
-                  border: `1px solid ${D.color.border}`,
-                  borderLeft: `4px solid #16a34a`,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onClick={() => onNavigateToOrder?.(order.id)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f0fdf4';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(22, 163, 74, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = D.color.card;
-                  e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
-                }}
-              >
-                <div>
-                  <p
-                    style={{
-                      fontWeight: D.weight.semi,
-                      color: D.color.text,
-                      margin: '0 0 4px 0',
-                      fontSize: D.size.body,
-                    }}
-                  >
-                    訂單 {order.order_number}
-                  </p>
-                  <p style={{ fontSize: D.size.caption, color: D.color.text2, margin: 0 }}>
-                    {order.created_at}
-                  </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {orders.map(o => (
+            <div key={o.id} onClick={() => onNavigateToOrder?.(o.id)} style={{
+              ...D.card,
+              padding: '12px 14px',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              borderLeft: `3px solid ${o.payment_status === 'paid' ? D.color.success : o.payment_status === 'partial' ? D.color.warning : D.color.border}`,
+            }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: D.size.body, fontWeight: D.weight.semi, color: D.color.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {o.customer_name || o.customer_company || o.order_no || `#${o.id}`}
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <p
-                    style={{
-                      fontWeight: D.weight.semi,
-                      color: '#16a34a',
-                      margin: '0 0 4px 0',
-                      fontSize: D.size.body,
-                    }}
-                  >
-                    {formatCurrency(order.total_amount)}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: D.size.caption,
-                      color: D.color.text2,
-                      margin: 0,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {order.status}
-                  </p>
+                <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                  <span style={D.tag(o.status === 'completed' || o.status === 'delivered' ? 'green' : o.status === 'cancelled' ? 'red' : 'default')}>
+                    {STATUS_LABEL[o.status] || o.status}
+                  </span>
+                  {o.payment_status && o.payment_status !== 'paid' && (
+                    <span style={D.tag(o.payment_status === 'partial' ? 'amber' : 'red')}>
+                      {PAY_LABEL[o.payment_status] || o.payment_status}
+                    </span>
+                  )}
                 </div>
               </div>
-            ))
-          ) : (
-            <div
-              style={{
-                padding: D.size.lg,
-                backgroundColor: D.color.card,
-                borderRadius: D.radius.lg,
-                border: `1px solid ${D.color.border}`,
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '120px',
-              }}
-            >
-              <p
-                style={{
-                  color: D.color.text2,
-                  margin: 0,
-                  fontSize: D.size.body,
-                }}
-              >
-                暫無訂單
-              </p>
-              <p
-                style={{
-                  color: D.color.text2,
-                  margin: D.size.xs + ' 0 0 0',
-                  fontSize: D.size.caption,
-                  fontWeight: D.weight.mono,
-                }}
-              >
-                最近還沒有新訂單
-              </p>
+              <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+                <div style={{ fontSize: D.size.h3, fontWeight: D.weight.bold, color: D.color.text, ...D.mono }}>{fmtNT(o.total_amount)}</div>
+                <div style={{ fontSize: D.size.tiny, color: D.color.text3, ...D.mono, marginTop: 2 }}>{(o.order_date || o.created_at || '').slice(5, 10)}</div>
+              </div>
             </div>
-          )}
+          ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }
