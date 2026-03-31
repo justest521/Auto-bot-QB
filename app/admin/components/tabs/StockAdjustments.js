@@ -5,10 +5,12 @@ import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtDate, exportCsv, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead } from '../shared/ui';
 
+const { t, p } = S;
+
 const STATUS_MAP = {
-  draft: { label: '草稿', color: '#9ca3af' },
-  confirmed: { label: '已確認', color: '#10b981' },
-  cancelled: { label: '已取消', color: '#ef4444' },
+  draft: { label: '草稿', color: t.color.textDisabled },
+  confirmed: { label: '已確認', color: t.color.success },
+  cancelled: { label: '已取消', color: t.color.error },
 };
 
 export default function StockAdjustments() {
@@ -38,72 +40,71 @@ export default function StockAdjustments() {
 
   const statusTag = (s) => {
     const m = STATUS_MAP[s] || STATUS_MAP.draft;
-    return <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 99, fontSize: 12, fontWeight: 600, background: m.color + '18', color: m.color }}>{m.label}</span>;
+    return <span style={p.badge(m.color)}>{m.label}</span>;
   };
 
   return (
     <div>
       <PageLead eyebrow="Adjustments" title="調整單" description="手動調整商品庫存數量（正數增加、負數減少），記錄調整原因。"
         action={
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row', width: isMobile ? '100%' : 'auto' }}>
-            <button onClick={handleExport} style={{ ...S.btnGhost, ...(isMobile ? { width: '100%', minHeight: 44 } : {}) }}>匯出 CSV</button>
-            <button onClick={() => setCreateOpen(true)} style={{ ...S.btnPrimary, ...(isMobile ? { width: '100%', minHeight: 44 } : {}) }}>+ 新增調整</button>
+          <div style={{ display: 'flex', gap: t.spacing.sm, alignItems: 'center', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row', width: isMobile ? '100%' : 'auto' }}>
+            <button onClick={handleExport} style={{ ...S.btnGhost, ...(isMobile ? S.mobile.btnGhost : {}) }}>匯出 CSV</button>
+            <button onClick={() => setCreateOpen(true)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}) }}>+ 新增調整</button>
           </div>
         } />
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有調整記錄" /> : data.rows.map(r => (
-        <div key={r.id} style={{ ...S.card, padding: '10px 16px', marginBottom: 10, cursor: 'pointer' }} onClick={() => setDetailRow(r)}>
+        <div key={r.id} style={{ ...S.card, ...p.listCard }} onClick={() => setDetailRow(r)}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{r.adjustment_no}</span>
-              <span style={{ fontSize: 13, color: '#374151' }}>{fmtDate(r.adjustment_date)}</span>
+              <span style={p.docNo}>{r.adjustment_no}</span>
+              <span style={{ fontSize: t.fontSize.body, color: t.color.textSecondary }}>{fmtDate(r.adjustment_date)}</span>
               {statusTag(r.status)}
             </div>
-            <div style={{ fontSize: 13, color: '#6b7280' }}>
+            <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>
               {r.reason || '-'}
-              {r.items?.length ? <span style={{ marginLeft: 8, color: '#9ca3af' }}>({r.items.length} 項)</span> : null}
+              {r.items?.length ? <span style={{ marginLeft: 8, color: t.color.textDisabled }}>({r.items.length} 項)</span> : null}
             </div>
           </div>
         </div>
       ))}
 
-      {/* Pagination */}
       {data.total > data.limit && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: t.spacing.sm, marginTop: t.spacing.lg }}>
           {Array.from({ length: Math.ceil(data.total / data.limit) }, (_, i) => (
             <button key={i} onClick={() => load(i + 1)}
-              style={{ ...S.btnGhost, fontWeight: data.page === i + 1 ? 700 : 400, minWidth: 36, padding: '4px 8px' }}>{i + 1}</button>
+              style={{ ...S.btnGhost, fontWeight: data.page === i + 1 ? t.fontWeight.bold : t.fontWeight.normal, minWidth: 36, padding: '4px 8px' }}>{i + 1}</button>
           ))}
         </div>
       )}
 
       {/* Detail Modal */}
       {detailRow && (
-        <div style={{ ...(isMobile ? S.mobileModal : { position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }) }} onClick={() => setDetailRow(null)}>
-          <div style={{ ...(isMobile ? S.mobileModalBody : { width: 'min(580px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }) }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ ...(isMobile ? S.mobileModal : p.modalOverlay) }} onClick={() => setDetailRow(null)}>
+          <div style={{ ...(isMobile ? S.mobileModalBody : p.modalBody('md')) }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: t.spacing.md }}>
               <div>
                 <div style={S.eyebrow}>Adjustment Detail</div>
-                <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 700, color: '#111827' }}>{detailRow.adjustment_no}</div>
+                <div style={p.modalTitle(isMobile)}>{detailRow.adjustment_no}</div>
               </div>
               <button onClick={() => setDetailRow(null)} style={S.btnGhost}>關閉</button>
             </div>
             <div style={{ ...S.card, marginBottom: 10 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, color: '#374151' }}>
-                <div><span style={S.label}>日期</span><div>{fmtDate(detailRow.adjustment_date)}</div></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: t.spacing.sm }}>
+                <div><span style={S.label}>日期</span><div style={p.fieldValue}>{fmtDate(detailRow.adjustment_date)}</div></div>
                 <div><span style={S.label}>狀態</span><div>{statusTag(detailRow.status)}</div></div>
-                <div><span style={S.label}>原因</span><div>{detailRow.reason || '-'}</div></div>
+                <div><span style={S.label}>原因</span><div style={p.fieldValue}>{detailRow.reason || '-'}</div></div>
               </div>
-              {detailRow.remark && <div style={{ marginTop: 8 }}><span style={S.label}>備註</span><div style={{ fontSize: 13, color: '#6b7280' }}>{detailRow.remark}</div></div>}
+              {detailRow.remark && <div style={{ marginTop: t.spacing.sm }}><span style={S.label}>備註</span><div style={{ ...p.fieldValue, color: t.color.textMuted }}>{detailRow.remark}</div></div>}
             </div>
             {detailRow.items?.length > 0 && (
               <div style={S.card}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#374151', marginBottom: 8 }}>調整明細</div>
+                <div style={p.sectionTitle}>調整明細</div>
                 {detailRow.items.map((it, idx) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: idx < detailRow.items.length - 1 ? '1px solid #f0f2f5' : 'none', fontSize: 13 }}>
-                    <div><span style={{ ...S.mono, color: '#3b82f6' }}>{it.item_number}</span> <span style={{ color: '#6b7280', marginLeft: 6 }}>{it.description || ''}</span></div>
+                  <div key={idx} style={p.detailRow(idx === detailRow.items.length - 1)}>
+                    <div><span style={{ ...S.mono, color: t.color.link }}>{it.item_number}</span> <span style={{ color: t.color.textMuted, marginLeft: 6 }}>{it.description || ''}</span></div>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <span style={{ color: '#9ca3af', fontSize: 12 }}>{it.before_qty} → {it.after_qty}</span>
-                      <span style={{ ...S.mono, fontWeight: 600, color: it.adjust_qty >= 0 ? '#10b981' : '#ef4444' }}>{it.adjust_qty >= 0 ? '+' : ''}{it.adjust_qty}</span>
+                      <span style={p.hint}>{it.before_qty} → {it.after_qty}</span>
+                      <span style={{ ...S.mono, fontWeight: t.fontWeight.semibold, color: it.adjust_qty >= 0 ? t.color.success : t.color.error }}>{it.adjust_qty >= 0 ? '+' : ''}{it.adjust_qty}</span>
                     </div>
                   </div>
                 ))}
@@ -115,34 +116,34 @@ export default function StockAdjustments() {
 
       {/* Create Modal */}
       {createOpen && (
-        <div style={{ ...(isMobile ? S.mobileModal : { position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }) }} onClick={() => setCreateOpen(false)}>
-          <div style={{ ...(isMobile ? S.mobileModalBody : { width: 'min(580px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }) }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: 12, gap: isMobile ? 10 : 0 }}>
+        <div style={{ ...(isMobile ? S.mobileModal : p.modalOverlay) }} onClick={() => setCreateOpen(false)}>
+          <div style={{ ...(isMobile ? S.mobileModalBody : p.modalBody('md')) }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: t.spacing.md, gap: isMobile ? 10 : 0 }}>
               <div>
                 <div style={S.eyebrow}>Stock Adjustment</div>
-                <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 700, color: '#111827' }}>新增調整單</div>
+                <div style={p.modalTitle(isMobile)}>新增調整單</div>
               </div>
-              <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, ...(isMobile ? { width: '100%', minHeight: 44 } : {}) }}>關閉</button>
+              <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, ...(isMobile ? S.mobile.btnGhost : {}) }}>關閉</button>
             </div>
             <div style={{ ...S.card, marginBottom: 10 }}>
-              <div><label style={S.label}>調整原因</label><input value={form.reason} onChange={(e) => setForm(p => ({ ...p, reason: e.target.value }))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
+              <div><label style={S.label}>調整原因</label><input value={form.reason} onChange={(e) => setForm(prev => ({ ...prev, reason: e.target.value }))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
             </div>
-            <div style={{ ...S.card }}>
+            <div style={S.card}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>調整明細</span>
-                <span style={{ fontSize: 12, color: '#9ca3af' }}>正數=增加, 負數=減少</span>
+                <span style={p.sectionTitle}>調整明細</span>
+                <span style={p.hint}>正數=增加, 負數=減少</span>
               </div>
               <div style={{ maxHeight: isMobile ? 200 : 280, overflowY: 'auto', overflowX: 'auto', WebkitOverflowScrolling: 'touch', display: 'grid', gap: 5, paddingRight: 4 }}>
                 {items.map((it, idx) => (
-                  <div key={idx} style={{ background: '#f9fafb', border: '1px solid #f0f2f5', borderRadius: 8, padding: isMobile ? '8px 10px' : '7px 10px', display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? '1fr' : 'auto', gap: isMobile ? 8 : 6, alignItems: isMobile ? 'stretch' : 'center' }}>
-                    <input value={it.item_number} onChange={(e) => setItems(p => { const n = [...p]; n[idx] = { ...n[idx], item_number: e.target.value }; return n; })} style={{ ...S.input, ...S.mobile.input, fontSize: isMobile ? 13 : 12, padding: isMobile ? '10px 12px' : '4px 6px', ...S.mono }} placeholder="料號" />
-                    <input value={it.description} onChange={(e) => setItems(p => { const n = [...p]; n[idx] = { ...n[idx], description: e.target.value }; return n; })} style={{ ...S.input, ...S.mobile.input, fontSize: isMobile ? 13 : 12, padding: isMobile ? '10px 12px' : '4px 6px' }} placeholder="品名" />
-                    <input type="number" value={it.adjust_qty} onChange={(e) => setItems(p => { const n = [...p]; n[idx] = { ...n[idx], adjust_qty: e.target.value }; return n; })} style={{ ...S.input, ...S.mobile.input, width: isMobile ? '100%' : 70, fontSize: isMobile ? 13 : 12, padding: isMobile ? '10px 12px' : '4px 6px', textAlign: 'center', flexShrink: 0, ...S.mono }} placeholder="±數量" />
-                    {items.length > 1 && <button onClick={() => setItems(p => p.filter((_, i) => i !== idx))} style={{ ...S.btnGhost, fontSize: 12, padding: '2px 8px', color: '#ef4444', flexShrink: 0 }}>刪除</button>}
+                  <div key={idx} style={p.inlineItemRow(isMobile)}>
+                    <input value={it.item_number} onChange={(e) => setItems(prev => { const n = [...prev]; n[idx] = { ...n[idx], item_number: e.target.value }; return n; })} style={{ ...S.input, ...p.inlineInput(isMobile), ...S.mono }} placeholder="料號" />
+                    <input value={it.description} onChange={(e) => setItems(prev => { const n = [...prev]; n[idx] = { ...n[idx], description: e.target.value }; return n; })} style={{ ...S.input, ...p.inlineInput(isMobile) }} placeholder="品名" />
+                    <input type="number" value={it.adjust_qty} onChange={(e) => setItems(prev => { const n = [...prev]; n[idx] = { ...n[idx], adjust_qty: e.target.value }; return n; })} style={{ ...S.input, ...p.inlineInput(isMobile), width: isMobile ? '100%' : 70, textAlign: 'center', flexShrink: 0, ...S.mono }} placeholder="±數量" />
+                    {items.length > 1 && <button onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))} style={{ ...S.btnGhost, fontSize: t.fontSize.caption, padding: '2px 8px', color: t.color.error, flexShrink: 0 }}>刪除</button>}
                   </div>
                 ))}
               </div>
-              <button onClick={() => setItems(p => [...p, { item_number: '', description: '', adjust_qty: 0 }])} style={{ ...S.btnGhost, fontSize: isMobile ? 13 : 12, marginTop: 8, width: '100%', minHeight: isMobile ? 44 : 'auto' }}>+ 新增品項</button>
+              <button onClick={() => setItems(prev => [...prev, { item_number: '', description: '', adjust_qty: 0 }])} style={{ ...S.btnGhost, fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, marginTop: t.spacing.sm, width: '100%', minHeight: isMobile ? 44 : 'auto' }}>+ 新增品項</button>
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 10, flexDirection: isMobile ? 'column' : 'row' }}>
               <button onClick={handleCreate} style={{ ...S.btnPrimary, flex: 1, ...(isMobile ? S.mobile.btnPrimary : {}) }}>確認調整</button>
