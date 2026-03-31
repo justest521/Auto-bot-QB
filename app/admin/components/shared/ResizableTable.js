@@ -102,6 +102,8 @@ export function useResizableColumns(storageKey, defaultWidths) {
               color: '#374151',
               position: 'relative',
               overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
               userSelect: 'none',
             }}
           >
