@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { useResponsive } from '@/lib/admin/helpers';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate } from '@/lib/admin/helpers';
@@ -265,13 +266,13 @@ export default function Customers() {
         <div style={{ display: 'grid', gap: 10 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-              <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: '#111827' }}>{detailCustomer.display_name || '未命名客戶'}</div>
+              <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{detailCustomer.display_name || '未命名客戶'}</div>
               <span style={S.tag('green')}>LINE</span>
               {detailCustomer.linked_customer
                 ? <span style={S.tag(stageMeta[currentStage]?.color || '')}>{stageMeta[currentStage]?.label || '詢問名單'}</span>
                 : <span style={S.tag('red')}>未綁定</span>}
             </div>
-            <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.7 }}>
+            <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.7 }}>
               {detailCustomer.linked_customer
                 ? `${detailCustomer.linked_customer.company_name || detailCustomer.linked_customer.name || '已建立 ERP 客戶'}`
                 : '目前尚未建立正式客戶連結'}
@@ -280,33 +281,33 @@ export default function Customers() {
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))', gap: 10 }}>
             <div style={S.panelMuted}>
-              <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>MSG</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{fmt(detailSummary.message_count)}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>MSG</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{fmt(detailSummary.message_count)}</div>
             </div>
             <div style={S.panelMuted}>
-              <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>QUOTE</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(detailSummary.quote_count)}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>QUOTE</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(detailSummary.quote_count)}</div>
             </div>
             <div style={S.panelMuted}>
-              <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>ORDER</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(detailSummary.order_count)}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>ORDER</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(detailSummary.order_count)}</div>
             </div>
             <div style={S.panelMuted}>
-              <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>SALE</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#111827', ...S.mono }}>{fmt(detailSummary.sale_count)}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>SALE</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(detailSummary.sale_count)}</div>
             </div>
             <div style={S.panelMuted}>
-              <div style={{ fontSize: 10, color: '#6b7280', marginBottom: 6, ...S.mono }}>REVENUE</div>
-              <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#10b981', ...S.mono }}>{fmtP(detailSummary.sales_total)}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>REVENUE</div>
+              <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>{fmtP(detailSummary.sales_total)}</div>
             </div>
           </div>
 
           <div style={{ display: 'grid', gap: 10 }}>
             <div style={{ ...S.panelMuted, display: 'grid', gap: 10 }}>
-              <div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>CUSTOMER_PROFILE</div>
-              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.8 }}>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>LAST_CONTACT -</span> {fmtDate(detailCustomer.last_contact_at || detailCustomer.created_at)}</div>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>STATUS</span> {(detailCustomer.message_count || 0) > 1 ? '既有客戶' : '新客戶'}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>CUSTOMER_PROFILE</div>
+              <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.8 }}>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>LAST_CONTACT -</span> {fmtDate(detailCustomer.last_contact_at || detailCustomer.created_at)}</div>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>STATUS</span> {(detailCustomer.message_count || 0) > 1 ? '既有客戶' : '新客戶'}</div>
               </div>
             </div>
 
@@ -314,8 +315,8 @@ export default function Customers() {
               <div style={{ ...S.panelMuted, background: '#f2fbf6', borderColor: '#c9edd7' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10, marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontSize: 11, color: '#10b981', marginBottom: 6, ...S.mono }}>ERP_PROFILE</div>
-                    <div style={{ fontSize: 15, color: '#111827', fontWeight: 700 }}>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.success, marginBottom: 6, ...S.mono }}>ERP_PROFILE</div>
+                    <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>
                       {detailCustomer.linked_customer.company_name || detailCustomer.linked_customer.name || '未命名客戶'}
                     </div>
                   </div>
@@ -345,18 +346,18 @@ export default function Customers() {
                     </button>
                   </div>
                 ) : (
-                  <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.8 }}>
-                    <div><span style={{ color: '#6b7280', ...S.mono }}>CONTACT -</span> {detailCustomer.linked_customer.name || '-'}</div>
-                    <div><span style={{ color: '#6b7280', ...S.mono }}>PHONE -</span> {detailCustomer.linked_customer.phone || '-'}</div>
-                    <div><span style={{ color: '#6b7280', ...S.mono }}>EMAIL -</span> {detailCustomer.linked_customer.email || '-'}</div>
-                    <div><span style={{ color: '#6b7280', ...S.mono }}>TAX_ID -</span> {detailCustomer.linked_customer.tax_id || '-'}</div>
-                    <div><span style={{ color: '#6b7280', ...S.mono }}>ADDRESS -</span> {detailCustomer.linked_customer.address || '-'}</div>
-                    <div><span style={{ color: '#6b7280', ...S.mono }}>NOTES</span> {detailCustomer.linked_customer.notes || '-'}</div>
+                  <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.8 }}>
+                    <div><span style={{ color: t.color.textMuted, ...S.mono }}>CONTACT -</span> {detailCustomer.linked_customer.name || '-'}</div>
+                    <div><span style={{ color: t.color.textMuted, ...S.mono }}>PHONE -</span> {detailCustomer.linked_customer.phone || '-'}</div>
+                    <div><span style={{ color: t.color.textMuted, ...S.mono }}>EMAIL -</span> {detailCustomer.linked_customer.email || '-'}</div>
+                    <div><span style={{ color: t.color.textMuted, ...S.mono }}>TAX_ID -</span> {detailCustomer.linked_customer.tax_id || '-'}</div>
+                    <div><span style={{ color: t.color.textMuted, ...S.mono }}>ADDRESS -</span> {detailCustomer.linked_customer.address || '-'}</div>
+                    <div><span style={{ color: t.color.textMuted, ...S.mono }}>NOTES</span> {detailCustomer.linked_customer.notes || '-'}</div>
                   </div>
                 )}
                 {detail?.customer_stage_ready ? (
                   <div style={{ marginTop: 6 }}>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 8, ...S.mono }}>CUSTOMER_STAGE</div>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 8, ...S.mono }}>CUSTOMER_STAGE</div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {Object.entries(stageMeta).map(([value, meta]) => (
                         <button
@@ -366,11 +367,11 @@ export default function Customers() {
                           style={{
                             ...S.btnGhost,
                             padding: isMobile ? '8px 10px' : '7px 12px',
-                            fontSize: isMobile ? 11 : 12,
+                            fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption,
                             minHeight: isMobile ? 40 : 'auto',
-                            background: currentStage === value ? '#dbeafe' : '#fff',
-                            borderColor: currentStage === value ? '#93c5fd' : '#e5e7eb',
-                            color: currentStage === value ? '#3b82f6' : '#5b6779',
+                            background: currentStage === value ? '#dbeafe' : t.color.bgCard,
+                            borderColor: currentStage === value ? '#93c5fd' : t.color.border,
+                            color: currentStage === value ? t.color.link : '#5b6779',
                           }}
                         >
                           {meta.label}
@@ -379,12 +380,12 @@ export default function Customers() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ marginTop: 10, fontSize: 13, color: '#374151', lineHeight: 1.7 }}>
+                  <div style={{ marginTop: 10, fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.7 }}>
                     目前資料庫還沒有 customer_stage 欄位，若要改用明確階段判定，請先補欄位 migration。
                   </div>
                 )}
                 {!formalProfileComplete && (
-                  <div style={{ marginTop: 6, fontSize: 13, color: '#374151', lineHeight: 1.7 }}>
+                  <div style={{ marginTop: 6, fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.7 }}>
                     目前這筆還不是正式客戶。若要視為正式客戶，可把階段改成「正式客戶 / VIP」，並補齊公司、電話、Email 或統編。
                   </div>
                 )}
@@ -393,8 +394,8 @@ export default function Customers() {
               <div style={{ ...S.panelMuted, display: 'grid', gap: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
                   <div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>ERP_BINDING</div>
-                    <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.7 }}>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>ERP_BINDING</div>
+                    <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.7 }}>
                       目前尚未綁定正式客戶。綁定後，這位 LINE 客戶就能連到 ERP 客戶主檔、報價、訂單與銷貨資料。
                     </div>
                   </div>
@@ -416,20 +417,20 @@ export default function Customers() {
                         {lookupLoading ? '查詢中...' : '查 ERP 客戶'}
                       </button>
                     </div>
-                    {lookupError && <div style={{ fontSize: 13, color: '#ef4444', lineHeight: 1.7 }}>{lookupError}</div>}
+                    {lookupError && <div style={{ fontSize: t.fontSize.body, color: t.color.error, lineHeight: 1.7 }}>{lookupError}</div>}
                     {lookupResults.length > 0 && (
                       <div style={{ display: 'grid', gap: 10 }}>
                         {lookupResults.map((erpCustomer) => (
-                          <div key={erpCustomer.id} style={{ background: '#fff', border: '1px solid #dbe3ee', borderRadius: 10, padding: isMobile ? '8px 12px' : '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
+                          <div key={erpCustomer.id} style={{ background: t.color.bgCard, border: '1px solid #dbe3ee', borderRadius: t.radius.lg, padding: isMobile ? '8px 12px' : '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
                             <div>
-                              <div style={{ fontSize: 14, color: '#111827', fontWeight: 700 }}>
+                              <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>
                                 {erpCustomer.company_name || erpCustomer.name || '未命名客戶'}
                               </div>
-                      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.8, marginTop: 4 }}>
-                        <div><span style={{ color: '#6b7280', ...S.mono }}>CONTACT -</span> {erpCustomer.name || '-'}</div>
-                        <div><span style={{ color: '#6b7280', ...S.mono }}>PHONE -</span> {erpCustomer.phone || '-'}</div>
-                        <div><span style={{ color: '#6b7280', ...S.mono }}>TAX_ID -</span> {erpCustomer.tax_id || '-'}</div>
-                        {erpCustomer.customer_stage && <div><span style={{ color: '#6b7280', ...S.mono }}>STAGE</span> {stageMeta[erpCustomer.customer_stage]?.label || erpCustomer.customer_stage}</div>}
+                      <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.8, marginTop: 4 }}>
+                        <div><span style={{ color: t.color.textMuted, ...S.mono }}>CONTACT -</span> {erpCustomer.name || '-'}</div>
+                        <div><span style={{ color: t.color.textMuted, ...S.mono }}>PHONE -</span> {erpCustomer.phone || '-'}</div>
+                        <div><span style={{ color: t.color.textMuted, ...S.mono }}>TAX_ID -</span> {erpCustomer.tax_id || '-'}</div>
+                        {erpCustomer.customer_stage && <div><span style={{ color: t.color.textMuted, ...S.mono }}>STAGE</span> {stageMeta[erpCustomer.customer_stage]?.label || erpCustomer.customer_stage}</div>}
                       </div>
                     </div>
                     <button onClick={() => bindCustomer(detailCustomer, erpCustomer)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto' }} disabled={bindLoadingId === detailCustomer.line_user_id}>
@@ -445,11 +446,11 @@ export default function Customers() {
             )}
 
             <div style={S.panelMuted}>
-              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 8, ...S.mono }}>RECENT_MESSAGES</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 8, ...S.mono }}>RECENT_MESSAGES</div>
               {detail?.recent_messages?.length ? detail.recent_messages.map((message) => (
                 <div key={message.id} style={{ padding: '8px 0', borderTop: '1px solid #e6edf5' }}>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4, ...S.mono }}>{fmtDate(message.created_at)}</div>
-                  <div style={{ fontSize: 13, color: '#111827', lineHeight: 1.6 }}>{message.user_message}</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 4, ...S.mono }}>{fmtDate(message.created_at)}</div>
+                  <div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, lineHeight: 1.6 }}>{message.user_message}</div>
                 </div>
               )) : <EmptyState text="目前還沒有可顯示的最近訊息" />}
             </div>
@@ -473,8 +474,8 @@ export default function Customers() {
           onKeyDown={(e) => e.key === 'Enter' && load(1, search)}
           placeholder="搜尋客戶名稱或 LINE ID..."
           style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minHeight: isMobile ? 44 : 'auto' }}
-          onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+          onFocus={(e) => e.target.style.borderColor = t.color.link}
+          onBlur={(e) => e.target.style.borderColor = t.color.border}
         />
         <button onClick={() => load(1, search)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto' }}>搜尋</button>
       </div>
@@ -488,12 +489,12 @@ export default function Customers() {
           {bindMessage}
         </div>
       )}
-      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>共 {data.total} 位客戶</div>
+      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 12, ...S.mono }}>共 {data.total} 位客戶</div>
       {loading ? <Loading /> : data.customers.length === 0 ? <EmptyState text="目前沒有符合條件的客戶資料" /> : (
         <div style={{ display: 'grid', gridTemplateColumns: isTablet || isMobile ? '1fr' : 'minmax(0, 1.25fr) minmax(340px, 0.9fr)', gap: 10, alignItems: 'start' }}>
           <div style={S.card}>
             {!isMobile && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 110px 150px 110px', gap: 10, padding: '8px 16px', borderBottom: '1px solid #e6edf5', marginBottom: 8, color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 110px 150px 110px', gap: 10, padding: '8px 16px', borderBottom: '1px solid #e6edf5', marginBottom: 8, color: t.color.textMuted, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, ...S.mono }}>
                 <div>客戶</div>
                 <div>狀態</div>
                 <div>ERP</div>
@@ -510,9 +511,9 @@ export default function Customers() {
                     style={{
                       width: '100%',
                       textAlign: 'left',
-                      background: selected ? '#dbeafe' : '#fff',
-                      border: `1px solid ${selected ? '#93c5fd' : '#e5e7eb'}`,
-                      borderRadius: 12,
+                      background: selected ? '#dbeafe' : t.color.bgCard,
+                      border: `1px solid ${selected ? '#93c5fd' : t.color.border}`,
+                      borderRadius: t.radius.lg,
                       padding: isMobile ? '10px 12px' : '12px 14px',
                       cursor: 'pointer',
                       minHeight: isMobile ? 44 : 'auto',
@@ -521,18 +522,18 @@ export default function Customers() {
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr auto' : 'minmax(0, 1.6fr) 110px 150px 110px', gap: 10, alignItems: 'center' }}>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                          <span style={{ fontSize: 15, color: '#111827', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {customer.display_name || '未命名客戶'}
                           </span>
                           <span style={S.tag('green')}>LINE</span>
                         </div>
-                      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+                      <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.6 }}>
                           {customer.linked_customer
                             ? `${customer.linked_customer.company_name || customer.linked_customer.name || '已建立 ERP 客戶'}`
                             : '尚未綁定正式客戶'}
                         </div>
                       </div>
-                      <div style={{ fontSize: 12, color: (customer.message_count || 0) > 1 ? '#10b981' : '#f59e0b', fontWeight: 700 }}>
+                      <div style={{ fontSize: t.fontSize.caption, color: (customer.message_count || 0) > 1 ? t.color.success : t.color.warning, fontWeight: t.fontWeight.bold }}>
                         {(customer.message_count || 0) > 1 ? '既有客戶' : '新客戶'}
                       </div>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -542,7 +543,7 @@ export default function Customers() {
                             </span>
                           : <span style={S.tag('red')}>未綁定</span>}
                       </div>
-                      <div style={{ textAlign: isMobile ? 'left' : 'right', fontSize: 16, color: '#3b82f6', fontWeight: 700, ...S.mono }}>
+                      <div style={{ textAlign: isMobile ? 'left' : 'right', fontSize: 16, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono }}>
                         {fmt(customer.message_count)}
                       </div>
                     </div>
@@ -558,7 +559,7 @@ export default function Customers() {
       )}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 }}>
         {data.page > 1 && <button onClick={() => load(data.page - 1)} style={{ ...S.btnGhost, minHeight: isMobile ? 40 : 'auto' }}>← 上一頁</button>}
-        <span style={{ color: '#666', padding: '8px 0', fontSize: 12, ...S.mono }}>P{data.page}</span>
+        <span style={{ color: '#666', padding: '8px 0', fontSize: t.fontSize.caption, ...S.mono }}>P{data.page}</span>
         {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={{ ...S.btnGhost, minHeight: isMobile ? 40 : 'auto' }}>下一頁 →</button>}
       </div>
     </div>

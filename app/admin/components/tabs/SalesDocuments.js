@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, useResponsive, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
@@ -137,73 +138,73 @@ function SaleDetailView({ sale, onBack, setTab }) {
         {approvalData?.status === 'approved' && <span style={{ padding: '6px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>{approvalData?.approved_by === 'system' ? '自動核准' : '已核准'}</span>}
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: t.color.errorBg, borderColor: '#fecdd3', color: t.color.error, marginBottom: 10, padding: '10px 16px', fontSize: t.fontSize.h3 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 10, alignItems: 'start' }}>
           {/* ====== Left column ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-            <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>商品明細</span>
-              <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+            <div style={{ padding: '10px 16px', borderBottom: `1px solid ${t.color.borderLight}` }}>
+              <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>商品明細</span>
+              <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: t.color.textDisabled, marginLeft: 8 }}>{items.length} 項</span>
             </div>
             {items.length > 0 ? (
               <div>
                 {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr)', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr)', gap: 6, padding: '8px 12px', background: t.color.bgMuted, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase' }}>
                   <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div>
                 </div>
                 {/* Table rows */}
                 {items.map((item, i) => {
                   const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
                   return (
-                    <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr)', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
-                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', fontWeight: 600, ...S.mono, fontSize: 14 }} title={`${item.item_number || item.item_number_snapshot || '-'} — ${item.description || item.description_snapshot || ''}`}>{item.item_number || item.item_number_snapshot || '-'}</div>
-                      <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#6b7280' }}>{fmtP(item.unit_price)}</div>
-                      <div style={{ textAlign: 'center', ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{item.quantity || item.qty || 0}</div>
+                    <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr)', gap: 6, padding: '10px 12px', borderTop: `1px solid ${t.color.borderLight}`, background: t.color.bgCard, transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background=t.color.bgMuted} onMouseLeave={e => e.currentTarget.style.background=t.color.bgCard}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number || item.item_number_snapshot || '-'} — ${item.description || item.description_snapshot || ''}`}>{item.item_number || item.item_number_snapshot || '-'}</div>
+                      <div style={{ textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textMuted }}>{fmtP(item.unit_price)}</div>
+                      <div style={{ textAlign: 'center', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{item.quantity || item.qty || 0}</div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                        <span style={{ fontWeight: 700, color: badge.color, ...S.mono, fontSize: 12 }}>{item.stock_qty ?? '—'}</span>
-                        {item.stock_status && <span style={{ padding: '1px 5px', borderRadius: 8, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
+                        <span style={{ fontWeight: t.fontWeight.bold, color: badge.color, ...S.mono, fontSize: t.fontSize.caption }}>{item.stock_qty ?? '—'}</span>
+                        {item.stock_status && <span style={{ padding: '1px 5px', borderRadius: 8, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
                           {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
                         </span>}
                       </div>
-                      <div style={{ textAlign: 'right', ...S.mono, fontWeight: 800, color: '#059669', fontSize: 14 }}>{fmtP(item.subtotal || item.line_total || (item.unit_price * (item.quantity || item.qty || 0)))}</div>
-                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: '#6b7280' }}>{item.item_note || '—'}</div>
+                      <div style={{ textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.success, fontSize: t.fontSize.h3 }}>{fmtP(item.subtotal || item.line_total || (item.unit_price * (item.quantity || item.qty || 0)))}</div>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: t.fontSize.body, color: t.color.textMuted }}>{item.item_note || '—'}</div>
                     </div>
                   );
                 })}
                 {/* Totals */}
-                <div style={{ padding: '14px 16px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: '2px solid #d1fae5' }}>
+                <div style={{ padding: '14px 16px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: `2px solid ${t.color.successBg}` }}>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 24 }}>
                     <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
-                      <span style={{ fontSize: 14, color: '#6b7280' }}>小計 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(s.subtotal || 0)}</strong></span>
-                      {Number(s.discount_amount || 0) > 0 && <span style={{ fontSize: 14, color: '#ef4444' }}>折扣 <strong style={{ ...S.mono, fontSize: 16, color: '#ef4444', fontWeight: 600 }}>-{fmtP(s.discount_amount)}</strong></span>}
-                      {Number(s.shipping_fee || 0) > 0 && <span style={{ fontSize: 14, color: '#6b7280' }}>運費 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(s.shipping_fee)}</strong></span>}
-                      {(s.tax > 0 || s.tax_amount > 0) && <span style={{ fontSize: 14, color: '#6b7280' }}>稅金 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(s.tax || s.tax_amount || 0)}</strong></span>}
+                      <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(s.subtotal || 0)}</strong></span>
+                      {Number(s.discount_amount || 0) > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.error }}>折扣 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.error, fontWeight: t.fontWeight.semibold }}>-{fmtP(s.discount_amount)}</strong></span>}
+                      {Number(s.shipping_fee || 0) > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>運費 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(s.shipping_fee)}</strong></span>}
+                      {(s.tax > 0 || s.tax_amount > 0) && <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>稅金 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(s.tax || s.tax_amount || 0)}</strong></span>}
                     </div>
-                    <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 20, textAlign: 'right' }}>
-                      <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600, display: 'block', marginBottom: 2 }}>合計</span>
-                      <span style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(s.total || 0)}</span>
+                    <div style={{ borderLeft: `2px solid ${t.color.successBg}`, paddingLeft: 20, textAlign: 'right' }}>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.brand, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>合計</span>
+                      <span style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: t.color.success, letterSpacing: -1 }}>{fmtP(s.total || 0)}</span>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無品項明細</div>
+              <div style={{ padding: '50px 20px', textAlign: 'center', color: t.color.textDisabled, fontSize: t.fontSize.h3 }}>尚無品項明細</div>
             )}
           </div>
           {/* Action bar below items — outside the card */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             {shipments.length > 0 && (
-              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}>
+              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, background: t.color.infoBg, color: t.color.info, border: `1px solid ${t.color.borderLight}` }}>
                 已建立出貨單 {shipments.map(sh => sh.shipment_no).join(', ')}
               </span>
             )}
             {allFullyShipped ? (
               <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>✓ 已全部出貨完畢</span>
             ) : (
-              <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>{shipping ? '出貨中...' : '建立出貨'}</button>
+              <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: `linear-gradient(135deg, ${t.color.warning}, #d97706)`, color: '#fff', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: `0 2px 8px ${t.color.warning}40` }}>{shipping ? '出貨中...' : '建立出貨'}</button>
             )}
           </div>
           </div>
@@ -216,19 +217,19 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 if (!confirm('尚未填寫發票號碼，是否仍要列印？\n（建議先填寫發票號碼以便入帳）')) return;
               }
               window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank');
-            }} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+            }} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, justifyContent: 'center' }}>下載 PDF</button>
 
             {/* 2. 客戶資訊 */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>客戶資訊</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{s.customer_name || sale.customer_name || '未命名客戶'}</div>
+              <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 6 }}>{s.customer_name || sale.customer_name || '未命名客戶'}</div>
               {[
                 { label: '業務', value: s.sales_person || sale.sales_person },
                 { label: '銷貨日期', value: s.sale_date || sale.sale_date, mono: true },
               ].filter(f => f.value).map((f, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
-                  <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
-                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...(f.mono ? S.mono : {}) }}>{f.value}</span>
+                  <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold }}>{f.label}</span>
+                  <span style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...(f.mono ? S.mono : {}) }}>{f.value}</span>
                 </div>
               ))}
             </div>
@@ -237,21 +238,21 @@ function SaleDetailView({ sale, onBack, setTab }) {
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>發票資訊</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap' }}>發票日期</span>
+                <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap' }}>發票日期</span>
                 <input type="date" value={invoiceDate?.slice(0, 10) || ''} onChange={e => setInvoiceDate(e.target.value)}
-                  style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none', ...S.mono, color: '#374151', textAlign: 'right' }} />
+                  style={{ padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, fontSize: t.fontSize.body, outline: 'none', ...S.mono, color: t.color.textSecondary, textAlign: 'right' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap' }}>發票號碼</span>
+                <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap' }}>發票號碼</span>
                 <input type="text" placeholder="輸入發票號碼..." value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') saveInvoice(); }}
-                  style={{ flex: 1, padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none', ...S.mono, textAlign: 'right', maxWidth: 180 }} />
+                  style={{ flex: 1, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, fontSize: t.fontSize.body, outline: 'none', ...S.mono, textAlign: 'right', maxWidth: 180 }} />
               </div>
               <button onClick={saveInvoice} disabled={savingInvoice}
-                style={{ ...S.btnPrimary, width: '100%', padding: '7px 14px', fontSize: 12, opacity: savingInvoice ? 0.7 : 1, marginTop: 4 }}>
+                style={{ ...S.btnPrimary, width: '100%', padding: '7px 14px', fontSize: t.fontSize.caption, opacity: savingInvoice ? 0.7 : 1, marginTop: 4 }}>
                 {savingInvoice ? '儲存中...' : '儲存發票資訊'}
               </button>
-              {!invoiceNumber && !s.invoice_number && <div style={{ padding: '4px 8px', borderRadius: 6, background: '#fef3c7', color: '#92400e', fontSize: 11, textAlign: 'center', border: '1px solid #fde68a', marginTop: 6 }}>請填寫發票號碼以利入帳</div>}
+              {!invoiceNumber && !s.invoice_number && <div style={{ padding: '4px 8px', borderRadius: 6, background: t.color.warningBg, color: '#92400e', fontSize: t.fontSize.tiny, textAlign: 'center', border: `1px solid ${t.color.warningBg}`, marginTop: 6 }}>請填寫發票號碼以利入帳</div>}
             </div>
 
             {/* 2. 運送資訊 — 顯示出貨紀錄，或提示尚未出貨 */}
@@ -267,11 +268,11 @@ function SaleDetailView({ sale, onBack, setTab }) {
                     { label: '狀態', value: sh.status === 'shipped' ? '已出貨' : sh.status === 'delivered' ? '已送達' : sh.status },
                   ].filter(f => f.value).map((f, fi) => (
                     <div key={fi} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
-                      <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
-                      <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...S.mono }}>{f.value}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold }}>{f.label}</span>
+                      <span style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono }}>{f.value}</span>
                     </div>
                   ))}
-                  {sh.remark && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{sh.remark}</div>}
+                  {sh.remark && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2 }}>{sh.remark}</div>}
                 </div>
               )) : (
                 <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '8px 0' }}>尚未建立出貨</div>
@@ -290,7 +291,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 defaultValue={s.remark || ''}
                 placeholder="輸入備註..."
                 rows={3}
-                style={{ width: '100%', fontSize: 13, color: '#374151', lineHeight: 1.6, border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit' }}
+                style={{ width: '100%', fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.6, border: `1px solid ${t.color.border}`, borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit' }}
                 onBlur={async (e) => {
                   const val = e.target.value.trim();
                   if (val === (s.remark || '').trim()) return;
@@ -307,49 +308,49 @@ function SaleDetailView({ sale, onBack, setTab }) {
 
       {/* ====== Shipment Creation Modal ====== */}
       {showShipForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowShipForm(false)}>
-          <div style={{ width: 'min(520px, 94vw)', background: '#fff', borderRadius: 16, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', maxHeight: '80vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, background: t.color.overlay, zIndex: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowShipForm(false)}>
+          <div style={{ width: 'min(520px, 94vw)', background: t.color.bgCard, borderRadius: 16, boxShadow: '0 20px 60px rgba(0,0,0,0.25)', maxHeight: '80vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: '#111827' }}>建立出貨單</div>
-              <button onClick={() => setShowShipForm(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#9ca3af', cursor: 'pointer', lineHeight: 1 }}>×</button>
+            <div style={{ padding: '18px 24px', borderBottom: `1px solid ${t.color.borderLight}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary }}>建立出貨單</div>
+              <button onClick={() => setShowShipForm(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: t.color.textDisabled, cursor: 'pointer', lineHeight: 1 }}>×</button>
             </div>
             {/* Form */}
             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' }}>物流商 / 運送方式</label>
+                <label style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, marginBottom: 4, display: 'block' }}>物流商 / 運送方式</label>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
                   {['黑貓宅急便', '新竹物流', '嘉里大榮', '郵局包裹', '自行配送', '貨運', '超商取貨'].map(c => (
                     <button key={c} type="button" onClick={() => setShipForm(p => ({ ...p, carrier: c }))}
-                      style={{ padding: '5px 12px', borderRadius: 6, border: shipForm.carrier === c ? '2px solid #f59e0b' : '1px solid #e5e7eb', background: shipForm.carrier === c ? '#fffbeb' : '#fff', fontSize: 12, fontWeight: shipForm.carrier === c ? 700 : 500, color: shipForm.carrier === c ? '#92400e' : '#6b7280', cursor: 'pointer', transition: 'all 0.12s' }}>
+                      style={{ padding: '5px 12px', borderRadius: 6, border: shipForm.carrier === c ? `2px solid ${t.color.warning}` : `1px solid ${t.color.border}`, background: shipForm.carrier === c ? t.color.warningBg : t.color.bgCard, fontSize: t.fontSize.caption, fontWeight: shipForm.carrier === c ? t.fontWeight.bold : t.fontWeight.medium, color: shipForm.carrier === c ? '#92400e' : t.color.textMuted, cursor: 'pointer', transition: 'all 0.12s' }}>
                       {c}
                     </button>
                   ))}
                 </div>
-                <input value={shipForm.carrier} onChange={e => setShipForm(p => ({ ...p, carrier: e.target.value }))} placeholder="或輸入其他物流商..." style={{ padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none' }} />
+                <input value={shipForm.carrier} onChange={e => setShipForm(p => ({ ...p, carrier: e.target.value }))} placeholder="或輸入其他物流商..." style={{ padding: '9px 12px', borderRadius: 8, border: `1px solid ${t.color.border}`, fontSize: t.fontSize.h3, width: '100%', outline: 'none' }} />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' }}>貨運單號</label>
-                <input value={shipForm.tracking_no} onChange={e => setShipForm(p => ({ ...p, tracking_no: e.target.value }))} placeholder="輸入追蹤號碼" style={{ padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none' }} />
+                <label style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, marginBottom: 4, display: 'block' }}>貨運單號</label>
+                <input value={shipForm.tracking_no} onChange={e => setShipForm(p => ({ ...p, tracking_no: e.target.value }))} placeholder="輸入追蹤號碼" style={{ padding: '9px 12px', borderRadius: 8, border: `1px solid ${t.color.border}`, fontSize: t.fontSize.h3, width: '100%', outline: 'none' }} />
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' }}>備註</label>
-                <textarea value={shipForm.remark} onChange={e => setShipForm(p => ({ ...p, remark: e.target.value }))} placeholder="出貨備註（選填）" rows={2} style={{ padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
+                <label style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, marginBottom: 4, display: 'block' }}>備註</label>
+                <textarea value={shipForm.remark} onChange={e => setShipForm(p => ({ ...p, remark: e.target.value }))} placeholder="出貨備註（選填）" rows={2} style={{ padding: '9px 12px', borderRadius: 8, border: `1px solid ${t.color.border}`, fontSize: t.fontSize.h3, width: '100%', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
               </div>
               {/* Items preview — only remaining unshipped items */}
-              <div style={{ background: '#f9fafb', borderRadius: 10, padding: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 8 }}>出貨品項{shipments.length > 0 && <span style={{ color: '#f59e0b', marginLeft: 6 }}>（剩餘未出）</span>}</div>
+              <div style={{ background: t.color.bgMuted, borderRadius: 10, padding: 12 }}>
+                <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, marginBottom: 8 }}>出貨品項{shipments.length > 0 && <span style={{ color: t.color.warning, marginLeft: 6 }}>（剩餘未出）</span>}</div>
                 {remainingItems.map((it, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#374151', padding: '4px 0', borderBottom: i < remainingItems.length - 1 ? '1px solid #f0f2f5' : 'none' }}>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.body, color: t.color.textSecondary, padding: '4px 0', borderBottom: i < remainingItems.length - 1 ? `1px solid ${t.color.borderLight}` : 'none' }}>
                     <span style={{ flex: 1 }}>{it.product_name || it.item_number || it.product_id}</span>
-                    <span style={{ width: 60, textAlign: 'right', fontWeight: 600 }}>×{it.remaining}</span>
+                    <span style={{ width: 60, textAlign: 'right', fontWeight: t.fontWeight.semibold }}>×{it.remaining}</span>
                   </div>
                 ))}
               </div>
             </div>
             {/* Submit */}
-            <div style={{ padding: '14px 24px 20px', borderTop: '1px solid #f0f2f5', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button onClick={() => setShowShipForm(false)} style={{ padding: '9px 20px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#6b7280', cursor: 'pointer' }}>取消</button>
+            <div style={{ padding: '14px 24px 20px', borderTop: `1px solid ${t.color.borderLight}`, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button onClick={() => setShowShipForm(false)} style={{ padding: '9px 20px', borderRadius: 8, border: `1px solid ${t.color.border}`, background: t.color.bgCard, fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textMuted, cursor: 'pointer' }}>取消</button>
               <button disabled={shipping} onClick={async () => {
                 setShipping(true);
                 try {
@@ -360,7 +361,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                   loadDetail();
                 } catch (err) { setMsg(err.message || '建立出貨失敗'); }
                 setShipping(false);
-              }} style={{ padding: '9px 24px', borderRadius: 8, border: 'none', background: shipping ? '#94a3b8' : 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: shipping ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px rgba(245,158,11,0.25)' }}>
+              }} style={{ padding: '9px 24px', borderRadius: 8, border: 'none', background: shipping ? '#94a3b8' : `linear-gradient(135deg, ${t.color.warning}, #d97706)`, color: '#fff', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, cursor: shipping ? 'not-allowed' : 'pointer', boxShadow: `0 2px 8px ${t.color.warning}40` }}>
                 {shipping ? '建立中...' : '確認出貨'}
               </button>
             </div>

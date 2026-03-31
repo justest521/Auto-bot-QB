@@ -2,12 +2,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { useResponsive } from '@/lib/admin/helpers';
 
 const defaultStyles = {
-  input: { padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, width: '100%', outline: 'none', transition: 'border 0.15s' },
-  label: { fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 4, display: 'block' },
-  card: { background: '#fff', borderRadius: 12, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #f0f2f5', marginBottom: 16 },
+  input: { padding: '8px 12px', borderRadius: t.radius.md, border: '1px solid #e5e7eb', fontSize: t.fontSize.h3, width: '100%', outline: 'none', transition: 'border 0.15s' },
+  label: { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, marginBottom: 4, display: 'block' },
+  card: { background: t.color.bgCard, borderRadius: t.radius.lg, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #f0f2f5', marginBottom: 16 },
 };
 
 export default function CompanySettings({ apiGet, apiPost }) {
@@ -87,40 +88,40 @@ export default function CompanySettings({ apiGet, apiPost }) {
 
   const update = (key, val) => setSettings(prev => ({ ...prev, [key]: val }));
 
-  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>載入中...</div>;
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: t.color.textDisabled }}>載入中...</div>;
 
   return (
     <div style={{ maxWidth: isMobile ? '100%' : 700, margin: '0 auto', padding: isMobile ? '0 16px' : '0' }}>
-      <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 4 }}>公司設定</h2>
-      <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>設定公司資訊與 Logo，將顯示在所有列印文件上</p>
+      <h2 style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 4 }}>公司設定</h2>
+      <p style={{ fontSize: t.fontSize.body, color: t.color.textMuted, marginBottom: 20 }}>設定公司資訊與 Logo，將顯示在所有列印文件上</p>
 
-      {msg && <div style={{ padding: '8px 14px', borderRadius: 8, background: msg.includes('失敗') ? '#fef2f2' : '#f0fdf4', color: msg.includes('失敗') ? '#dc2626' : '#16a34a', fontSize: 13, fontWeight: 600, marginBottom: 12 }}>{msg}</div>}
+      {msg && <div style={{ padding: '8px 14px', borderRadius: 8, background: msg.includes('失敗') ? '#fef2f2' : '#f0fdf4', color: msg.includes('失敗') ? t.color.error : t.color.brand, fontSize: 13, fontWeight: t.fontWeight.semibold, marginBottom: 12 }}>{msg}</div>}
 
       {/* Logo */}
       <div style={{ ...defaultStyles.card }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#374151', marginBottom: 12 }}>公司 Logo</div>
+        <div style={{ fontSize: t.fontSize.h3, fontWeight: 700, color: t.color.textSecondary, marginBottom: 12 }}>公司 Logo</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 16 : 20, flexDirection: isMobile ? 'column' : 'row' }}>
-          <div style={{ width: 120, height: 120, borderRadius: 12, border: '2px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: '#f9fafb', flexShrink: 0 }}>
+          <div style={{ width: 120, height: 120, borderRadius: 12, border: '2px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: t.color.bgMuted, flexShrink: 0 }}>
             {settings.logo_url ? (
               <img src={settings.logo_url} alt="Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
             ) : (
-              <span style={{ fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>尚未上傳</span>
+              <span style={{ fontSize: 12, color: t.color.textDisabled, textAlign: 'center' }}>尚未上傳</span>
             )}
           </div>
           <div style={{ width: isMobile ? '100%' : 'auto' }}>
             <input type="file" ref={fileRef} accept="image/*" onChange={uploadLogo} style={{ display: 'none' }} />
-            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '12px 16px' : '8px 20px', borderRadius: 8, border: 'none', background: uploading ? '#94a3b8' : '#2563eb', color: '#fff', fontSize: 13, fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer', marginBottom: 8 }}>
+            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '12px 16px' : '8px 20px', borderRadius: 8, border: 'none', background: uploading ? '#94a3b8' : '#2563eb', color: t.color.bgCard, fontSize: 13, fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer', marginBottom: 8 }}>
               {uploading ? '上傳中...' : settings.logo_url ? '更換 Logo' : '上傳 Logo'}
             </button>
-            <div style={{ fontSize: 11, color: '#9ca3af' }}>建議尺寸 300×100px，PNG/JPG，最大 2MB</div>
-            <div style={{ fontSize: 11, color: '#9ca3af' }}>Logo 將顯示在報價單、訂單、銷貨單的列印文件上</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>建議尺寸 300×100px，PNG/JPG，最大 2MB</div>
+            <div style={{ fontSize: 11, color: t.color.textDisabled }}>Logo 將顯示在報價單、訂單、銷貨單的列印文件上</div>
           </div>
         </div>
       </div>
 
       {/* Company Info */}
       <div style={{ ...defaultStyles.card }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#374151', marginBottom: 12 }}>公司資訊</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: t.color.textSecondary, marginBottom: 12 }}>公司資訊</div>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 12 : 12 }}>
           <div>
             <label style={defaultStyles.label}>公司名稱（中文）</label>
@@ -152,7 +153,7 @@ export default function CompanySettings({ apiGet, apiPost }) {
           </div>
         </div>
         <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={save} disabled={saving} style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '12px 16px' : '10px 28px', borderRadius: 8, border: 'none', background: saving ? '#94a3b8' : '#16a34a', color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
+          <button onClick={save} disabled={saving} style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '12px 16px' : '10px 28px', borderRadius: 8, border: 'none', background: saving ? '#94a3b8' : t.color.brand, color: t.color.bgCard, fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
             {saving ? '儲存中...' : '儲存設定'}
           </button>
         </div>

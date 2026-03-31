@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, exportCsv, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, CsvImportButton, ComingSoonBanner } from '../shared/ui';
@@ -77,32 +78,32 @@ export default function Vendors() {
         }
       />
       <ComingSoonBanner tabId="vendors" />
-      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#dc2626' : '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? t.color.errorBg : t.color.successBg, borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? t.color.error : '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search)} placeholder="搜尋廠商名稱、代號或聯絡人..." style={{ ...(isMobile ? S.mobile.input : S.input), flex: 1 }} />
         <button onClick={() => load(1, search)} style={{ ...S.btnPrimary, minHeight: isMobile ? 44 : undefined }}>搜尋</button>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', marginBottom: 10 }}>尚未建立 erp_vendors 資料表。</div>}
-      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>共 {fmt(data.total)} 筆廠商</div>
+      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 12, ...S.mono }}>共 {fmt(data.total)} 筆廠商</div>
       {loading ? <Loading /> : data.vendors.length === 0 ? <EmptyState text="目前沒有廠商資料" /> : data.vendors.map((vendor) => (
         <div key={vendor.id} style={{ ...S.card, padding: isMobile ? '12px 14px' : '10px 16px', marginBottom: 10 }}>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '160px minmax(0, 1fr) 160px', gap: isMobile ? 8 : 10, alignItems: 'start' }}>
             <div>
-              <div style={{ fontSize: isMobile ? 10 : 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>VENDOR_CODE</div>
-              <div style={{ fontSize: isMobile ? 13 : 14, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{vendor.vendor_code || '-'}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.caption : t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>VENDOR_CODE</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.body : t.fontSize.h3, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono }}>{vendor.vendor_code || '-'}</div>
             </div>
             <div>
-              <div style={{ fontSize: isMobile ? 14 : 15, color: '#111827', fontWeight: 700 }}>{vendor.vendor_name || '未命名廠商'}</div>
-              <div style={{ fontSize: isMobile ? 11 : 12, color: '#374151', lineHeight: 1.8, marginTop: 6 }}>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>CONTACT -</span> {vendor.contact_name || '-'}</div>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>PHONE -</span> {vendor.phone || vendor.mobile || '-'}</div>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>EMAIL -</span> {vendor.email || '-'}</div>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>ADDRESS -</span> {vendor.address || '-'}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h3 : t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{vendor.vendor_name || '未命名廠商'}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, color: t.color.textSecondary, lineHeight: 1.8, marginTop: 6 }}>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>CONTACT -</span> {vendor.contact_name || '-'}</div>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>PHONE -</span> {vendor.phone || vendor.mobile || '-'}</div>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>EMAIL -</span> {vendor.email || '-'}</div>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>ADDRESS -</span> {vendor.address || '-'}</div>
               </div>
             </div>
             <div style={S.panelMuted}>
-              <div style={{ fontSize: isMobile ? 10 : 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>TAX_ID</div>
-              <div style={{ fontSize: isMobile ? 13 : 14, color: '#111827', ...S.mono }}>{vendor.tax_id || '-'}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.caption : t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>TAX_ID</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.body : t.fontSize.h3, color: t.color.textPrimary, ...S.mono }}>{vendor.tax_id || '-'}</div>
             </div>
           </div>
         </div>
@@ -110,16 +111,16 @@ export default function Vendors() {
       {data.total > data.limit && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 }}>
           {data.page > 1 && <button onClick={() => load(data.page - 1)} style={{ ...S.btnGhost, minHeight: isMobile ? 44 : undefined }}>← 上一頁</button>}
-          <span style={{ color: '#666', padding: '8px 0', fontSize: 12, ...S.mono }}>P{data.page}</span>
+          <span style={{ color: '#666', padding: '8px 0', fontSize: t.fontSize.caption, ...S.mono }}>P{data.page}</span>
           {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={{ ...S.btnGhost, minHeight: isMobile ? 44 : undefined }}>下一頁 →</button>}
         </div>
       )}
 
       {/* ===== Create Vendor Modal ===== */}
       {createOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 580, maxWidth: '92vw', maxHeight: isMobile ? '90vh' : '90vh', overflowY: 'auto', borderRadius: 14, padding: isMobile ? '16px 14px 20px' : '16px 18px 20px' }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#111827' }}>新增廠商</h3>
+        <div style={{ ...p.modalOverlay }}>
+          <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 580, maxWidth: '92vw', maxHeight: isMobile ? '90vh' : '90vh', overflowY: 'auto', borderRadius: t.radius.xl, padding: isMobile ? '16px 14px 20px' : '16px 18px 20px' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>新增廠商</h3>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>廠商名稱 *</label><input value={form.vendor_name} onChange={e => setForm(p => ({ ...p, vendor_name: e.target.value }))} style={{ ...(isMobile ? S.mobile.input : S.input) }} placeholder="例：三陽工業" /></div>
               <div><label style={S.label}>廠商代號</label><input value={form.vendor_code} onChange={e => setForm(p => ({ ...p, vendor_code: e.target.value }))} style={{ ...(isMobile ? S.mobile.input : S.input) }} placeholder="自動產生" /></div>

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, useResponsive } from '@/lib/admin/helpers';
 import { Loading, PageLead, StatCard } from '../shared/ui';
@@ -46,7 +47,7 @@ export default function AIPrompt() {
 
       <div style={S.card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#3b82f6', ...S.mono }}>AI_SYSTEM_PROMPT</div>
+          <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>AI_SYSTEM_PROMPT</div>
           <div style={{ ...S.tag('green') }}>Claude Sonnet</div>
         </div>
         <div style={{ marginBottom: 8 }}>
@@ -60,14 +61,14 @@ export default function AIPrompt() {
           />
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row' }}>
-          <button onClick={save} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), flex: 1, background: saved ? '#22c55e' : '#10b981', transition: 'background 0.3s', padding: isMobile ? '12px 16px' : '11px 0', fontSize: 14 }}>{saved ? '✓ SAVED' : '儲存 Prompt'}</button>
-          <div style={{ fontSize: 11, color: '#6b7280', ...S.mono, whiteSpace: 'nowrap' }}>{prompt.length} 字</div>
+          <button onClick={save} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), flex: 1, background: saved ? '#22c55e' : t.color.success, transition: 'background 0.3s', padding: isMobile ? '12px 16px' : '11px 0', fontSize: t.fontSize.h3 }}>{saved ? '✓ SAVED' : '儲存 Prompt'}</button>
+          <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono, whiteSpace: 'nowrap' }}>{prompt.length} 字</div>
         </div>
       </div>
 
-      <div style={{ ...S.card, borderColor: '#e5e7eb' }}>
-        <div style={{ color: '#6b7280', fontSize: 11, lineHeight: 1.9, ...S.mono }}>
-          <span style={{ color: '#374151' }}>// 使用說明</span><br/>
+      <div style={{ ...S.card, borderColor: t.color.border }}>
+        <div style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny, lineHeight: 1.9, ...S.mono }}>
+          <span style={{ color: t.color.textSecondary }}>// 使用說明</span><br/>
           // 修改後立即生效，AI 下次回覆就會套用新 prompt<br/>
           // 建議包含：角色設定、回覆風格、報價格式、SOP 流程<br/>
           // 可從「歷史對話」分頁參考真人客服的回覆方式<br/>

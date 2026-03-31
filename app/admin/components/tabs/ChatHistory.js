@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet } from '@/lib/admin/api';
 import { fmt, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard } from '../shared/ui';
@@ -49,30 +50,30 @@ export default function ChatHistory() {
       )}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { setPage(1); load(search, 1); } }} placeholder="搜尋對話內容、客戶名稱、客服名稱..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, width: isMobile ? '100%' : 'auto' }} onFocus={e => e.target.style.borderColor = '#06c755'} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
+        <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { setPage(1); load(search, 1); } }} placeholder="搜尋對話內容、客戶名稱、客服名稱..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, width: isMobile ? '100%' : 'auto' }} onFocus={e => e.target.style.borderColor = '#06c755'} onBlur={e => e.target.style.borderColor = t.color.border} />
         <button onClick={() => { setPage(1); load(search, 1); }} style={{ ...S.btnLine, ...(isMobile ? { width: '100%', minHeight: 44 } : {}) }}>搜尋</button>
       </div>
 
-      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>共 {fmt(total)} 筆 {totalPages > 1 && `· P${page}/${totalPages}`}</div>
+      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 12, ...S.mono }}>共 {fmt(total)} 筆 {totalPages > 1 && `· P${page}/${totalPages}`}</div>
 
       {loading ? <Loading /> : messages.length === 0 ? <EmptyState text="沒有找到對話記錄" /> : messages.map(msg => (
-        <div key={msg.id} style={{ ...S.card, padding: '12px 18px', marginBottom: 6, borderLeftColor: msg.sender_type === 'User' ? '#3b82f6' : '#06c755', borderLeftWidth: 3 }}>
+        <div key={msg.id} style={{ ...S.card, padding: '12px 18px', marginBottom: 6, borderLeftColor: msg.sender_type === 'User' ? t.color.link : '#06c755', borderLeftWidth: 3 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: 6, flexDirection: isMobile ? 'column' : 'row', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={S.tag(msg.sender_type === 'User' ? '' : 'line')}>{msg.sender_type === 'User' ? '客戶' : '客服'}</span>
-              <span style={{ fontSize: 12, color: '#111827' }}>{msg.display_name}</span>
-              {msg.sender_name && msg.sender_type === 'Account' && <span style={{ fontSize: 11, color: '#6b7280' }}>({msg.sender_name})</span>}
+              <span style={{ fontSize: t.fontSize.caption, color: t.color.textPrimary }}>{msg.display_name}</span>
+              {msg.sender_name && msg.sender_type === 'Account' && <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>({msg.sender_name})</span>}
             </div>
-            <span style={{ color: '#6b7280', fontSize: 11, ...S.mono }}>{msg.message_date} {msg.message_time}</span>
+            <span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny, ...S.mono }}>{msg.message_date} {msg.message_time}</span>
           </div>
-          <div style={{ fontSize: 14, color: msg.sender_type === 'User' ? '#111827' : '#10b981', lineHeight: 1.6 }}>{msg.content}</div>
+          <div style={{ fontSize: t.fontSize.h3, color: msg.sender_type === 'User' ? t.color.textPrimary : t.color.success, lineHeight: 1.6 }}>{msg.content}</div>
         </div>
       ))}
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 16 }}>
           {page > 1 && <button onClick={() => goPage(page - 1)} style={S.btnGhost}>← 上一頁</button>}
-          <span style={{ color: '#666', padding: '8px 0', fontSize: 12, ...S.mono }}>P{page}/{totalPages}</span>
+          <span style={{ color: t.color.textMuted, padding: '8px 0', fontSize: t.fontSize.caption, ...S.mono }}>P{page}/{totalPages}</span>
           {page < totalPages && <button onClick={() => goPage(page + 1)} style={S.btnGhost}>下一頁 →</button>}
         </div>
       )}

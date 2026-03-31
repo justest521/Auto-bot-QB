@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet } from '@/lib/admin/api';
 import { fmt, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard, PanelHeader } from '../shared/ui';
@@ -62,10 +63,10 @@ export default function EnvHealth({ setTab }) {
                   {group.items.map((item) => (
                     <div key={item.name} style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '220px 1fr 100px', gap: 10, alignItems: isMobile ? 'flex-start' : 'center' }}>
                       <div>
-                        <div style={{ fontSize: 13, color: '#111827', fontWeight: 700 }}>{item.label}</div>
-                        <div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>{item.name}</div>
+                        <div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{item.label}</div>
+                        <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>{item.name}</div>
                       </div>
-                      <div style={{ fontSize: 12, color: item.ready ? '#374151' : '#b45309' }}>
+                      <div style={{ fontSize: t.fontSize.caption, color: item.ready ? t.color.textSecondary : '#b45309' }}>
                         {item.ready ? `可讀取，現有 ${fmt(item.count)} 筆` : item.error}
                       </div>
                       <div style={{ textAlign: isMobile ? 'left' : 'right' }}>

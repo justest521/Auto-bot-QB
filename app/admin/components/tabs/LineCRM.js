@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { useResponsive } from '@/lib/admin/helpers';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP } from '@/lib/admin/helpers';
@@ -171,18 +172,18 @@ export default function LineCRM() {
       </div>
 
       {/* Tag Filter Bar */}
-      <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.75rem', flexWrap: 'wrap', paddingBottom: '0.5rem', borderBottom: '1px solid #e5e7eb', overflowX: isMobile ? 'auto' : 'visible' }}>
+      <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.75rem', flexWrap: 'wrap', paddingBottom: '0.5rem', borderBottom: `1px solid ${t.color.border}`, overflowX: isMobile ? 'auto' : 'visible' }}>
         <button
           onClick={() => handleTagFilter(null)}
           style={{
             ...S.tag(),
-            backgroundColor: !selectedTag ? '#06c755' : '#f3f4f6',
-            color: !selectedTag ? '#fff' : '#374151',
+            backgroundColor: !selectedTag ? '#06c755' : t.color.bgMuted,
+            color: !selectedTag ? '#fff' : t.color.textSecondary,
             cursor: 'pointer',
             padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-            borderRadius: '9999px',
+            borderRadius: t.radius.pill,
             fontSize: isMobile ? '0.8rem' : '0.875rem',
-            fontWeight: '500',
+            fontWeight: t.fontWeight.medium,
             border: 'none',
             whiteSpace: 'nowrap',
             minHeight: isMobile ? 36 : 'auto',
@@ -196,13 +197,13 @@ export default function LineCRM() {
             onClick={() => handleTagFilter(tag)}
             style={{
               ...S.tag(),
-              backgroundColor: selectedTag === tag ? '#06c755' : '#f3f4f6',
-              color: selectedTag === tag ? '#fff' : '#374151',
+              backgroundColor: selectedTag === tag ? '#06c755' : t.color.bgMuted,
+              color: selectedTag === tag ? '#fff' : t.color.textSecondary,
               cursor: 'pointer',
               padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-              borderRadius: '9999px',
+              borderRadius: t.radius.pill,
               fontSize: isMobile ? '0.8rem' : '0.875rem',
-              fontWeight: '500',
+              fontWeight: t.fontWeight.medium,
               border: 'none',
               whiteSpace: 'nowrap',
               minHeight: isMobile ? 36 : 'auto',
@@ -254,7 +255,7 @@ export default function LineCRM() {
               <div style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : 'auto' }}>
                 {/* Name and Tags */}
                 <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', marginBottom: isMobile ? '0.375rem' : '0.625rem', flexWrap: 'wrap' }}>
-                  <h3 style={{ margin: 0, fontSize: isMobile ? '0.95rem' : '1rem', fontWeight: '600', color: '#111827' }}>
+                  <h3 style={{ margin: 0, fontSize: isMobile ? '0.95rem' : '1rem', fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>
                     {customer.display_name}
                   </h3>
                   {customer.tags?.map(tag => (
@@ -263,9 +264,9 @@ export default function LineCRM() {
                       style={{
                         display: 'inline-block',
                         padding: isMobile ? '0.2rem 0.5rem' : '0.25rem 0.75rem',
-                        borderRadius: '0.375rem',
+                        borderRadius: t.radius.sm,
                         fontSize: isMobile ? '0.7rem' : '0.75rem',
-                        fontWeight: '500',
+                        fontWeight: t.fontWeight.medium,
                         backgroundColor: TAG_COLORS[tag] || '#d1d5db',
                         color: '#fff',
                       }}
@@ -276,27 +277,27 @@ export default function LineCRM() {
                 </div>
 
                 {/* Stats */}
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(120px, 1fr))', gap: isMobile ? '0.375rem' : '0.625rem', fontSize: isMobile ? '0.8rem' : '0.875rem', color: '#6b7280' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(120px, 1fr))', gap: isMobile ? '0.375rem' : '0.625rem', fontSize: isMobile ? '0.8rem' : '0.875rem', color: t.color.textMuted }}>
                   <div>
-                    <span style={{ display: 'block', fontWeight: '500', color: '#111827', fontSize: isMobile ? '0.9rem' : 'inherit' }}>
+                    <span style={{ display: 'block', fontWeight: t.fontWeight.medium, color: t.color.textPrimary, fontSize: isMobile ? '0.9rem' : 'inherit' }}>
                       {fmt(customer.order_count || 0)}
                     </span>
                     <span>訂單</span>
                   </div>
                   <div>
-                    <span style={{ display: 'block', fontWeight: '500', color: '#111827', fontSize: isMobile ? '0.9rem' : 'inherit' }}>
+                    <span style={{ display: 'block', fontWeight: t.fontWeight.medium, color: t.color.textPrimary, fontSize: isMobile ? '0.9rem' : 'inherit' }}>
                       {fmtP(customer.total_spent || 0)}
                     </span>
                     <span>消費金額</span>
                   </div>
                   <div>
-                    <span style={{ display: 'block', fontWeight: '500', color: '#111827', fontSize: isMobile ? '0.9rem' : 'inherit' }}>
+                    <span style={{ display: 'block', fontWeight: t.fontWeight.medium, color: t.color.textPrimary, fontSize: isMobile ? '0.9rem' : 'inherit' }}>
                       {customer.last_order_date ? new Date(customer.last_order_date).toLocaleDateString('zh-TW') : '無'}
                     </span>
                     <span>最後訂單</span>
                   </div>
                   <div>
-                    <span style={{ display: 'block', fontWeight: '500', color: '#111827', fontSize: isMobile ? '0.9rem' : 'inherit' }}>
+                    <span style={{ display: 'block', fontWeight: t.fontWeight.medium, color: t.color.textPrimary, fontSize: isMobile ? '0.9rem' : 'inherit' }}>
                       {fmt(customer.message_count || 0)}
                     </span>
                     <span>訊息</span>
@@ -315,8 +316,8 @@ export default function LineCRM() {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: '#fff',
-          borderTop: '1px solid #e5e7eb',
+          backgroundColor: t.color.bgCard,
+          borderTop: `1px solid ${t.color.border}`,
           boxShadow: '0 -4px 6px rgba(0, 0, 0, 0.1)',
           transform: broadcastOpen ? 'translateY(0)' : 'translateY(100%)',
           transition: 'transform 0.3s ease-out',
@@ -332,8 +333,8 @@ export default function LineCRM() {
               style={{
                 marginBottom: '0.625rem',
                 padding: isMobile ? '0.5rem' : '0.625rem',
-                borderRadius: '0.375rem',
-                backgroundColor: broadcastStatus.type === 'success' ? '#d1fae5' : '#fee2e2',
+                borderRadius: t.radius.sm,
+                backgroundColor: broadcastStatus.type === 'success' ? t.color.successBg : t.color.errorBg,
                 color: broadcastStatus.type === 'success' ? '#065f46' : '#7f1d1d',
                 fontSize: isMobile ? '0.8rem' : '0.875rem',
               }}
@@ -375,8 +376,8 @@ export default function LineCRM() {
                     alignItems: 'center',
                     gap: '0.5rem',
                     padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-                    borderRadius: '0.375rem',
-                    backgroundColor: '#f3f4f6',
+                    borderRadius: t.radius.sm,
+                    backgroundColor: t.color.bgMuted,
                     cursor: 'pointer',
                     fontSize: isMobile ? '0.8rem' : '0.875rem',
                     minHeight: isMobile ? 36 : 'auto',
@@ -402,8 +403,8 @@ export default function LineCRM() {
 
           {/* Preview and Send */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 10 : 0 }}>
-            <div style={{ fontSize: isMobile ? '0.8rem' : '0.875rem', color: '#6b7280' }}>
-              將發送給 <span style={{ fontWeight: 'bold', color: '#111827' }}>{fmt(recipientCount)}</span> 位用戶
+            <div style={{ fontSize: isMobile ? '0.8rem' : '0.875rem', color: t.color.textMuted }}>
+              將發送給 <span style={{ fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{fmt(recipientCount)}</span> 位用戶
             </div>
             <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.469rem', width: isMobile ? '100%' : 'auto' }}>
               <button

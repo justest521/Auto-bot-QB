@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet } from '@/lib/admin/api';
 import { fmt, fmtMs, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard, PanelHeader, MiniDonut, TrendChart, TrendLineChart } from '../shared/ui';
@@ -30,24 +31,24 @@ export default function Dashboard() {
     {
       title: '確認今日查詢流量',
       desc: `今日累積 ${fmt(stats?.today_messages)} 筆查詢，檢查是否與預期流量一致。`,
-      color: '#3b82f6',
+      color: t.color.link,
     },
     {
       title: '追蹤本週互動節奏',
       desc: `本週已有 ${fmt(stats?.week_messages)} 筆訊息，留意是否出現異常尖峰或回落。`,
-      color: '#10b981',
+      color: t.color.success,
     },
     {
       title: '檢視熱門詢價產品',
       desc: stats?.top_products?.[0]
         ? `目前查詢最多的是 ${stats.top_products[0].item_number}，可優先準備對應銷售話術。`
         : '目前尚未累積足夠熱門產品資料，可待更多互動後再觀察。',
-      color: '#ef4444',
+      color: t.color.error,
     },
     {
       title: '確認後台與 webhook 狀態',
       desc: '部署後建議持續抽查 admin 登入與 LINE webhook 是否皆可正常使用。',
-      color: '#f59e0b',
+      color: t.color.warning,
     },
   ];
   return (
@@ -67,10 +68,10 @@ export default function Dashboard() {
         <div style={{ ...S.card, marginBottom: 10 }}>
           <PanelHeader title="熱門查詢產品" meta="最近互動中最常被詢問的產品料號" badge={<div style={{ ...S.tag('green') }}>TOP 10</div>} />
           {stats?.top_products?.length > 0 ? stats.top_products.map((p, i) => (
-            <div key={p.item_number} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '48px 1fr 100px', alignItems: 'center', padding: isMobile ? '12px 0' : '11px 0', borderTop: i > 0 ? '1px solid #e6edf5' : 'none' }}>
-              <div style={{ fontSize: 12, color: i < 3 ? '#3b82f6' : '#6b7280', fontWeight: 700, ...S.mono }}>#{i + 1}</div>
-              <div style={{ fontSize: 14, color: '#111827', ...S.mono }}>{p.item_number}</div>
-              <div style={{ fontSize: 14, color: '#10b981', fontWeight: 700, textAlign: 'right', ...S.mono }}>{p.count}次</div>
+            <div key={p.item_number} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '48px 1fr 100px', alignItems: 'center', padding: isMobile ? '12px 0' : '11px 0', borderTop: i > 0 ? `1px solid ${t.color.borderLight}` : 'none' }}>
+              <div style={{ fontSize: t.fontSize.caption, color: i < 3 ? t.color.link : t.color.textMuted, fontWeight: t.fontWeight.bold, ...S.mono }}>#{i + 1}</div>
+              <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, ...S.mono }}>{p.item_number}</div>
+              <div style={{ fontSize: t.fontSize.h3, color: t.color.success, fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono }}>{p.count}次</div>
             </div>
           )) : <EmptyState text="等待客戶使用 Line Bot 後將顯示數據" />}
         </div>
@@ -78,17 +79,17 @@ export default function Dashboard() {
           <PanelHeader title="系統概況" meta="目前部署與營運摘要" badge={<div style={{ ...S.tag('line') }}>LIVE</div>} />
           <div style={{ display: 'grid', gap: 10 }}>
             <div style={S.panelMuted}>
-              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>TOTAL_MESSAGES</div>
-              <div style={{ fontSize: isMobile ? 20 : 28, color: '#111827', fontWeight: 700, ...S.mono }}>{fmt(stats?.total_messages)}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>TOTAL_MESSAGES</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h1 : 28, color: t.color.textPrimary, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmt(stats?.total_messages)}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
               <div style={S.panelMuted}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>WEBHOOK</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#10b981' }}>Operational</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>WEBHOOK</div>
+                <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.success }}>Operational</div>
               </div>
               <div style={S.panelMuted}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>ADMIN</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6' }}>Protected</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>ADMIN</div>
+                <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link }}>Protected</div>
               </div>
             </div>
           </div>
@@ -104,31 +105,31 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gap: 10 }}>
             <div style={{ ...S.panelMuted, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? 8 : 10, textAlign: 'center' }}>
               <div>
-                <MiniDonut value={interaction.matched_rate} color="#10b981" />
-                <div style={{ marginTop: 8, fontSize: 11, color: '#6b7280', ...S.mono }}>MATCHED</div>
+                <MiniDonut value={interaction.matched_rate} color={t.color.success} />
+                <div style={{ marginTop: 8, fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>MATCHED</div>
               </div>
               <div>
-                <MiniDonut value={interaction.repeat_customer_rate} color="#f59e0b" />
-                <div style={{ marginTop: 8, fontSize: 11, color: '#6b7280', ...S.mono }}>REPEAT</div>
+                <MiniDonut value={interaction.repeat_customer_rate} color={t.color.warning} />
+                <div style={{ marginTop: 8, fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>REPEAT</div>
               </div>
               <div>
-                <MiniDonut value={interaction.fast_reply_rate} color="#ef4444" />
-                <div style={{ marginTop: 8, fontSize: 11, color: '#6b7280', ...S.mono }}>FAST</div>
+                <MiniDonut value={interaction.fast_reply_rate} color={t.color.error} />
+                <div style={{ marginTop: 8, fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>FAST</div>
               </div>
             </div>
             <div style={{ ...S.panelMuted, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '10px 16px', borderBottom: '1px solid #dbe6f3', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '10px 16px', borderBottom: `1px solid ${t.color.borderLight}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>最近摘要</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: '#6b7280' }}>快速檢視目前營運狀態</div>
+                  <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>最近摘要</div>
+                  <div style={{ marginTop: 4, fontSize: t.fontSize.caption, color: t.color.textMuted }}>快速檢視目前營運狀態</div>
                 </div>
                 <div style={{ ...S.tag('line') }}>STATUS</div>
               </div>
               <div style={{ padding: '8px 16px' }}>
                 {summaryItems.map(([title, desc], idx) => (
-                  <div key={title} style={{ padding: '10px 0', borderTop: idx > 0 ? '1px solid #e6edf5' : 'none' }}>
-                    <div style={{ fontSize: 14, color: '#111827', fontWeight: 700 }}>{title}</div>
-                    <div style={{ marginTop: 4, fontSize: 12, color: '#6b7280', lineHeight: 1.7 }}>{desc}</div>
+                  <div key={title} style={{ padding: '10px 0', borderTop: idx > 0 ? `1px solid ${t.color.borderLight}` : 'none' }}>
+                    <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{title}</div>
+                    <div style={{ marginTop: 4, fontSize: t.fontSize.caption, color: t.color.textMuted, lineHeight: 1.7 }}>{desc}</div>
                   </div>
                 ))}
               </div>

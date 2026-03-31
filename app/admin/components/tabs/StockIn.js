@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
@@ -36,9 +37,9 @@ function StockInDetailView({ id, onBack }) {
     } catch (e) { alert(e.message); }
   };
 
-  const cardStyle = { ...S.card, borderRadius: 10, border: '1px solid #eaeff5' };
-  const thStyle = { textAlign: 'left', padding: '8px 10px', color: '#6b7280', fontWeight: 600, fontSize: 12, borderBottom: '2px solid #e5e7eb', whiteSpace: 'nowrap' };
-  const tdStyle = { padding: '8px 10px', borderBottom: '1px solid #f3f4f6', fontSize: 13, verticalAlign: 'top' };
+  const cardStyle = { ...S.card, borderRadius: t.radius.lg, border: `1px solid ${t.color.border}` };
+  const thStyle = { textAlign: 'left', padding: '8px 10px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.tiny, borderBottom: `2px solid ${t.color.border}`, whiteSpace: 'nowrap' };
+  const tdStyle = { padding: '8px 10px', borderBottom: `1px solid ${t.color.borderLight}`, fontSize: t.fontSize.body, verticalAlign: 'top' };
 
   if (loading) return <Loading />;
   if (!si) return <EmptyState text="找不到此進貨單" />;
@@ -53,7 +54,7 @@ function StockInDetailView({ id, onBack }) {
         <button onClick={onBack} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13 }}>← 返回</button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={S.eyebrow}>Stock In Detail</div>
-          <div style={{ fontSize: isMobile ? 16 : 20, fontWeight: 700, color: '#111827' }}>{si.stock_in_no || '進貨單明細'}</div>
+          <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{si.stock_in_no || '進貨單明細'}</div>
         </div>
         <span style={S.tag(si.status === 'confirmed' ? 'green' : 'default')}>
           {si.status === 'confirmed' ? '已入庫' : '待確認'}
@@ -67,26 +68,26 @@ function StockInDetailView({ id, onBack }) {
       <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
           <div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>進貨單號</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{si.stock_in_no || '-'}</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>進貨單號</div>
+            <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{si.stock_in_no || '-'}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>進貨日期</div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>{fmtDate(si.stock_in_date)}</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>進貨日期</div>
+            <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold }}>{fmtDate(si.stock_in_date)}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>總金額</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#10b981', ...S.mono }}>{fmtP(si.total_amount)}</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>總金額</div>
+            <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>{fmtP(si.total_amount)}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>狀態</div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>{si.status === 'confirmed' ? '已入庫' : '待確認'}</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>狀態</div>
+            <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold }}>{si.status === 'confirmed' ? '已入庫' : '待確認'}</div>
           </div>
         </div>
         {si.remark && (
-          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f3f4f6' }}>
-            <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>備註</div>
-            <div style={{ fontSize: 13, color: '#374151' }}>{si.remark}</div>
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${t.color.borderLight}` }}>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>備註</div>
+            <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary }}>{si.remark}</div>
           </div>
         )}
       </div>
@@ -94,8 +95,8 @@ function StockInDetailView({ id, onBack }) {
       {/* 品項表格 */}
       <div style={{ ...cardStyle, padding: '16px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>
-            進貨明細 <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>{items.length} 項 / {totalQty} 件</span>
+          <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>
+            進貨明細 <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: 400 }}>{items.length} 項 / {totalQty} 件</span>
           </div>
         </div>
         {items.length === 0 ? <EmptyState text="無明細項目" /> : (
@@ -105,7 +106,7 @@ function StockInDetailView({ id, onBack }) {
                 <div key={item.id || i} style={{ ...S.mobileCard, padding: '10px' }}>
                   <div style={S.mobileCardRow}>
                     <span style={S.mobileCardLabel}>料號</span>
-                    <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: 700, color: '#2563eb' }}>{item.item_number || '-'}</span>
+                    <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.link }}>{item.item_number || '-'}</span>
                   </div>
                   <div style={S.mobileCardRow}>
                     <span style={S.mobileCardLabel}>品名</span>
@@ -117,20 +118,20 @@ function StockInDetailView({ id, onBack }) {
                   </div>
                   <div style={S.mobileCardRow}>
                     <span style={S.mobileCardLabel}>數量</span>
-                    <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: 600 }}>{fmt(item.qty_received)}</span>
+                    <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: t.fontWeight.semibold }}>{fmt(item.qty_received)}</span>
                   </div>
                   <div style={S.mobileCardRow}>
                     <span style={S.mobileCardLabel}>單價</span>
                     <span style={S.mobileCardValue}>
                       {(Number(item.unit_cost) || 0) === 0
-                        ? <span style={{ fontSize: 10, color: '#a855f7', fontWeight: 700, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
+                        ? <span style={{ fontSize: t.fontSize.tiny, color: '#a855f7', fontWeight: t.fontWeight.bold, background: '#faf5ff', padding: '2px 8px', borderRadius: t.radius.sm }}>贈品</span>
                         : <span style={{ ...S.mono }}>{fmtP(item.unit_cost)}</span>
                       }
                     </span>
                   </div>
                   <div style={S.mobileCardRow}>
                     <span style={S.mobileCardLabel}>小計</span>
-                    <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: 700, color: (Number(item.unit_cost) || 0) === 0 ? '#a855f7' : '#10b981' }}>
+                    <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: t.fontWeight.bold, color: (Number(item.unit_cost) || 0) === 0 ? '#a855f7' : t.color.success }}>
                       {(Number(item.unit_cost) || 0) === 0 ? '$0' : fmtP(item.line_total)}
                     </span>
                   </div>
@@ -138,7 +139,7 @@ function StockInDetailView({ id, onBack }) {
               ))}
             </div>
           ) : (
-            <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
+            <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: `1px solid ${t.color.border}`, marginBottom: 10 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
@@ -153,21 +154,21 @@ function StockInDetailView({ id, onBack }) {
                 </thead>
                 <tbody>
                   {items.map((item, idx) => (
-                    <tr key={item.id || idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
-                      <td style={{ ...tdStyle, color: '#9ca3af', fontSize: 12, textAlign: 'center' }}>{idx + 1}</td>
+                    <tr key={item.id || idx} style={{ background: idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted }}>
+                      <td style={{ ...tdStyle, color: t.color.textDisabled, fontSize: t.fontSize.caption, textAlign: 'center' }}>{idx + 1}</td>
                       <td style={tdStyle}>
-                        <span style={{ ...S.mono, fontWeight: 700, color: '#2563eb' }}>{item.item_number || '-'}</span>
+                        <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.link }}>{item.item_number || '-'}</span>
                       </td>
                       <td style={tdStyle}>{item.description || '-'}</td>
-                      <td style={{ ...tdStyle, textAlign: 'center', color: '#6b7280', fontSize: 12 }}>{item.unit || '-'}</td>
-                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600 }}>{fmt(item.qty_received)}</td>
+                      <td style={{ ...tdStyle, textAlign: 'center', color: t.color.textMuted, fontSize: t.fontSize.caption }}>{item.unit || '-'}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.semibold }}>{fmt(item.qty_received)}</td>
                       <td style={{ ...tdStyle, textAlign: 'right', ...S.mono }}>
                         {(Number(item.unit_cost) || 0) === 0
-                          ? <span style={{ fontSize: 10, color: '#a855f7', fontWeight: 700, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
+                          ? <span style={{ fontSize: t.fontSize.tiny, color: '#a855f7', fontWeight: t.fontWeight.bold, background: '#faf5ff', padding: '2px 8px', borderRadius: t.radius.sm }}>贈品</span>
                           : fmtP(item.unit_cost)
                         }
                       </td>
-                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, color: (Number(item.unit_cost) || 0) === 0 ? '#a855f7' : '#10b981' }}>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.bold, color: (Number(item.unit_cost) || 0) === 0 ? '#a855f7' : t.color.success }}>
                         {(Number(item.unit_cost) || 0) === 0 ? '$0' : fmtP(item.line_total)}
                       </td>
                     </tr>
@@ -180,15 +181,15 @@ function StockInDetailView({ id, onBack }) {
 
         {/* 合計 */}
         {items.length > 0 && (
-          <div style={{ padding: '12px 8px 4px', borderTop: '2px solid #bfdbfe', marginTop: 4, display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'flex-end', alignItems: isMobile ? 'flex-end' : 'center', gap: 20 }}>
+          <div style={{ padding: '12px 8px 4px', borderTop: `2px solid ${t.color.link}`, marginTop: 4, display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'flex-end', alignItems: isMobile ? 'flex-end' : 'center', gap: 20 }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 13, color: '#6b7280' }}>
-                小計 <span style={{ ...S.mono, fontWeight: 700, color: '#111827' }}>{fmtP(totalAmount)}</span>
-                <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 6 }}>({items.length} 項 / {totalQty} 件)</span>
+              <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>
+                小計 <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{fmtP(totalAmount)}</span>
+                <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginLeft: 6 }}>({items.length} 項 / {totalQty} 件)</span>
               </div>
             </div>
-            <div style={{ borderLeft: isMobile ? 'none' : '3px solid #16a34a', borderTop: isMobile ? '3px solid #16a34a' : 'none', paddingLeft: isMobile ? 0 : 16, paddingTop: isMobile ? 8 : 0, textAlign: 'right' }}>
-              <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, marginBottom: 2 }}>進貨合計</div>
+            <div style={{ borderLeft: isMobile ? 'none' : `3px solid ${t.color.brand}`, borderTop: isMobile ? `3px solid ${t.color.brand}` : 'none', paddingLeft: isMobile ? 0 : 16, paddingTop: isMobile ? 8 : 0, textAlign: 'right' }}>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>進貨合計</div>
               <div style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
             </div>
           </div>
@@ -274,9 +275,9 @@ export default function StockIn() {
   }
 
   const sm = data.summary || {};
-  const borderR = '1px solid #e5e7eb';
-  const thStyle = { textAlign: 'left', padding: '10px 12px', color: '#6b7280', fontWeight: 600, fontSize: 12, borderBottom: '2px solid #e5e7eb', borderRight: borderR, whiteSpace: 'nowrap' };
-  const tdStyle = { padding: '10px 12px', borderBottom: '1px solid #f3f4f6', borderRight: '1px solid #f3f4f6', fontSize: 13, verticalAlign: 'middle' };
+  const borderR = `1px solid ${t.color.border}`;
+  const thStyle = { textAlign: 'left', padding: '10px 12px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.caption, borderBottom: `2px solid ${t.color.border}`, borderRight: borderR, whiteSpace: 'nowrap' };
+  const tdStyle = { padding: '10px 12px', borderBottom: `1px solid ${t.color.borderLight}`, borderRight: `1px solid ${t.color.borderLight}`, fontSize: t.fontSize.body, verticalAlign: 'middle' };
   const fmtDateOnly = (d) => { if (!d) return '-'; const dt = new Date(d + (d.includes('T') ? '' : 'T00:00:00')); return `${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`; };
 
   return (
@@ -287,26 +288,26 @@ export default function StockIn() {
           <button onClick={() => setCreateOpen(true)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}) }}>+ 新增進貨</button>
         </div>} />
       <div style={{ ...S.statGrid, gridTemplateColumns: isMobile ? '1fr 1fr' : S.statGrid.gridTemplateColumns }}>
-        <StatCard code="PEND" label="待確認" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
-        <StatCard code="CONF" label="已入庫" value={fmt(sm.confirmed)} tone="blue" accent="#16a34a" />
+        <StatCard code="PEND" label="待確認" value={fmt(sm.pending)} tone="blue" accent={t.color.warning} />
+        <StatCard code="CONF" label="已入庫" value={fmt(sm.confirmed)} tone="blue" accent={t.color.brand} />
       </div>
 
       {/* 篩選列 */}
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.body, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13, display: isMobile ? 'none' : 'inline' }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: '6px 10px' }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: '6px 10px', ...S.mono }} />
+          <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body, display: isMobile ? 'none' : 'inline' }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: '6px 10px', ...S.mono }} />
+          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="pending">待確認</option>
             <option value="confirmed">已入庫</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: '6px 18px', fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: t.fontSize.body, padding: '6px 10px' }} />
+          <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: '6px 18px', fontSize: t.fontSize.body }}>查詢</button>
         </div>
       </div>
 
@@ -318,7 +319,7 @@ export default function StockIn() {
               <div key={r.id} onClick={() => setDetailId(r.id)} style={{ ...S.mobileCard, padding: '12px', cursor: 'pointer' }}>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>進貨單號</span>
-                  <span style={{ ...S.mobileCardValue, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{r.stock_in_no || '-'}</span>
+                  <span style={{ ...S.mobileCardValue, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{r.stock_in_no || '-'}</span>
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>日期</span>
@@ -330,8 +331,8 @@ export default function StockIn() {
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>金額</span>
-                  <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: 700 }}>
-                    {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: '#d1d5db' }}>-</span>}
+                  <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: t.fontWeight.bold }}>
+                    {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: t.color.border }}>-</span>}
                   </span>
                 </div>
                 <div style={S.mobileCardRow}>
@@ -341,11 +342,11 @@ export default function StockIn() {
                 {r.remark && (
                   <div style={S.mobileCardRow}>
                     <span style={S.mobileCardLabel}>備註</span>
-                    <span style={{ ...S.mobileCardValue, fontSize: 12, color: '#6b7280' }}>{r.remark}</span>
+                    <span style={{ ...S.mobileCardValue, fontSize: t.fontSize.caption, color: t.color.textMuted }}>{r.remark}</span>
                   </div>
                 )}
                 {r.status === 'pending' && (
-                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb' }}>
+                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${t.color.border}` }}>
                     <button onClick={(e) => handleConfirm(r.id, e)} style={{ ...S.btnPrimary, width: '100%', minHeight: 44 }}>確認入庫</button>
                   </div>
                 )}
@@ -353,10 +354,10 @@ export default function StockIn() {
             ))}
           </div>
         ) : (
-          <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
+          <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: `1px solid ${t.color.border}`, marginBottom: 10 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ background: '#f9fafb' }}>
+                  <tr style={{ background: t.color.bgMuted }}>
                     <th style={thStyle}>進貨單號</th>
                     <th style={thStyle}>日期</th>
                     <th style={thStyle}>廠商</th>
@@ -370,24 +371,24 @@ export default function StockIn() {
                   {data.rows.map((r, idx) => (
                     <tr key={r.id}
                       onClick={() => setDetailId(r.id)}
-                      style={{ background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
-                      onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}
+                      style={{ background: idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted, cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.background = t.color.infoBg}
+                      onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted}
                     >
                       <td style={tdStyle}>
-                        <span style={{ fontWeight: 700, color: '#3b82f6', ...S.mono, fontSize: 13 }}>{r.stock_in_no || '-'}</span>
+                        <span style={{ fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono, fontSize: t.fontSize.body }}>{r.stock_in_no || '-'}</span>
                       </td>
-                      <td style={{ ...tdStyle, ...S.mono, fontSize: 13 }}>{fmtDateOnly(r.stock_in_date)}</td>
-                      <td style={{ ...tdStyle, fontSize: 13, color: '#374151' }}>{r.vendor_name || '-'}</td>
-                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 700, fontSize: 14 }}>
-                        {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: '#d1d5db' }}>-</span>}
+                      <td style={{ ...tdStyle, ...S.mono, fontSize: t.fontSize.body }}>{fmtDateOnly(r.stock_in_date)}</td>
+                      <td style={{ ...tdStyle, fontSize: t.fontSize.body, color: t.color.textSecondary }}>{r.vendor_name || '-'}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.bold, fontSize: t.fontSize.h3 }}>
+                        {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: t.color.border }}>-</span>}
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'center' }}>
                         <span style={S.tag(r.status === 'confirmed' ? 'green' : 'default')}>
                           {r.status === 'confirmed' ? '已入庫' : '待確認'}
                         </span>
                       </td>
-                      <td style={{ ...tdStyle, color: '#6b7280', fontSize: 13, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <td style={{ ...tdStyle, color: t.color.textMuted, fontSize: t.fontSize.body, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {r.remark || '-'}
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'right', borderRight: 'none' }}>
@@ -410,19 +411,19 @@ export default function StockIn() {
         const formTotal = items.reduce((s, i) => s + (Number(i.line_total) || 0), 0);
         const formQty = items.reduce((s, i) => s + (Number(i.qty_received) || 0), 0);
         const validItems = items.filter(i => i.item_number?.trim());
-        const modalLabel = { fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4, display: 'block' };
-        const modalInput = { ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 13, padding: '8px 10px', borderRadius: 8 };
+        const modalLabel = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, marginBottom: 4, display: 'block' };
+        const modalInput = { ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: t.fontSize.body, padding: '8px 10px', borderRadius: t.radius.md };
         return (
-          <div style={{ ...(isMobile ? S.mobileModalOverlay : { position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.5)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }), minHeight: '100vh' }} onClick={() => setCreateOpen(false)}>
-            <div style={{ ...(isMobile ? S.mobileModal : { width: 'min(680px, 100%)', maxHeight: '90vh', overflowY: 'auto' }), background: '#fff', borderRadius: isMobile ? 0 : 16, boxShadow: isMobile ? 'none' : '0 24px 70px rgba(8,12,20,0.25)' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ ...p.modalOverlay, minHeight: '100vh' }} onClick={() => setCreateOpen(false)}>
+            <div style={{ ...p.modalBody(isMobile ? 'lg' : 'md'), background: t.color.bgCard, borderRadius: isMobile ? 0 : t.radius.xl, boxShadow: isMobile ? 'none' : '0 24px 70px rgba(8,12,20,0.25)' }} onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
+              <div style={{ padding: '20px 24px 16px', borderBottom: `1px solid ${t.color.borderLight}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>新增進貨</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: '#111827' }}>建立進貨單</div>
+                    <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.link, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>新增進貨</div>
+                    <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary }}>建立進貨單</div>
                   </div>
-                  <button onClick={() => setCreateOpen(false)} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #e5e7eb', background: '#f9fafb', cursor: 'pointer', fontSize: 16, color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                  <button onClick={() => setCreateOpen(false)} style={{ width: 32, height: 32, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: t.color.bgMuted, cursor: 'pointer', fontSize: 16, color: t.color.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                 </div>
               </div>
 
@@ -430,10 +431,10 @@ export default function StockIn() {
               <div style={{ padding: '16px 24px', maxHeight: isMobile ? 'calc(100vh - 220px)' : 'auto', overflowY: isMobile ? 'auto' : 'visible' }}>
                 {/* 新增廠商展開面板 */}
                 {newVendorMode && (
-                  <div style={{ background: '#f0f9ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '14px 16px', marginBottom: 14 }}>
+                  <div style={{ background: t.color.infoBg, border: `1px solid ${t.color.link}`, borderRadius: t.radius.lg, padding: '14px 16px', marginBottom: 14 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af' }}>新增廠商</div>
-                      <button type="button" onClick={resetNewVendor} style={{ fontSize: 12, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}>✕ 取消</button>
+                      <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.link }}>新增廠商</div>
+                      <button type="button" onClick={resetNewVendor} style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, background: 'none', border: 'none', cursor: 'pointer' }}>✕ 取消</button>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }}>
                       {[
@@ -447,17 +448,17 @@ export default function StockIn() {
                         { key: 'remark', label: '備註', ph: '選填' },
                       ].map(f => (
                         <div key={f.key}>
-                          <label style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginBottom: 2, display: 'block' }}>{f.label}</label>
-                          <input value={newVendorForm[f.key]} onChange={e => setNewVendorForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.ph} autoFocus={f.autoFocus} style={{ ...modalInput, width: '100%', fontSize: 12, padding: '6px 8px' }} />
+                          <label style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: '#4b5563', marginBottom: 2, display: 'block' }}>{f.label}</label>
+                          <input value={newVendorForm[f.key]} onChange={e => setNewVendorForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.ph} autoFocus={f.autoFocus} style={{ ...modalInput, width: '100%', fontSize: t.fontSize.caption, padding: '6px 8px' }} />
                         </div>
                       ))}
                     </div>
                     <div style={{ marginTop: 10, display: 'flex', gap: 8, flexDirection: isMobile ? 'column-reverse' : 'row' }}>
                       <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorForm.vendor_name.trim()}
-                        style={{ ...(isMobile ? { flex: 1, minHeight: 44 } : {}), padding: '8px 20px', fontSize: 13, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorForm.vendor_name.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer' }}>
+                        style={{ ...(isMobile ? { flex: 1, minHeight: 44 } : {}), padding: '8px 20px', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: '#fff', background: creatingVendor || !newVendorForm.vendor_name.trim() ? t.color.border : t.color.brand, border: 'none', borderRadius: t.radius.md, cursor: creatingVendor ? 'wait' : 'pointer' }}>
                         {creatingVendor ? '建立中...' : '建立廠商'}
                       </button>
-                      <button type="button" onClick={resetNewVendor} style={{ ...(isMobile ? { flex: 1, minHeight: 44 } : {}), padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
+                      <button type="button" onClick={resetNewVendor} style={{ ...(isMobile ? { flex: 1, minHeight: 44 } : {}), padding: '8px 16px', fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textMuted, background: t.color.bgMuted, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, cursor: 'pointer' }}>取消</button>
                     </div>
                   </div>
                 )}
@@ -470,7 +471,7 @@ export default function StockIn() {
                         <option value="">不指定廠商</option>
                         {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
                       </select>
-                      {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1 }}>+</button>}
+                      {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: t.fontWeight.bold, color: t.color.link, background: t.color.infoBg, border: `1px solid ${t.color.link}`, borderRadius: t.radius.md, cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1 }}>+</button>}
                     </div>
                   </div>
                   <div>
@@ -484,48 +485,48 @@ export default function StockIn() {
                 </div>
 
                 {/* Items */}
-                <div style={{ background: '#f8fafc', borderRadius: 12, border: '1px solid #e5e7eb', padding: '14px 16px' }}>
+                <div style={{ background: t.color.bg, borderRadius: t.radius.lg, border: `1px solid ${t.color.border}`, padding: '14px 16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1f2937' }}>
+                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: '#1f2937' }}>
                       進貨明細
-                      <span style={{ fontSize: 12, fontWeight: 500, color: '#6b7280', marginLeft: 6 }}>{validItems.length} 項 / {formQty} 件</span>
+                      <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.medium, color: t.color.textMuted, marginLeft: 6 }}>{validItems.length} 項 / {formQty} 件</span>
                     </div>
-                    {formTotal > 0 && <span style={{ fontSize: 13, fontWeight: 700, color: '#059669', ...S.mono }}>{fmtP(formTotal)}</span>}
+                    {formTotal > 0 && <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: '#059669', ...S.mono }}>{fmtP(formTotal)}</span>}
                   </div>
                   {/* Column headers */}
                   {!isMobile && (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 60px 80px 70px 28px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
-                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>料號</span>
-                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>品名</span>
-                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>數量</span>
-                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>單位</span>
-                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>單價</span>
-                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textAlign: 'right' }}>小計</span>
+                      <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold }}>料號</span>
+                      <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold }}>品名</span>
+                      <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, textAlign: 'center' }}>數量</span>
+                      <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, textAlign: 'center' }}>單位</span>
+                      <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, textAlign: 'right' }}>單價</span>
+                      <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, textAlign: 'right' }}>小計</span>
                       <span></span>
                     </div>
                   )}
                   <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {items.map((it, idx) => (
                       isMobile ? (
-                        <div key={idx} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div key={idx} style={{ background: t.color.bgCard, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                             <div>
-                              <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>料號</label>
-                              <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value.toUpperCase())} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 12, padding: '5px 8px', ...S.mono, fontWeight: 600, width: '100%' }} placeholder="料號" />
+                              <label style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginBottom: 2, display: 'block' }}>料號</label>
+                              <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value.toUpperCase())} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: t.fontSize.caption, padding: '5px 8px', ...S.mono, fontWeight: t.fontWeight.semibold, width: '100%' }} placeholder="料號" />
                             </div>
                             <div>
-                              <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>品名</label>
-                              <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 12, padding: '5px 8px', width: '100%' }} placeholder="品名" />
+                              <label style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginBottom: 2, display: 'block' }}>品名</label>
+                              <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: t.fontSize.caption, padding: '5px 8px', width: '100%' }} placeholder="品名" />
                             </div>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                             <div>
-                              <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>數量</label>
-                              <input type="number" value={it.qty_received || ''} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'qty_received', 1); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 12, padding: '5px 8px', width: '100%' }} />
+                              <label style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginBottom: 2, display: 'block' }}>數量</label>
+                              <input type="number" value={it.qty_received || ''} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'qty_received', 1); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: t.fontSize.caption, padding: '5px 8px', width: '100%' }} />
                             </div>
                             <div>
-                              <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>單位</label>
-                              <select value={it.unit || ''} onChange={(e) => updateItem(idx, 'unit', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 11, padding: '5px 8px', width: '100%' }}>
+                              <label style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginBottom: 2, display: 'block' }}>單位</label>
+                              <select value={it.unit || ''} onChange={(e) => updateItem(idx, 'unit', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: t.fontSize.tiny, padding: '5px 8px', width: '100%' }}>
                                 <option value="">—</option>
                                 <option value="個">個</option>
                                 <option value="組">組</option>
@@ -546,26 +547,26 @@ export default function StockIn() {
                             </div>
                           </div>
                           <div>
-                            <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 2, display: 'block' }}>單價</label>
-                            <input type="number" value={it.unit_cost || ''} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'unit_cost', 0); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 12, padding: '5px 8px', width: '100%', ...S.mono }} />
+                            <label style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginBottom: 2, display: 'block' }}>單價</label>
+                            <input type="number" value={it.unit_cost || ''} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'unit_cost', 0); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: t.fontSize.caption, padding: '5px 8px', width: '100%', ...S.mono }} />
                           </div>
-                          <div style={{ paddingTop: 8, borderTop: '1px solid #e5e7eb' }}>
-                            <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>小計: </span>
+                          <div style={{ paddingTop: 8, borderTop: `1px solid ${t.color.border}` }}>
+                            <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>小計: </span>
                             {(Number(it.unit_cost) || 0) === 0
-                              ? <span style={{ fontSize: 10, color: '#a855f7', background: '#faf5ff', padding: '1px 6px', borderRadius: 4, marginLeft: 4 }}>贈品</span>
-                              : <span style={{ ...S.mono, color: '#059669', fontWeight: 700 }}>{fmtP(it.line_total)}</span>
+                              ? <span style={{ fontSize: t.fontSize.tiny, color: '#a855f7', background: '#faf5ff', padding: '1px 6px', borderRadius: t.radius.sm, marginLeft: 4 }}>贈品</span>
+                              : <span style={{ ...S.mono, color: '#059669', fontWeight: t.fontWeight.bold }}>{fmtP(it.line_total)}</span>
                             }
                           </div>
                           {items.length > 1 && (
-                            <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: '100%', padding: '8px', marginTop: 8, background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>刪除此項</button>
+                            <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: '100%', padding: '8px', marginTop: 8, background: t.color.errorBg, color: t.color.error, border: 'none', borderRadius: t.radius.md, cursor: 'pointer', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold }}>刪除此項</button>
                           )}
                         </div>
                       ) : (
-                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 60px 80px 70px 28px', gap: 6, alignItems: 'center', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '6px 8px' }}>
-                          <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value.toUpperCase())} style={{ ...S.input, fontSize: 12, padding: '5px 8px', ...S.mono, fontWeight: 600 }} placeholder="料號" />
-                          <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, fontSize: 12, padding: '5px 8px' }} placeholder="品名" />
-                          <input type="number" value={it.qty_received || ''} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'qty_received', 1); }} style={{ ...S.input, fontSize: 12, padding: '5px 4px', textAlign: 'center' }} />
-                          <select value={it.unit || ''} onChange={(e) => updateItem(idx, 'unit', e.target.value)} style={{ ...S.input, fontSize: 11, padding: '5px 2px', textAlign: 'center', color: it.unit ? '#374151' : '#9ca3af' }}>
+                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px 60px 80px 70px 28px', gap: 6, alignItems: 'center', background: t.color.bgCard, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '6px 8px' }}>
+                          <input value={it.item_number} onChange={(e) => updateItem(idx, 'item_number', e.target.value.toUpperCase())} style={{ ...S.input, fontSize: t.fontSize.caption, padding: '5px 8px', ...S.mono, fontWeight: t.fontWeight.semibold }} placeholder="料號" />
+                          <input value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} style={{ ...S.input, fontSize: t.fontSize.caption, padding: '5px 8px' }} placeholder="品名" />
+                          <input type="number" value={it.qty_received || ''} min={1} onChange={(e) => updateItem(idx, 'qty_received', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'qty_received', 1); }} style={{ ...S.input, fontSize: t.fontSize.caption, padding: '5px 4px', textAlign: 'center' }} />
+                          <select value={it.unit || ''} onChange={(e) => updateItem(idx, 'unit', e.target.value)} style={{ ...S.input, fontSize: t.fontSize.tiny, padding: '5px 2px', textAlign: 'center', color: it.unit ? t.color.textSecondary : t.color.textDisabled }}>
                             <option value="">—</option>
                             <option value="個">個</option>
                             <option value="組">組</option>
@@ -583,29 +584,29 @@ export default function StockIn() {
                             <option value="張">張</option>
                             <option value="把">把</option>
                           </select>
-                          <input type="number" value={it.unit_cost || ''} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'unit_cost', 0); }} style={{ ...S.input, fontSize: 12, padding: '5px 6px', textAlign: 'right', ...S.mono }} />
-                          <div style={{ fontSize: 12, fontWeight: 700, textAlign: 'right' }}>
+                          <input type="number" value={it.unit_cost || ''} min={0} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value === '' ? '' : e.target.value)} onBlur={(e) => { if (!e.target.value) updateItem(idx, 'unit_cost', 0); }} style={{ ...S.input, fontSize: t.fontSize.caption, padding: '5px 6px', textAlign: 'right', ...S.mono }} />
+                          <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, textAlign: 'right' }}>
                             {(Number(it.unit_cost) || 0) === 0
-                              ? <span style={{ fontSize: 10, color: '#a855f7', background: '#faf5ff', padding: '1px 6px', borderRadius: 4 }}>贈品</span>
+                              ? <span style={{ fontSize: t.fontSize.tiny, color: '#a855f7', background: '#faf5ff', padding: '1px 6px', borderRadius: t.radius.sm }}>贈品</span>
                               : <span style={{ ...S.mono, color: '#059669' }}>{fmtP(it.line_total)}</span>
                             }
                           </div>
-                          <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: 24, height: 24, borderRadius: 6, border: 'none', background: items.length > 1 ? '#fee2e2' : 'transparent', color: items.length > 1 ? '#ef4444' : '#d1d5db', cursor: items.length > 1 ? 'pointer' : 'default', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                          <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: 24, height: 24, borderRadius: t.radius.md, border: 'none', background: items.length > 1 ? t.color.errorBg : 'transparent', color: items.length > 1 ? t.color.error : t.color.border, cursor: items.length > 1 ? 'pointer' : 'default', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                         </div>
                       )
                     ))}
                   </div>
-                  <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }])} style={{ width: '100%', marginTop: 8, padding: '8px', fontSize: 12, fontWeight: 600, color: '#2563eb', background: '#eff6ff', border: '1px dashed #93c5fd', borderRadius: 8, cursor: 'pointer' }}>+ 新增品項</button>
+                  <button onClick={() => setItems(p => [...p, { item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }])} style={{ width: '100%', marginTop: 8, padding: '8px', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.link, background: t.color.infoBg, border: `1px dashed ${t.color.link}`, borderRadius: t.radius.md, cursor: 'pointer' }}>+ 新增品項</button>
                 </div>
               </div>
 
               {/* Footer */}
-              <div style={{ padding: '14px 24px 20px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: 10, flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+              <div style={{ padding: '14px 24px 20px', borderTop: `1px solid ${t.color.borderLight}`, display: 'flex', gap: 10, flexDirection: isMobile ? 'column-reverse' : 'row' }}>
                 <button onClick={handleCreate} disabled={!validItems.length} style={{
-                  flex: isMobile ? 1 : 2, padding: isMobile ? '12px' : '12px', minHeight: isMobile ? 44 : 'auto', fontSize: isMobile ? 14 : 15, fontWeight: 700, color: '#fff', borderRadius: 10, border: 'none', cursor: validItems.length ? 'pointer' : 'default',
-                  background: validItems.length ? '#16a34a' : '#d1d5db', boxShadow: validItems.length ? '0 2px 8px rgba(22,163,74,0.25)' : 'none', transition: 'all 0.15s',
+                  flex: isMobile ? 1 : 2, padding: isMobile ? '12px' : '12px', minHeight: isMobile ? 44 : 'auto', fontSize: isMobile ? t.fontSize.h3 : t.fontSize.h2, fontWeight: t.fontWeight.bold, color: '#fff', borderRadius: t.radius.lg, border: 'none', cursor: validItems.length ? 'pointer' : 'default',
+                  background: validItems.length ? t.color.brand : t.color.border, boxShadow: validItems.length ? '0 2px 8px rgba(22,163,74,0.25)' : 'none', transition: 'all 0.15s',
                 }}>建立進貨 ({validItems.length} 項)</button>
-                <button onClick={() => setCreateOpen(false)} style={{ flex: isMobile ? 1 : 1, padding: '12px', minHeight: isMobile ? 44 : 'auto', fontSize: 14, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 10, cursor: 'pointer' }}>取消</button>
+                <button onClick={() => setCreateOpen(false)} style={{ flex: isMobile ? 1 : 1, padding: '12px', minHeight: isMobile ? 44 : 'auto', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textMuted, background: t.color.bgMuted, border: `1px solid ${t.color.border}`, borderRadius: t.radius.lg, cursor: 'pointer' }}>取消</button>
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, exportCsv, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, ComingSoonBanner } from '../shared/ui';
@@ -101,7 +102,7 @@ export default function Inventory() {
               <div key={it.item_number} style={{ ...S.mobileCard, padding: '12px' }}>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>料號</span>
-                  <span style={{ ...S.mobileCardValue, color: '#3b82f6', fontWeight: 600, ...S.mono }}>{it.item_number}</span>
+                  <span style={{ ...S.mobileCardValue, color: t.color.link, fontWeight: t.fontWeight.semibold, ...S.mono }}>{it.item_number}</span>
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>品名</span>
@@ -113,7 +114,7 @@ export default function Inventory() {
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>庫存</span>
-                  <span style={{ ...S.mobileCardValue, fontWeight: 700, color: Number(it.stock_qty || 0) <= 0 ? '#ef4444' : Number(it.stock_qty) <= Number(it.safety_stock) ? '#f59e0b' : '#16a34a' }}>{it.stock_qty ?? 0}</span>
+                  <span style={{ ...S.mobileCardValue, fontWeight: t.fontWeight.bold, color: Number(it.stock_qty || 0) <= 0 ? t.color.error : Number(it.stock_qty) <= Number(it.safety_stock) ? t.color.warning : t.color.brand }}>{it.stock_qty ?? 0}</span>
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>安全水位</span>
@@ -123,31 +124,31 @@ export default function Inventory() {
                   <span style={S.mobileCardLabel}>狀態</span>
                   <span style={S.mobileCardValue}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></span>
                 </div>
-                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb' }}>
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${t.color.border}` }}>
                   <button onClick={() => setAdjOpen(it.item_number)} style={{ ...S.btnPrimary, width: '100%', minHeight: 44 }}>異動</button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
-            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 13 }}>
-              <thead><tr style={{ background: '#f3f4f6' }}>
+          <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: `1px solid ${t.color.border}`, marginBottom: 10 }}>
+            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: t.fontSize.body }}>
+              <thead><tr style={{ background: t.color.bgMuted }}>
                 {cols.map((c, ci) => (
-                  <th key={c.label} onClick={c.key ? () => toggleSort(c.key) : undefined} style={{ padding: '8px 16px', textAlign: 'left', fontSize: 12, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #dbe3ee', borderRight: ci < cols.length - 1 ? '1px solid #e5e7eb' : 'none', cursor: c.key ? 'pointer' : 'default', userSelect: 'none', whiteSpace: 'nowrap' }}>
+                  <th key={c.label} onClick={c.key ? () => toggleSort(c.key) : undefined} style={{ padding: '8px 16px', textAlign: 'left', fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: t.fontWeight.bold, borderBottom: `1px solid ${t.color.border}`, borderRight: ci < cols.length - 1 ? `1px solid ${t.color.border}` : 'none', cursor: c.key ? 'pointer' : 'default', userSelect: 'none', whiteSpace: 'nowrap' }}>
                     {c.label}{c.key && sortKey === c.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : c.key ? ' ⇅' : ''}
                   </th>
                 ))}
               </tr></thead>
               <tbody>{sorted.map((it, idx) => (
-                <tr key={it.item_number} style={{ borderBottom: '1px solid #edf0f5', background: idx % 2 === 0 ? '#fff' : '#fafbfd' }}>
-                  <td style={{ padding: '10px 16px', ...S.mono, color: '#3b82f6', fontWeight: 600, borderRight: '1px solid #e5e7eb' }}>{it.item_number}</td>
-                  <td style={{ padding: '10px 16px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: '1px solid #e5e7eb' }}>{it.description || '-'}</td>
-                  <td style={{ padding: '10px 16px', color: '#374151', borderRight: '1px solid #e5e7eb' }}>{it.category || '-'}</td>
-                  <td style={{ padding: '10px 16px', fontWeight: 700, color: Number(it.stock_qty || 0) <= 0 ? '#ef4444' : Number(it.stock_qty) <= Number(it.safety_stock) ? '#f59e0b' : '#16a34a', borderRight: '1px solid #e5e7eb' }}>{it.stock_qty ?? 0}</td>
-                  <td style={{ padding: '10px 16px', color: '#374151', borderRight: '1px solid #e5e7eb' }}>{it.safety_stock ?? 0}</td>
-                  <td style={{ padding: '10px 16px', borderRight: '1px solid #e5e7eb' }}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></td>
-                  <td style={{ padding: '10px 16px' }}><button onClick={() => setAdjOpen(it.item_number)} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: 12 }}>異動</button></td>
+                <tr key={it.item_number} style={{ borderBottom: `1px solid ${t.color.borderLight}`, background: idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted }}>
+                  <td style={{ padding: '10px 16px', ...S.mono, color: t.color.link, fontWeight: t.fontWeight.semibold, borderRight: `1px solid ${t.color.border}` }}>{it.item_number}</td>
+                  <td style={{ padding: '10px 16px', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: `1px solid ${t.color.border}` }}>{it.description || '-'}</td>
+                  <td style={{ padding: '10px 16px', color: t.color.textSecondary, borderRight: `1px solid ${t.color.border}` }}>{it.category || '-'}</td>
+                  <td style={{ padding: '10px 16px', fontWeight: t.fontWeight.bold, color: Number(it.stock_qty || 0) <= 0 ? t.color.error : Number(it.stock_qty) <= Number(it.safety_stock) ? t.color.warning : t.color.brand, borderRight: `1px solid ${t.color.border}` }}>{it.stock_qty ?? 0}</td>
+                  <td style={{ padding: '10px 16px', color: t.color.textSecondary, borderRight: `1px solid ${t.color.border}` }}>{it.safety_stock ?? 0}</td>
+                  <td style={{ padding: '10px 16px', borderRight: `1px solid ${t.color.border}` }}><span style={S.tag(it.product_status === 'Current' ? 'green' : 'default')}>{it.product_status || '-'}</span></td>
+                  <td style={{ padding: '10px 16px' }}><button onClick={() => setAdjOpen(it.item_number)} style={{ ...S.btnGhost, padding: '5px 12px', fontSize: t.fontSize.caption }}>異動</button></td>
                 </tr>
               ))}</tbody>
             </table>
@@ -156,9 +157,9 @@ export default function Inventory() {
       )}
       <Pager page={data.page} limit={data.limit} total={data.total} onPageChange={(p) => load(p, search, filter)} />
       {adjOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', ...(isMobile ? S.mobileModalOverlay : {}) }}>
-          <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 400, maxWidth: '90vw', borderRadius: 14, padding: '16px 18px 20px' }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>庫存異動 — {adjOpen}</h3>
+        <div style={{ position: 'fixed', inset: 0, background: t.color.overlay, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', ...(isMobile ? S.mobileModalOverlay : {}) }}>
+          <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 400, maxWidth: '90vw', borderRadius: t.radius.xl, padding: `${t.spacing.lg}px ${t.spacing.lg + 2}px ${t.spacing.xl}px` }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: t.fontSize.h2 }}>庫存異動 — {adjOpen}</h3>
             <div style={{ marginBottom: 10 }}>
               <label style={{ ...S.label, marginBottom: 6 }}>異動類型</label>
               <select value={adjType} onChange={(e) => setAdjType(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }}>

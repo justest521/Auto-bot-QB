@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet } from '@/lib/admin/api';
 import { fmt, fmtP, getPresetDateRange, useResponsive, exportCsv } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton, SaleDetailDrawer } from '../shared/ui';
@@ -83,24 +84,24 @@ export default function SalesReturns() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile && { flexDirection: 'column' }), ...(isMobile && { alignItems: 'stretch' }) }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', ...(isMobile && { width: '100%' }) }}>
             {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: rangePreset === key ? '#3b82f6' : '#fff', color: rangePreset === key ? '#fff' : '#4b5563', borderColor: rangePreset === key ? '#3b82f6' : '#e5e7eb', flex: isMobile ? 1 : 'auto', minWidth: 60 }}>{label}</button>
+              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.body, background: rangePreset === key ? t.color.link : t.color.bgCard, color: rangePreset === key ? '#fff' : '#4b5563', borderColor: rangePreset === key ? t.color.link : t.color.border, flex: isMobile ? 1 : 'auto', minWidth: 60 }}>{label}</button>
             ))}
           </div>
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setRangePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13, display: isMobile ? 'none' : 'block' }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setRangePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono }} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 13, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : 'auto' }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setRangePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono }} />
+          <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body, display: isMobile ? 'none' : 'block' }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setRangePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono }} />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : 'auto' }}>
             <option value="">全部狀態</option>
             <option value="pending">待處理</option>
             <option value="approved">已核准</option>
             <option value="completed">已完成</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: isMobile ? 1 : 1, minWidth: 160, fontSize: 13, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : 'auto' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, ...(isMobile ? { width: '100%', minHeight: 44, padding: '12px 16px' } : { padding: '6px 16px' }), fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋單號、客戶、業務或發票..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: isMobile ? 1 : 1, minWidth: 160, fontSize: t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : 'auto' }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, ...(isMobile ? { width: '100%', minHeight: 44, padding: '12px 16px' } : { padding: '6px 16px' }), fontSize: t.fontSize.body }}>查詢</button>
         </div>
       </div>
-      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_sales_return_summary` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入銷退貨 CSV。</div>}
-      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>
+      {!data.table_ready && <div style={{ ...S.card, background: t.color.warningBg, borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_sales_return_summary` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入銷退貨 CSV。</div>}
+      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 12, ...S.mono }}>
         共 {fmt(data.total)} 筆單據{dateFrom || dateTo ? ` · ${dateFrom || '...'} → ${dateTo || '...'}` : ''}{statusFilter ? ` · ${statusFilter}` : ''}
       </div>
       <div style={{ ...S.statGrid, ...(isMobile && { gridTemplateColumns: 'repeat(2, 1fr)' }), marginBottom: 10 }}>
@@ -113,11 +114,11 @@ export default function SalesReturns() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, alignItems: 'center' }}>
             <div>
               {row.doc_type === 'return' ? (
-                <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.doc_no}</div>
+                <div style={{ fontSize: t.fontSize.caption, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono }}>{row.doc_no}</div>
               ) : (
                 <button
                   onClick={() => setSelectedSlipNumber(row.doc_no)}
-                  style={{ background: 'none', border: 0, padding: 0, fontSize: 12, color: '#3b82f6', fontWeight: 700, cursor: 'pointer', ...S.mono }}
+                  style={{ background: 'none', border: 0, padding: 0, fontSize: t.fontSize.caption, color: t.color.link, fontWeight: t.fontWeight.bold, cursor: 'pointer', ...S.mono }}
                 >
                   {row.doc_no}
                 </button>
@@ -125,27 +126,27 @@ export default function SalesReturns() {
               <div style={{ marginTop: 6 }}>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
             </div>
             <div>
-              <div style={{ fontSize: 14, color: '#111827', fontWeight: 700 }}>{row.customer_name || '未命名客戶'}</div>
-              <div style={{ fontSize: 12, color: '#374151', marginTop: 4, lineHeight: 1.7 }}>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>DATE</span> {row.doc_date || '-'}</div>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>SALES</span> {row.sales_name || '-'}</div>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>INVOICE</span> {row.invoice_no || '-'}</div>
+              <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{row.customer_name || '未命名客戶'}</div>
+              <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4, lineHeight: 1.7 }}>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>DATE</span> {row.doc_date || '-'}</div>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>SALES</span> {row.sales_name || '-'}</div>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>INVOICE</span> {row.invoice_no || '-'}</div>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div style={S.panelMuted}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>AMOUNT</div>
-                <div style={{ fontSize: 14, color: '#111827', ...S.mono }}>{fmtP(row.amount)}</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>AMOUNT</div>
+                <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, ...S.mono }}>{fmtP(row.amount)}</div>
               </div>
               <div style={S.panelMuted}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>TOTAL</div>
-                <div style={{ fontSize: 14, color: '#10b981', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>TOTAL</div>
+                <div style={{ fontSize: t.fontSize.h3, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(row.total_amount)}</div>
               </div>
             </div>
           </div>
         </div>
       )) : (
-        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
+        <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: `1px solid ${t.color.border}` }}>
           <ResizableHeader headers={[
             { label: '單別', align: 'center' },
             { label: '單號', align: 'center' },
@@ -158,30 +159,30 @@ export default function SalesReturns() {
             ] : []),
           ]} />
           {data.rows.map((row) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #eef3f8', alignItems: 'center' }}>
-              <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: `1px solid #eef3f8`, alignItems: 'center' }}>
+              <div style={{ padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{row.doc_type === 'return' ? <span style={S.tag('red')}>退貨</span> : <span style={S.tag('green')}>銷貨</span>}</div>
               {row.doc_type === 'return' ? (
-                <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 700, padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', ...S.mono }}>{row.doc_no}</div>
+                <div style={{ fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', ...S.mono }}>{row.doc_no}</div>
               ) : (
                 <button
                   onClick={() => setSelectedSlipNumber(row.doc_no)}
-                  style={{ background: 'none', border: 0, padding: '8px 10px', fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'center', cursor: 'pointer', marginRight: '1px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', ...S.mono, width: '100%', justifyContent: 'center' }}
+                  style={{ background: 'none', border: 0, padding: '8px 10px', fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, textAlign: 'center', cursor: 'pointer', marginRight: '1px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', ...S.mono, width: '100%', justifyContent: 'center' }}
                 >
                   {row.doc_no}
                 </button>
               )}
-              <div style={{ minWidth: 0, textAlign: 'left', padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center' }}>
+              <div style={{ minWidth: 0, textAlign: 'left', padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center' }}>
                 <div style={{ width: '100%' }}>
-                  <div style={{ fontSize: 14, color: '#111827', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
-                  <div style={{ fontSize: 13, color: '#374151', marginTop: 4, lineHeight: 1.6 }}>
-                    <span style={{ color: '#6b7280', ...S.mono }}>INVOICE</span> {row.invoice_no || '-'}
+                  <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
+                  <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, marginTop: 4, lineHeight: 1.6 }}>
+                    <span style={{ color: t.color.textMuted, ...S.mono }}>INVOICE</span> {row.invoice_no || '-'}
                   </div>
                 </div>
               </div>
-              <div style={{ fontSize: 13, color: '#374151', padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', ...S.mono }}>{row.doc_date || '-'}</div>
-              <div style={{ fontSize: 13, color: '#374151', padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{row.sales_name || '-'}</div>
-              {!isTablet && <div style={{ fontSize: 14, color: '#111827', padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right', ...S.mono }}>{fmtP(row.amount)}</div>}
-              {!isTablet && <div style={{ fontSize: 14, color: '#10b981', fontWeight: 700, padding: '8px 10px', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right', ...S.mono }}>{fmtP(row.total_amount)}</div>}
+              <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', ...S.mono }}>{row.doc_date || '-'}</div>
+              <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{row.sales_name || '-'}</div>
+              {!isTablet && <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right', ...S.mono }}>{fmtP(row.amount)}</div>}
+              {!isTablet && <div style={{ fontSize: t.fontSize.h3, color: t.color.success, fontWeight: t.fontWeight.bold, padding: '8px 10px', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right', ...S.mono }}>{fmtP(row.total_amount)}</div>}
             </div>
           ))}
         </div>

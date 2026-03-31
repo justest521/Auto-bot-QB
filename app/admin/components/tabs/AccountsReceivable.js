@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
@@ -9,17 +10,17 @@ import { DocumentTimeline } from '../shared/DocumentTimeline';
 
 function StatCard({ code, label, value, tone }) {
   const TONE_MAP = {
-    red: { bg: '#fee2e2', color: '#dc2626' },
-    yellow: { bg: '#fef3c7', color: '#d97706' },
+    red: { bg: t.color.errorBg, color: t.color.error },
+    yellow: { bg: t.color.warningBg, color: '#d97706' },
     blue: { bg: '#dbeafe', color: '#2563eb' },
-    green: { bg: '#dcfce7', color: '#16a34a' },
-    gray: { bg: '#f3f4f6', color: '#6b7280' },
+    green: { bg: t.color.successBg, color: t.color.brand },
+    gray: { bg: '#f3f4f6', color: t.color.textMuted },
   };
-  const t = TONE_MAP[tone] || TONE_MAP.gray;
+  const toneStyle = TONE_MAP[tone] || TONE_MAP.gray;
   return (
-    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${t.color}` }}>
-      <div style={{ fontSize: 24, fontWeight: 800, color: t.color, ...S.mono }}>{value}</div>
-      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>{label}</div>
+    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${toneStyle.color}` }}>
+      <div style={{ fontSize: 24, fontWeight: 800, color: toneStyle.color, ...S.mono }}>{value}</div>
+      <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>{label}</div>
     </div>
   );
 }
@@ -64,11 +65,11 @@ export default function AccountsReceivable() {
   useEffect(() => { load(1); }, []);
 
   const STATUS_MAP = {
-    unpaid: { label: '未付款', color: '#f59e0b' },
+    unpaid: { label: '未付款', color: t.color.warning },
     partial: { label: '部分付款', color: '#f97316' },
-    paid: { label: '已付清', color: '#16a34a' },
-    overdue: { label: '逾期', color: '#dc2626' },
-    cancelled: { label: '已取消', color: '#6b7280' },
+    paid: { label: '已付清', color: t.color.brand },
+    overdue: { label: '逾期', color: t.color.error },
+    cancelled: { label: '已取消', color: t.color.textMuted },
   };
 
   const applyDatePreset = (preset) => {
@@ -165,14 +166,14 @@ export default function AccountsReceivable() {
       <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '10px 12px' : '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 13 : 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', ...(isMobile && { flex: 1 }) }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 13 : 14, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? t.color.bgCard : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border, ...(isMobile && { flex: 1 }) }}>{label}</button>
           ))}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
-            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
-            {!isMobile && <span style={{ color: '#6b7280', fontSize: 14 }}>~</span>}
-            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+            {!isMobile && <span style={{ color: t.color.textMuted, fontSize: t.fontSize.h3 }}>~</span>}
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
           </div>
-          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(1, e.target.value, search, pageSize); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }}>
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(1, e.target.value, search, pageSize); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }}>
             <option value="">全部狀態</option>
             <option value="unpaid">未付款</option>
             <option value="partial">部分付款</option>
@@ -181,8 +182,8 @@ export default function AccountsReceivable() {
             <option value="cancelled">已取消</option>
           </select>
           <div style={{ display: 'flex', gap: 6, flex: 1, width: isMobile ? '100%' : 'auto' }}>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋應收單號、客戶..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 'auto' : 160, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
-            <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: 14, minHeight: isMobile ? 40 : 'auto', whiteSpace: 'nowrap' }}>查詢</button>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋應收單號、客戶..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 'auto' : 160, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
+            <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: t.fontSize.h3, minHeight: isMobile ? 40 : 'auto', whiteSpace: 'nowrap' }}>查詢</button>
           </div>
         </div>
       </div>
@@ -198,21 +199,21 @@ export default function AccountsReceivable() {
               <div key={ar.id} onClick={() => loadDetail(ar.id)} style={{ ...S.card, padding: '12px 16px', marginBottom: 8, cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{ar.invoice_no || '-'}</div>
-                    <div style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>{ar.customer_name || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{ar.invoice_no || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4 }}>{ar.customer_name || '-'}</div>
                   </div>
-                  <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10, padding: '3px 8px', borderRadius: 4 }}>{st.label}</span>
+                  <span style={{ ...S.tag(''), background: st.color, color: t.color.bgCard, fontSize: t.fontSize.tiny, padding: '3px 8px', borderRadius: t.radius.sm }}>{st.label}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12, color: '#6b7280', marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #e5e7eb' }}>
-                  <div><span style={{ color: '#6b7280' }}>應收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(ar.total_amount)}</div></div>
-                  <div><span style={{ color: '#6b7280' }}>已收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(paidDisplay)}</div></div>
-                  <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontSize: 14, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div></div>
-                  <div><span style={{ color: '#6b7280' }}>到期日</span><div style={{ fontSize: 12, color: '#111827', ...S.mono }}>{ar.due_date?.slice(0, 10) || '-'}</div></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #e5e7eb' }}>
+                  <div><span style={{ color: t.color.textMuted }}>應收金額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtP(ar.total_amount)}</div></div>
+                  <div><span style={{ color: t.color.textMuted }}>已收金額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtP(paidDisplay)}</div></div>
+                  <div><span style={{ color: t.color.textMuted }}>未沖餘額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: balance > 0 ? t.color.error : t.color.brand, ...S.mono }}>{fmtP(balance)}</div></div>
+                  <div><span style={{ color: t.color.textMuted }}>到期日</span><div style={{ fontSize: t.fontSize.caption, color: t.color.textPrimary, ...S.mono }}>{ar.due_date?.slice(0, 10) || '-'}</div></div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  {daysOverdue > 0 && <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 600 }}>逾期 {daysOverdue} 天</span>}
+                  {daysOverdue > 0 && <span style={{ fontSize: t.fontSize.tiny, color: t.color.error, fontWeight: t.fontWeight.semibold }}>逾期 {daysOverdue} 天</span>}
                   {ar.payment_status !== 'paid' && ar.payment_status !== 'cancelled' && (
-                    <button onClick={(e) => { e.stopPropagation(); openPayDialog(ar, e); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 12, color: '#3b82f6', borderColor: '#bfdbfe', marginLeft: 'auto' }}>沖帳</button>
+                    <button onClick={(e) => { e.stopPropagation(); openPayDialog(ar, e); }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: t.fontSize.caption, color: t.color.link, borderColor: '#bfdbfe', marginLeft: 'auto' }}>沖帳</button>
                   )}
                 </div>
               </div>
@@ -240,7 +241,7 @@ export default function AccountsReceivable() {
               <div style={{ display: 'grid', gridTemplateColumns: arGridTemplate, borderBottom: '2px solid #d1d5db', background: '#f3f4f6' }}>
                 {arCols.map((c, ci) => (
                   <div key={ci} onClick={c.key ? () => toggleSort(c.key) : undefined}
-                    style={{ padding: '8px 10px', borderRight: ci < arCols.length - 1 ? '1px solid #d1d5db' : 'none', display: 'flex', alignItems: 'center', justifyContent: c.align === 'right' ? 'flex-end' : c.align === 'center' ? 'center' : 'flex-start', fontSize: 13, fontWeight: 600, color: sortKey === c.key ? '#1d4ed8' : '#374151', cursor: c.key ? 'pointer' : 'default', userSelect: 'none', whiteSpace: 'nowrap', gap: 2 }}>
+                    style={{ padding: '8px 10px', borderRight: ci < arCols.length - 1 ? '1px solid #d1d5db' : 'none', display: 'flex', alignItems: 'center', justifyContent: c.align === 'right' ? 'flex-end' : c.align === 'center' ? 'center' : 'flex-start', fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: sortKey === c.key ? '#1d4ed8' : t.color.textSecondary, cursor: c.key ? 'pointer' : 'default', userSelect: 'none', whiteSpace: 'nowrap', gap: 2 }}>
                     {c.label}
                     {c.key && <span style={{ fontSize: 9, opacity: sortKey === c.key ? 1 : 0.3 }}>{sortKey === c.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}</span>}
                   </div>
@@ -277,24 +278,24 @@ export default function AccountsReceivable() {
             const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
             return (
               <div key={ar.id} onClick={() => loadDetail(ar.id)}
-                style={{ display: 'grid', gridTemplateColumns: arGridTemplate, borderBottom: idx < (data.rows || []).length - 1 ? '1px solid #e5e7eb' : 'none', alignItems: 'center', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
+                style={{ display: 'grid', gridTemplateColumns: arGridTemplate, borderBottom: idx < (data.rows || []).length - 1 ? '1px solid #e5e7eb' : 'none', alignItems: 'center', background: idx % 2 === 0 ? t.color.bgCard : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
-                onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
-                <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{((page - 1) * pageSize) + idx + 1}</div>
-                <div style={{ ...cell, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{ar.invoice_no || '-'}</div>
-                <div style={cell}><span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ar.customer_name || '-'}</span></div>
-                <div style={{ ...cCenter, fontSize: 12, color: '#374151' }}>{ar.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>
-                <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{ar.invoice_date?.slice(0, 10) || '-'}</div>
-                <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{ar.due_date?.slice(0, 10) || '-'}</div>
+                onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? t.color.bgCard : '#fafbfd'}>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{((page - 1) * pageSize) + idx + 1}</div>
+                <div style={{ ...cell, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{ar.invoice_no || '-'}</div>
+                <div style={cell}><span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ar.customer_name || '-'}</span></div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.caption, color: t.color.textSecondary }}>{ar.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{ar.invoice_date?.slice(0, 10) || '-'}</div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{ar.due_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(ar.payment_status === 'paid' ? 'green' : ar.payment_status === 'partial' ? 'yellow' : ar.payment_status === 'overdue' ? 'red' : 'gray')}>{st.label}</span></div>
-                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(ar.total_amount)}</div>
-                <div style={{ ...cRight, fontSize: 13, color: '#16a34a', ...S.mono }}>{fmtP(paidDisplay)}</div>
-                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, color: balance > 0 ? '#dc2626' : '#16a34a', ...S.mono }}>{fmtP(balance)}</div>
-                <div style={{ ...cCenter, fontSize: 13, color: daysOverdue > 0 ? '#dc2626' : '#6b7280', fontWeight: daysOverdue > 0 ? 600 : 400 }}>{daysOverdue > 0 ? daysOverdue : '-'}</div>
+                <div style={{ ...cRight, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(ar.total_amount)}</div>
+                <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.brand, ...S.mono }}>{fmtP(paidDisplay)}</div>
+                <div style={{ ...cRight, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: balance > 0 ? t.color.error : t.color.brand, ...S.mono }}>{fmtP(balance)}</div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: daysOverdue > 0 ? t.color.error : t.color.textMuted, fontWeight: daysOverdue > 0 ? 600 : 400 }}>{daysOverdue > 0 ? daysOverdue : '-'}</div>
                 <div style={{ ...cellLast, gap: 4 }} onClick={e => e.stopPropagation()}>
                   {ar.payment_status !== 'paid' && ar.payment_status !== 'cancelled' ? (
-                    <button onClick={(e) => openPayDialog(ar, e)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, color: '#3b82f6', borderColor: '#bfdbfe', whiteSpace: 'nowrap' }}>沖帳</button>
-                  ) : <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 600 }}>已沖</span>}
+                    <button onClick={(e) => openPayDialog(ar, e)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: t.fontSize.tiny, color: t.color.link, borderColor: '#bfdbfe', whiteSpace: 'nowrap' }}>沖帳</button>
+                  ) : <span style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.semibold }}>已沖</span>}
                 </div>
               </div>
             );
@@ -308,68 +309,68 @@ export default function AccountsReceivable() {
       {/* Detail modal - showing allocation history */}
       {detailDialog && currentInvoice && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '20px 0' : 0, overflowY: 'auto' }}>
-          <div style={{ ...S.card, width: isMobile ? '90vw' : 600, maxWidth: '90vw', borderRadius: 14, padding: isMobile ? '16px 18px' : '20px 24px', margin: 'auto' }}>
+          <div style={{ ...S.card, width: isMobile ? '90vw' : 600, maxWidth: '90vw', borderRadius: t.radius.xl, padding: isMobile ? '16px 18px' : '20px 24px', margin: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>應收帳款明細</h3>
-              <button onClick={() => setDetailDialog(null)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#6b7280' }}>×</button>
+              <h3 style={{ margin: 0, fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold }}>應收帳款明細</h3>
+              <button onClick={() => setDetailDialog(null)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: t.color.textMuted }}>×</button>
             </div>
 
             {/* Invoice info header */}
-            <div style={{ ...S.card, background: '#f9fafb', padding: 12, marginBottom: 16, borderRadius: 8 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12, fontSize: 13 }}>
-                <div><span style={{ color: '#6b7280' }}>應收單號</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{currentInvoice.invoice_no}</div></div>
-                <div><span style={{ color: '#6b7280' }}>客戶</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{currentInvoice.customer_name}</div></div>
-                <div><span style={{ color: '#6b7280' }}>開單日</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{currentInvoice.invoice_date?.slice(0, 10)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>到期日</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{currentInvoice.due_date?.slice(0, 10)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>應收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(currentInvoice.total_amount)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>已收金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(currentInvoice.paid_amount_display != null ? currentInvoice.paid_amount_display : currentInvoice.paid_amount)}</div></div>
+            <div style={{ ...S.card, background: t.color.bgMuted, padding: 12, marginBottom: 16, borderRadius: t.radius.md }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12, fontSize: t.fontSize.body }}>
+                <div><span style={{ color: t.color.textMuted }}>應收單號</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{currentInvoice.invoice_no}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>客戶</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{currentInvoice.customer_name}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>開單日</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{currentInvoice.invoice_date?.slice(0, 10)}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>到期日</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{currentInvoice.due_date?.slice(0, 10)}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>應收金額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtP(currentInvoice.total_amount)}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>已收金額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtP(currentInvoice.paid_amount_display != null ? currentInvoice.paid_amount_display : currentInvoice.paid_amount)}</div></div>
               </div>
               {currentInvoice.remark && (
-                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb', fontSize: 12, color: '#6b7280' }}>
-                  <span style={{ fontWeight: 600 }}>備註：</span>{currentInvoice.remark}
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb', fontSize: t.fontSize.caption, color: t.color.textMuted }}>
+                  <span style={{ fontWeight: t.fontWeight.semibold }}>備註：</span>{currentInvoice.remark}
                 </div>
               )}
             </div>
 
             {/* Allocation history */}
-            <h4 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: '#111827' }}>沖帳記錄</h4>
+            <h4 style={{ margin: '0 0 12px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>沖帳記錄</h4>
             {!detailData ? (
-              <div style={{ textAlign: 'center', color: '#6b7280', padding: '20px 0', fontSize: 13 }}>載入中...</div>
+              <div style={{ textAlign: 'center', color: t.color.textMuted, padding: '20px 0', fontSize: t.fontSize.body }}>載入中...</div>
             ) : (detailData.rows || []).length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#6b7280', padding: '20px 0', fontSize: 13 }}>尚無沖帳記錄</div>
+              <div style={{ textAlign: 'center', color: t.color.textMuted, padding: '20px 0', fontSize: t.fontSize.body }}>尚無沖帳記錄</div>
             ) : isMobile ? (
               <div style={{ marginBottom: 16 }}>
                 {(detailData.rows || []).map((alloc, idx) => (
-                  <div key={idx} style={{ ...S.card, background: '#f9fafb', padding: 10, marginBottom: 8, borderRadius: 6 }}>
+                  <div key={idx} style={{ ...S.card, background: t.color.bgMuted, padding: 10, marginBottom: 8, borderRadius: 6 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>{alloc.receipt_no}</span>
-                      <span style={{ fontSize: 12, color: '#6b7280', ...S.mono }}>{alloc.date?.slice(0, 10)}</span>
+                      <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{alloc.receipt_no}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, ...S.mono }}>{alloc.date?.slice(0, 10)}</span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12 }}>
-                      <div><span style={{ color: '#6b7280' }}>金額</span><div style={{ fontWeight: 600, color: '#111827', ...S.mono }}>{fmtP(alloc.amount)}</div></div>
-                      <div><span style={{ color: '#6b7280' }}>類型</span><div style={{ fontWeight: 600, color: '#111827' }}>{alloc.type || '-'}</div></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: t.fontSize.caption }}>
+                      <div><span style={{ color: t.color.textMuted }}>金額</span><div style={{ fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, ...S.mono }}>{fmtP(alloc.amount)}</div></div>
+                      <div><span style={{ color: t.color.textMuted }}>類型</span><div style={{ fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{alloc.type || '-'}</div></div>
                     </div>
-                    {alloc.remark && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 6, paddingTop: 6, borderTop: '1px solid #e5e7eb' }}>備註：{alloc.remark}</div>}
+                    {alloc.remark && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 6, paddingTop: 6, borderTop: '1px solid #e5e7eb' }}>備註：{alloc.remark}</div>}
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ ...S.card, background: '#f9fafb', padding: 0, marginBottom: 16, overflow: 'auto', borderRadius: 6 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <div style={{ ...S.card, background: t.color.bgMuted, padding: 0, marginBottom: 16, overflow: 'auto', borderRadius: 6 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.caption }}>
                   <thead><tr style={{ background: '#f3f4f6' }}>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>收據號</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>日期</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'right', color: '#6b7280', fontWeight: 600 }}>金額</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'center', color: '#6b7280', fontWeight: 600 }}>類型</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600 }}>備註</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>收據號</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>日期</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'right', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>金額</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>類型</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>備註</th>
                   </tr></thead>
                   <tbody>{(detailData.rows || []).map((alloc, idx) => (
                     <tr key={idx} style={{ borderTop: '1px solid #e5e7eb' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: 600, color: '#3b82f6', ...S.mono }}>{alloc.receipt_no}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'center', fontSize: 11, ...S.mono }}>{alloc.date?.slice(0, 10)}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, ...S.mono }}>{fmtP(alloc.amount)}</td>
+                      <td style={{ padding: '8px 12px', fontWeight: t.fontWeight.semibold, color: t.color.link, ...S.mono }}>{alloc.receipt_no}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'center', fontSize: t.fontSize.tiny, ...S.mono }}>{alloc.date?.slice(0, 10)}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: t.fontWeight.semibold, ...S.mono }}>{fmtP(alloc.amount)}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'center' }}>{alloc.type || '-'}</td>
-                      <td style={{ padding: '8px 12px', fontSize: 11, color: '#6b7280' }}>{alloc.remark || '-'}</td>
+                      <td style={{ padding: '8px 12px', fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{alloc.remark || '-'}</td>
                     </tr>
                   ))}</tbody>
                 </table>
@@ -382,16 +383,16 @@ export default function AccountsReceivable() {
             </div>
 
             {/* Remaining balance footer */}
-            <div style={{ ...S.card, background: '#f0fdf4', borderColor: '#bbf7d0', padding: 12, marginBottom: 16, borderRadius: 6, fontSize: 13 }}>
+            <div style={{ ...S.card, background: '#f0fdf4', borderColor: '#bbf7d0', padding: 12, marginBottom: 16, borderRadius: 6, fontSize: t.fontSize.body }}>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
-                <div><span style={{ color: '#6b7280' }}>應收總額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(currentInvoice.total_amount)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>已沖帳</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(currentInvoice.paid_amount_display != null ? currentInvoice.paid_amount_display : currentInvoice.paid_amount)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#dc2626', ...S.mono }}>{fmtP(currentInvoice.balance != null ? currentInvoice.balance : Number(currentInvoice.total_amount || 0) - Number(currentInvoice.paid_amount || 0))}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>應收總額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtP(currentInvoice.total_amount)}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>已沖帳</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtP(currentInvoice.paid_amount_display != null ? currentInvoice.paid_amount_display : currentInvoice.paid_amount)}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>未沖餘額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.error, ...S.mono }}>{fmtP(currentInvoice.balance != null ? currentInvoice.balance : Number(currentInvoice.total_amount || 0) - Number(currentInvoice.paid_amount || 0))}</div></div>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => setDetailDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : S.btnGhost) }}>關閉</button>
+              <button onClick={() => setDetailDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: t.color.textMuted, border: '1px solid #e5e7eb' } : S.btnGhost) }}>關閉</button>
             </div>
           </div>
         </div>
@@ -400,17 +401,17 @@ export default function AccountsReceivable() {
       {/* Payment dialog */}
       {payDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 20 : 0 }} onClick={() => setPayDialog(null)}>
-          <div style={{ ...S.card, width: isMobile ? '90vw' : 420, maxWidth: '90vw', borderRadius: 14, padding: isMobile ? '16px 18px' : '16px 18px 20px' }} onClick={e => e.stopPropagation()}>
+          <div style={{ ...S.card, width: isMobile ? '90vw' : 420, maxWidth: '90vw', borderRadius: t.radius.xl, padding: isMobile ? '16px 18px' : '16px 18px 20px' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>沖帳收款</h3>
-              <button onClick={() => setPayDialog(null)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#6b7280' }}>×</button>
+              <h3 style={{ margin: 0, fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold }}>沖帳收款</h3>
+              <button onClick={() => setPayDialog(null)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: t.color.textMuted }}>×</button>
             </div>
-            <div style={{ ...S.card, background: '#f9fafb', padding: 12, marginBottom: 16, borderRadius: 8, fontSize: 13 }}>
+            <div style={{ ...S.card, background: t.color.bgMuted, padding: 12, marginBottom: 16, borderRadius: t.radius.md, fontSize: t.fontSize.body }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div><span style={{ color: '#6b7280' }}>應收單號</span><div style={{ fontWeight: 700, color: '#111827', ...S.mono }}>{payDialog.invoice_no}</div></div>
-                <div><span style={{ color: '#6b7280' }}>客戶</span><div style={{ fontWeight: 700, color: '#111827' }}>{payDialog.customer_name}</div></div>
-                <div><span style={{ color: '#6b7280' }}>應收金額</span><div style={{ fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(payDialog.total_amount)}</div></div>
-                <div><span style={{ color: '#6b7280' }}>未沖餘額</span><div style={{ fontWeight: 700, color: '#dc2626', ...S.mono }}>{fmtP(payDialog.balance != null ? payDialog.balance : Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount_display || payDialog.paid_amount || 0))}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>應收單號</span><div style={{ fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{payDialog.invoice_no}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>客戶</span><div style={{ fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{payDialog.customer_name}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>應收金額</span><div style={{ fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtP(payDialog.total_amount)}</div></div>
+                <div><span style={{ color: t.color.textMuted }}>未沖餘額</span><div style={{ fontWeight: t.fontWeight.bold, color: t.color.error, ...S.mono }}>{fmtP(payDialog.balance != null ? payDialog.balance : Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount_display || payDialog.paid_amount || 0))}</div></div>
               </div>
             </div>
             <div style={{ marginBottom: 12 }}>
@@ -418,7 +419,7 @@ export default function AccountsReceivable() {
               <input type="number" value={payForm.amount} onChange={e => setPayForm(f => ({ ...f, amount: e.target.value }))} placeholder="0" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), ...S.mono }} />
               <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                 {(() => { const bal = payDialog.balance != null ? Number(payDialog.balance) : Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount_display || payDialog.paid_amount || 0); return [['全額', bal], ['50%', Math.round(bal * 0.5)], ['30%', Math.round(bal * 0.3)]]; })().map(([label, val]) => (
-                  <button key={label} onClick={() => setPayForm(f => ({ ...f, amount: String(val) }))} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, color: '#3b82f6', borderColor: '#bfdbfe' }}>{label}</button>
+                  <button key={label} onClick={() => setPayForm(f => ({ ...f, amount: String(val) }))} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: t.fontSize.tiny, color: t.color.link, borderColor: '#bfdbfe' }}>{label}</button>
                 ))}
               </div>
             </div>
@@ -436,7 +437,7 @@ export default function AccountsReceivable() {
               <textarea value={payForm.remark} onChange={e => setPayForm(f => ({ ...f, remark: e.target.value }))} placeholder="可選填備註" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), minHeight: 50, resize: 'vertical' }} />
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
-              <button onClick={() => setPayDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>
+              <button onClick={() => setPayDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: t.color.textMuted, border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>
               <button onClick={handlePay} disabled={paying} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnPrimary), opacity: paying ? 0.6 : 1 }}>{paying ? '處理中...' : '確認沖帳'}</button>
             </div>
           </div>
@@ -446,14 +447,14 @@ export default function AccountsReceivable() {
       {/* Create new AR dialog */}
       {createDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: isMobile ? '90vw' : 400, maxWidth: '90vw', borderRadius: 14, padding: isMobile ? '16px 18px' : '16px 18px 20px' }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>新增應收帳款</h3>
+          <div style={{ ...S.card, width: isMobile ? '90vw' : 400, maxWidth: '90vw', borderRadius: t.radius.xl, padding: isMobile ? '16px 18px' : '16px 18px 20px' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: t.fontSize.h2 }}>新增應收帳款</h3>
             <div style={{ marginBottom: 12 }}><label style={S.label}>客戶</label><input type="text" value={newAr.customer_id} onChange={e => setNewAr({ ...newAr, customer_id: e.target.value })} placeholder="客戶ID或名稱" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
             <div style={{ marginBottom: 12 }}><label style={S.label}>應收金額</label><input type="number" value={newAr.amount} onChange={e => setNewAr({ ...newAr, amount: e.target.value })} placeholder="0.00" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
             <div style={{ marginBottom: 12 }}><label style={S.label}>到期日</label><input type="date" value={newAr.due_date} onChange={e => setNewAr({ ...newAr, due_date: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
             <div style={{ marginBottom: 12 }}><label style={S.label}>備註</label><textarea value={newAr.remark} onChange={e => setNewAr({ ...newAr, remark: e.target.value })} placeholder="可選備註" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), minHeight: 60, resize: 'vertical' }} /></div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
-              <button onClick={() => { setCreateDialog(false); setNewAr({ customer_id: '', amount: '', due_date: '', remark: '' }); }} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>
+              <button onClick={() => { setCreateDialog(false); setNewAr({ customer_id: '', amount: '', due_date: '', remark: '' }); }} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: t.color.textMuted, border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>
               <button onClick={handleCreate} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnPrimary) }}>新增</button>
             </div>
           </div>

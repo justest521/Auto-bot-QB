@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PanelHeader } from '../shared/ui';

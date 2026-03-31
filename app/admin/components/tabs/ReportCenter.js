@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet } from '@/lib/admin/api';
 import { fmt, useResponsive } from '@/lib/admin/helpers';
 import { Loading, PageLead, StatCard, PanelHeader, ReportShortcut, RankingPanel } from '../shared/ui';

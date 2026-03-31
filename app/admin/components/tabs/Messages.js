@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { useResponsive } from '@/lib/admin/helpers';
 import { apiGet } from '@/lib/admin/api';
 import { fmtDate, fmtMs, getPresetDateRange } from '@/lib/admin/helpers';
@@ -44,37 +45,37 @@ export default function Messages() {
       <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '8px 12px' : '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', minHeight: isMobile ? 40 : 'auto' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: t.fontSize.body, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border, minHeight: isMobile ? 40 : 'auto' }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
-          <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋訊息內容、客戶名稱..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '6px 12px' : '6px 16px', fontSize: 13, minHeight: isMobile ? 40 : 'auto' }}>查詢</button>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
+          <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋訊息內容、客戶名稱..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: t.fontSize.body, padding: isMobile ? '6px 12px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '6px 12px' : '6px 16px', fontSize: t.fontSize.body, minHeight: isMobile ? 40 : 'auto' }}>查詢</button>
         </div>
       </div>
-      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10, ...S.mono }}>共 {data.total} 筆紀錄</div>
+      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 10, ...S.mono }}>共 {data.total} 筆紀錄</div>
       {loading ? <Loading /> : <div ref={tableRef}>{data.messages.map(msg => (
-        <div key={msg.id} onClick={() => setExpanded(expanded === msg.id ? null : msg.id)} style={{ ...S.card, cursor: 'pointer', padding: isMobile ? '8px 12px' : '10px 16px', marginBottom: 10, transition: 'border-color 0.2s, transform 0.2s', borderColor: expanded === msg.id ? '#93c5fd' : '#e5e7eb', minHeight: isMobile ? 44 : 'auto' }}>
+        <div key={msg.id} onClick={() => setExpanded(expanded === msg.id ? null : msg.id)} style={{ ...S.card, cursor: 'pointer', padding: isMobile ? '8px 12px' : '10px 16px', marginBottom: 10, transition: 'border-color 0.2s, transform 0.2s', borderColor: expanded === msg.id ? '#93c5fd' : t.color.border, minHeight: isMobile ? 44 : 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: 8, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <span style={S.tag('green')}>{msg.display_name || '客戶'}</span>
-              <span style={{ color: '#6b7280', fontSize: 11, ...S.mono }}>{fmtDate(msg.created_at)}</span>
+              <span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny, ...S.mono }}>{fmtDate(msg.created_at)}</span>
             </div>
-            <span style={{ color: '#6b7280', fontSize: 11, ...S.mono }}>{fmtMs(msg.response_time_ms)}</span>
+            <span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny, ...S.mono }}>{fmtMs(msg.response_time_ms)}</span>
           </div>
-          <div style={{ fontSize: 13, color: '#111827', wordBreak: 'break-word' }}><span style={{ color: '#6b7280' }}>Q: </span>{msg.user_message}</div>
+          <div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, wordBreak: 'break-word' }}><span style={{ color: t.color.textMuted }}>Q: </span>{msg.user_message}</div>
           {expanded === msg.id && (
-            <div style={{ background: '#eff6ff', border: '1px solid #dbe6f3', borderRadius: 10, padding: isMobile ? '8px 12px' : '10px 16px', marginTop: 10, fontSize: 12, color: '#374151', whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
-              <span style={{ color: '#3b82f6', fontSize: 11, ...S.mono }}>AI_RESPONSE</span>
-              <div style={{ marginTop: 6, color: '#263246' }}>{msg.ai_response}</div>
+            <div style={{ background: t.color.infoBg, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: isMobile ? '8px 12px' : '10px 16px', marginTop: 10, fontSize: t.fontSize.caption, color: t.color.textSecondary, whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
+              <span style={{ color: t.color.link, fontSize: t.fontSize.tiny, ...S.mono }}>AI_RESPONSE</span>
+              <div style={{ marginTop: 6, color: t.color.textSecondary }}>{msg.ai_response}</div>
             </div>
           )}
         </div>
       ))}</div>}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         {data.page > 1 && <button onClick={() => load(data.page - 1)} style={{ ...S.btnGhost, minHeight: isMobile ? 40 : 'auto' }}>← 上一頁</button>}
-        <span style={{ color: '#666', padding: '8px 0', fontSize: 12, ...S.mono }}>P{data.page}</span>
+        <span style={{ color: t.color.textMuted, padding: '8px 0', fontSize: t.fontSize.caption, ...S.mono }}>P{data.page}</span>
         {data.total > data.page * data.limit && <button onClick={() => load(data.page + 1)} style={{ ...S.btnGhost, minHeight: isMobile ? 40 : 'auto' }}>下一頁 →</button>}
       </div>
     </div>

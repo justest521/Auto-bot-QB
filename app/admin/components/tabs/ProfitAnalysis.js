@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet } from '@/lib/admin/api';
 import { fmt, fmtP, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton, SaleDetailDrawer, ComingSoonBanner } from '../shared/ui';
@@ -78,10 +79,10 @@ export default function ProfitAnalysis() {
               style={{
                 ...S.btnGhost,
                 padding: isMobile ? '8px 12px' : '6px 12px',
-                fontSize: isMobile ? 13 : 12,
-                background: rangePreset === value ? '#dbeafe' : '#fff',
-                borderColor: rangePreset === value ? '#93c5fd' : '#e5e7eb',
-                color: rangePreset === value ? '#3b82f6' : '#5b6779',
+                fontSize: isMobile ? t.fontSize.body : t.fontSize.caption,
+                background: rangePreset === value ? t.color.infoBg : t.color.bgCard,
+                borderColor: rangePreset === value ? '#93c5fd' : t.color.border,
+                color: rangePreset === value ? t.color.link : '#5b6779',
               }}
             >
               {label}
@@ -95,8 +96,8 @@ export default function ProfitAnalysis() {
           <button onClick={() => applyPreset('today')} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, flex: '1 1 calc(50% - 4px)' } : S.btnGhost) }}>回到今日</button>
         </div>
       </div>
-      {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_profit_analysis` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入利潤分析 CSV。</div>}
-      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, ...S.mono }}>
+      {!data.table_ready && <div style={{ ...S.card, background: t.color.warningBg, borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 `erp_profit_analysis` 資料表，請先跑 [`docs/erp-auxiliary-tables.sql`](/Users/tungyiwu/Desktop/AI/Auto%20QB/Auto-bot-QB/docs/erp-auxiliary-tables.sql) 再匯入利潤分析 CSV。</div>}
+      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 12, ...S.mono }}>
         共 {fmt(data.total)} 筆分析資料{dateFrom || dateTo ? ` · ${dateFrom || '...'} → ${dateTo || '...'}` : ''}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, minmax(0, 1fr))', gap: isMobile ? 8 : 12, marginBottom: 18 }}>
@@ -109,42 +110,42 @@ export default function ProfitAnalysis() {
         <div key={row.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 14, color: '#111827', fontWeight: 700 }}>{row.customer_name || '未命名客戶'}</div>
-              <div style={{ fontSize: 12, color: '#374151', marginTop: 4, lineHeight: 1.7 }}>
+              <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{row.customer_name || '未命名客戶'}</div>
+              <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4, lineHeight: 1.7 }}>
                 <div>
-                  <span style={{ color: '#6b7280', ...S.mono }}>DOC</span>{' '}
+                  <span style={{ color: t.color.textMuted, ...S.mono }}>DOC</span>{' '}
                   {row.doc_no ? (
                     <button
                       onClick={() => setSelectedSlipNumber(row.doc_no)}
-                      style={{ background: 'none', border: 0, padding: 0, color: '#3b82f6', fontWeight: 700, cursor: 'pointer', ...S.mono }}
+                      style={{ background: 'none', border: 0, padding: 0, color: t.color.link, fontWeight: t.fontWeight.bold, cursor: 'pointer', ...S.mono }}
                     >
                       {row.doc_no}
                     </button>
                   ) : '-'}
                 </div>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>DATE</span> {row.doc_date || '-'}</div>
-                <div><span style={{ color: '#6b7280', ...S.mono }}>SALES</span> {row.sales_name || '-'}</div>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>DATE</span> {row.doc_date || '-'}</div>
+                <div><span style={{ color: t.color.textMuted, ...S.mono }}>SALES</span> {row.sales_name || '-'}</div>
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               <div style={S.panelMuted}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>AMOUNT</div>
-                <div style={{ fontSize: 14, color: '#111827', ...S.mono }}>{fmtP(row.amount)}</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>AMOUNT</div>
+                <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, ...S.mono }}>{fmtP(row.amount)}</div>
               </div>
               <div style={S.panelMuted}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>COST</div>
-                <div style={{ fontSize: 14, color: '#111827', ...S.mono }}>{fmtP(row.cost)}</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>COST</div>
+                <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, ...S.mono }}>{fmtP(row.cost)}</div>
               </div>
               <div style={S.panelMuted}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>GROSS</div>
-                <div style={{ fontSize: 14, color: '#10b981', fontWeight: 700, ...S.mono }}>{fmtP(row.gross_profit)}</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>GROSS</div>
+                <div style={{ fontSize: t.fontSize.h3, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(row.gross_profit)}</div>
               </div>
             </div>
           </div>
         </div>
       )) : (
         <div style={{ ...S.card, padding: 0, overflow: 'hidden', overflowX: isMobile ? 'auto' : 'visible' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.2fr) 120px 120px 120px' : 'minmax(0,1.4fr) 110px 140px 140px 140px 120px', gap: 12, padding: '14px 18px', borderBottom: '1px solid #e6edf5', color: '#6b7280', fontSize: 12, fontWeight: 600, ...S.mono, minWidth: isTablet ? 'auto' : 900 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.2fr) 120px 120px 120px' : 'minmax(0,1.4fr) 110px 140px 140px 140px 120px', gap: 12, padding: '14px 18px', borderBottom: `1px solid #e6edf5`, color: t.color.textMuted, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, ...S.mono, minWidth: isTablet ? 'auto' : 900 }}>
             <div>客戶 / 單號</div>
             {!isTablet && <div>日期</div>}
             {!isTablet && <div>業務</div>}
@@ -154,15 +155,15 @@ export default function ProfitAnalysis() {
             {!isTablet && <div style={{ textAlign: 'right' }}>毛利率</div>}
           </div>
           {data.rows.map((row) => (
-            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.2fr) 120px 120px 120px' : 'minmax(0,1.4fr) 110px 140px 140px 140px 120px', gap: 12, padding: '14px 18px', borderTop: '1px solid #eef3f8', alignItems: 'center', minWidth: isTablet ? 'auto' : 900 }}>
+            <div key={row.id} style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.2fr) 120px 120px 120px' : 'minmax(0,1.4fr) 110px 140px 140px 140px 120px', gap: 12, padding: '14px 18px', borderTop: `1px solid #eef3f8`, alignItems: 'center', minWidth: isTablet ? 'auto' : 900 }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, color: '#111827', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
-                <div style={{ fontSize: 13, color: '#374151', marginTop: 4, lineHeight: 1.6 }}>
-                  <span style={{ color: '#6b7280', ...S.mono }}>DOC</span>{' '}
+                <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
+                <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, marginTop: 4, lineHeight: 1.6 }}>
+                  <span style={{ color: t.color.textMuted, ...S.mono }}>DOC</span>{' '}
                   {row.doc_no ? (
                     <button
                       onClick={() => setSelectedSlipNumber(row.doc_no)}
-                      style={{ background: 'none', border: 0, padding: 0, color: '#3b82f6', fontWeight: 700, cursor: 'pointer', ...S.mono }}
+                      style={{ background: 'none', border: 0, padding: 0, color: t.color.link, fontWeight: t.fontWeight.bold, cursor: 'pointer', ...S.mono }}
                     >
                       {row.doc_no}
                     </button>
@@ -170,12 +171,12 @@ export default function ProfitAnalysis() {
                   {isTablet ? ` · ${row.doc_date || '-'}` : ''}
                 </div>
               </div>
-              {!isTablet && <div style={{ fontSize: 13, color: '#374151', ...S.mono }}>{row.doc_date || '-'}</div>}
-              {!isTablet && <div style={{ fontSize: 13, color: '#374151' }}>{row.sales_name || '-'}</div>}
-              <div style={{ fontSize: 14, color: '#111827', textAlign: 'right', ...S.mono }}>{fmtP(row.amount)}</div>
-              <div style={{ fontSize: 14, color: '#111827', textAlign: 'right', ...S.mono }}>{fmtP(row.cost)}</div>
-              <div style={{ fontSize: 14, color: '#10b981', fontWeight: 700, textAlign: 'right', ...S.mono }}>{fmtP(row.gross_profit)}</div>
-              {!isTablet && <div style={{ fontSize: 13, color: '#374151', textAlign: 'right', ...S.mono }}>{row.gross_margin || '-'}</div>}
+              {!isTablet && <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono }}>{row.doc_date || '-'}</div>}
+              {!isTablet && <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary }}>{row.sales_name || '-'}</div>}
+              <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', ...S.mono }}>{fmtP(row.amount)}</div>
+              <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', ...S.mono }}>{fmtP(row.cost)}</div>
+              <div style={{ fontSize: t.fontSize.h3, color: t.color.success, fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono }}>{fmtP(row.gross_profit)}</div>
+              {!isTablet && <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, textAlign: 'right', ...S.mono }}>{row.gross_margin || '-'}</div>}
             </div>
           ))}
         </div>

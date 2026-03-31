@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
@@ -15,11 +16,11 @@ function StatCard({ code, label, value, tone }) {
     green: { bg: '#dcfce7', color: '#16a34a' },
     gray: { bg: '#f3f4f6', color: '#6b7280' },
   };
-  const t = TONE_MAP[tone] || TONE_MAP.gray;
+  const toneStyle = TONE_MAP[tone] || TONE_MAP.gray;
   return (
-    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${t.color}` }}>
-      <div style={{ fontSize: 24, fontWeight: 800, color: t.color, ...S.mono }}>{value}</div>
-      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>{label}</div>
+    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${toneStyle.color}` }}>
+      <div style={{ fontSize: 24, fontWeight: 800, color: toneStyle.color, ...S.mono }}>{value}</div>
+      <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>{label}</div>
     </div>
   );
 }
@@ -151,9 +152,9 @@ export default function PaymentRecords() {
     <div>
       <PageLead eyebrow="PAYMENT RECEIPTS" title="收款登錄" description="管理客戶收款記錄、應收款追蹤，參考 Odoo 應收款模組。"
         action={<button onClick={handleExport} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnGhost) }}>匯出 CSV</button>} />
-      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: t.color.successBg, borderColor: '#bbf7d0', color: '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? t.spacing.xs : t.spacing.md }}>
         <StatCard code="PEND" label="待確認" value={s.pending_count || 0} tone="yellow" />
         <StatCard code="CONF" label="已確認" value={s.confirmed_count || 0} tone="green" />
         <StatCard code="CANC" label="已取消" value={s.cancelled_count || 0} tone="gray" />
@@ -161,21 +162,21 @@ export default function PaymentRecords() {
       </div>
 
       {/* Unified filter card */}
-      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '12px 14px' : '10px 16px' }}>
-        <div style={{ display: 'flex', gap: isMobile ? 6 : 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? `${t.spacing.sm}px ${t.spacing.lg}px` : `10px 16px` }}>
+        <div style={{ display: 'flex', gap: isMobile ? t.spacing.xs : t.spacing.xs, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: isMobile ? 12 : 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
-          {!isMobile && <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>}
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
-          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(e.target.value, methodFilter, search); }} style={{ ...S.input, width: isMobile ? '100%' : 140, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: t.fontSize.body, padding: isMobile ? `${t.spacing.xs}px 10px` : `6px 10px`, ...S.mono }} />
+          {!isMobile && <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body }}>~</span>}
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: t.fontSize.body, padding: isMobile ? `${t.spacing.xs}px 10px` : `6px 10px`, ...S.mono }} />
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(e.target.value, methodFilter, search); }} style={{ ...S.input, width: isMobile ? '100%' : 140, fontSize: t.fontSize.body, padding: isMobile ? `${t.spacing.xs}px 10px` : `6px 10px` }}>
             <option value="">全部狀態</option>
             <option value="pending">待確認</option>
             <option value="confirmed">已確認</option>
             <option value="cancelled">已取消</option>
           </select>
-          <select value={methodFilter} onChange={(e) => { setMethodFilter(e.target.value); load(statusFilter, e.target.value, search); }} style={{ ...S.input, width: isMobile ? '100%' : 140, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }}>
+          <select value={methodFilter} onChange={(e) => { setMethodFilter(e.target.value); load(statusFilter, e.target.value, search); }} style={{ ...S.input, width: isMobile ? '100%' : 140, fontSize: t.fontSize.body, padding: isMobile ? `${t.spacing.xs}px 10px` : `6px 10px` }}>
             <option value="">全部方式</option>
             <option value="transfer">匯款</option>
             <option value="cash">現金</option>
@@ -183,9 +184,9 @@ export default function PaymentRecords() {
             <option value="credit_card">信用卡</option>
             <option value="other">其他</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋客戶、單號..." style={{ ...S.input, flex: isMobile ? '1 1 100%' : '1 1 auto', minWidth: isMobile ? 0 : 160, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: 13 }}>查詢</button>
-          <button onClick={() => setCreateDialog(true)} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: 13 }}>新增收款</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋客戶、單號..." style={{ ...S.input, flex: isMobile ? '1 1 100%' : '1 1 auto', minWidth: isMobile ? 0 : 160, fontSize: t.fontSize.body, padding: isMobile ? `${t.spacing.xs}px 10px` : `6px 10px` }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? `${t.spacing.xs}px 16px` : '6px 18px', fontSize: t.fontSize.body }}>查詢</button>
+          <button onClick={() => setCreateDialog(true)} style={{ ...S.btnPrimary, padding: isMobile ? `${t.spacing.xs}px 16px` : '6px 18px', fontSize: t.fontSize.body }}>新增收款</button>
         </div>
       </div>
 
@@ -198,23 +199,23 @@ export default function PaymentRecords() {
               <div key={rec.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8, cursor: 'pointer' }} onClick={() => setDetailDialog(rec)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{rec.receipt_no || '-'}</div>
-                    <div style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>{rec.customer_name || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{rec.receipt_no || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4 }}>{rec.customer_name || '-'}</div>
                   </div>
                   <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10, padding: '3px 8px', borderRadius: 4 }}>{st.label}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12, color: '#6b7280', marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #e5e7eb' }}>
-                  <div><span style={{ color: '#6b7280' }}>金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{fmtP(rec.total_amount)}</div></div>
-                  <div><span style={{ color: '#6b7280' }}>日期</span><div style={{ fontSize: 12, color: '#111827', ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</div></div>
-                  <div><span style={{ color: '#6b7280' }}>方式</span><div style={{ fontSize: 12, color: '#111827' }}>{methodLabel}</div></div>
-                  <div><span style={{ color: '#6b7280' }}>參考號</span><div style={{ fontSize: 12, color: '#111827', ...S.mono }}>{rec.reference_no || '-'}</div></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 10, paddingBottom: 10, borderBottom: `1px solid ${t.color.border}` }}>
+                  <div><span style={{ color: t.color.textMuted }}>金額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtP(rec.total_amount)}</div></div>
+                  <div><span style={{ color: t.color.textMuted }}>日期</span><div style={{ fontSize: t.fontSize.caption, color: t.color.textPrimary, ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</div></div>
+                  <div><span style={{ color: t.color.textMuted }}>方式</span><div style={{ fontSize: t.fontSize.caption, color: t.color.textPrimary }}>{methodLabel}</div></div>
+                  <div><span style={{ color: t.color.textMuted }}>參考號</span><div style={{ fontSize: t.fontSize.caption, color: t.color.textPrimary, ...S.mono }}>{rec.reference_no || '-'}</div></div>
                 </div>
               </div>
             );
           })}
         </div>
       ) : (
-        <div style={{ ...S.card, padding: 0, overflow: 'auto', border: '1px solid #d1d5db' }}>
+        <div style={{ ...S.card, padding: 0, overflow: 'auto', border: `1px solid ${t.color.border}` }}>
           <ResizableHeader headers={[
             { label: '序', align: 'center' },
             { label: '收款單號', align: 'left' },
@@ -229,25 +230,25 @@ export default function PaymentRecords() {
           {(data.rows || []).map((rec, idx) => {
             const st = STATUS_MAP[rec.status] || STATUS_MAP.pending;
             const methodLabel = PAYMENT_METHOD_MAP[rec.payment_method] || rec.payment_method;
-            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
+            const cell = { padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
             const cCenter = { ...cell, justifyContent: 'center' };
             const cRight = { ...cell, justifyContent: 'flex-end' };
             const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
             return (
-              <div key={rec.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: '1px solid #e5e7eb', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
-                onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}
+              <div key={rec.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: `1px solid ${t.color.border}`, background: idx % 2 === 0 ? t.color.bgCard : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = t.color.infoBg}
+                onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? t.color.bgCard : '#fafbfd'}
                 onClick={() => setDetailDialog(rec)}>
-                <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{idx + 1}</div>
-                <div style={{ ...cell, fontSize: 13, fontWeight: 600, color: '#3b82f6', ...S.mono }}>{rec.receipt_no || '-'}</div>
-                <div style={cell}><span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.customer_name || '-'}</span></div>
-                <div style={{ ...cCenter, fontSize: 13, ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</div>
-                <div style={{ ...cRight, fontSize: 13, fontWeight: 700, ...S.mono }}>{fmtP(rec.total_amount)}</div>
-                <div style={{ ...cCenter, fontSize: 13 }}>{methodLabel}</div>
-                <div style={cCenter}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10 }}>{st.label}</span></div>
-                <div style={{ ...cell, fontSize: 13, ...S.mono }}>{rec.reference_no || '-'}</div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{idx + 1}</div>
+                <div style={{ ...cell, fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.link, ...S.mono }}>{rec.receipt_no || '-'}</div>
+                <div style={cell}><span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.customer_name || '-'}</span></div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, ...S.mono }}>{rec.receipt_date?.slice(0, 10) || '-'}</div>
+                <div style={{ ...cRight, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(rec.total_amount)}</div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body }}>{methodLabel}</div>
+                <div style={cCenter}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: t.fontSize.tiny }}>{st.label}</span></div>
+                <div style={{ ...cell, fontSize: t.fontSize.body, ...S.mono }}>{rec.reference_no || '-'}</div>
                 <div style={cellLast}>
-                  <button onClick={(e) => { e.stopPropagation(); setDetailDialog(rec); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 10 }}>詳情</button>
+                  <button onClick={(e) => { e.stopPropagation(); setDetailDialog(rec); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: t.fontSize.tiny }}>詳情</button>
                 </div>
               </div>
             );
@@ -257,9 +258,9 @@ export default function PaymentRecords() {
 
       {/* Create Dialog */}
       {createDialog && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: isMobile ? '90vw' : 480, maxWidth: '90vw', borderRadius: 14, padding: isMobile ? '16px 18px' : '16px 18px 20px', maxHeight: '85vh', overflow: 'auto' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>新增收款</h3>
+        <div style={{ ...p.modalOverlay }}>
+          <div style={{ ...p.modalBody('md'), width: isMobile ? '90vw' : 480 }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: t.fontSize.h2 }}>新增收款</h3>
 
             <div style={{ marginBottom: 12 }}>
               <label style={S.label}>客戶 *</label>
@@ -332,9 +333,9 @@ export default function PaymentRecords() {
 
       {/* Detail Dialog */}
       {detailDialog && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: isMobile ? '90vw' : 500, maxWidth: '90vw', borderRadius: 14, padding: isMobile ? '16px 18px' : '16px 18px 20px', maxHeight: '85vh', overflow: 'auto' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>收款詳情</h3>
+        <div style={{ ...p.modalOverlay }}>
+          <div style={{ ...p.modalBody('md'), width: isMobile ? '90vw' : 500 }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: t.fontSize.h2 }}>收款詳情</h3>
 
             <div style={{ fontSize: 13, color: '#374151', marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #e5e7eb' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>

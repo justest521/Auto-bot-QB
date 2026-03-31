@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead } from '../shared/ui';
@@ -8,17 +9,17 @@ import { exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
 
 function StatCard({ code, label, value, tone, isMobile }) {
   const TONE_MAP = {
-    red: { bg: '#fee2e2', color: '#dc2626' },
-    yellow: { bg: '#fef3c7', color: '#d97706' },
-    blue: { bg: '#dbeafe', color: '#2563eb' },
-    green: { bg: '#dcfce7', color: '#16a34a' },
-    gray: { bg: '#f3f4f6', color: '#6b7280' },
+    red: { bg: t.color.errorBg, color: t.color.error },
+    yellow: { bg: t.color.warningBg, color: t.color.warning },
+    blue: { bg: t.color.infoBg, color: t.color.info },
+    green: { bg: t.color.successBg, color: t.color.success },
+    gray: { bg: t.color.bgMuted, color: t.color.textMuted },
   };
-  const t = TONE_MAP[tone] || TONE_MAP.gray;
+  const toneVal = TONE_MAP[tone] || TONE_MAP.gray;
   return (
-    <div style={{ ...S.card, padding: isMobile ? '12px 12px' : '16px', textAlign: 'center', borderTop: `3px solid ${t.color}` }}>
-      <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 800, color: t.color, ...S.mono }}>{value}</div>
-      <div style={{ fontSize: isMobile ? 11 : 12, color: '#6b7280', marginTop: 4 }}>{label}</div>
+    <div style={{ ...S.card, padding: isMobile ? '12px 12px' : '16px', textAlign: 'center', borderTop: `3px solid ${toneVal.color}` }}>
+      <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 800, color: toneVal.color, ...S.mono }}>{value}</div>
+      <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>{label}</div>
     </div>
   );
 }
@@ -55,16 +56,16 @@ export default function Tickets() {
   const doSearch = () => load();
 
   const STATUS_MAP = {
-    open: { label: '開立', color: '#3b82f6' },
-    in_progress: { label: '處理中', color: '#f59e0b' },
-    resolved: { label: '已解決', color: '#16a34a' },
-    closed: { label: '已關閉', color: '#6b7280' },
+    open: { label: '開立', color: t.color.info },
+    in_progress: { label: '處理中', color: t.color.warning },
+    resolved: { label: '已解決', color: t.color.success },
+    closed: { label: '已關閉', color: t.color.textMuted },
   };
   const PRIORITY_MAP = {
-    low: { label: '低', color: '#9ca3af' },
-    medium: { label: '中', color: '#3b82f6' },
-    high: { label: '高', color: '#f59e0b' },
-    urgent: { label: '緊急', color: '#dc2626' },
+    low: { label: '低', color: t.color.textDisabled },
+    medium: { label: '中', color: t.color.info },
+    high: { label: '高', color: t.color.warning },
+    urgent: { label: '緊急', color: t.color.error },
   };
 
   const handleCreate = async () => {
@@ -115,7 +116,7 @@ export default function Tickets() {
   return (
     <div>
       <PageLead eyebrow="HELPDESK" title="客服工單" description="客服工單管理，可結合 LINE 訊息自動建立。參考 Odoo Helpdesk。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><button onClick={handleExport} style={{ ...S.btnGhost, minHeight: isMobile ? 44 : undefined }}>匯出 CSV</button><button onClick={() => setCreateOpen(true)} style={{ ...S.btnPrimary, minHeight: isMobile ? 44 : undefined }}>+ 新增工單</button></div>} />
-      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: t.color.successBg, borderColor: t.color.border, color: t.color.brand, marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
 
       <div style={{ ...S.statGrid, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? 8 : undefined }}>
         <StatCard code="OPEN" label="開立" value={sm.open || 0} tone="blue" isMobile={isMobile} />
@@ -126,54 +127,54 @@ export default function Tickets() {
       <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '10px 12px' : '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: isMobile ? 12 : 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : undefined }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, background: datePreset === key ? t.color.info : t.color.bgCard, color: datePreset === key ? '#fff' : t.color.textSecondary, borderColor: datePreset === key ? t.color.info : t.color.border, minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : undefined }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...(isMobile ? S.mobile.input : S.input), width: isMobile ? '100%' : 150, fontSize: isMobile ? 12 : 13, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 44 : undefined }} />
-          {!isMobile && <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>}
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...(isMobile ? S.mobile.input : S.input), width: isMobile ? '100%' : 150, fontSize: isMobile ? 12 : 13, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 44 : undefined }} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...(isMobile ? S.mobile.input : S.input), fontSize: isMobile ? 12 : 13, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : undefined, minHeight: isMobile ? 44 : undefined }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...(isMobile ? S.mobile.input : S.input), width: isMobile ? '100%' : 150, fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 44 : undefined }} />
+          {!isMobile && <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body }}>~</span>}
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...(isMobile ? S.mobile.input : S.input), width: isMobile ? '100%' : 150, fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 44 : undefined }} />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...(isMobile ? S.mobile.input : S.input), fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : undefined, minHeight: isMobile ? 44 : undefined }}>
             <option value="">全部狀態</option>
             <option value="open">開啟</option>
             <option value="in_progress">處理中</option>
             <option value="resolved">已解決</option>
             <option value="closed">已關閉</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋工單號、客戶..." style={{ ...(isMobile ? S.mobile.input : S.input), flex: isMobile ? 0 : 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? 12 : 13, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : undefined, minHeight: isMobile ? 44 : undefined }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '10px 14px' : '6px 16px', fontSize: isMobile ? 12 : 13, width: isMobile ? '100%' : undefined, minHeight: isMobile ? 44 : undefined }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋工單號、客戶..." style={{ ...(isMobile ? S.mobile.input : S.input), flex: isMobile ? 0 : 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', width: isMobile ? '100%' : undefined, minHeight: isMobile ? 44 : undefined }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '10px 14px' : '6px 16px', fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, width: isMobile ? '100%' : undefined, minHeight: isMobile ? 44 : undefined }}>查詢</button>
         </div>
       </div>
 
       {/* Ticket detail panel */}
       {detail && (
-        <div style={{ ...S.card, padding: isMobile ? '10px 12px' : '10px 16px', marginBottom: 10, borderLeft: `3px solid ${STATUS_MAP[detail.status]?.color || '#3b82f6'}` }}>
+        <div style={{ ...S.card, padding: isMobile ? '10px 12px' : '10px 16px', marginBottom: 10, borderLeft: `3px solid ${STATUS_MAP[detail.status]?.color || t.color.info}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: 10, flexWrap: isMobile ? 'wrap' : 'nowrap', gap: 8 }}>
             <div style={{ flex: 1 }}>
-              <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#111827' }}>{detail.title}</span>
-              <span style={{ marginLeft: 6, ...S.tag(''), background: STATUS_MAP[detail.status]?.color || '#3b82f6', color: '#fff', fontSize: isMobile ? 9 : 10 }}>{STATUS_MAP[detail.status]?.label || detail.status}</span>
-              <span style={{ marginLeft: 6, ...S.tag(''), background: PRIORITY_MAP[detail.priority]?.color || '#3b82f6', color: '#fff', fontSize: isMobile ? 9 : 10 }}>{PRIORITY_MAP[detail.priority]?.label || detail.priority}</span>
+              <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{detail.title}</span>
+              <span style={{ marginLeft: 6, ...S.tag(''), background: STATUS_MAP[detail.status]?.color || t.color.info, color: '#fff', fontSize: isMobile ? 9 : 10 }}>{STATUS_MAP[detail.status]?.label || detail.status}</span>
+              <span style={{ marginLeft: 6, ...S.tag(''), background: PRIORITY_MAP[detail.priority]?.color || t.color.info, color: '#fff', fontSize: isMobile ? 9 : 10 }}>{PRIORITY_MAP[detail.priority]?.label || detail.priority}</span>
             </div>
             <button onClick={() => setDetail(null)} style={{ ...S.btnGhost, padding: isMobile ? '4px 8px' : '3px 10px', fontSize: isMobile ? 10 : 11, minHeight: isMobile ? 44 : undefined }}>關閉</button>
           </div>
-          {detail.description && <div style={{ fontSize: isMobile ? 12 : 13, color: '#374151', marginBottom: 10, padding: isMobile ? '8px 10px' : '10px', background: '#f3f4f6', borderRadius: 6 }}>{detail.description}</div>}
-          <div style={{ fontSize: isMobile ? 10 : 11, color: '#9ca3af', marginBottom: 12 }}>來源：{detail.source || '-'} · 建立：{detail.created_at?.slice(0, 16)} · {detail.customer_name ? `客戶：${detail.customer_name}` : ''}</div>
+          {detail.description && <div style={{ fontSize: isMobile ? 12 : 13, color: t.color.textSecondary, marginBottom: 10, padding: isMobile ? '8px 10px' : '10px', background: t.color.bgMuted, borderRadius: t.radius.md }}>{detail.description}</div>}
+          <div style={{ fontSize: isMobile ? 10 : 11, color: t.color.textDisabled, marginBottom: 12 }}>來源：{detail.source || '-'} · 建立：{detail.created_at?.slice(0, 16)} · {detail.customer_name ? `客戶：${detail.customer_name}` : ''}</div>
 
           {/* Status actions */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-            {detail.status !== 'resolved' && <button onClick={() => updateStatus(detail.id, 'resolved')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: '#16a34a', color: '#16a34a', minHeight: isMobile ? 44 : undefined }}>標記已解決</button>}
-            {detail.status !== 'closed' && detail.status === 'resolved' && <button onClick={() => updateStatus(detail.id, 'closed')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: '#6b7280', color: '#6b7280', minHeight: isMobile ? 44 : undefined }}>關閉工單</button>}
-            {detail.status === 'open' && <button onClick={() => updateStatus(detail.id, 'in_progress')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: '#f59e0b', color: '#f59e0b', minHeight: isMobile ? 44 : undefined }}>開始處理</button>}
+            {detail.status !== 'resolved' && <button onClick={() => updateStatus(detail.id, 'resolved')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: t.color.brand, color: t.color.brand, minHeight: isMobile ? 44 : undefined }}>標記已解決</button>}
+            {detail.status !== 'closed' && detail.status === 'resolved' && <button onClick={() => updateStatus(detail.id, 'closed')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: t.color.textMuted, color: t.color.textMuted, minHeight: isMobile ? 44 : undefined }}>關閉工單</button>}
+            {detail.status === 'open' && <button onClick={() => updateStatus(detail.id, 'in_progress')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: t.color.warning, color: t.color.warning, minHeight: isMobile ? 44 : undefined }}>開始處理</button>}
           </div>
 
           {/* Replies */}
-          <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 10 }}>
-            <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 600, color: '#111827', marginBottom: 10 }}>回覆記錄 ({replies.length})</div>
+          <div style={{ borderTop: `1px solid ${t.color.border}`, paddingTop: 10 }}>
+            <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 10 }}>回覆記錄 ({replies.length})</div>
             {replies.map((r, i) => (
-              <div key={i} style={{ marginBottom: 8, padding: isMobile ? '8px 10px' : '10px 12px', background: r.sender_type === 'admin' ? '#dcfce7' : '#f3f4f6', borderRadius: 6, fontSize: isMobile ? 12 : 13 }}>
+              <div key={i} style={{ marginBottom: 8, padding: isMobile ? '8px 10px' : '10px 12px', background: r.sender_type === 'admin' ? t.color.successBg : t.color.bgMuted, borderRadius: t.radius.md, fontSize: isMobile ? 12 : 13 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, flexWrap: 'wrap', gap: 4 }}>
-                  <span style={{ fontWeight: 600, color: r.sender_type === 'admin' ? '#3b82f6' : '#374151' }}>{r.sender_name || r.sender_type}</span>
-                  <span style={{ fontSize: isMobile ? 9 : 10, color: '#9ca3af' }}>{r.created_at?.slice(0, 16)}</span>
+                  <span style={{ fontWeight: t.fontWeight.semibold, color: r.sender_type === 'admin' ? t.color.info : t.color.textSecondary }}>{r.sender_name || r.sender_type}</span>
+                  <span style={{ fontSize: isMobile ? 9 : 10, color: t.color.textDisabled }}>{r.created_at?.slice(0, 16)}</span>
                 </div>
-                <div style={{ color: '#374151' }}>{r.content}</div>
+                <div style={{ color: t.color.textSecondary }}>{r.content}</div>
               </div>
             ))}
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
@@ -194,8 +195,8 @@ export default function Tickets() {
               <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: isMobile ? 10 : 11 }}>{st.label}</span>
               <span style={{ ...S.tag(''), background: pr.color, color: '#fff', fontSize: isMobile ? 9 : 10 }}>{pr.label}</span>
               <div style={{ flex: 1, minWidth: isMobile ? 120 : 160 }}>
-                <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, color: '#111827' }}>{t.title}</div>
-                <div style={{ fontSize: isMobile ? 10 : 11, color: '#374151' }}>{t.customer_name || t.source || '-'} · {t.created_at?.slice(0, 10)}</div>
+                <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{t.title}</div>
+                <div style={{ fontSize: isMobile ? 10 : 11, color: t.color.textSecondary }}>{t.customer_name || t.source || '-'} · {t.created_at?.slice(0, 10)}</div>
               </div>
               {t.reply_count > 0 && <span style={{ ...S.tag(''), fontSize: isMobile ? 9 : 10 }}>{t.reply_count} 回覆</span>}
             </div>

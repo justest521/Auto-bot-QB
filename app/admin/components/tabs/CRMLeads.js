@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, ComingSoonBanner } from '../shared/ui';
@@ -16,11 +17,11 @@ export default function CRMLeads() {
 
   const STAGES = [
     { id: 'new', label: '新線索', color: '#6366f1' },
-    { id: 'qualified', label: '已確認', color: '#3b82f6' },
-    { id: 'proposition', label: '提案中', color: '#f59e0b' },
+    { id: 'qualified', label: '已確認', color: t.color.link },
+    { id: 'proposition', label: '提案中', color: t.color.warning },
     { id: 'negotiation', label: '議價中', color: '#f97316' },
-    { id: 'won', label: '成交', color: '#16a34a' },
-    { id: 'lost', label: '流失', color: '#ef4444' },
+    { id: 'won', label: '成交', color: t.color.brand },
+    { id: 'lost', label: '流失', color: t.color.error },
   ];
   const STAGE_MAP = Object.fromEntries(STAGES.map(s => [s.id, s]));
   const SOURCE_LABELS = { manual: '手動', line: 'LINE', website: '網站', referral: '轉介', dealer: '經銷商' };
@@ -40,7 +41,7 @@ export default function CRMLeads() {
     try { await apiPost({ action: 'update_lead', lead_id: lead.id, stage: newStage }); await load(); } catch (e) { setMsg(e.message); }
   };
 
-  const p = data.pipeline || {};
+  const pipeline = data.pipeline || {};
 
   return (
     <div>
@@ -51,23 +52,23 @@ export default function CRMLeads() {
       {/* Pipeline Kanban Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: isMobile ? 6 : 8, marginBottom: 20 }}>
         {STAGES.map(s => (
-          <div key={s.id} onClick={() => { setStageFilter(stageFilter === s.id ? '' : s.id); load(stageFilter === s.id ? '' : s.id); }} style={{ ...S.card, cursor: 'pointer', textAlign: 'center', padding: isMobile ? '12px 6px' : '14px 8px', borderLeft: `3px solid ${s.color}`, background: stageFilter === s.id ? `${s.color}10` : '#fff' }}>
-            <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: s.color, ...S.mono }}>{p[s.id] || 0}</div>
-            <div style={{ fontSize: isMobile ? 10 : 11, color: '#374151', marginTop: 2 }}>{s.label}</div>
+          <div key={s.id} onClick={() => { setStageFilter(stageFilter === s.id ? '' : s.id); load(stageFilter === s.id ? '' : s.id); }} style={{ ...S.card, cursor: 'pointer', textAlign: 'center', padding: isMobile ? '12px 6px' : '14px 8px', borderLeft: `3px solid ${s.color}`, background: stageFilter === s.id ? `${s.color}10` : t.color.bgCard }}>
+            <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: s.color, ...S.mono }}>{pipeline[s.id] || 0}</div>
+            <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, color: t.color.textSecondary, marginTop: 2 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Win rate bar */}
       <div style={{ ...S.card, padding: isMobile ? '12px 12px' : '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 16, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: isMobile ? 11 : 12, color: '#374151' }}>成交率</span>
-        <div style={{ flex: 1, background: '#f0f0f0', borderRadius: 999, height: 8, overflow: 'hidden', minWidth: isMobile ? 100 : 200 }}>
-          <div style={{ width: `${p.win_rate || 0}%`, background: 'linear-gradient(90deg, #16a34a, #22c55e)', height: '100%', borderRadius: 999, transition: 'width 0.5s' }} />
+        <span style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, color: t.color.textSecondary }}>成交率</span>
+        <div style={{ flex: 1, background: '#f0f0f0', borderRadius: t.radius.pill, height: 8, overflow: 'hidden', minWidth: isMobile ? 100 : 200 }}>
+          <div style={{ width: `${pipeline.win_rate || 0}%`, background: 'linear-gradient(90deg, ' + t.color.brand + ', #22c55e)', height: '100%', borderRadius: t.radius.pill, transition: 'width 0.5s' }} />
         </div>
-        <span style={{ fontSize: isMobile ? 12 : 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{p.win_rate || 0}%</span>
+        <span style={{ fontSize: isMobile ? t.fontSize.caption : t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{pipeline.win_rate || 0}%</span>
         {!isMobile && <>
-          <span style={{ fontSize: 12, color: '#374151' }}>成交金額</span>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#1e3a5f', ...S.mono }}>NT${(p.total_won_amount || 0).toLocaleString()}</span>
+          <span style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary }}>成交金額</span>
+          <span style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: '#1e3a5f', ...S.mono }}>NT${(pipeline.total_won_amount || 0).toLocaleString()}</span>
         </>}
       </div>
 
@@ -75,24 +76,24 @@ export default function CRMLeads() {
       {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有線索" /> : (data.rows || []).map(lead => (
         <div key={lead.id} style={{ ...S.card, padding: isMobile ? '12px 14px' : '14px 16px', marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12, flexWrap: 'wrap' }}>
-            <span style={{ ...S.tag(STAGE_MAP[lead.stage]?.color ? '' : 'blue'), background: STAGE_MAP[lead.stage]?.color || '#6366f1', color: '#fff', fontSize: isMobile ? 10 : 11 }}>{STAGE_MAP[lead.stage]?.label || lead.stage}</span>
+            <span style={{ ...S.tag(STAGE_MAP[lead.stage]?.color ? '' : 'blue'), background: STAGE_MAP[lead.stage]?.color || '#6366f1', color: '#fff', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny }}>{STAGE_MAP[lead.stage]?.label || lead.stage}</span>
             <div style={{ flex: 1, minWidth: isMobile ? 120 : 140 }}>
-              <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 600, color: '#111827' }}>{lead.customer_name}</div>
-              <div style={{ fontSize: isMobile ? 10 : 11, color: '#374151' }}>{lead.contact_name || ''} {lead.phone ? `· ${lead.phone}` : ''}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.body : t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{lead.customer_name}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, color: t.color.textSecondary }}>{lead.contact_name || ''} {lead.phone ? `· ${lead.phone}` : ''}</div>
             </div>
             {!isMobile && <span style={S.tag('')}>{SOURCE_LABELS[lead.source] || lead.source}</span>}
             <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
-              <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, color: '#1e3a5f', ...S.mono }}>NT${Number(lead.expected_amount || 0).toLocaleString()}</div>
-              <div style={{ fontSize: isMobile ? 9 : 10, color: '#9ca3af', ...S.mono }}>{lead.created_at?.slice(0, 10)}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.body : t.fontSize.h3, fontWeight: t.fontWeight.bold, color: '#1e3a5f', ...S.mono }}>NT${Number(lead.expected_amount || 0).toLocaleString()}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, color: t.color.textDisabled, ...S.mono }}>{lead.created_at?.slice(0, 10)}</div>
             </div>
             {/* Stage transition buttons */}
             <div style={{ display: 'flex', gap: isMobile ? 2 : 4, flexWrap: 'wrap', ...(isMobile ? { width: '100%', marginTop: 8 } : {}) }}>
               {lead.stage !== 'won' && lead.stage !== 'lost' && (
                 <>
                   {STAGES.filter(s => s.id !== lead.stage && s.id !== 'lost').map(s => (
-                    <button key={s.id} onClick={() => updateStage(lead, s.id)} style={{ ...S.btnGhost, padding: isMobile ? '3px 6px' : '3px 8px', fontSize: isMobile ? 9 : 10, borderColor: s.color, color: s.color, minHeight: isMobile ? 44 : undefined }}>{isMobile ? s.label.slice(0, 2) : s.label}</button>
+                    <button key={s.id} onClick={() => updateStage(lead, s.id)} style={{ ...S.btnGhost, padding: isMobile ? '3px 6px' : '3px 8px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, borderColor: s.color, color: s.color, minHeight: isMobile ? 44 : undefined }}>{isMobile ? s.label.slice(0, 2) : s.label}</button>
                   ))}
-                  <button onClick={() => updateStage(lead, 'lost')} style={{ ...S.btnGhost, padding: isMobile ? '3px 6px' : '3px 8px', fontSize: isMobile ? 9 : 10, borderColor: '#ef4444', color: '#ef4444', minHeight: isMobile ? 44 : undefined }}>流失</button>
+                  <button onClick={() => updateStage(lead, 'lost')} style={{ ...S.btnGhost, padding: isMobile ? '3px 6px' : '3px 8px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, borderColor: t.color.error, color: t.color.error, minHeight: isMobile ? 44 : undefined }}>流失</button>
                 </>
               )}
             </div>
@@ -101,9 +102,9 @@ export default function CRMLeads() {
       ))}
 
       {createOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 480, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: isMobile ? 15 : 16 }}>新增線索</h3>
+        <div style={{ ...p.modalOverlay }}>
+          <div style={{ ...p.modalBody(isMobile ? 'sm' : 'md'), width: isMobile ? undefined : 480, maxWidth: '90vw' }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: isMobile ? t.fontSize.h3 : t.fontSize.h2 }}>新增線索</h3>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 12 }}>
               <div><label style={S.label}>客戶名稱 *</label><input value={form.customer_name} onChange={e => setForm(f => ({ ...f, customer_name: e.target.value }))} style={{ ...(isMobile ? S.mobile.input : S.input) }} /></div>
               <div><label style={S.label}>聯絡人</label><input value={form.contact_name} onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))} style={{ ...(isMobile ? S.mobile.input : S.input) }} /></div>

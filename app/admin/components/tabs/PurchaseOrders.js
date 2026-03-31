@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
@@ -54,7 +55,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
   const statusKey = String(po.status || 'draft').toLowerCase();
   const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
-  const PO_STATUS_COLOR = { draft: '#6b7280', sent: '#3b82f6', confirmed: '#16a34a', shipped: '#f59e0b', received: '#10b981', rejected: '#ef4444', cancelled: '#9ca3af' };
+  const PO_STATUS_COLOR = { draft: '#6b7280', sent: '#3b82f6', confirmed: '#16a34a', shipped: '#f59e0b', received: '#10b981', rejected: '#ef4444', cancelled: t.color.textDisabled };
   const isEditable = statusKey === 'draft' || statusKey === 'sent';
   const isApproved = approvalData?.status === 'approved';
   const isPending = approvalData?.status === 'pending';
@@ -232,9 +233,9 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const totalAmount = items.reduce((sum, item) => sum + (Number(item.line_total) || 0), 0);
 
   const STOCK_BADGE = {
-    sufficient: { label: '充足', color: '#15803d', bg: '#dcfce7', border: '#bbf7d0' },
-    partial: { label: '部分', color: '#b45309', bg: '#fef3c7', border: '#fde68a' },
-    no_stock: { label: '無庫存', color: '#dc2626', bg: '#fee2e2', border: '#fecaca' },
+    sufficient: { label: '充足', color: t.color.brand, bg: '#dcfce7', border: '#bbf7d0' },
+    partial: { label: '部分', color: t.color.warning, bg: '#fef3c7', border: '#fde68a' },
+    no_stock: { label: '無庫存', color: t.color.error, bg: '#fee2e2', border: '#fecaca' },
   };
 
   const searchTimeoutRef = useRef(null);
@@ -380,23 +381,23 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
     setConvertingStockIn(false);
   };
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
-  const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
+  const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textDisabled, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+  const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: isMobile ? '0 8px' : '0 12px' }}>
       {/* ====== Header ====== */}
       <div style={{ ...cardStyle, padding: isMobile ? '12px 12px' : '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: isMobile ? 8 : 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10 }}>
-          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 16 : 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 16 : 18, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 10, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-              <span style={{ fontSize: isMobile ? 16 : 20, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{po.po_no || '-'}</span>
-              <span style={{ padding: isMobile ? '3px 8px' : '3px 10px', borderRadius: 10, fontSize: 11, fontWeight: 700, background: `${PO_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: PO_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${PO_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
+              <span style={{ fontSize: isMobile ? 16 : 20, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{po.po_no || '-'}</span>
+              <span style={{ padding: isMobile ? '3px 8px' : '3px 10px', borderRadius: t.radius.lg, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: `${PO_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: PO_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${PO_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
                 {PO_STATUS_MAP[statusKey] || statusKey}
               </span>
             </div>
-            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, ...S.mono }}>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>
               {po.po_date || '-'}
             </div>
           </div>
@@ -405,52 +406,52 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
           {/* 送審 / 審核中 / 已駁回重送 */}
           {!isApproved && statusKey === 'draft' && (
             <button onClick={submitForApproval} disabled={submittingApproval || isPending}
-              style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: isPending ? '#94a3b8' : isRejected ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: isPending ? 'default' : 'pointer', opacity: submittingApproval ? 0.7 : 1, transition: 'all 0.15s', boxShadow: isPending ? 'none' : '0 2px 8px rgba(37,99,235,0.25)' }}>
+              style={{ padding: '9px 22px', borderRadius: t.radius.lg, border: 'none', background: isPending ? '#94a3b8' : isRejected ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, cursor: isPending ? 'default' : 'pointer', opacity: submittingApproval ? 0.7 : 1, transition: 'all 0.15s', boxShadow: isPending ? 'none' : '0 2px 8px rgba(37,99,235,0.25)' }}>
               {submittingApproval ? '送審中...' : isPending ? '審核中' : isRejected ? '重送審' : '送審'}
             </button>
           )}
-          {isPending && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8' }}>待審核</span>}
-          {isRejected && <span style={{ padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#fee2e2', color: '#dc2626' }}>已駁回</span>}
+          {isPending && <span style={{ padding: '8px 16px', borderRadius: t.radius.lg, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, background: '#dbeafe', color: '#1d4ed8' }}>待審核</span>}
+          {isRejected && <span style={{ padding: '8px 16px', borderRadius: t.radius.lg, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, background: '#fee2e2', color: t.color.error }}>已駁回</span>}
           {/* 核准後才能寄給原廠 */}
-          {canSend && <button onClick={handleSendEmail} style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(79,70,229,0.25)' }}>寄給原廠</button>}
-          {(statusKey === 'confirmed' || statusKey === 'shipped') && <button onClick={handleConvertToStockIn} disabled={convertingStockIn} style={{ padding: '9px 22px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: convertingStockIn ? 'not-allowed' : 'pointer', opacity: convertingStockIn ? 0.7 : 1, transition: 'all 0.15s' }}>{convertingStockIn ? '轉換中...' : '轉進貨'}</button>}
-          <button onClick={handleExport} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' }}>匯出</button>
+          {canSend && <button onClick={handleSendEmail} style={{ padding: '9px 22px', borderRadius: t.radius.lg, border: 'none', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#fff', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, cursor: 'pointer', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(79,70,229,0.25)' }}>寄給原廠</button>}
+          {(statusKey === 'confirmed' || statusKey === 'shipped') && <button onClick={handleConvertToStockIn} disabled={convertingStockIn} style={{ padding: '9px 22px', borderRadius: t.radius.lg, border: '1px solid #e5e7eb', background: '#fff', fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, cursor: convertingStockIn ? 'not-allowed' : 'pointer', opacity: convertingStockIn ? 0.7 : 1, transition: 'all 0.15s' }}>{convertingStockIn ? '轉換中...' : '轉進貨'}</button>}
+          <button onClick={handleExport} style={{ padding: '9px 18px', borderRadius: t.radius.lg, border: '1px solid #e5e7eb', background: '#fff', fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, cursor: 'pointer', transition: 'all 0.15s' }}>匯出</button>
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: t.fontSize.h3 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: isMobile ? 8 : 10, alignItems: 'start' }}>
           {/* ====== Left: Items ====== */}
           <div style={{ ...cardStyle, padding: 0, overflow: 'visible' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>採購明細</span>
-              <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+              <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>採購明細</span>
+              <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: t.color.textDisabled, marginLeft: 8 }}>{items.length} 項</span>
             </div>
 {items.length > 0 ? (
   <div>
     {/* Table header */}
-    <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase' }}>
       <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>到貨</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
     </div>
     {items.map((item) => {
       const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
       const isEditing = editingItemId === item.id;
-      const inputStyle = { width: '100%', padding: '2px 4px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12, textAlign: 'center', outline: 'none' };
+      const inputStyle = { width: '100%', padding: '2px 4px', border: '1px solid #d1d5db', borderRadius: t.radius.sm, fontSize: t.fontSize.caption, textAlign: 'center', outline: 'none' };
       const rowBg = isEditing ? '#fffbeb' : '#fff';
       return (
         <div key={item.id || item.item_number}>
-        <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
-          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', fontWeight: 600, ...S.mono, fontSize: 14 }} title={`${item.item_number || '-'} — ${item.description || ''}`}>
+        <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 60px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: t.fontSize.body, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
+          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number || '-'} — ${item.description || ''}`}>
             {item.item_number || '-'}
           </div>
-          <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ color: '#6b7280', textAlign: 'right', ...S.mono, fontSize: 14, cursor: isEditable && !isEditing ? 'pointer' : 'default', padding: '2px 4px', borderRadius: 4 }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
+          <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ color: t.color.textMuted, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, cursor: isEditable && !isEditing ? 'pointer' : 'default', padding: '2px 4px', borderRadius: t.radius.sm }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
             {isEditing ? (
               <input type="number" value={editValues.unit_cost} onChange={e => setEditValues({ ...editValues, unit_cost: parseFloat(e.target.value) || 0 })} style={inputStyle} onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
             ) : fmtP(item.unit_cost)}
           </div>
-          <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', fontWeight: 600, ...S.mono, fontSize: 14, cursor: isEditable && !isEditing ? 'pointer' : 'default', padding: '2px 4px', borderRadius: 4 }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
+          <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3, cursor: isEditable && !isEditing ? 'pointer' : 'default', padding: '2px 4px', borderRadius: t.radius.sm }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
             {isEditing ? (
               <input type="number" value={editValues.qty} onChange={e => setEditValues({ ...editValues, qty: parseInt(e.target.value) || 0 })} style={inputStyle} onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
             ) : item.qty || 0}
@@ -464,22 +465,22 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
               const done = received >= total;
               return (
                 <div title={`已到 ${received} / ${total}`}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: done ? '#16a34a' : received > 0 ? '#f59e0b' : '#9ca3af', ...S.mono }}>{received}/{total}</div>
-                  <div style={{ width: '100%', height: 4, borderRadius: 2, background: '#e5e7eb', marginTop: 2 }}>
-                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: 2, background: done ? '#16a34a' : received > 0 ? '#f59e0b' : '#e5e7eb', transition: 'width 0.3s' }} />
+                  <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: done ? t.color.brand : received > 0 ? t.color.warning : t.color.textDisabled, ...S.mono }}>{received}/{total}</div>
+                  <div style={{ width: '100%', height: 4, borderRadius: t.radius.xs, background: '#e5e7eb', marginTop: 2 }}>
+                    <div style={{ width: `${pct}%`, height: '100%', borderRadius: t.radius.xs, background: done ? t.color.brand : received > 0 ? t.color.warning : '#e5e7eb', transition: 'width 0.3s' }} />
                   </div>
                 </div>
               );
             })()}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-            <span style={{ fontWeight: 700, color: badge.color, ...S.mono, fontSize: 12 }}>{item.stock_qty ?? '—'}</span>
-            {item.stock_status && <span style={{ padding: '1px 5px', borderRadius: 8, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
+            <span style={{ fontWeight: t.fontWeight.bold, color: badge.color, ...S.mono, fontSize: t.fontSize.caption }}>{item.stock_qty ?? '—'}</span>
+            {item.stock_status && <span style={{ padding: '1px 5px', borderRadius: t.radius.md, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
               {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
             </span>}
           </div>
-          <div style={{ color: '#059669', fontWeight: 800, textAlign: 'right', ...S.mono, fontSize: 14 }}>{fmtP(item.line_total)}</div>
-          <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ fontSize: 13, color: '#6b7280', cursor: isEditable && !isEditing ? 'pointer' : 'default', padding: '2px 4px', borderRadius: 4, lineHeight: 1.4 }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
+          <div style={{ color: t.color.success, fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3 }}>{fmtP(item.line_total)}</div>
+          <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ fontSize: t.fontSize.body, color: t.color.textMuted, cursor: isEditable && !isEditing ? 'pointer' : 'default', padding: '2px 4px', borderRadius: t.radius.sm, lineHeight: 1.4 }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
             {isEditing ? (
               <input type="text" value={editValues.item_note} onChange={e => setEditValues({ ...editValues, item_note: e.target.value })} style={{ ...inputStyle, textAlign: 'left' }} onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} placeholder="備註" />
             ) : (
@@ -489,14 +490,14 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
           <div style={{ display: 'flex', gap: 5, justifyContent: 'center', alignItems: 'center' }}>
             {isEditing ? (
               <>
-                <button onClick={saveEditItem} style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</button>
-                <button onClick={cancelEdit} style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                <button onClick={saveEditItem} style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</button>
+                <button onClick={cancelEdit} style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
               </>
             ) : isEditable ? (
               <>
-                <button onClick={(e) => startEditItem(item, e)} title="編輯" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #d1d5db', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✎</button>
-                <button onClick={(e) => { e.stopPropagation(); setReplacingItemId(replacingItemId === item.id ? null : item.id); setReplaceSearch(''); setReplaceResults([]); }} title="替換" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⇄</button>
-                <button onClick={(e) => deleteItem(item.id, e)} title="刪除" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                <button onClick={(e) => startEditItem(item, e)} title="編輯" style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: '1px solid #d1d5db', background: '#fff', color: t.color.textMuted, cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✎</button>
+                <button onClick={(e) => { e.stopPropagation(); setReplacingItemId(replacingItemId === item.id ? null : item.id); setReplaceSearch(''); setReplaceResults([]); }} title="替換" style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: '1px solid #c4b5fd', background: '#f5f3ff', color: t.color.link, cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⇄</button>
+                <button onClick={(e) => deleteItem(item.id, e)} title="刪除" style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: '1px solid #fecaca', background: '#fef2f2', color: t.color.error, cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
               </>
             ) : null}
           </div>
@@ -504,24 +505,24 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
         {replacingItemId === item.id && (
           <div style={{ padding: '10px 24px 14px', background: '#f5f3ff', borderTop: '1px solid #e9d5ff' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed' }}>替換 {item.item_number} →</span>
-              <button onClick={() => { setReplacingItemId(null); setReplaceSearch(''); setReplaceResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 11 }}>取消</button>
+              <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.link }}>替換 {item.item_number} →</span>
+              <button onClick={() => { setReplacingItemId(null); setReplaceSearch(''); setReplaceResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: t.fontSize.tiny }}>取消</button>
             </div>
             <div style={{ position: 'relative' }}>
               <input type="text" placeholder="輸入 2 字以上搜尋料號或品名..." value={replaceSearch} autoFocus
                 onChange={e => { setReplaceSearch(e.target.value); searchProducts(e.target.value, setReplaceResults); }}
                 onKeyDown={e => { if (e.key === 'Escape') { setReplacingItemId(null); setReplaceSearch(''); setReplaceResults([]); } }}
-                style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
+                style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: t.radius.md, fontSize: t.fontSize.body, outline: 'none' }}
               />
               {replaceResults.length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 200, overflowY: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 200, overflowY: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: t.radius.md, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
                   {replaceResults.map(p => (
-                    <div key={p.id || p.item_number} onClick={() => handleReplaceItem(item.id, p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }} onMouseEnter={e => e.currentTarget.style.background='#f5f3ff'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                    <div key={p.id || p.item_number} onClick={() => handleReplaceItem(item.id, p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: t.fontSize.body }} onMouseEnter={e => e.currentTarget.style.background='#f5f3ff'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
                       <div>
-                        <span style={{ fontWeight: 700, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
-                        <span style={{ color: '#6b7280' }}>{p.description || ''}</span>
+                        <span style={{ fontWeight: t.fontWeight.bold, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
+                        <span style={{ color: t.color.textMuted }}>{p.description || ''}</span>
                       </div>
-                      <span style={{ fontSize: 12, color: '#9ca3af' }}>{fmtP(p.cost_price || 0)}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>{fmtP(p.cost_price || 0)}</span>
                     </div>
                   ))}
                 </div>
@@ -537,30 +538,30 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
         {showAddItem ? (
           <div style={{ position: 'relative' }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>新增品項</span>
-              <button onClick={() => { setShowAddItem(false); setAddSearch(''); setAddResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 11 }}>取消</button>
+              <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary }}>新增品項</span>
+              <button onClick={() => { setShowAddItem(false); setAddSearch(''); setAddResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: t.fontSize.tiny }}>取消</button>
             </div>
             <input type="text" placeholder="輸入 2 字以上搜尋料號或品名..." value={addSearch} autoFocus
               onChange={e => { setAddSearch(e.target.value); searchProducts(e.target.value, setAddResults); }}
               onKeyDown={e => { if (e.key === 'Escape') { setShowAddItem(false); setAddSearch(''); setAddResults([]); } }}
-              style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
+              style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: t.radius.md, fontSize: t.fontSize.body, outline: 'none' }}
             />
             {addResults.length > 0 && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 200, overflowY: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
+              <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 200, overflowY: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: t.radius.md, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
                 {addResults.map(p => (
-                  <div key={p.id || p.item_number} onClick={() => handleAddItem(p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }} onMouseEnter={e => e.currentTarget.style.background='#f0fdf4'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                  <div key={p.id || p.item_number} onClick={() => handleAddItem(p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: t.fontSize.body }} onMouseEnter={e => e.currentTarget.style.background='#f0fdf4'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
                     <div>
-                      <span style={{ fontWeight: 700, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
-                      <span style={{ color: '#6b7280' }}>{p.description || ''}</span>
+                      <span style={{ fontWeight: t.fontWeight.bold, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
+                      <span style={{ color: t.color.textMuted }}>{p.description || ''}</span>
                     </div>
-                    <span style={{ fontSize: 12, color: '#9ca3af' }}>{fmtP(p.cost_price || 0)}</span>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>{fmtP(p.cost_price || 0)}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
         ) : (
-          <button onClick={() => setShowAddItem(true)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, color: '#3b82f6', borderColor: '#93c5fd' }}>＋ 新增品項</button>
+          <button onClick={() => setShowAddItem(true)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.body, color: t.color.link, borderColor: '#93c5fd' }}>＋ 新增品項</button>
         )}
       </div>
     )}
@@ -569,12 +570,12 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       <div style={{ padding: '14px 16px', background: 'linear-gradient(135deg, #eff6ff, #eef2ff)', borderTop: '2px solid #bfdbfe' }}>
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 24 }}>
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 14, color: '#6b7280' }}>小計 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(totalAmount)}</strong></span>
-            <span style={{ fontSize: 12, color: '#9ca3af' }}>({items.length} 項)</span>
+            <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(totalAmount)}</strong></span>
+            <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>({items.length} 項)</span>
           </div>
           <div style={{ borderLeft: '2px solid #93c5fd', paddingLeft: 20, textAlign: 'right' }}>
-            <span style={{ fontSize: 12, color: '#2563eb', fontWeight: 600, display: 'block', marginBottom: 2 }}>採購合計</span>
-            <span style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#1d4ed8', letterSpacing: -1 }}>{fmtP(totalAmount)}</span>
+            <span style={{ fontSize: t.fontSize.caption, color: '#2563eb', fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>採購合計</span>
+            <span style={{ ...S.mono, fontSize: 22, fontWeight: t.fontWeight.bold, color: '#1d4ed8', letterSpacing: -1 }}>{fmtP(totalAmount)}</span>
           </div>
         </div>
       </div>
@@ -587,15 +588,15 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
           {/* ====== Receiving Panel ====== */}
           {showReceiving && (
-            <div style={{ gridColumn: '1 / -1', background: '#fff', borderRadius: 12, border: '2px solid #059669', padding: 20, boxShadow: '0 4px 16px rgba(5,150,105,0.12)' }}>
+            <div style={{ gridColumn: '1 / -1', background: '#fff', borderRadius: t.radius.lg, border: '2px solid #059669', padding: 20, boxShadow: '0 4px 16px rgba(5,150,105,0.12)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#059669' }}>📦 收貨登記</span>
-                  <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>輸入本次到貨數量</span>
+                  <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.success }}>📦 收貨登記</span>
+                  <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginLeft: 8 }}>輸入本次到貨數量</span>
                 </div>
-                <button onClick={() => setShowReceiving(false)} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 12 }}>取消</button>
+                <button onClick={() => setShowReceiving(false)} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: t.fontSize.caption }}>取消</button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '8px 12px', background: '#f0fdf4', fontSize: 12, fontWeight: 700, color: '#6b7280', borderRadius: 8, marginBottom: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '8px 12px', background: '#f0fdf4', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, borderRadius: t.radius.md, marginBottom: 8 }}>
                 <div>料號</div><div>品名</div><div style={{ textAlign: 'center' }}>訂購</div><div style={{ textAlign: 'center' }}>已到</div><div style={{ textAlign: 'center' }}>本次到貨</div>
               </div>
               {items.map(item => {
@@ -604,36 +605,36 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                 const waitingOrders = allocationData[item.item_number] || null;
                 return (
                   <div key={item.id}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '10px 12px', borderBottom: waitingOrders ? 'none' : '1px solid #f0f2f5', alignItems: 'center', fontSize: 13 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr 70px 70px 80px', gap: 6, padding: '10px 12px', borderBottom: waitingOrders ? 'none' : '1px solid #f0f2f5', alignItems: 'center', fontSize: t.fontSize.body }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ fontWeight: 600, ...S.mono }}>{item.item_number}</span>
-                        <button onClick={() => { if (waitingOrders) { setAllocationData(prev => { const n = { ...prev }; delete n[item.item_number]; return n; }); } else { loadAllocation(item.item_number); } }} title="查看配貨建議 (FIFO)" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #c7d2fe', background: waitingOrders ? '#eef2ff' : '#fff', color: '#6366f1', cursor: 'pointer', fontSize: 10, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>⇄</button>
+                        <span style={{ fontWeight: t.fontWeight.semibold, ...S.mono }}>{item.item_number}</span>
+                        <button onClick={() => { if (waitingOrders) { setAllocationData(prev => { const n = { ...prev }; delete n[item.item_number]; return n; }); } else { loadAllocation(item.item_number); } }} title="查看配貨建議 (FIFO)" style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: '1px solid #c7d2fe', background: waitingOrders ? '#eef2ff' : '#fff', color: '#6366f1', cursor: 'pointer', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>⇄</button>
                       </div>
-                      <div style={{ color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description || '-'}</div>
+                      <div style={{ color: t.color.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description || '-'}</div>
                       <div style={{ textAlign: 'center', ...S.mono }}>{item.qty || 0}</div>
-                      <div style={{ textAlign: 'center', ...S.mono, color: received > 0 ? '#059669' : '#9ca3af' }}>{received}</div>
+                      <div style={{ textAlign: 'center', ...S.mono, color: received > 0 ? '#059669' : t.color.textDisabled }}>{received}</div>
                       <div style={{ textAlign: 'center' }}>
                         {remaining > 0 ? (
-                          <input type="number" min="0" max={remaining} value={receivingQtys[item.id] || ''} onChange={e => setReceivingQtys(prev => ({ ...prev, [item.id]: Math.min(Number(e.target.value) || 0, remaining) }))} style={{ width: 60, padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, textAlign: 'center', ...S.mono }} placeholder="0" />
+                          <input type="number" min="0" max={remaining} value={receivingQtys[item.id] || ''} onChange={e => setReceivingQtys(prev => ({ ...prev, [item.id]: Math.min(Number(e.target.value) || 0, remaining) }))} style={{ width: 60, padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: t.radius.md, fontSize: t.fontSize.body, textAlign: 'center', ...S.mono }} placeholder="0" />
                         ) : (
-                          <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>已齊</span>
+                          <span style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.bold }}>已齊</span>
                         )}
                       </div>
                     </div>
                     {/* FIFO allocation suggestion */}
                     {waitingOrders && (
                       <div style={{ padding: '6px 10px 10px 20px', background: '#f5f3ff', borderBottom: '1px solid #f0f2f5', borderRadius: '0 0 6px 6px' }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', marginBottom: 4 }}>配貨建議 (先訂先出)</div>
+                        <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#6366f1', marginBottom: 4 }}>配貨建議 (先訂先出)</div>
                         {waitingOrders.length === 0 ? (
-                          <div style={{ fontSize: 12, color: '#9ca3af' }}>目前無待出貨訂單需要此品項</div>
+                          <div style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>目前無待出貨訂單需要此品項</div>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                             {waitingOrders.map((wo, idx) => (
-                              <div key={wo.order_id || idx} style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: 12, padding: '3px 8px', borderRadius: 4, background: '#fff', border: '1px solid #e9d5ff' }}>
-                                <span style={{ fontWeight: 600, color: '#7c3aed', cursor: 'pointer' }} onClick={() => { if (wo.order_id) { window.localStorage.setItem(ORDER_FOCUS_KEY, wo.order_id); setTab?.('orders'); } }}>{wo.order_no || '-'}</span>
-                                <span style={{ color: '#6b7280' }}>{wo.customer_name || ''}</span>
-                                <span style={{ ...S.mono, color: '#374151' }}>需 {wo.qty_needed}</span>
-                                <span style={{ fontSize: 11, color: '#9ca3af' }}>{wo.order_date ? fmtDate(wo.order_date) : ''}</span>
+                              <div key={wo.order_id || idx} style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: t.fontSize.caption, padding: '3px 8px', borderRadius: t.radius.sm, background: '#fff', border: '1px solid #e9d5ff' }}>
+                                <span style={{ fontWeight: t.fontWeight.semibold, color: t.color.link, cursor: 'pointer' }} onClick={() => { if (wo.order_id) { window.localStorage.setItem(ORDER_FOCUS_KEY, wo.order_id); setTab?.('orders'); } }}>{wo.order_no || '-'}</span>
+                                <span style={{ color: t.color.textMuted }}>{wo.customer_name || ''}</span>
+                                <span style={{ ...S.mono, color: t.color.textSecondary }}>需 {wo.qty_needed}</span>
+                                <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>{wo.order_date ? fmtDate(wo.order_date) : ''}</span>
                               </div>
                             ))}
                           </div>
@@ -652,10 +653,10 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                     qtys[it.id] = Math.max(remaining, 0);
                   });
                   setReceivingQtys(qtys);
-                }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: 12, color: '#059669', borderColor: '#86efac' }}>全部到齊</button>
+                }} style={{ ...S.btnGhost, padding: '4px 12px', fontSize: t.fontSize.caption, color: t.color.success, borderColor: '#86efac' }}>全部到齊</button>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => setShowReceiving(false)} style={{ ...S.btnGhost, padding: '8px 20px', fontSize: 13 }}>取消</button>
-                  <button onClick={submitReceiving} disabled={submittingReceive} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: submittingReceive ? '#94a3b8' : '#059669', color: '#fff', fontSize: 14, fontWeight: 700, cursor: submittingReceive ? 'not-allowed' : 'pointer' }}>
+                  <button onClick={() => setShowReceiving(false)} style={{ ...S.btnGhost, padding: '8px 20px', fontSize: t.fontSize.body }}>取消</button>
+                  <button onClick={submitReceiving} disabled={submittingReceive} style={{ padding: '8px 24px', borderRadius: t.radius.md, border: 'none', background: submittingReceive ? '#94a3b8' : '#059669', color: '#fff', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, cursor: submittingReceive ? 'not-allowed' : 'pointer' }}>
                     {submittingReceive ? '處理中...' : '確認收貨'}
                   </button>
                 </div>
@@ -666,11 +667,11 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* 1. PDF button */}
-            <button onClick={() => window.open(`/api/pdf?type=po&id=${po.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+            <button onClick={() => window.open(`/api/pdf?type=po&id=${po.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, justifyContent: 'center' }}>下載 PDF</button>
 
             {/* Receive goods button */}
             {canReceive && (
-              <button onClick={openReceiving} style={{ width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 700, border: 'none', borderRadius: 8, background: showReceiving ? '#94a3b8' : '#059669', color: '#fff', cursor: 'pointer' }}>
+              <button onClick={openReceiving} style={{ width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, border: 'none', borderRadius: t.radius.md, background: showReceiving ? '#94a3b8' : '#059669', color: '#fff', cursor: 'pointer' }}>
                 📦 收貨登記
               </button>
             )}
@@ -680,27 +681,27 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
               <div style={{ ...labelStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>廠商資訊</span>
                 {vendorInfo && isEditable && (
-                  <span onClick={clearVendor} style={{ fontSize: 11, color: '#ef4444', cursor: 'pointer' }}>移除</span>
+                  <span onClick={clearVendor} style={{ fontSize: t.fontSize.tiny, color: t.color.error, cursor: 'pointer' }}>移除</span>
                 )}
               </div>
               {vendorInfo ? (
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 4 }}>{vendorInfo.vendor_name || vendorInfo.company_name || '未命名'}</div>
-                  {vendorInfo.vendor_code && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>編號: {vendorInfo.vendor_code}</div>}
-                  {vendorInfo.contact_name && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>聯絡人: {vendorInfo.contact_name}</div>}
-                  {vendorInfo.phone && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>電話: {vendorInfo.phone}</div>}
-                  {vendorInfo.mobile && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>手機: {vendorInfo.mobile}</div>}
-                  {vendorInfo.email && <div style={{ fontSize: 12, color: '#2563eb', marginBottom: 2 }}>{vendorInfo.email}</div>}
-                  {vendorInfo.address && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>{vendorInfo.address}</div>}
+                  <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 4 }}>{vendorInfo.vendor_name || vendorInfo.company_name || '未命名'}</div>
+                  {vendorInfo.vendor_code && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 2 }}>編號: {vendorInfo.vendor_code}</div>}
+                  {vendorInfo.contact_name && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 2 }}>聯絡人: {vendorInfo.contact_name}</div>}
+                  {vendorInfo.phone && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 2 }}>電話: {vendorInfo.phone}</div>}
+                  {vendorInfo.mobile && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 2 }}>手機: {vendorInfo.mobile}</div>}
+                  {vendorInfo.email && <div style={{ fontSize: t.fontSize.caption, color: '#2563eb', marginBottom: 2 }}>{vendorInfo.email}</div>}
+                  {vendorInfo.address && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 2 }}>{vendorInfo.address}</div>}
                   {isEditable && (
-                    <button onClick={openVendorPicker} style={{ ...S.btnGhost, fontSize: 12, padding: '3px 10px', marginTop: 6, color: '#6b7280', borderColor: '#d1d5db' }}>更換廠商</button>
+                    <button onClick={openVendorPicker} style={{ ...S.btnGhost, fontSize: t.fontSize.caption, padding: '3px 10px', marginTop: 6, color: t.color.textMuted, borderColor: '#d1d5db' }}>更換廠商</button>
                   )}
                 </div>
               ) : (
                 <div>
-                  <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 8 }}>未指定廠商</div>
+                  <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, marginBottom: 8 }}>未指定廠商</div>
                   {isEditable && (
-                    <button onClick={openVendorPicker} style={{ ...S.btnGhost, fontSize: 13, padding: '6px 14px', color: '#3b82f6', borderColor: '#93c5fd', width: '100%', justifyContent: 'center' }}>＋ 選擇廠商</button>
+                    <button onClick={openVendorPicker} style={{ ...S.btnGhost, fontSize: t.fontSize.body, padding: '6px 14px', color: t.color.link, borderColor: '#93c5fd', width: '100%', justifyContent: 'center' }}>＋ 選擇廠商</button>
                   )}
                 </div>
               )}
@@ -712,28 +713,28 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                     placeholder="搜尋廠商名稱、編號、聯絡人..."
                     value={vendorSearch}
                     onChange={e => setVendorSearch(e.target.value)}
-                    style={{ ...S.input, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px', width: '100%', marginBottom: 6, minHeight: isMobile ? 40 : 'auto' }}
+                    style={{ ...S.input, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px', width: '100%', marginBottom: 6, minHeight: isMobile ? 40 : 'auto' }}
                   />
                   {vendorLoading ? (
-                    <div style={{ textAlign: 'center', padding: 12, fontSize: 12, color: '#9ca3af' }}>載入中...</div>
+                    <div style={{ textAlign: 'center', padding: 12, fontSize: t.fontSize.caption, color: t.color.textDisabled }}>載入中...</div>
                   ) : (
-                    <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff' }}>
+                    <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: t.radius.md, background: '#fff' }}>
                       {filteredVendors.length > 0 ? filteredVendors.map(v => (
                         <div key={v.id} onClick={() => selectVendor(v)} style={{ padding: '9px 12px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                           onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
                           onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                           <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', lineHeight: 1.3 }}>{v.vendor_name}</div>
-                            {v.contact_name && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{v.contact_name}</div>}
+                            <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, lineHeight: 1.3 }}>{v.vendor_name}</div>
+                            {v.contact_name && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 1 }}>{v.contact_name}</div>}
                           </div>
-                          <span style={{ fontSize: 10, color: '#c0c4cc', fontFamily: 'monospace', flexShrink: 0, marginLeft: 8 }}>{v.vendor_code}</span>
+                          <span style={{ fontSize: t.fontSize.tiny, color: '#c0c4cc', fontFamily: 'monospace', flexShrink: 0, marginLeft: 8 }}>{v.vendor_code}</span>
                         </div>
                       )) : (
-                        <div style={{ textAlign: 'center', padding: 12, fontSize: 12, color: '#9ca3af' }}>{vendorSearch ? '找不到符合的廠商' : '尚無廠商資料'}</div>
+                        <div style={{ textAlign: 'center', padding: 12, fontSize: t.fontSize.caption, color: t.color.textDisabled }}>{vendorSearch ? '找不到符合的廠商' : '尚無廠商資料'}</div>
                       )}
                     </div>
                   )}
-                  <button onClick={() => { setShowVendorPicker(false); setVendorSearch(''); }} style={{ ...S.btnGhost, fontSize: 12, padding: '3px 10px', marginTop: 6, color: '#6b7280', width: '100%', justifyContent: 'center' }}>取消</button>
+                  <button onClick={() => { setShowVendorPicker(false); setVendorSearch(''); }} style={{ ...S.btnGhost, fontSize: t.fontSize.caption, padding: '3px 10px', marginTop: 6, color: t.color.textMuted, width: '100%', justifyContent: 'center' }}>取消</button>
                 </div>
               )}
             </div>
@@ -764,7 +765,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
                 // Build unified timeline entries
                 const entries = [];
-                const PO_STATUS_COLOR_MAP = { draft: '#f59e0b', sent: '#3b82f6', confirmed: '#16a34a', shipped: '#059669', received: '#10b981', rejected: '#ef4444', cancelled: '#9ca3af' };
+                const PO_STATUS_COLOR_MAP = { draft: '#f59e0b', sent: '#3b82f6', confirmed: '#16a34a', shipped: '#059669', received: '#10b981', rejected: '#ef4444', cancelled: t.color.textDisabled };
 
                 // Source order (from timeline if linked)
                 const sourceOrder = timeline.find(e => (e.event || '').match(/來源訂單|SO\d+/));
@@ -821,20 +822,20 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                           {!isLast && <div style={{ position: 'absolute', left: -11, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
                           <div style={{ position: 'absolute', left: -14, top: 3, width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8, borderRadius: '50%', background: e.dot, border: '2px solid #fff', boxShadow: isCurrent ? `0 0 0 3px ${e.dot}25` : `0 0 0 1.5px ${e.dot}30` }} />
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', lineHeight: 1.3 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
+                            <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : t.color.textDisabled }}>{e.label}</span>
                             {e.ref && (() => {
                               const clickHandler = e.refType === 'order' ? () => { window.localStorage.setItem(ORDER_FOCUS_KEY, e.ref); setTab?.('orders'); }
                                 : e.refType === 'po' ? () => { window.localStorage.setItem(PO_FOCUS_KEY, e.ref); setTab?.('purchase_orders'); }
                                 : null;
-                              return <span style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
+                              return <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
                             })()}
-                            {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.status === 'done' ? '#6b7280' : isCurrent ? '#1d4ed8' : '#9ca3af', background: isCurrent ? `${e.dot}14` : 'transparent', padding: isCurrent ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
+                            {e.detail && <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: e.status === 'done' ? '#6b7280' : isCurrent ? '#1d4ed8' : t.color.textDisabled, background: isCurrent ? `${e.dot}14` : 'transparent', padding: isCurrent ? '1px 6px' : 0, borderRadius: t.radius.sm }}>{e.detail}</span>}
                           </div>
-                          {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
+                          {e.time && <div style={{ fontSize: t.fontSize.tiny, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
                         </div>
                       );
                     }) : (
-                      <div style={{ fontSize: 13, color: '#c4cad3' }}>無記錄</div>
+                      <div style={{ fontSize: t.fontSize.body, color: '#c4cad3' }}>無記錄</div>
                     )}
                   </div>
                 );
@@ -848,7 +849,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                 defaultValue={po.remark || ''}
                 placeholder="輸入備註..."
                 rows={3}
-                style={{ width: '100%', fontSize: 13, color: '#374151', lineHeight: 1.6, border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit' }}
+                style={{ width: '100%', fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.6, border: '1px solid #e5e7eb', borderRadius: t.radius.md, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit' }}
                 onBlur={async (e) => {
                   const val = e.target.value.trim();
                   if (val === (po.remark || '').trim()) return;
@@ -865,9 +866,9 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
       {emailDialog && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 440, maxWidth: '90vw', borderRadius: 14, padding: '16px 18px 20px', marginBottom: 0 }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 20 }}>寄送採購單給原廠</h3>
-            <p style={{ fontSize: 14, color: '#374151', margin: '0 0 16px' }}>採購單 <b>{po.po_no}</b> 將以 Excel 附件寄出，原廠可透過信件中的按鈕直接回覆接單/出貨。</p>
+          <div style={{ ...S.card, width: 440, maxWidth: '90vw', borderRadius: t.radius.xl, padding: '16px 18px 20px', marginBottom: 0 }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: t.fontSize.h1 }}>寄送採購單給原廠</h3>
+            <p style={{ fontSize: t.fontSize.h3, color: t.color.textSecondary, margin: '0 0 16px' }}>採購單 <b>{po.po_no}</b> 將以 Excel 附件寄出，原廠可透過信件中的按鈕直接回覆接單/出貨。</p>
             <div style={{ marginBottom: 12 }}><label style={S.label}>收件人 Email *</label><input value={emailTo} onChange={(e) => setEmailTo(e.target.value)} style={S.input} placeholder="supplier@example.com" type="email" /></div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => setEmailDialog(null)} style={S.btnGhost}>取消</button>
@@ -985,12 +986,12 @@ function CreatePOModal({ onClose, onCreated }) {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={guardedClose}>
-      <div style={{ width: 'min(960px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, background: t.color.overlay, zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 20 }} onClick={guardedClose}>
+      <div style={{ width: 'min(960px, 100%)', maxHeight: '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: t.radius.xl, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div>
             <div style={S.eyebrow}>Create Purchase Order</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>新增採購單</div>
+            <div style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>新增採購單</div>
           </div>
           <button onClick={guardedClose} style={S.btnGhost}>關閉</button>
         </div>
@@ -1000,29 +1001,29 @@ function CreatePOModal({ onClose, onCreated }) {
           {/* Vendor selection */}
           <div style={S.card}>
             <div style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>選擇廠商</div>
+              <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 8 }}>選擇廠商</div>
               {selectedVendor ? (
-                <div style={{ padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: t.radius.md, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{selectedVendor.vendor_name}</div>
-                    {selectedVendor.contact_name && <div style={{ fontSize: 11, color: '#6b7280' }}>{selectedVendor.contact_name}</div>}
+                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{selectedVendor.vendor_name}</div>
+                    {selectedVendor.contact_name && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{selectedVendor.contact_name}</div>}
                   </div>
-                  <span onClick={() => setSelectedVendor(null)} style={{ fontSize: 16, cursor: 'pointer', color: '#9ca3af' }}>×</span>
+                  <span onClick={() => setSelectedVendor(null)} style={{ fontSize: t.fontSize.h2, cursor: 'pointer', color: t.color.textDisabled }}>×</span>
                 </div>
               ) : (
                 <div>
-                  <input placeholder="搜尋廠商..." value={vendorSearch} onChange={e => setVendorSearch(e.target.value)} style={{ ...S.input, fontSize: 13, marginBottom: 6 }} />
-                  <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff' }}>
-                    {vendorLoading ? <div style={{ padding: 10, textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>載入中...</div> :
+                  <input placeholder="搜尋廠商..." value={vendorSearch} onChange={e => setVendorSearch(e.target.value)} style={{ ...S.input, fontSize: t.fontSize.body, marginBottom: 6 }} />
+                  <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: t.radius.md, background: '#fff' }}>
+                    {vendorLoading ? <div style={{ padding: 10, textAlign: 'center', fontSize: t.fontSize.caption, color: t.color.textDisabled }}>載入中...</div> :
                       filteredVendors.length > 0 ? filteredVendors.map(v => (
                         <div key={v.id} onClick={() => { setSelectedVendor(v); setVendorSearch(''); }}
-                          style={{ padding: '6px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: 13 }}
+                          style={{ padding: '6px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: t.fontSize.body }}
                           onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
                           onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-                          <span style={{ fontWeight: 600 }}>{v.vendor_name}</span>
-                          <span style={{ fontSize: 10, color: '#9ca3af', marginLeft: 8 }}>{v.vendor_code}</span>
+                          <span style={{ fontWeight: t.fontWeight.semibold }}>{v.vendor_name}</span>
+                          <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginLeft: 8 }}>{v.vendor_code}</span>
                         </div>
-                      )) : <div style={{ padding: 10, textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>無廠商資料</div>
+                      )) : <div style={{ padding: 10, textAlign: 'center', fontSize: t.fontSize.caption, color: t.color.textDisabled }}>無廠商資料</div>
                     }
                   </div>
                 </div>
@@ -1033,11 +1034,11 @@ function CreatePOModal({ onClose, onCreated }) {
           {/* Remark + Tax */}
           <div style={S.card}>
             <div style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 8 }}>備註</div>
+              <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 8 }}>備註</div>
               <textarea value={remark} onChange={e => setRemark(e.target.value)} placeholder="輸入備註..." rows={3} style={{ ...S.input, resize: 'vertical', fontFamily: 'inherit', marginBottom: 10 }} />
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: t.fontSize.body, color: t.color.textSecondary }}>
                 <input type="checkbox" checked={taxExcluded} onChange={e => setTaxExcluded(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }} />
-                <span style={{ fontWeight: 600 }}>未稅（另加 5% 營業稅）</span>
+                <span style={{ fontWeight: t.fontWeight.semibold }}>未稅（另加 5% 營業稅）</span>
               </label>
             </div>
           </div>
@@ -1047,36 +1048,36 @@ function CreatePOModal({ onClose, onCreated }) {
         <div style={{ ...S.card, marginBottom: 12 }}>
           <div style={{ padding: '12px 16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>採購明細</div>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>{items.length} 項</span>
+              <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>採購明細</div>
+              <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>{items.length} 項</span>
             </div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-              <input placeholder="搜尋料號或品名..." value={productSearch} onChange={e => searchProducts(e.target.value)} style={{ ...S.input, flex: 1, fontSize: 13 }} />
+              <input placeholder="搜尋料號或品名..." value={productSearch} onChange={e => searchProducts(e.target.value)} style={{ ...S.input, flex: 1, fontSize: t.fontSize.body }} />
             </div>
             {productResults.length > 0 && (
-              <div style={{ maxHeight: 180, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff', marginBottom: 10 }}>
+              <div style={{ maxHeight: 180, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: t.radius.md, background: '#fff', marginBottom: 10 }}>
                 {productResults.map(p => (
                   <div key={p.item_number} onClick={() => addItem(p)}
-                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: 13, display: 'flex', justifyContent: 'space-between' }}
+                    style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontSize: t.fontSize.body, display: 'flex', justifyContent: 'space-between' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
                     onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                     <div>
-                      <span style={{ ...S.mono, fontWeight: 700, color: '#2563eb' }}>{p.item_number}</span>
-                      <span style={{ marginLeft: 8, color: '#374151' }}>{p.description || p.product_name || ''}</span>
+                      <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: '#2563eb' }}>{p.item_number}</span>
+                      <span style={{ marginLeft: 8, color: t.color.textSecondary }}>{p.description || p.product_name || ''}</span>
                     </div>
-                    <span style={{ ...S.mono, color: '#6b7280', fontSize: 12 }}>{fmtP(p.cost_price || p.tw_reseller_price || p.us_price || p.tw_retail_price || 0)}</span>
+                    <span style={{ ...S.mono, color: t.color.textMuted, fontSize: t.fontSize.caption }}>{fmtP(p.cost_price || p.tw_reseller_price || p.us_price || p.tw_retail_price || 0)}</span>
                   </div>
                 ))}
               </div>
             )}
             {items.length > 0 ? (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.body }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                    <th style={{ textAlign: 'left', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>料號</th>
-                    <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600, width: 70 }}>數量</th>
-                    <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600, width: 100 }}>單價</th>
-                    <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>小計</th>
+                    <th style={{ textAlign: 'left', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>料號</th>
+                    <th style={{ textAlign: 'right', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, width: 70 }}>數量</th>
+                    <th style={{ textAlign: 'right', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, width: 100 }}>單價</th>
+                    <th style={{ textAlign: 'right', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>小計</th>
                     <th style={{ width: 30 }}></th>
                   </tr>
                 </thead>
@@ -1084,42 +1085,42 @@ function CreatePOModal({ onClose, onCreated }) {
                   {items.map((item, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '6px 8px' }}>
-                        <div style={{ ...S.mono, fontWeight: 700, color: '#1f2937' }}>{item.item_number}</div>
-                        <div style={{ fontSize: 11, color: '#6b7280' }}>{item.description}</div>
+                        <div style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: '#1f2937' }}>{item.item_number}</div>
+                        <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{item.description}</div>
                       </td>
                       <td style={{ padding: '6px 8px', textAlign: 'right' }}>
-                        <input type="number" value={item.qty} min={1} onChange={e => updateItem(idx, 'qty', Number(e.target.value) || 1)} style={{ ...S.input, width: 60, textAlign: 'right', fontSize: 13, padding: '3px 6px' }} />
+                        <input type="number" value={item.qty} min={1} onChange={e => updateItem(idx, 'qty', Number(e.target.value) || 1)} style={{ ...S.input, width: 60, textAlign: 'right', fontSize: t.fontSize.body, padding: '3px 6px' }} />
                       </td>
                       <td style={{ padding: '6px 8px', textAlign: 'right' }}>
-                        <input type="number" value={item.unit_cost} min={0} onChange={e => updateItem(idx, 'unit_cost', Number(e.target.value) || 0)} style={{ ...S.input, width: 90, textAlign: 'right', fontSize: 13, padding: '3px 6px' }} />
+                        <input type="number" value={item.unit_cost} min={0} onChange={e => updateItem(idx, 'unit_cost', Number(e.target.value) || 0)} style={{ ...S.input, width: 90, textAlign: 'right', fontSize: t.fontSize.body, padding: '3px 6px' }} />
                       </td>
-                      <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, fontWeight: 700, color: '#10b981' }}>{fmtP(item.line_total)}</td>
+                      <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.success }}>{fmtP(item.line_total)}</td>
                       <td style={{ padding: '6px 8px', textAlign: 'center' }}>
-                        <span onClick={() => removeItem(idx)} style={{ cursor: 'pointer', color: '#ef4444', fontSize: 16 }}>×</span>
+                        <span onClick={() => removeItem(idx)} style={{ cursor: 'pointer', color: t.color.error, fontSize: t.fontSize.h2 }}>×</span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             ) : (
-              <div style={{ textAlign: 'center', padding: 20, color: '#9ca3af', fontSize: 13 }}>搜尋商品加入採購明細</div>
+              <div style={{ textAlign: 'center', padding: 20, color: t.color.textDisabled, fontSize: t.fontSize.body }}>搜尋商品加入採購明細</div>
             )}
             {items.length > 0 && (
               <div style={{ padding: '12px 8px 4px', borderTop: '2px solid #bfdbfe', marginTop: 4, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 20 }}>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 2 }}>小計 <span style={{ ...S.mono, fontWeight: 700, color: '#111827' }}>{fmtP(subtotal)}</span> <span style={{ fontSize: 11, color: '#9ca3af' }}>({items.length} 項)</span></div>
-                  {taxExcluded && <div style={{ fontSize: 12, color: '#6b7280' }}>稅額 <span style={{ ...S.mono, fontWeight: 600, color: '#374151' }}>{fmtP(taxAmount)}</span></div>}
+                  <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted, marginBottom: 2 }}>小計 <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{fmtP(subtotal)}</span> <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>({items.length} 項)</span></div>
+                  {taxExcluded && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>稅額 <span style={{ ...S.mono, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary }}>{fmtP(taxAmount)}</span></div>}
                 </div>
                 <div style={{ borderLeft: '3px solid #2563eb', paddingLeft: 16, textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: '#2563eb', fontWeight: 600, marginBottom: 2 }}>採購合計</div>
-                  <div style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#1d4ed8', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: '#2563eb', fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>採購合計</div>
+                  <div style={{ ...S.mono, fontSize: 22, fontWeight: t.fontWeight.bold, color: '#1d4ed8', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        <button onClick={handleCreate} disabled={saving || items.length === 0} style={{ ...S.btnPrimary, width: '100%', padding: '12px', fontSize: 15, fontWeight: 700, opacity: saving || items.length === 0 ? 0.5 : 1 }}>
+        <button onClick={handleCreate} disabled={saving || items.length === 0} style={{ ...S.btnPrimary, width: '100%', padding: '12px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, opacity: saving || items.length === 0 ? 0.5 : 1 }}>
           {saving ? '建立中...' : '建立採購單'}
         </button>
       </div>
@@ -1262,7 +1263,7 @@ export default function PurchaseOrders({ setTab }) {
               setMsg('已匯出並標記');
               setTimeout(() => setMsg(''), 2000);
             } catch (e) { setMsg('匯出失敗: ' + (e.message || '')); }
-          }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: 14, minHeight: isMobile ? 40 : 'auto' }}>匯出{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}</button>
+          }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: t.fontSize.h3, minHeight: isMobile ? 40 : 'auto' }}>匯出{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}</button>
           <button onClick={() => setShowCreatePO(true)} style={{ ...S.btnPrimary, minHeight: isMobile ? 40 : 'auto', ...(isMobile && { width: '100%' }) }}>+ 新增採購單</button>
         </div>} />
       {msg && <div style={{ ...S.card, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fef2f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#dc2626' : '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
@@ -1279,11 +1280,11 @@ export default function PurchaseOrders({ setTab }) {
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 13 : 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', ...(isMobile && { flex: 1 }) }}>{label}</button>
           ))}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
-            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
-            {!isMobile && <span style={{ color: '#6b7280', fontSize: 14 }}>~</span>}
-            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+            {!isMobile && <span style={{ color: t.color.textMuted, fontSize: t.fontSize.h3 }}>~</span>}
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
           </div>
-          <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(1, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }}>
+          <select value={statusF} onChange={(e) => { setStatusF(e.target.value); load(1, search, e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }}>
             <option value="">全部狀態</option>
             <option value="draft">草稿</option>
             <option value="sent">已寄出</option>
@@ -1292,14 +1293,14 @@ export default function PurchaseOrders({ setTab }) {
             <option value="received">已到貨</option>
             <option value="rejected">退回</option>
           </select>
-          <select value={exportFilter || ''} onChange={(e) => { setExportFilter(e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 120, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }}>
+          <select value={exportFilter || ''} onChange={(e) => { setExportFilter(e.target.value); }} style={{ ...S.input, width: isMobile ? '100%' : 120, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }}>
             <option value="">全部</option>
             <option value="exported">已匯出</option>
             <option value="not_exported">未匯出</option>
           </select>
           <div style={{ display: 'flex', gap: 6, flex: 1, width: isMobile ? '100%' : 'auto' }}>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋採購單號..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 'auto' : 160, fontSize: 14, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
-            <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: 14, minHeight: isMobile ? 40 : 'auto', whiteSpace: 'nowrap' }}>查詢</button>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋採購單號..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 'auto' : 160, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
+            <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: t.fontSize.h3, minHeight: isMobile ? 40 : 'auto', whiteSpace: 'nowrap' }}>查詢</button>
           </div>
         </div>
       </div>
@@ -1331,20 +1332,20 @@ export default function PurchaseOrders({ setTab }) {
           />
           {filteredRows.map((row, idx) => {
             const statusKey = String(row.status || 'draft').toLowerCase();
-            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13 };
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: t.fontSize.body };
             const cCenter = { ...cell, justifyContent: 'center' };
             const cRight = { ...cell, justifyContent: 'flex-end' };
             const cellLast = { ...cell, borderRight: 'none', justifyContent: 'flex-end' };
             return (
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s', borderBottom: idx < filteredRows.length - 1 ? '1px solid #e5e7eb' : 'none' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }} style={cCenter}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
-                <div style={{ ...cCenter, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
-                <div style={{ ...cell, color: '#3b82f6', fontWeight: 700, ...S.mono, gap: 4, whiteSpace: 'nowrap' }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}<span style={{ fontSize: 9, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
-                <div style={{ ...cCenter, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.po_date?.slice(0, 10) || '-'}</div>
+                <div style={{ ...cCenter, color: t.color.textMuted, ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
+                <div style={{ ...cell, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, gap: 4, whiteSpace: 'nowrap' }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}<span style={{ fontSize: 9, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
+                <div style={{ ...cCenter, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.po_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
-                <div style={{ ...cell, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.remark || '-'}</div>
-                <div style={{ ...cRight, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>
-                {!isTablet && <div style={{ ...cCenter, color: '#374151', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.vendor?.vendor_name || '-'}</div>}
+                <div style={{ ...cell, color: t.color.textSecondary, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.remark || '-'}</div>
+                <div style={{ ...cRight, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>
+                {!isTablet && <div style={{ ...cCenter, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.vendor?.vendor_name || '-'}</div>}
                 <div style={{ ...cell, borderRight: 'none', justifyContent: 'flex-end' }}>→</div>
               </div>
             );

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, getPresetDateRange, useResponsive, exportCsv } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
@@ -399,8 +400,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
     }
   };
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
-  const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
+  const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+  const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
   const isConverted = shipKey === 'shipped' || shipKey === 'delivered';
   // 用訂單本身的 status 判斷，不再依賴 erp_approvals 表
   const orderStatus = order.status || 'draft';
@@ -415,30 +416,30 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
       {/* ====== Header ====== */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 20, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{order.order_no || '-'}</span>
-              <span style={{ padding: '3px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: `${ORDER_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: ORDER_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${ORDER_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
+              <span style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{order.order_no || '-'}</span>
+              <span style={{ padding: '3px 10px', borderRadius: t.radius.lg, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: `${ORDER_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: ORDER_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${ORDER_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
                 {ORDER_STATUS_MAP[statusKey] || statusKey}
               </span>
-              <span style={{ fontSize: 9, background: order.tax_inclusive ? '#dcfce7' : '#fef3c7', color: order.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3 }}>{order.tax_inclusive ? '含稅' : '未稅'}</span>
+              <span style={{ fontSize: 9, background: order.tax_inclusive ? '#dcfce7' : '#fef3c7', color: order.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3 }}>{order.tax_inclusive ? '含稅' : '未稅'}</span>
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, ...S.mono }}>
+            <div style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>
               {order.order_date || '-'}
             </div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', textAlign: 'right' }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
-            {order.customer?.phone && <div style={{ fontSize: 12, color: '#6b7280', ...S.mono, marginTop: 2 }}>{order.customer.phone}</div>}
+            <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
+            {order.customer?.phone && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, ...S.mono, marginTop: 2 }}>{order.customer.phone}</div>}
           </div>
-          {order.customer?.line_user_id && <button onClick={notifyOrderViaLine} disabled={!!processingAction} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #86efac', background: '#f0fdf4', fontSize: 12, fontWeight: 600, color: '#16a34a', cursor: 'pointer', opacity: processingAction === 'line' ? 0.6 : 1 }}>LINE</button>}
+          {order.customer?.line_user_id && <button onClick={notifyOrderViaLine} disabled={!!processingAction} style={{ padding: '6px 12px', borderRadius: t.radius.md, border: '1px solid #86efac', background: '#f0fdf4', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.brand, cursor: 'pointer', opacity: processingAction === 'line' ? 0.6 : 1 }}>LINE</button>}
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: t.fontSize.h3 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: 10, alignItems: 'start' }}>
@@ -446,36 +447,36 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
           <div style={{ position: 'relative' }}>
             {/* 審核中鎖定遮罩 */}
             {isLocked && (
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(243,244,246,0.6)', zIndex: 10, borderRadius: 14, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 60 }}>
-                <div style={{ background: '#fff', padding: '12px 24px', borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', border: '1px solid #fde68a', textAlign: 'center' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#92400e' }}>訂單審核中</div>
-                  <div style={{ fontSize: 12, color: '#b45309', marginTop: 4 }}>審核完成後才能進行操作</div>
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(243,244,246,0.6)', zIndex: 10, borderRadius: t.radius.xl, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 60 }}>
+                <div style={{ background: '#fff', padding: '12px 24px', borderRadius: t.radius.lg, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', border: '1px solid #fde68a', textAlign: 'center' }}>
+                  <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: '#92400e' }}>訂單審核中</div>
+                  <div style={{ fontSize: t.fontSize.caption, color: '#b45309', marginTop: 4 }}>審核完成後才能進行操作</div>
                 </div>
               </div>
             )}
             {/* ===== Quick select buttons ===== */}
-            <div style={{ padding: '6px 12px', marginBottom: 10, border: '1px solid #e5e7eb', borderRadius: 12, background: isLocked ? '#f9fafb' : '#fff', display: 'flex', alignItems: 'center', opacity: isLocked ? 0.5 : 1 }}>
+            <div style={{ padding: '6px 12px', marginBottom: 10, border: `1px solid ${t.color.border}`, borderRadius: t.radius.lg, background: isLocked ? '#f9fafb' : '#fff', display: 'flex', alignItems: 'center', opacity: isLocked ? 0.5 : 1 }}>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                <button onClick={() => setSelectedItemIds(new Set(items.filter(i => !i.po_ref && !i.po_info).map(i => i.id)))} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12 }}>全選</button>
-                <button onClick={() => setSelectedItemIds(new Set())} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12 }}>取消全選</button>
-                {sufficientCount > 0 && <button onClick={() => selectAllByStatus(items, ['sufficient'])} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12, color: '#15803d', borderColor: '#bbf7d0' }}>選有貨 ({sufficientCount})</button>}
-                {shortageCount > 0 && <button onClick={() => selectAllByStatus(items, ['partial', 'no_stock'])} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 12, color: '#b91c1c', borderColor: '#fecaca' }}>選缺貨 ({shortageCount})</button>}
-                {selectedItemIds.size > 0 && <span style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, padding: '4px 0' }}>已選 {selectedItemIds.size} 項</span>}
-                {items.filter(i => i.po_ref || i.po_info).length > 0 && <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600, padding: '4px 8px', background: '#fffbeb', borderRadius: 4 }}>已有 {items.filter(i => i.po_ref || i.po_info).length} 項已建採購單</span>}
+                <button onClick={() => setSelectedItemIds(new Set(items.filter(i => !i.po_ref && !i.po_info).map(i => i.id)))} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.caption }}>全選</button>
+                <button onClick={() => setSelectedItemIds(new Set())} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.caption }}>取消全選</button>
+                {sufficientCount > 0 && <button onClick={() => selectAllByStatus(items, ['sufficient'])} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.caption, color: '#15803d', borderColor: '#bbf7d0' }}>選有貨 ({sufficientCount})</button>}
+                {shortageCount > 0 && <button onClick={() => selectAllByStatus(items, ['partial', 'no_stock'])} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.caption, color: '#b91c1c', borderColor: '#fecaca' }}>選缺貨 ({shortageCount})</button>}
+                {selectedItemIds.size > 0 && <span style={{ fontSize: t.fontSize.caption, color: t.color.link, fontWeight: t.fontWeight.semibold, padding: '4px 0' }}>已選 {selectedItemIds.size} 項</span>}
+                {items.filter(i => i.po_ref || i.po_info).length > 0 && <span style={{ fontSize: t.fontSize.caption, color: t.color.warning, fontWeight: t.fontWeight.semibold, padding: '4px 8px', background: '#fffbeb', borderRadius: t.radius.sm }}>已有 {items.filter(i => i.po_ref || i.po_info).length} 項已建採購單</span>}
               </div>
             </div>
 
             {/* ===== Items table ===== */}
             <div style={{ ...cardStyle, padding: 0, overflow: isMobile ? 'hidden' : 'visible', marginBottom: 10, opacity: isLocked ? 0.5 : 1, pointerEvents: isLocked ? 'none' : 'auto' }}>
               <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>商品明細</span>
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+                <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>商品明細</span>
+                <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
               </div>
               {items.length > 0 ? (
                 <div>
                   {isMobile ? null : (
                   /* Table header (desktop only) */
-                  <div style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     <div></div><div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
                   </div>
                   )}
@@ -486,7 +487,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     const hasPO = !!(item.po_ref || item.po_info);
                     const isEditing = editingItemId === item.id;
                     const cannotEdit = !!item.sale_ref;
-                    const inputStyle = { width: '100%', padding: '2px 4px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12, textAlign: 'center', outline: 'none' };
+                    const inputStyle = { width: '100%', padding: '2px 4px', border: '1px solid #d1d5db', borderRadius: t.radius.sm, fontSize: t.fontSize.caption, textAlign: 'center', outline: 'none' };
                     const rowBg = isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff';
 
                     if (isMobile) {
@@ -496,16 +497,16 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #e5e7eb' }}>
                             <div>
                               {cannotEdit ? (
-                                <span style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', background: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>已銷</span>
+                                <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, background: '#f3f4f6', padding: '2px 6px', borderRadius: t.radius.sm }}>已銷</span>
                               ) : hasPO ? (
-                                <span style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', background: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>已採購</span>
+                                <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, background: '#f3f4f6', padding: '2px 6px', borderRadius: t.radius.sm }}>已採購</span>
                               ) : (
                                 <input type="checkbox" checked={isChecked} onChange={() => toggleItemSelect(item.id)} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                               )}
                             </div>
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', ...S.mono }}>{item.item_number_snapshot}</div>
-                              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{item.description_snapshot || ''}</div>
+                              <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{item.item_number_snapshot}</div>
+                              <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 2 }}>{item.description_snapshot || ''}</div>
                             </div>
                           </div>
                           {/* Mobile card rows */}
@@ -532,15 +533,15 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                           <div style={S.mobileCardRow}>
                             <span style={S.mobileCardLabel}>庫存</span>
                             <span style={S.mobileCardValue}>
-                              <span style={{ fontWeight: 700, color: badge.color, ...S.mono, fontSize: 12 }}>{item.stock_qty}</span>
-                              <span style={{ padding: '1px 5px', borderRadius: 8, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap', marginLeft: 4 }}>
+                              <span style={{ fontWeight: t.fontWeight.bold, color: badge.color, ...S.mono, fontSize: t.fontSize.caption }}>{item.stock_qty}</span>
+                              <span style={{ padding: '1px 5px', borderRadius: t.radius.md, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap', marginLeft: 4 }}>
                                 {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
                               </span>
                             </span>
                           </div>
                           <div style={S.mobileCardRow}>
                             <span style={S.mobileCardLabel}>小計</span>
-                            <span style={{ ...S.mobileCardValue, color: '#059669', fontWeight: 800, ...S.mono }}>{fmtP(item.line_total || item.unit_price * item.qty)}</span>
+                            <span style={{ ...S.mobileCardValue, color: '#059669', fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(item.line_total || item.unit_price * item.qty)}</span>
                           </div>
                           <div style={S.mobileCardRow}>
                             <span style={S.mobileCardLabel}>備註</span>
@@ -556,14 +557,14 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                           <div style={{ display: 'flex', gap: 6, marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb', flexWrap: 'wrap' }}>
                             {isEditing ? (
                               <>
-                                <button onClick={saveEditItem} style={{ flex: 1, padding: '8px', borderRadius: 6, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, minHeight: 40 }}>保存</button>
-                                <button onClick={cancelEdit} style={{ flex: 1, padding: '8px', borderRadius: 6, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, minHeight: 40 }}>取消</button>
+                                <button onClick={saveEditItem} style={{ flex: 1, padding: '8px', borderRadius: 6, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, minHeight: 40 }}>保存</button>
+                                <button onClick={cancelEdit} style={{ flex: 1, padding: '8px', borderRadius: 6, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, minHeight: 40 }}>取消</button>
                               </>
                             ) : (
                               <>
-                                {!cannotEdit && <button onClick={(e) => startEditItem(item, e)} style={{ flex: 1, padding: '8px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 13, fontWeight: 700, minHeight: 40 }}>編輯</button>}
-                                {!cannotEdit && !hasPO && <button onClick={(e) => { e.stopPropagation(); setReplacingItemId(replacingItemId === item.id ? null : item.id); setReplaceSearch(''); setReplaceResults([]); }} style={{ flex: 1, padding: '8px', borderRadius: 6, border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontSize: 13, fontWeight: 700, minHeight: 40 }}>替換</button>}
-                                {!cannotEdit && !hasPO && <button onClick={(e) => deleteItem(item.id, e)} style={{ flex: 1, padding: '8px', borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: 13, fontWeight: 700, minHeight: 40 }}>刪除</button>}
+                                {!cannotEdit && <button onClick={(e) => startEditItem(item, e)} style={{ flex: 1, padding: '8px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', color: t.color.textMuted, cursor: 'pointer', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, minHeight: 40 }}>編輯</button>}
+                                {!cannotEdit && !hasPO && <button onClick={(e) => { e.stopPropagation(); setReplacingItemId(replacingItemId === item.id ? null : item.id); setReplaceSearch(''); setReplaceResults([]); }} style={{ flex: 1, padding: '8px', borderRadius: 6, border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, minHeight: 40 }}>替換</button>}
+                                {!cannotEdit && !hasPO && <button onClick={(e) => deleteItem(item.id, e)} style={{ flex: 1, padding: '8px', borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', color: t.color.error, cursor: 'pointer', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, minHeight: 40 }}>刪除</button>}
                               </>
                             )}
                           </div>
@@ -573,27 +574,27 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
 
                     return (
                       <div key={item.id}>
-                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: 13, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
+                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: t.fontSize.body, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
                           {cannotEdit ? (
-                            <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af' }}>已銷</span>
+                            <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>已銷</span>
                           ) : hasPO ? (
-                            <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af' }}>已採購</span>
+                            <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>已採購</span>
                           ) : (
                             <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                           )}
                         </div>
-                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#374151', fontWeight: 600, ...S.mono, fontSize: 14 }} title={`${item.item_number_snapshot} — ${item.description_snapshot || ''}`}>
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number_snapshot} — ${item.description_snapshot || ''}`}>
                           {item.item_number_snapshot}
                         </div>
-                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ color: '#6b7280', textAlign: 'right', ...S.mono, fontSize: 14, cursor: cannotEdit || isEditing ? 'default' : 'pointer', transition: 'background 0.1s', padding: '2px 4px', borderRadius: 4, background: !cannotEdit && !isEditing ? 'transparent' : 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
+                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ color: t.color.textMuted, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, cursor: cannotEdit || isEditing ? 'default' : 'pointer', transition: 'background 0.1s', padding: '2px 4px', borderRadius: t.radius.sm, background: !cannotEdit && !isEditing ? 'transparent' : 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
                           {isEditing ? (
                             <input type="number" value={editValues.unit_price} onChange={(e) => setEditValues({ ...editValues, unit_price: parseFloat(e.target.value) || 0 })} style={inputStyle} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
                           ) : (
                             fmtP(item.unit_price)
                           )}
                         </div>
-                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', fontWeight: 600, ...S.mono, fontSize: 14, cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: 4, background: 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
+                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3, cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: t.radius.sm, background: 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
                           {isEditing ? (
                             <input type="number" value={editValues.qty} onChange={(e) => setEditValues({ ...editValues, qty: parseInt(e.target.value) || 0 })} style={inputStyle} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
                           ) : (
@@ -601,13 +602,13 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                           )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                          <span style={{ fontWeight: 700, color: badge.color, ...S.mono, fontSize: 12 }}>{item.stock_qty}</span>
-                          <span style={{ padding: '1px 5px', borderRadius: 8, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
+                          <span style={{ fontWeight: t.fontWeight.bold, color: badge.color, ...S.mono, fontSize: t.fontSize.caption }}>{item.stock_qty}</span>
+                          <span style={{ padding: '1px 5px', borderRadius: t.radius.md, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
                             {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
                           </span>
                         </div>
-                        <div style={{ color: '#059669', fontWeight: 800, textAlign: 'right', ...S.mono, fontSize: 14 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
-                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ fontSize: 14, color: '#6b7280', cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: 4, background: 'transparent', lineHeight: 1.4 }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
+                        <div style={{ color: '#059669', fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
+                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ fontSize: t.fontSize.h3, color: t.color.textMuted, cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: t.radius.sm, background: 'transparent', lineHeight: 1.4 }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
                           {isEditing ? (
                             <input type="text" value={editValues.item_note} onChange={(e) => setEditValues({ ...editValues, item_note: e.target.value })} style={{ ...inputStyle, textAlign: 'left' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} placeholder="備註" />
                           ) : (
@@ -617,14 +618,14 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                         <div style={{ display: 'flex', gap: 5, justifyContent: 'center', alignItems: 'center' }}>
                           {isEditing ? (
                             <>
-                              <button onClick={saveEditItem} style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</button>
-                              <button onClick={cancelEdit} style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                              <button onClick={saveEditItem} style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</button>
+                              <button onClick={cancelEdit} style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                             </>
                           ) : (
                             <>
-                              {!cannotEdit && <button onClick={(e) => startEditItem(item, e)} title="編輯" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #d1d5db', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✎</button>}
-                              {!cannotEdit && !hasPO && <button onClick={(e) => { e.stopPropagation(); setReplacingItemId(replacingItemId === item.id ? null : item.id); setReplaceSearch(''); setReplaceResults([]); }} title="替換" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⇄</button>}
-                              {!cannotEdit && !hasPO && <button onClick={(e) => deleteItem(item.id, e)} title="刪除" style={{ width: 18, height: 18, borderRadius: 4, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>}
+                              {!cannotEdit && <button onClick={(e) => startEditItem(item, e)} title="編輯" style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: '1px solid #d1d5db', background: '#fff', color: t.color.textMuted, cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✎</button>}
+                              {!cannotEdit && !hasPO && <button onClick={(e) => { e.stopPropagation(); setReplacingItemId(replacingItemId === item.id ? null : item.id); setReplaceSearch(''); setReplaceResults([]); }} title="替換" style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: '1px solid #c4b5fd', background: '#f5f3ff', color: '#7c3aed', cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⇄</button>}
+                              {!cannotEdit && !hasPO && <button onClick={(e) => deleteItem(item.id, e)} title="刪除" style={{ width: 18, height: 18, borderRadius: t.radius.sm, border: '1px solid #fecaca', background: '#fef2f2', color: t.color.error, cursor: 'pointer', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>}
                             </>
                           )}
                         </div>
@@ -632,25 +633,25 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                       {replacingItemId === item.id && (
                         <div style={{ padding: '10px 24px 14px', background: '#f5f3ff', borderTop: '1px solid #e9d5ff' }} onClick={e => e.stopPropagation()}>
                           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: '#7c3aed' }}>替換 {item.item_number_snapshot} →</span>
-                            <button onClick={() => { setReplacingItemId(null); setReplaceSearch(''); setReplaceResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 11 }}>取消</button>
+                            <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#7c3aed' }}>替換 {item.item_number_snapshot} →</span>
+                            <button onClick={() => { setReplacingItemId(null); setReplaceSearch(''); setReplaceResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: t.fontSize.tiny }}>取消</button>
                           </div>
                           <div style={{ position: 'relative' }}>
                             <input type="text" placeholder="輸入 2 字以上搜尋料號或品名..." value={replaceSearch}
                               ref={el => { if (el && replacingItemId === item.id && !el.dataset.focused) { el.focus(); el.dataset.focused = '1'; } }}
                               onChange={e => { setReplaceSearch(e.target.value); searchProducts(e.target.value, setReplaceResults); }}
                               onKeyDown={e => { if (e.key === 'Escape') { setReplacingItemId(null); setReplaceSearch(''); setReplaceResults([]); } }}
-                              style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
+                              style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: t.fontSize.body, outline: 'none' }}
                             />
                             {replaceResults.length > 0 && (
-                              <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 200, overflowY: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
+                              <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 200, overflowY: 'auto', background: '#fff', border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
                                 {replaceResults.map(p => (
-                                  <div key={p.id || p.item_number} onClick={() => handleReplaceItem(item.id, p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }} onMouseEnter={e => e.currentTarget.style.background='#f5f3ff'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                                  <div key={p.id || p.item_number} onClick={() => handleReplaceItem(item.id, p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: t.fontSize.body }} onMouseEnter={e => e.currentTarget.style.background='#f5f3ff'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
                                     <div>
-                                      <span style={{ fontWeight: 700, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
-                                      <span style={{ color: '#6b7280' }}>{p.description || ''}</span>
+                                      <span style={{ fontWeight: t.fontWeight.bold, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
+                                      <span style={{ color: t.color.textMuted }}>{p.description || ''}</span>
                                     </div>
-                                    <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#9ca3af' }}>
+                                    <div style={{ display: 'flex', gap: 12, fontSize: t.fontSize.caption, color: t.color.textDisabled }}>
                                       <span>{fmtP(p.tw_retail_price || 0)}</span>
                                       <span>庫存 {p.stock_qty || 0}</span>
                                     </div>
@@ -667,17 +668,17 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   {/* Add Item Row */}
                   {isEditLocked ? (
                     <div style={{ padding: '10px 24px', borderTop: '1px dashed #e5e7eb' }}>
-                      <span style={{ fontSize: 12, color: '#9ca3af' }}>訂單已審核，如需修改請先「退回草稿」</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>訂單已審核，如需修改請先「退回草稿」</span>
                     </div>
                   ) : !showAddItem ? (
                     <div style={{ padding: '10px 24px', borderTop: '1px dashed #e5e7eb' }}>
-                      <button onClick={() => setShowAddItem(true)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 12, color: '#3b82f6', borderColor: '#bfdbfe' }}>＋ 新增品項</button>
+                      <button onClick={() => setShowAddItem(true)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.caption, color: t.color.link, borderColor: '#bfdbfe' }}>＋ 新增品項</button>
                     </div>
                   ) : (
                     <div style={{ padding: '14px 24px', borderTop: '1px dashed #e5e7eb', background: '#f0f9ff' }}>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#1d4ed8' }}>新增品項</span>
-                        <button onClick={() => { setShowAddItem(false); setAddSearch(''); setAddResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 11 }}>取消</button>
+                        <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: '#1d4ed8' }}>新增品項</span>
+                        <button onClick={() => { setShowAddItem(false); setAddSearch(''); setAddResults([]); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: t.fontSize.tiny }}>取消</button>
                       </div>
                       <div style={{ position: 'relative' }}>
                         <input
@@ -685,17 +686,17 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                           ref={el => { if (el && showAddItem && !el.dataset.focused) { el.focus(); el.dataset.focused = '1'; } }}
                           onChange={e => { setAddSearch(e.target.value); searchProducts(e.target.value, setAddResults); }}
                           onKeyDown={e => { if (e.key === 'Escape') { setShowAddItem(false); setAddSearch(''); setAddResults([]); } }}
-                          style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
+                          style={{ width: '100%', maxWidth: 400, padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: t.fontSize.body, outline: 'none' }}
                         />
                         {addResults.length > 0 && (
-                          <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 240, overflowY: 'auto', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
+                          <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', maxWidth: 500, maxHeight: 240, overflowY: 'auto', background: '#fff', border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, marginTop: 4 }}>
                             {addResults.map(p => (
-                              <div key={p.id || p.item_number} onClick={() => handleAddItem(p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }} onMouseEnter={e => e.currentTarget.style.background='#f0f7ff'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                              <div key={p.id || p.item_number} onClick={() => handleAddItem(p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: t.fontSize.body }} onMouseEnter={e => e.currentTarget.style.background='#f0f7ff'} onMouseLeave={e => e.currentTarget.style.background='#fff'}>
                                 <div>
-                                  <span style={{ fontWeight: 700, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
-                                  <span style={{ color: '#6b7280' }}>{p.description || ''}</span>
+                                  <span style={{ fontWeight: t.fontWeight.bold, ...S.mono, marginRight: 8 }}>{p.item_number}</span>
+                                  <span style={{ color: t.color.textMuted }}>{p.description || ''}</span>
                                 </div>
-                                <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#9ca3af' }}>
+                                <div style={{ display: 'flex', gap: 12, fontSize: t.fontSize.caption, color: t.color.textDisabled }}>
                                   <span>{fmtP(p.tw_retail_price || 0)}</span>
                                   <span>庫存 {p.stock_qty || 0}</span>
                                 </div>
@@ -713,28 +714,28 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                         <>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                             <div>
-                              <span style={{ fontSize: 12, color: '#6b7280' }}>小計</span>
-                              <div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{fmtP(order.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0))}</div>
+                              <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>小計</span>
+                              <div style={{ ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(order.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0))}</div>
                             </div>
-                            {order.discount_amount > 0 && <div><span style={{ fontSize: 12, color: '#ef4444' }}>折扣</span><div style={{ ...S.mono, fontSize: 14, fontWeight: 600, color: '#ef4444' }}>-{fmtP(order.discount_amount)}</div></div>}
-                            {order.shipping_fee > 0 && <div><span style={{ fontSize: 12, color: '#6b7280' }}>運費</span><div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{fmtP(order.shipping_fee)}</div></div>}
-                            {order.tax_amount > 0 && <div><span style={{ fontSize: 12, color: '#6b7280' }}>稅金</span><div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{fmtP(order.tax_amount)}</div></div>}
+                            {order.discount_amount > 0 && <div><span style={{ fontSize: t.fontSize.caption, color: t.color.error }}>折扣</span><div style={{ ...S.mono, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.error }}>-{fmtP(order.discount_amount)}</div></div>}
+                            {order.shipping_fee > 0 && <div><span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>運費</span><div style={{ ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(order.shipping_fee)}</div></div>}
+                            {order.tax_amount > 0 && <div><span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>稅金</span><div style={{ ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(order.tax_amount)}</div></div>}
                           </div>
                           <div style={{ borderTop: '2px solid #a7f3d0', paddingTop: 12, textAlign: 'left' }}>
-                            <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, display: 'block', marginBottom: 4 }}>合計</span>
-                            <span style={{ ...S.mono, fontSize: 20, fontWeight: 900, color: '#059669' }}>{fmtP(order.total_amount || 0)}</span>
+                            <span style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 4 }}>合計</span>
+                            <span style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: 900, color: '#059669' }}>{fmtP(order.total_amount || 0)}</span>
                           </div>
                         </>
                       ) : (
                         <>
                           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
-                            <span style={{ fontSize: 14, color: '#6b7280' }}>小計 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(order.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0))}</strong></span>
-                            {order.discount_amount > 0 && <span style={{ fontSize: 14, color: '#ef4444' }}>折扣 <strong style={{ ...S.mono, fontSize: 16, fontWeight: 600 }}>-{fmtP(order.discount_amount)}</strong></span>}
-                            {order.shipping_fee > 0 && <span style={{ fontSize: 14, color: '#6b7280' }}>運費 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(order.shipping_fee)}</strong></span>}
-                            {order.tax_amount > 0 && <span style={{ fontSize: 14, color: '#6b7280' }}>稅金 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(order.tax_amount)}</strong></span>}
+                            <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(order.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0))}</strong></span>
+                            {order.discount_amount > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.error }}>折扣 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, fontWeight: t.fontWeight.semibold }}>-{fmtP(order.discount_amount)}</strong></span>}
+                            {order.shipping_fee > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>運費 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(order.shipping_fee)}</strong></span>}
+                            {order.tax_amount > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>稅金 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(order.tax_amount)}</strong></span>}
                           </div>
                           <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 20, textAlign: 'right' }}>
-                            <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600, display: 'block', marginBottom: 2 }}>合計</span>
+                            <span style={{ fontSize: t.fontSize.caption, color: t.color.brand, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>合計</span>
                             <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(order.total_amount || 0)}</span>
                           </div>
                         </>
@@ -743,7 +744,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                   </div>
                 </div>
               ) : (
-                <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無品項</div>
+                <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: t.fontSize.h3 }}>尚無品項</div>
               )}
             </div>
 
@@ -751,19 +752,19 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             {!isConverted && (
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { gridColumn: '1/-1' } : {}) }}>
               {linkedSales.length > 0 && (
-              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}>
+              <span style={{ padding: '8px 18px', borderRadius: t.radius.lg, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, background: t.color.infoBg, color: '#2563eb', border: '1px solid #bfdbfe' }}>
                 已建立銷貨單 {linkedSales.map(s => s.slip_number).join(', ')}（自動核准）
               </span>
               )}
               {!canConvert && !isConverted && (statusKey === 'draft' || statusKey === 'rejected') ? (
-              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>請先送審並核准後才能轉銷貨</span>
+              <span style={{ padding: '8px 18px', borderRadius: t.radius.lg, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, background: t.color.warningBg, color: '#92400e', border: '1px solid #fde68a' }}>請先送審並核准後才能轉銷貨</span>
               ) : isPending ? (
-              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}>訂單審核中，請等待審核完成</span>
+              <span style={{ padding: '8px 18px', borderRadius: t.radius.lg, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, background: t.color.infoBg, color: '#2563eb', border: '1px solid #bfdbfe' }}>訂單審核中，請等待審核完成</span>
               ) : canConvert && items.some(i => (i.remaining_qty != null ? Number(i.remaining_qty) > 0 : !i.sale_info)) && (
               <button
                 onClick={openSaleForm}
                 disabled={!!processingAction || selectedItemIds.size === 0}
-                style={{ ...S.btnPrimary, padding: '8px 18px', fontSize: 13, background: selectedItemIds.size > 0 ? '#16a34a' : '#9ca3af', borderColor: selectedItemIds.size > 0 ? '#16a34a' : '#9ca3af', opacity: processingAction ? 0.6 : 1 }}
+                style={{ ...S.btnPrimary, padding: '8px 18px', fontSize: t.fontSize.body, background: selectedItemIds.size > 0 ? '#16a34a' : '#9ca3af', borderColor: selectedItemIds.size > 0 ? '#16a34a' : '#9ca3af', opacity: processingAction ? 0.6 : 1 }}
               >
                 {processingAction === 'sale' ? '處理中...' : `勾選項目 → 轉銷貨${selectedItemIds.size > 0 ? ` (${selectedItemIds.size}項)` : ''}`}
               </button>
@@ -772,17 +773,17 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               <button
                 onClick={handleSelectedToPO}
                 disabled={!!processingAction || selectedItemIds.size === 0}
-                style={{ ...S.btnGhost, padding: '8px 18px', fontSize: 13, color: selectedItemIds.size > 0 ? '#dc2626' : '#9ca3af', borderColor: selectedItemIds.size > 0 ? '#fca5a5' : '#e5e7eb', opacity: processingAction ? 0.6 : 1 }}
+                style={{ ...S.btnGhost, padding: '8px 18px', fontSize: t.fontSize.body, color: selectedItemIds.size > 0 ? '#dc2626' : '#9ca3af', borderColor: selectedItemIds.size > 0 ? '#fca5a5' : '#e5e7eb', opacity: processingAction ? 0.6 : 1 }}
               >
                 {processingAction === 'po' ? '處理中...' : `勾選項目 → 轉採購單${selectedItemIds.size > 0 ? ` (${selectedItemIds.size}項)` : ''}`}
               </button>
               )}
               {/* 送審 / 建立出貨 / PDF — moved from top bar */}
               {!canConvert && !isConverted && !isPending && (statusKey === 'draft' || statusKey === 'rejected') && (
-                <button onClick={submitForApproval} disabled={convertingId === order.id} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: isRejected ? '#ef4444' : '#3b82f6', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: convertingId === order.id ? 0.7 : 1 }}>{convertingId === order.id ? '送審中...' : isRejected ? '重新送審' : '送審'}</button>
+                <button onClick={submitForApproval} disabled={convertingId === order.id} style={{ padding: '8px 18px', borderRadius: t.radius.lg, border: 'none', background: isRejected ? '#ef4444' : '#3b82f6', color: '#fff', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: convertingId === order.id ? 0.7 : 1 }}>{convertingId === order.id ? '送審中...' : isRejected ? '重新送審' : '送審'}</button>
               )}
               {canConvert && linkedSales.length === 0 && (
-                <button onClick={revertToDraft} style={{ ...S.btnGhost, padding: '8px 18px', fontSize: 13, color: '#f59e0b', borderColor: '#fde68a' }}>退回草稿</button>
+                <button onClick={revertToDraft} style={{ ...S.btnGhost, padding: '8px 18px', fontSize: t.fontSize.body, color: t.color.warning, borderColor: '#fde68a' }}>退回草稿</button>
               )}
             </div>
             )}
@@ -791,19 +792,19 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, ...(isMobile ? { gridColumn: '1/-1' } : {}) }}>
             {/* 1. PDF button */}
-            <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+            <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, justifyContent: 'center' }}>下載 PDF</button>
 
             {/* 2. 客戶資訊 */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>客戶資訊</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
+              <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 6 }}>{order.customer?.company_name || order.customer?.name || '未綁定客戶'}</div>
               {[
                 { label: '電話', value: order.customer?.phone },
                 { label: '訂單日期', value: order.order_date, mono: true },
               ].filter(f => f.value).map((f, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
-                  <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>{f.label}</span>
-                  <span style={{ fontSize: 13, color: '#374151', fontWeight: 600, ...(f.mono ? S.mono : {}) }}>{f.value}</span>
+                  <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold }}>{f.label}</span>
+                  <span style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...(f.mono ? S.mono : {}) }}>{f.value}</span>
                 </div>
               ))}
             </div>
@@ -811,7 +812,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             {/* 2.5 Sales person */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>負責業務</div>
-              <span style={{ fontSize: 14, fontWeight: 600, color: order.sales_person ? '#111827' : '#9ca3af' }}>{order.sales_person || '未指派'}</span>
+              <span style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: order.sales_person ? '#111827' : '#9ca3af' }}>{order.sales_person || '未指派'}</span>
             </div>
 
             {/* 3. Combined Order Record — progress + sales + POs + timeline */}
@@ -934,7 +935,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                           {!isLast && <div style={{ position: 'absolute', left: -11, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
                           <div style={{ position: 'absolute', left: -14, top: 3, width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8, borderRadius: '50%', background: e.dot, border: '2px solid #fff', boxShadow: isCurrent ? `0 0 0 3px ${e.dot}25` : `0 0 0 1.5px ${e.dot}30` }} />
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', lineHeight: 1.3 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
+                            <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
                             {e.ref && (() => {
                               const clickHandler = e.refType === 'sale' ? () => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
                                 : e.refType === 'po' ? () => { window.localStorage.setItem(PO_FOCUS_KEY, e.ref); setTab?.('purchase_orders'); }
@@ -942,19 +943,19 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                                 : e.refType === 'payment' ? () => { setTab?.('收款管理'); }
                                 : e.refType === 'shipment' ? () => { window.localStorage.setItem('qb_shipment_focus', e.ref); setTab?.('shipments'); }
                                 : null;
-                              return <span style={{ fontSize: 12, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
+                              return <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
                             })()}
-                            {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.detailColor || (e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af'), background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
+                            {e.detail && <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: e.detailColor || (e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af'), background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: t.radius.sm }}>{e.detail}</span>}
                           </div>
                           {e.badges && e.badges.length > 0 && (
                             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 3 }}>
                               {e.badges.map((b, bi) => (
-                                <span key={bi} style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: e.label === '銷貨' ? '#dbeafe' : '#f3e8ff', color: e.label === '銷貨' ? '#1d4ed8' : '#7c3aed', fontWeight: 600 }}>{b.item} {b.text}</span>
+                                <span key={bi} style={{ fontSize: t.fontSize.tiny, padding: '1px 6px', borderRadius: t.radius.sm, background: e.label === '銷貨' ? '#dbeafe' : '#f3e8ff', color: e.label === '銷貨' ? '#1d4ed8' : '#7c3aed', fontWeight: t.fontWeight.semibold }}>{b.item} {b.text}</span>
                               ))}
                             </div>
                           )}
-                          {e.note && <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: 4, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
-                          {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
+                          {e.note && <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: t.radius.sm, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
+                          {e.time && <div style={{ fontSize: t.fontSize.tiny, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
                         </div>
                       );
                     })}
@@ -968,26 +969,26 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               <div style={{ ...cardStyle, padding: '14px 16px' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#111827' }}>登記付款</div>
-                  <div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>應收 <b style={{ color: '#111827' }}>NT${(order.total_amount || 0).toLocaleString()}</b></div>
+                  <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>登記付款</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>應收 <b style={{ color: t.color.textPrimary }}>NT${(order.total_amount || 0).toLocaleString()}</b></div>
                 </div>
                 {/* Paid summary */}
                 {totalPaidAmount > 0 && (
-                  <div style={{ background: '#f0fdf4', borderRadius: 6, padding: '5px 10px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                    <span style={{ color: '#15803d', fontWeight: 600 }}>已收 NT${totalPaidAmount.toLocaleString()}</span>
-                    <span style={{ color: '#dc2626', fontWeight: 700 }}>尚欠 NT${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}</span>
+                  <div style={{ background: '#f0fdf4', borderRadius: 6, padding: '5px 10px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.caption }}>
+                    <span style={{ color: '#15803d', fontWeight: t.fontWeight.semibold }}>已收 NT${totalPaidAmount.toLocaleString()}</span>
+                    <span style={{ color: t.color.error, fontWeight: t.fontWeight.bold }}>尚欠 NT${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}</span>
                   </div>
                 )}
                 {/* 2x2 Grid: Type, Method, Amount, Button */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 8px', marginBottom: 8 }}>
                   <div>
-                    <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginBottom: 3 }}>類型</div>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, marginBottom: 3 }}>類型</div>
                     <select value={payType} onChange={e => {
                       const t = e.target.value; setPayType(t);
                       if (t === 'full') setPayAmount(String(order.total_amount || 0));
                       else if (t === 'deposit') setPayAmount(String(Math.round((order.total_amount || 0) * 0.3)));
                       else if (t === 'balance') setPayAmount(String(Math.max(0, (order.total_amount || 0) - totalPaidAmount)));
-                    }} style={{ width: '100%', padding: '7px 8px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, color: '#374151', background: '#f9fafb', cursor: 'pointer' }}>
+                    }} style={{ width: '100%', padding: '7px 8px', borderRadius: 6, border: `1px solid ${t.color.border}`, fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, background: t.color.bgMuted, cursor: 'pointer' }}>
                       <option value="full">全額收款</option>
                       <option value="deposit">訂金</option>
                       <option value="partial">部分收款</option>
@@ -995,8 +996,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     </select>
                   </div>
                   <div>
-                    <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginBottom: 3 }}>方式</div>
-                    <select value={payMethod} onChange={e => setPayMethod(e.target.value)} style={{ width: '100%', padding: '7px 8px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', background: '#f9fafb', cursor: 'pointer' }}>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, marginBottom: 3 }}>方式</div>
+                    <select value={payMethod} onChange={e => setPayMethod(e.target.value)} style={{ width: '100%', padding: '7px 8px', borderRadius: 6, border: `1px solid ${t.color.border}`, fontSize: t.fontSize.body, color: t.color.textSecondary, background: t.color.bgMuted, cursor: 'pointer' }}>
                       <option value="transfer">匯款</option>
                       <option value="cash">現金</option>
                       <option value="check">支票</option>
@@ -1006,10 +1007,10 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     </select>
                   </div>
                   <div>
-                    <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginBottom: 3 }}>金額</div>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, marginBottom: 3 }}>金額</div>
                     <div style={{ position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>NT$</span>
-                      <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} placeholder="0" style={{ ...S.mono, width: '100%', fontSize: 14, fontWeight: 700, padding: '7px 8px 7px 32px', borderRadius: 6, border: '1px solid #e5e7eb', outline: 'none', background: '#f9fafb' }} min="1" onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
+                      <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold }}>NT$</span>
+                      <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} placeholder="0" style={{ ...S.mono, width: '100%', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: '7px 8px 7px 32px', borderRadius: 6, border: `1px solid ${t.color.border}`, outline: 'none', background: t.color.bgMuted }} min="1" onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-end' }}>
@@ -1024,7 +1025,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                         onRefresh?.();
                       } catch (err) { setMsg(err.message || '付款登記失敗'); }
                       setPayProcessing(false);
-                    }} style={{ width: '100%', padding: '7px 0', borderRadius: 6, border: 'none', background: payProcessing ? '#94a3b8' : !payAmount ? '#cbd5e1' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: payProcessing || !payAmount ? 'not-allowed' : 'pointer', boxShadow: payAmount ? '0 2px 6px rgba(37,99,235,0.2)' : 'none' }}>
+                    }} style={{ width: '100%', padding: '7px 0', borderRadius: 6, border: 'none', background: payProcessing ? '#94a3b8' : !payAmount ? '#cbd5e1' : 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: payProcessing || !payAmount ? 'not-allowed' : 'pointer', boxShadow: payAmount ? '0 2px 6px rgba(37,99,235,0.2)' : 'none' }}>
                       {payProcessing ? '...' : '確認收款'}
                     </button>
                   </div>
@@ -1035,9 +1036,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                     { label: '全額', type: 'full', amt: order.total_amount || 0, color: '#2563eb', bg: '#eff6ff', bd: '#bfdbfe' },
                     { label: '50%', type: 'partial', amt: Math.round((order.total_amount || 0) / 2), color: '#7c3aed', bg: '#f5f3ff', bd: '#ddd6fe' },
                     { label: '訂金30%', type: 'deposit', amt: Math.round((order.total_amount || 0) * 0.3), color: '#059669', bg: '#ecfdf5', bd: '#a7f3d0' },
-                    ...(totalPaidAmount > 0 ? [{ label: '尾款', type: 'balance', amt: Math.max(0, (order.total_amount || 0) - totalPaidAmount), color: '#dc2626', bg: '#fef2f2', bd: '#fecaca' }] : []),
+                    ...(totalPaidAmount > 0 ? [{ label: '尾款', type: 'balance', amt: Math.max(0, (order.total_amount || 0) - totalPaidAmount), color: t.color.error, bg: '#fef2f2', bd: '#fecaca' }] : []),
                   ].map(q => (
-                    <button key={q.type} onClick={() => { setPayType(q.type); setPayAmount(String(q.amt)); }} style={{ flex: 1, fontSize: 11, color: q.color, background: q.bg, border: `1px solid ${q.bd}`, borderRadius: 5, padding: '3px 0', cursor: 'pointer', fontWeight: 600, textAlign: 'center' }}>{q.label}</button>
+                    <button key={q.type} onClick={() => { setPayType(q.type); setPayAmount(String(q.amt)); }} style={{ flex: 1, fontSize: t.fontSize.tiny, color: q.color, background: q.bg, border: `1px solid ${q.bd}`, borderRadius: 5, padding: '3px 0', cursor: 'pointer', fontWeight: t.fontWeight.semibold, textAlign: 'center' }}>{q.label}</button>
                   ))}
                 </div>
               </div>
@@ -1050,7 +1051,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 defaultValue={order.remark || ''}
                 placeholder="輸入備註..."
                 rows={3}
-                style={{ width: '100%', fontSize: 13, color: '#374151', lineHeight: 1.6, border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit' }}
+                style={{ width: '100%', fontSize: t.fontSize.body, color: t.color.textSecondary, lineHeight: 1.6, border: `1px solid ${t.color.border}`, borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit' }}
                 onBlur={async (e) => {
                   const val = e.target.value.trim();
                   if (val === (order.remark || '').trim()) return;
@@ -1072,7 +1073,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
                 <div style={S.eyebrow}>Create Shipment</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>建立出貨 — {order.order_no}</div>
+                <div style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>建立出貨 — {order.order_no}</div>
               </div>
               <button onClick={() => setShowShipForm(false)} style={S.btnGhost}>關閉</button>
             </div>
@@ -1080,20 +1081,20 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             {/* Ship items selection */}
             <div style={{ ...cardStyle, marginBottom: 10, padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>選擇出貨品項與數量</span>
-                <span style={{ fontSize: 12, color: '#9ca3af' }}>{Object.values(shipItemQty).filter(q => q > 0).length} / {items.length} 項</span>
+                <span style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textSecondary }}>選擇出貨品項與數量</span>
+                <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>{Object.values(shipItemQty).filter(q => q > 0).length} / {items.length} 項</span>
               </div>
               <div style={{ maxHeight: 340, overflowY: 'auto' }}>
                 {items.map((item) => (
                   <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderTop: '1px solid #f3f5f7', background: (shipItemQty[item.id] || 0) > 0 ? '#fefce8' : '#fff' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
-                      <div style={{ fontSize: 11, color: '#9ca3af', ...S.mono, marginTop: 1 }}>{item.item_number_snapshot} · 訂購 {item.qty}</div>
+                      <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
+                      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, ...S.mono, marginTop: 1 }}>{item.item_number_snapshot} · 訂購 {item.qty}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                      <button onClick={() => setShipItemQty(prev => ({ ...prev, [item.id]: Math.max(0, (prev[item.id] || 0) - 1) }))} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 13, minWidth: 28 }}>-</button>
-                      <span style={{ ...S.mono, fontWeight: 700, minWidth: 24, textAlign: 'center', fontSize: 14 }}>{shipItemQty[item.id] || 0}</span>
-                      <button onClick={() => setShipItemQty(prev => ({ ...prev, [item.id]: Math.min(item.qty, (prev[item.id] || 0) + 1) }))} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 13, minWidth: 28 }}>+</button>
+                      <button onClick={() => setShipItemQty(prev => ({ ...prev, [item.id]: Math.max(0, (prev[item.id] || 0) - 1) }))} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: t.fontSize.body, minWidth: 28 }}>-</button>
+                      <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, minWidth: 24, textAlign: 'center', fontSize: t.fontSize.h3 }}>{shipItemQty[item.id] || 0}</span>
+                      <button onClick={() => setShipItemQty(prev => ({ ...prev, [item.id]: Math.min(item.qty, (prev[item.id] || 0) + 1) }))} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: t.fontSize.body, minWidth: 28 }}>+</button>
                     </div>
                   </div>
                 ))}
@@ -1104,25 +1105,25 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             <div style={{ ...cardStyle, padding: '10px 16px', marginBottom: 10 }}>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <div>
-                  <label style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>物流商</label>
-                  <input value={shipForm.carrier} onChange={e => setShipForm(p => ({ ...p, carrier: e.target.value }))} placeholder="例：黑貓、新竹物流" style={{ ...S.input, fontSize: 13 }} />
+                  <label style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 4 }}>物流商</label>
+                  <input value={shipForm.carrier} onChange={e => setShipForm(p => ({ ...p, carrier: e.target.value }))} placeholder="例：黑貓、新竹物流" style={{ ...S.input, fontSize: t.fontSize.body }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>追蹤編號</label>
-                  <input value={shipForm.tracking_no} onChange={e => setShipForm(p => ({ ...p, tracking_no: e.target.value }))} placeholder="輸入追蹤編號" style={{ ...S.input, fontSize: 13, ...S.mono }} />
+                  <label style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 4 }}>追蹤編號</label>
+                  <input value={shipForm.tracking_no} onChange={e => setShipForm(p => ({ ...p, tracking_no: e.target.value }))} placeholder="輸入追蹤編號" style={{ ...S.input, fontSize: t.fontSize.body, ...S.mono }} />
                 </div>
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>備註</label>
-                <input value={shipForm.remark} onChange={e => setShipForm(p => ({ ...p, remark: e.target.value }))} placeholder="出貨備註（選填）" style={{ ...S.input, fontSize: 13 }} />
+                <label style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 4 }}>備註</label>
+                <input value={shipForm.remark} onChange={e => setShipForm(p => ({ ...p, remark: e.target.value }))} placeholder="出貨備註（選填）" style={{ ...S.input, fontSize: t.fontSize.body }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input type="checkbox" id="ship_notify_line" checked={shipForm.notify_line} onChange={e => setShipForm(p => ({ ...p, notify_line: e.target.checked }))} style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }} />
-                <label htmlFor="ship_notify_line" style={{ fontSize: 13, color: '#111827', fontWeight: 600, cursor: 'pointer' }}>出貨後自動發 LINE 通知客戶</label>
+                <label htmlFor="ship_notify_line" style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, cursor: 'pointer' }}>出貨後自動發 LINE 通知客戶</label>
               </div>
             </div>
 
-            <button onClick={createShipment} disabled={processingAction === 'ship'} style={{ ...S.btnPrimary, width: '100%', padding: '12px', fontSize: 15, fontWeight: 700, background: 'linear-gradient(135deg, #f59e0b, #d97706)', opacity: processingAction === 'ship' ? 0.7 : 1 }}>
+            <button onClick={createShipment} disabled={processingAction === 'ship'} style={{ ...S.btnPrimary, width: '100%', padding: '12px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, background: 'linear-gradient(135deg, #f59e0b, #d97706)', opacity: processingAction === 'ship' ? 0.7 : 1 }}>
               {processingAction === 'ship' ? '出貨中...' : `確認出貨 (${Object.values(shipItemQty).filter(q => q > 0).length} 項)`}
             </button>
           </div>
@@ -1136,30 +1137,30 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
                 <div style={S.eyebrow}>Convert to Sale</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>轉銷貨 — {order.order_no}</div>
-                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>可調整每項出貨數量，未出的數量可之後再轉</div>
+                <div style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>轉銷貨 — {order.order_no}</div>
+                <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted, marginTop: 4 }}>可調整每項出貨數量，未出的數量可之後再轉</div>
               </div>
               <button onClick={() => setShowSaleForm(false)} style={S.btnGhost}>關閉</button>
             </div>
 
             <div style={{ ...cardStyle, marginBottom: 10, padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#374151' }}>選擇出貨數量</span>
-                <span style={{ fontSize: 14, color: '#9ca3af' }}>{Object.values(saleItemQty).filter(q => Number(q) > 0).length} / {Object.keys(saleItemQty).length} 項</span>
+                <span style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textSecondary }}>選擇出貨數量</span>
+                <span style={{ fontSize: t.fontSize.h3, color: t.color.textDisabled }}>{Object.values(saleItemQty).filter(q => Number(q) > 0).length} / {Object.keys(saleItemQty).length} 項</span>
               </div>
               <div style={{ maxHeight: 400, overflowY: 'auto' }}>
                 {items.filter(i => saleItemQty.hasOwnProperty(i.id)).map((item) => (
                   <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: Number(saleItemQty[item.id] || 0) > 0 ? '#f0fdf4' : '#fff' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
-                      <div style={{ fontSize: 13, color: '#9ca3af', ...S.mono, marginTop: 2 }}>{item.item_number_snapshot} · 訂購 {item.qty}{Number(item.sold_qty || 0) > 0 ? ` · 已銷 ${item.sold_qty}` : ''} · 剩餘 {item.remaining_qty != null ? item.remaining_qty : item.qty} · 庫存 {item.stock_qty}</div>
+                      <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
+                      <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, ...S.mono, marginTop: 2 }}>{item.item_number_snapshot} · 訂購 {item.qty}{Number(item.sold_qty || 0) > 0 ? ` · 已銷 ${item.sold_qty}` : ''} · 剩餘 {item.remaining_qty != null ? item.remaining_qty : item.qty} · 庫存 {item.stock_qty}</div>
                     </div>
                     {(() => { const maxQty = item.remaining_qty != null ? Number(item.remaining_qty) : Number(item.qty); return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                      <button onClick={() => setSaleItemQty(p => ({ ...p, [item.id]: Math.max(0, (Number(p[item.id]) || 0) - 1) }))} style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                      <input type="number" value={saleItemQty[item.id] || 0} onChange={(e) => { const v = Math.max(0, Math.min(Number(e.target.value) || 0, maxQty)); setSaleItemQty(p => ({ ...p, [item.id]: v })); }} style={{ width: 50, textAlign: 'center', ...S.input, ...S.mono, fontSize: 14, fontWeight: 700, padding: '4px 6px' }} min="0" max={maxQty} />
-                      <button onClick={() => setSaleItemQty(p => ({ ...p, [item.id]: Math.min(maxQty, (Number(p[item.id]) || 0) + 1) }))} style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                      <button onClick={() => setSaleItemQty(p => ({ ...p, [item.id]: maxQty }))} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11 }}>全部</button>
+                      <button onClick={() => setSaleItemQty(p => ({ ...p, [item.id]: Math.max(0, (Number(p[item.id]) || 0) - 1) }))} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#fff', cursor: 'pointer', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                      <input type="number" value={saleItemQty[item.id] || 0} onChange={(e) => { const v = Math.max(0, Math.min(Number(e.target.value) || 0, maxQty)); setSaleItemQty(p => ({ ...p, [item.id]: v })); }} style={{ width: 50, textAlign: 'center', ...S.input, ...S.mono, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: '4px 6px' }} min="0" max={maxQty} />
+                      <button onClick={() => setSaleItemQty(p => ({ ...p, [item.id]: Math.min(maxQty, (Number(p[item.id]) || 0) + 1) }))} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#fff', cursor: 'pointer', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                      <button onClick={() => setSaleItemQty(p => ({ ...p, [item.id]: maxQty }))} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: t.fontSize.tiny }}>全部</button>
                     </div>
                     ); })()}
                   </div>
@@ -1168,10 +1169,10 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
             </div>
 
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: 14, color: '#374151' }}>
+              <div style={{ fontSize: t.fontSize.h3, color: t.color.textSecondary }}>
                 合計：<strong style={{ color: '#059669', ...S.mono }}>{Object.entries(saleItemQty).reduce((s, [id, q]) => { const it = items.find(i => i.id === id); return s + (it ? Number(it.unit_price || 0) * Number(q || 0) : 0); }, 0).toLocaleString('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 })}</strong>
               </div>
-              <button onClick={confirmSaleConversion} disabled={processingAction === 'sale'} style={{ ...S.btnPrimary, padding: '12px 28px', fontSize: 15, fontWeight: 700, background: 'linear-gradient(135deg, #16a34a, #15803d)', opacity: processingAction === 'sale' ? 0.7 : 1 }}>
+              <button onClick={confirmSaleConversion} disabled={processingAction === 'sale'} style={{ ...S.btnPrimary, padding: '12px 28px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, background: 'linear-gradient(135deg, #16a34a, #15803d)', opacity: processingAction === 'sale' ? 0.7 : 1 }}>
                 {processingAction === 'sale' ? '處理中...' : `確認轉銷貨 (${Object.values(saleItemQty).filter(q => Number(q) > 0).length} 項)`}
               </button>
             </div>
@@ -1328,7 +1329,7 @@ export default function Orders({ setTab }) {
 
   return (
     <div>
-      <PageLead eyebrow="ORDERS" title="訂單" description="點擊訂單進入詳情，自動比對庫存。有貨可轉銷貨，缺貨可轉採購單。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>{batchIds.size > 0 && <button onClick={handleBatchShip} disabled={batchShipping} style={{ padding: '7px 18px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: batchShipping ? 0.7 : 1 }}>{batchShipping ? '出貨中...' : `批次出貨 (${batchIds.size})`}</button>}<CsvImportButton datasetId="erp_orders" onImported={() => load(1, search, pageSize)} compact /><button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button><button onClick={() => data.table_ready && setShowCreate(true)} disabled={!data.table_ready} style={{ ...S.btnPrimary, opacity: data.table_ready ? 1 : 0.6, cursor: data.table_ready ? 'pointer' : 'not-allowed' }}>+ 新增訂單</button></div>} />
+      <PageLead eyebrow="ORDERS" title="訂單" description="點擊訂單進入詳情，自動比對庫存。有貨可轉銷貨，缺貨可轉採購單。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>{batchIds.size > 0 && <button onClick={handleBatchShip} disabled={batchShipping} style={{ padding: '7px 18px', borderRadius: t.radius.md, border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: batchShipping ? 0.7 : 1 }}>{batchShipping ? '出貨中...' : `批次出貨 (${batchIds.size})`}</button>}<CsvImportButton datasetId="erp_orders" onImported={() => load(1, search, pageSize)} compact /><button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button><button onClick={() => data.table_ready && setShowCreate(true)} disabled={!data.table_ready} style={{ ...S.btnPrimary, opacity: data.table_ready ? 1 : 0.6, cursor: data.table_ready ? 'pointer' : 'not-allowed' }}>+ 新增訂單</button></div>} />
       {actionMessage ? (
         <div style={{ ...S.card, background: actionMessage.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: actionMessage.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: actionMessage.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10 }}>
           {actionMessage}
@@ -1339,10 +1340,10 @@ export default function Orders({ setTab }) {
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '4px 10px' : '6px 14px', fontSize: isMobile ? 12 : 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
           ))}
-          {!isMobile && <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />}
-          {!isMobile && <span style={{ color: '#6b7280', fontSize: 14 }}>~</span>}
-          {!isMobile && <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px', ...S.mono }} />}
-          {!isMobile && <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, width: 150, fontSize: 14, padding: '6px 10px' }}>
+          {!isMobile && <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: t.fontSize.h3, padding: '6px 10px', ...S.mono }} />}
+          {!isMobile && <span style={{ color: t.color.textMuted, fontSize: t.fontSize.h3 }}>~</span>}
+          {!isMobile && <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: t.fontSize.h3, padding: '6px 10px', ...S.mono }} />}
+          {!isMobile && <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, width: 150, fontSize: t.fontSize.h3, padding: '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="draft">草稿</option>
             <option value="confirmed">已核准</option>
@@ -1371,8 +1372,8 @@ export default function Orders({ setTab }) {
               <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ ...S.mobileCard, marginBottom: 8, cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #e5e7eb' }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{row.order_no || '-'}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{row.order_date || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{row.order_no || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 2 }}>{row.order_date || '-'}</div>
                   </div>
                   <input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                 </div>
@@ -1394,16 +1395,16 @@ export default function Orders({ setTab }) {
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>金額</span>
-                  <span style={{ ...S.mobileCardValue, color: '#10b981', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</span>
+                  <span style={{ ...S.mobileCardValue, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(row.total_amount)}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb' }}>
                   {(() => {
                     const shipKey_local = String(row.shipping_status || 'pending').toLowerCase();
                     const isConverted = shipKey_local === 'shipped' || shipKey_local === 'delivered';
-                    if (isConverted) return <span style={{ ...S.tag('green'), fontSize: 11 }}>已轉銷貨</span>;
+                    if (isConverted) return <span style={{ ...S.tag('green'), fontSize: t.fontSize.tiny }}>已轉銷貨</span>;
                     return null;
                   })()}
-                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ flex: 1, ...S.btnGhost, padding: '8px 0', fontSize: 12, minHeight: 40 }}>PDF</button>
+                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ flex: 1, ...S.btnGhost, padding: '8px 0', fontSize: t.fontSize.caption, minHeight: 40 }}>PDF</button>
                 </div>
               </div>
             );
@@ -1446,25 +1447,25 @@ export default function Orders({ setTab }) {
             return (
               <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: orderGridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div style={cCenter}><input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
-                <div style={{ ...cCenter, fontSize: 13, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ ...cCenter, fontSize: 13, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', gap: 4 }}>{row.order_no || '-'}<span style={{ fontSize: 9, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', gap: 4 }}>{row.order_no || '-'}<span style={{ fontSize: 9, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
                 <div style={cell}>
-                  <span style={{ fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
+                  <span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                 </div>
-                {!isTablet && <div style={{ ...cCenter, fontSize: 13, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
-                <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.order_date || '-'}</div>
+                {!isTablet && <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.order_date || '-'}</div>
                 <div style={cCenter}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
                 {!isTablet && <div style={cCenter}><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : 'gray')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
                 {!isTablet && <div style={cCenter}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : 'gray')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
-                {!isTablet && <div style={{ ...cRight, fontSize: 13, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
+                {!isTablet && <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
                 <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                   {(() => {
                     const shipKey_local = String(row.shipping_status || 'pending').toLowerCase();
                     const isConverted = shipKey_local === 'shipped' || shipKey_local === 'delivered';
-                    if (isConverted) return <span style={{ ...S.tag('green'), fontSize: 11 }}>已轉銷貨</span>;
+                    if (isConverted) return <span style={{ ...S.tag('green'), fontSize: t.fontSize.tiny }}>已轉銷貨</span>;
                     return null;
                   })()}
-                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>PDF</button>
+                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: t.fontSize.caption, whiteSpace: 'nowrap' }}>PDF</button>
                 </div>
               </div>
             );

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PanelHeader } from '../shared/ui';
@@ -234,19 +235,19 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
   if (!open) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: isMobile ? 'flex-end' : 'center', padding: isMobile ? 0 : 20 }} onClick={guardedClose}>
-      <div style={{ width: isMobile ? '100%' : 'min(1280px, 100%)', maxHeight: isMobile ? '90vh' : '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: isMobile ? '16px 16px 0 0' : 14, padding: isMobile ? '12px 16px' : '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, background: t.color.overlay, zIndex: 220, display: 'flex', justifyContent: 'center', alignItems: isMobile ? 'flex-end' : 'center', padding: isMobile ? 0 : 20 }} onClick={guardedClose}>
+      <div style={{ width: isMobile ? '100%' : 'min(1280px, 100%)', maxHeight: isMobile ? '90vh' : '92vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: isMobile ? '16px 16px 0 0' : t.radius.xl, padding: isMobile ? '12px 16px' : '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
           <div>
             <div style={S.eyebrow}>Create Order</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>建立訂單</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>直接建立訂單，選擇客戶與商品後即可進入出貨流程。</div>
+            <div style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>建立訂單</div>
+            <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 6 }}>直接建立訂單，選擇客戶與商品後即可進入出貨流程。</div>
           </div>
           <button onClick={guardedClose} style={S.btnGhost}>關閉</button>
         </div>
-        {error ? <div style={{ ...S.card, background: '#fff1f2', borderColor: '#fecdd3', color: '#b42318', marginBottom: 10 }}>{error}</div> : null}
+        {error ? <div style={{ ...S.card, background: t.color.errorBg, borderColor: '#fecdd3', color: '#b42318', marginBottom: 10 }}>{error}</div> : null}
         {!tableReady ? (
-          <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00', marginBottom: 10 }}>
+          <div style={{ ...S.card, background: t.color.warningBg, borderColor: '#f7d699', color: '#8a5b00', marginBottom: 10 }}>
             尚未建立 erp_orders / erp_order_items 資料表。
           </div>
         ) : null}
@@ -262,37 +263,37 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                     <button onClick={() => searchCustomers()} style={{ ...S.btnPrimary, ...(isMobile && S.mobile.btnPrimary) }}>搜尋</button>
                   </div>
                   {!customerLoading && customerResults.length > 0 && !showNewCustomer && (
-                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 8, display: 'grid', gap: 6, maxHeight: 230, overflowY: 'auto' }}>
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: t.color.bgCard, border: `1px solid ${t.color.border}`, borderRadius: t.radius.lg, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 8, display: 'grid', gap: 6, maxHeight: 230, overflowY: 'auto' }}>
                       {customerResults.map((customer) => {
                         const displayName = customer.company_name || customer.name || '未命名客戶';
                         const contactName = customer.name && customer.name !== customer.company_name ? customer.name : '';
                         const info = [customer.customer_code, customer.tax_id, customer.phone].filter(Boolean).join(' · ');
                         return (
-                          <button key={customer.id} onClick={() => selectCustomer(customer)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer', border: '1px solid #f0f2f5', background: '#fafbfc' }}>
-                            <div style={{ fontSize: 14, color: '#111827', fontWeight: 700 }}>{displayName}</div>
-                            {contactName && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{contactName}</div>}
-                            <div style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>{info || '-'}</div>
+                          <button key={customer.id} onClick={() => selectCustomer(customer)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer', border: `1px solid ${t.color.borderLight}`, background: t.color.bgMuted }}>
+                            <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{displayName}</div>
+                            {contactName && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 2 }}>{contactName}</div>}
+                            <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4 }}>{info || '-'}</div>
                           </button>
                         );
                       })}
-                      <button onClick={() => { setShowNewCustomer(true); setNewCustomer(prev => ({ ...prev, name: customerSearch.trim() })); }} style={{ ...S.panelMuted, width: '100%', textAlign: 'center', cursor: 'pointer', color: '#3b82f6', borderColor: '#93c5fd', fontSize: 13, fontWeight: 600 }}>都不是？新增客戶</button>
+                      <button onClick={() => { setShowNewCustomer(true); setNewCustomer(prev => ({ ...prev, name: customerSearch.trim() })); }} style={{ ...S.panelMuted, width: '100%', textAlign: 'center', cursor: 'pointer', color: t.color.link, borderColor: '#93c5fd', fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold }}>都不是？新增客戶</button>
                     </div>
                   )}
-                  {customerLoading && <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12, textAlign: 'center' }}><Loading /></div>}
+                  {customerLoading && <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: t.color.bgCard, border: `1px solid ${t.color.border}`, borderRadius: t.radius.lg, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12, textAlign: 'center' }}><Loading /></div>}
                 </div>
               )}
               {selectedCustomer ? (
-                <div style={{ ...S.panelMuted, borderColor: '#bde6c9', background: '#f4fbf6', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ ...S.panelMuted, borderColor: '#bde6c9', background: t.color.successBg, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <div>
-                    <div style={{ fontSize: 12, color: '#10b981', fontWeight: 700, ...S.mono }}>SELECTED CUSTOMER</div>
-                    <div style={{ fontSize: 16, color: '#111827', fontWeight: 700, marginTop: 6 }}>{selectedCustomer.company_name || selectedCustomer.name || '未命名客戶'}</div>
-                    <div style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>{selectedCustomer.customer_code || '-'} · {selectedCustomer.phone || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.caption, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono }}>SELECTED CUSTOMER</div>
+                    <div style={{ fontSize: t.fontSize.h2, color: t.color.textPrimary, fontWeight: t.fontWeight.bold, marginTop: 6 }}>{selectedCustomer.company_name || selectedCustomer.name || '未命名客戶'}</div>
+                    <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4 }}>{selectedCustomer.customer_code || '-'} · {selectedCustomer.phone || '-'}</div>
                   </div>
-                  <button onClick={() => setSelectedCustomer(null)} style={{ width: 28, height: 28, flexShrink: 0, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: '#9ca3af', transition: 'all 0.15s' }} title="更換客戶">&times;</button>
+                  <button onClick={() => setSelectedCustomer(null)} style={{ width: 28, height: 28, flexShrink: 0, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: t.color.textDisabled, transition: 'all 0.15s' }} title="更換客戶">&times;</button>
                 </div>
               ) : showNewCustomer ? (
                 <div style={{ ...S.panelMuted, display: 'grid', gap: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>新增客戶</div>
+                  <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>新增客戶</div>
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 8 }}>
                     <div>
                       <label style={S.label}>客戶名稱 *</label>
@@ -316,19 +317,19 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                     <input type="email" value={newCustomer.email} onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })} placeholder="電子信箱..." style={{ ...S.input, ...S.mobile.input }} />
                   </div>
                   {dupWarning && (
-                    <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-                      <div style={{ fontWeight: 700, color: '#dc2626', marginBottom: 4 }}>偵測到 {dupWarning.duplicates?.length} 筆重複客戶：</div>
+                    <div style={{ background: t.color.errorBg, border: `1px solid #fecaca`, borderRadius: t.radius.md, padding: '8px 12px', fontSize: t.fontSize.caption }}>
+                      <div style={{ fontWeight: t.fontWeight.bold, color: t.color.error, marginBottom: 4 }}>偵測到 {dupWarning.duplicates?.length} 筆重複客戶：</div>
                       {(dupWarning.duplicates || []).map((d, i) => (
-                        <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '2px 0', color: '#374151' }}>
-                          <span style={{ fontFamily: 'monospace', color: '#6b7280' }}>{d.customer_code}</span>
-                          <span style={{ fontWeight: 600 }}>{d.company_name || d.name}</span>
-                          <span style={{ background: '#fee2e2', color: '#dc2626', borderRadius: 4, padding: '0px 5px', fontSize: 10, fontWeight: 700 }}>符合：{(d.matchFields || []).join('、')}</span>
-                          <button onClick={() => { setSelectedCustomer({ id: d.id, customer_code: d.customer_code, company_name: d.company_name, name: d.name, phone: d.phone, tax_id: d.tax_id }); setShowNewCustomer(false); setDupWarning(null); }} style={{ ...S.btnGhost, padding: '1px 6px', fontSize: 10 }}>直接選用</button>
+                        <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '2px 0', color: t.color.textSecondary }}>
+                          <span style={{ fontFamily: 'monospace', color: t.color.textMuted }}>{d.customer_code}</span>
+                          <span style={{ fontWeight: t.fontWeight.semibold }}>{d.company_name || d.name}</span>
+                          <span style={{ background: t.color.errorBg, color: t.color.error, borderRadius: t.radius.sm, padding: '0px 5px', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold }}>符合：{(d.matchFields || []).join('、')}</span>
+                          <button onClick={() => { setSelectedCustomer({ id: d.id, customer_code: d.customer_code, company_name: d.company_name, name: d.name, phone: d.phone, tax_id: d.tax_id }); setShowNewCustomer(false); setDupWarning(null); }} style={{ ...S.btnGhost, padding: '1px 6px', fontSize: t.fontSize.tiny }}>直接選用</button>
                         </div>
                       ))}
                       <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-                        <button onClick={() => createCustomer(true)} disabled={savingCustomer} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11, color: '#d97706', borderColor: '#fde68a' }}>{savingCustomer ? '建立中...' : '仍要強制建立'}</button>
-                        <button onClick={() => setDupWarning(null)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11 }}>返回修改</button>
+                        <button onClick={() => createCustomer(true)} disabled={savingCustomer} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.tiny, color: '#d97706', borderColor: '#fde68a' }}>{savingCustomer ? '建立中...' : '仍要強制建立'}</button>
+                        <button onClick={() => setDupWarning(null)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.tiny }}>返回修改</button>
                       </div>
                     </div>
                   )}
@@ -337,7 +338,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                     <button onClick={() => { setShowNewCustomer(false); setNewCustomer({ name: '', company_name: '', phone: '', email: '', tax_id: '' }); setDupWarning(null); }} style={{ ...S.btnGhost, ...(isMobile && { width: '100%' }), flex: 1 }}>取消</button>
                   </div>
                 </div>
-              ) : !customerSearch.trim() ? <div style={{ fontSize: 12, color: '#6b7280' }}>輸入關鍵字後搜尋正式客戶，找不到會自動跳新增。</div> : null}
+              ) : !customerSearch.trim() ? <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>輸入關鍵字後搜尋正式客戶，找不到會自動跳新增。</div> : null}
             </div>
 
             {/* 訂單明細 */}
@@ -349,34 +350,34 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                   <button onClick={searchProducts} style={{ ...S.btnPrimary, ...(isMobile && S.mobile.btnPrimary) }}>找商品</button>
                 </div>
                 {!productLoading && productResults.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 8, display: 'grid', gap: 6, maxHeight: 260, overflowY: 'auto' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: t.color.bgCard, border: `1px solid ${t.color.border}`, borderRadius: t.radius.lg, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 8, display: 'grid', gap: 6, maxHeight: 260, overflowY: 'auto' }}>
                     {productResults.map((product) => (
-                      <button key={product.item_number} onClick={() => addProduct(product)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer', border: '1px solid #f0f2f5', background: '#fafbfc' }}>
-                        <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{product.item_number}</div>
-                        <div style={{ fontSize: 13, color: '#111827', marginTop: 2 }}>{product.description || '-'}</div>
-                        <div style={{ fontSize: 12, color: '#10b981', marginTop: 2, ...S.mono }}>{fmtP(product.tw_retail_price || product.tw_reseller_price)}</div>
+                      <button key={product.item_number} onClick={() => addProduct(product)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer', border: `1px solid ${t.color.borderLight}`, background: t.color.bgMuted }}>
+                        <div style={{ fontSize: t.fontSize.caption, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono }}>{product.item_number}</div>
+                        <div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, marginTop: 2 }}>{product.description || '-'}</div>
+                        <div style={{ fontSize: t.fontSize.caption, color: t.color.success, marginTop: 2, ...S.mono }}>{fmtP(product.tw_retail_price || product.tw_reseller_price)}</div>
                       </button>
                     ))}
                   </div>
                 )}
-                {productLoading && <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12, textAlign: 'center' }}><Loading /></div>}
+                {productLoading && <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, marginTop: 6, background: t.color.bgCard, border: `1px solid ${t.color.border}`, borderRadius: t.radius.lg, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12, textAlign: 'center' }}><Loading /></div>}
               </div>
               {form.items.length ? (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: '#f0fdf4', borderRadius: 8, marginBottom: 8, fontSize: 13 }}>
-                    <span style={{ color: '#374151' }}>共 <strong>{form.items.length}</strong> 項商品</span>
-                    <span style={{ color: '#10b981', fontWeight: 700, ...S.mono }}>{fmtP(subtotal)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: t.color.successBg, borderRadius: t.radius.md, marginBottom: 8, fontSize: t.fontSize.body }}>
+                    <span style={{ color: t.color.textSecondary }}>共 <strong>{form.items.length}</strong> 項商品</span>
+                    <span style={{ color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(subtotal)}</span>
                   </div>
                   <div style={{ maxHeight: 380, overflowY: 'auto', display: 'grid', gap: 5, paddingRight: 4 }}>
                     {form.items.map((item, index) => (
-                      <div key={`${item.item_number_snapshot}-${index}`} style={{ background: '#f9fafb', border: '1px solid #f0f2f5', borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div key={`${item.item_number_snapshot}-${index}`} style={{ background: t.color.bgMuted, border: `1px solid ${t.color.borderLight}`, borderRadius: t.radius.md, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 12, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.item_number_snapshot || '-'}</div>
-                          <div style={{ fontSize: 13, color: '#111827', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
+                          <div style={{ fontSize: t.fontSize.caption, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.item_number_snapshot || '-'}</div>
+                          <div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
                         </div>
-                        <input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', Number(e.target.value || 1))} style={{ ...S.input, width: 52, textAlign: 'center', ...S.mono, padding: '4px 6px', fontSize: 13, flexShrink: 0 }} />
-                        <input type="number" min="0" value={item.unit_price} onChange={(e) => updateItem(index, 'unit_price', Number(e.target.value || 0))} style={{ ...S.input, width: 82, textAlign: 'right', ...S.mono, padding: '4px 6px', fontSize: 13, flexShrink: 0 }} />
-                        <div style={{ fontSize: 13, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', flexShrink: 0, minWidth: 72, textAlign: 'right' }}>{fmtP(Number(item.qty || 0) * Number(item.unit_price || 0))}</div>
+                        <input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', Number(e.target.value || 1))} style={{ ...S.input, width: 52, textAlign: 'center', ...S.mono, padding: '4px 6px', fontSize: t.fontSize.body, flexShrink: 0 }} />
+                        <input type="number" min="0" value={item.unit_price} onChange={(e) => updateItem(index, 'unit_price', Number(e.target.value || 0))} style={{ ...S.input, width: 82, textAlign: 'right', ...S.mono, padding: '4px 6px', fontSize: t.fontSize.body, flexShrink: 0 }} />
+                        <div style={{ fontSize: t.fontSize.body, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', flexShrink: 0, minWidth: 72, textAlign: 'right' }}>{fmtP(Number(item.qty || 0) * Number(item.unit_price || 0))}</div>
                         <button onClick={() => removeItem(index)} style={{ background: 'none', border: 'none', color: '#d1d5db', cursor: 'pointer', fontSize: 16, padding: '0 3px', lineHeight: 1, flexShrink: 0 }}>&times;</button>
                       </div>
                     ))}
@@ -409,13 +410,13 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                 <div><label style={S.label}>折扣金額</label><input type="number" min="0" value={form.discount_amount} onChange={(e) => setForm((current) => ({ ...current, discount_amount: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mobile.input, ...S.mono }} /></div>
                 <div><label style={S.label}>運費</label><input type="number" min="0" value={form.shipping_fee} onChange={(e) => setForm((current) => ({ ...current, shipping_fee: Number(e.target.value || 0) }))} style={{ ...S.input, ...S.mobile.input, ...S.mono }} /></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <input type="checkbox" id="order_tax_excluded" checked={form.tax_excluded} onChange={(e) => setForm(cur => ({ ...cur, tax_excluded: e.target.checked }))} style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }} />
-                  <label htmlFor="order_tax_excluded" style={{ fontSize: 13, color: '#111827', fontWeight: 600, cursor: 'pointer' }}>稅額外加 (5%)</label>
+                  <input type="checkbox" id="order_tax_excluded" checked={form.tax_excluded} onChange={(e) => setForm(cur => ({ ...cur, tax_excluded: e.target.checked }))} style={{ width: 16, height: 16, accentColor: t.color.brand, cursor: 'pointer' }} />
+                  <label htmlFor="order_tax_excluded" style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, cursor: 'pointer' }}>稅額外加 (5%)</label>
                 </div>
                 <div style={{ ...S.panelMuted, display: 'grid', gap: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>小計</span><strong style={S.mono}>{fmtP(subtotal)}</strong></div>
-                  {form.tax_excluded && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>稅額 (5%)</span><strong style={S.mono}>{fmtP(taxAmount)}</strong></div>}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#10b981', fontWeight: 700 }}><span>總額</span><strong style={S.mono}>{fmtP(totalAmount)}</strong></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.body }}><span>小計</span><strong style={S.mono}>{fmtP(subtotal)}</strong></div>
+                  {form.tax_excluded && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.body }}><span>稅額 (5%)</span><strong style={S.mono}>{fmtP(taxAmount)}</strong></div>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.h3, color: t.color.success, fontWeight: t.fontWeight.bold }}><span>總額</span><strong style={S.mono}>{fmtP(totalAmount)}</strong></div>
                 </div>
                 <button onClick={submit} disabled={saving || !tableReady} style={{ ...S.btnPrimary, ...S.mobile.btnPrimary, width: '100%', opacity: saving || !tableReady ? 0.7 : 1 }}>{saving ? '建立中...' : '建立訂單'}</button>
               </div>

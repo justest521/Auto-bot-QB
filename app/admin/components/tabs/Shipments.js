@@ -1,15 +1,16 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
 const STATUS_MAP = { pending: '待出貨', packed: '已包裝', shipped: '已出貨', delivered: '已送達', returned: '已退回', cancelled: '已取消' };
-const STATUS_COLOR = { pending: '#f59e0b', packed: '#8b5cf6', shipped: '#3b82f6', delivered: '#16a34a', returned: '#ef4444', cancelled: '#6b7280' };
-const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
-const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+const STATUS_COLOR = { pending: t.color.warning, packed: t.color.purple, shipped: t.color.link, delivered: t.color.brand, returned: t.color.error, cancelled: t.color.textMuted };
+const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
+const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
 
 // ========== 出貨單明細頁 ==========
 function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
@@ -54,25 +55,25 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
 
   // Status flow buttons
   const nextActions = [];
-  if (statusKey === 'pending') nextActions.push({ status: 'shipped', label: '標記出貨', color: '#3b82f6', notify: true });
-  if (statusKey === 'shipped') nextActions.push({ status: 'delivered', label: '標記送達', color: '#16a34a', notify: true });
-  if (statusKey !== 'cancelled' && statusKey !== 'delivered' && statusKey !== 'returned') nextActions.push({ status: 'cancelled', label: '取消出貨', color: '#ef4444', notify: false });
-  if (statusKey === 'delivered') nextActions.push({ status: 'returned', label: '退回', color: '#ef4444', notify: false });
+  if (statusKey === 'pending') nextActions.push({ status: 'shipped', label: '標記出貨', color: t.color.link, notify: true });
+  if (statusKey === 'shipped') nextActions.push({ status: 'delivered', label: '標記送達', color: t.color.brand, notify: true });
+  if (statusKey !== 'cancelled' && statusKey !== 'delivered' && statusKey !== 'returned') nextActions.push({ status: 'cancelled', label: '取消出貨', color: t.color.error, notify: false });
+  if (statusKey === 'delivered') nextActions.push({ status: 'returned', label: '退回', color: t.color.error, notify: false });
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: isMobile ? '0' : '0 12px' }}>
       {/* Header */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.color.textMuted, transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: isMobile ? 16 : 22, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{ship.shipment_no || '-'}</span>
-              <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `${STATUS_COLOR[statusKey] || '#6b7280'}14`, color: STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
+              <span style={{ fontSize: isMobile ? 16 : 22, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{ship.shipment_no || '-'}</span>
+              <span style={{ padding: '3px 10px', borderRadius: t.radius.pill, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[statusKey] || t.color.textMuted}14`, color: STATUS_COLOR[statusKey] || t.color.textMuted, border: `1px solid ${STATUS_COLOR[statusKey] || t.color.textMuted}30` }}>
                 {STATUS_MAP[statusKey] || statusKey}
               </span>
             </div>
-            <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 4, ...S.mono }}>
+            <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>
               {fmtDate(ship.ship_date || ship.created_at)}
               {ship.carrier && <span style={{ color: '#d1d5db' }}> &middot; </span>}
               {ship.carrier && <span>{ship.carrier}</span>}
@@ -82,14 +83,14 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {nextActions.map(a => (
             <button key={a.status} onClick={() => updateStatus(a.status, a.notify)} disabled={!!processing}
-              style={{ ...(isMobile ? { flex: 1, minHeight: 44, minWidth: 0 } : {}), padding: isMobile ? '9px 12px' : '9px 22px', borderRadius: 10, border: a.status === 'cancelled' || a.status === 'returned' ? `1px solid ${a.color}40` : 'none', background: a.status === 'cancelled' || a.status === 'returned' ? '#fff' : `linear-gradient(135deg, ${a.color}, ${a.color}dd)`, color: a.status === 'cancelled' || a.status === 'returned' ? a.color : '#fff', fontSize: isMobile ? 12 : 14, fontWeight: 700, cursor: 'pointer', opacity: processing ? 0.7 : 1, transition: 'all 0.15s', boxShadow: a.status === 'cancelled' || a.status === 'returned' ? 'none' : `0 2px 8px ${a.color}40` }}>
+              style={{ ...(isMobile ? { flex: 1, minHeight: 44, minWidth: 0 } : {}), padding: isMobile ? '9px 12px' : '9px 22px', borderRadius: t.radius.lg, border: a.status === 'cancelled' || a.status === 'returned' ? `1px solid ${a.color}40` : 'none', background: a.status === 'cancelled' || a.status === 'returned' ? t.color.bgCard : `linear-gradient(135deg, ${a.color}, ${a.color}dd)`, color: a.status === 'cancelled' || a.status === 'returned' ? a.color : t.color.bgCard, fontSize: isMobile ? 12 : 14, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: processing ? 0.7 : 1, transition: 'all 0.15s', boxShadow: a.status === 'cancelled' || a.status === 'returned' ? 'none' : `0 2px 8px ${a.color}40` }}>
               {processing === a.status ? '處理中...' : a.label}
             </button>
           ))}
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') || msg.includes('錯誤') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('錯誤') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('錯誤') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: t.fontSize.h3 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
         isMobile ? (
@@ -97,38 +98,38 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
             {/* Items */}
             <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>出貨品項</span>
-                <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+                <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>出貨品項</span>
+                <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
               </div>
               {items.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                   {items.map((item, i) => (
-                    <div key={item.id || i} style={{ padding: '12px 16px', borderTop: i > 0 ? '1px solid #f3f5f7' : 'none', background: '#fff' }}>
+                    <div key={item.id || i} style={{ padding: '12px 16px', borderTop: i > 0 ? '1px solid #f3f5f7' : 'none', background: t.color.bgCard }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>料號</span>
-                        <span style={{ ...S.mono, fontSize: 13, color: '#374151' }}>{item.item_number || '-'}</span>
+                        <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>料號</span>
+                        <span style={{ ...S.mono, fontSize: t.fontSize.body, color: t.color.textSecondary }}>{item.item_number || '-'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>品名</span>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2937' }}>{item.description || '-'}</span>
+                        <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>品名</span>
+                        <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: '#1f2937' }}>{item.description || '-'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>訂購數</span>
-                        <span style={{ ...S.mono, fontSize: 13, color: '#6b7280' }}>{item.order_qty || '-'}</span>
+                        <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>訂購數</span>
+                        <span style={{ ...S.mono, fontSize: t.fontSize.body, color: t.color.textMuted }}>{item.order_qty || '-'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>出貨數</span>
-                        <span style={{ ...S.mono, fontSize: 13, fontWeight: 800, color: '#059669' }}>{item.qty_shipped || 0}</span>
+                        <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>出貨數</span>
+                        <span style={{ ...S.mono, fontSize: t.fontSize.body, fontWeight: 800, color: '#059669' }}>{item.qty_shipped || 0}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>單價</span>
-                        <span style={{ ...S.mono, fontSize: 13, color: '#6b7280' }}>{fmtP(item.unit_price)}</span>
+                        <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>單價</span>
+                        <span style={{ ...S.mono, fontSize: t.fontSize.body, color: t.color.textMuted }}>{fmtP(item.unit_price)}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無出貨品項明細</div>
+                <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: t.fontSize.h3 }}>尚無出貨品項明細</div>
               )}
             </div>
 
@@ -141,18 +142,18 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                   const isCurrent = statusKey === st;
                   return (
                     <div key={st} style={{ display: 'flex', alignItems: 'center' }}>
-                      {i > 0 && <div style={{ width: 40, height: 2, background: isActive ? '#16a34a' : '#e5e7eb' }} />}
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, background: isCurrent ? STATUS_COLOR[st] : isActive ? '#dcfce7' : '#f3f4f6', color: isCurrent ? '#fff' : isActive ? '#15803d' : '#9ca3af', border: isCurrent ? 'none' : `2px solid ${isActive ? '#86efac' : '#e5e7eb'}` }}>
+                      {i > 0 && <div style={{ width: 40, height: 2, background: isActive ? t.color.brand : t.color.border }} />}
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: isCurrent ? STATUS_COLOR[st] : isActive ? t.color.successBg : '#f3f4f6', color: isCurrent ? t.color.bgCard : isActive ? '#15803d' : t.color.textDisabled, border: isCurrent ? 'none' : `2px solid ${isActive ? '#86efac' : t.color.border}` }}>
                         {i + 1}
                       </div>
-                      <span style={{ marginLeft: 6, fontSize: 12, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? STATUS_COLOR[st] : isActive ? '#15803d' : '#9ca3af' }}>{STATUS_MAP[st]}</span>
+                      <span style={{ marginLeft: 6, fontSize: t.fontSize.caption, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? STATUS_COLOR[st] : isActive ? '#15803d' : t.color.textDisabled }}>{STATUS_MAP[st]}</span>
                     </div>
                   );
                 })}
                 {(statusKey === 'cancelled' || statusKey === 'returned') && (
                   <div style={{ display: 'flex', alignItems: 'center', marginLeft: 16 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, background: '#fee2e2', color: '#ef4444' }}>✕</div>
-                    <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 700, color: '#ef4444' }}>{STATUS_MAP[statusKey]}</span>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h3, background: t.color.errorBg, color: t.color.error }}>✕</div>
+                    <span style={{ marginLeft: 6, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.error }}>{STATUS_MAP[statusKey]}</span>
                   </div>
                 )}
               </div>
@@ -171,8 +172,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                   { label: '備註', value: ship.remark },
                 ].filter(f => f.value).map((f, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                    <span style={{ fontSize: 12, color: '#b0b8c4', flexShrink: 0, fontWeight: 500 }}>{f.label}</span>
-                    <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 500, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                    <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                    <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                   </div>
                 ))}
               </div>
@@ -182,7 +183,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
             {order && (
               <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>關聯訂單</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {[
                     { label: '訂單日期', value: order.order_date, mono: true },
@@ -191,8 +192,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                     { label: '訂單金額', value: fmtP(order.total_amount), mono: true },
                   ].filter(f => f.value).map((f, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                      <span style={{ fontSize: 12, color: '#b0b8c4', flexShrink: 0, fontWeight: 500 }}>{f.label}</span>
-                      <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 500, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                      <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -203,7 +204,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
             {customer && (
               <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>客戶資訊</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {[
                     { label: '聯絡人', value: customer.name },
@@ -211,8 +212,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                     { label: '地址', value: customer.address },
                   ].filter(f => f.value).map((f, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                      <span style={{ fontSize: 12, color: '#b0b8c4', flexShrink: 0, fontWeight: 500 }}>{f.label}</span>
-                      <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 500, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                      <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -225,26 +226,26 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
             <div>
               <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
                 <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>出貨品項</span>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+                  <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>出貨品項</span>
+                  <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
                 </div>
                 {items.length > 0 ? (
                   <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
                       <div>料號</div><div>品名</div><div style={{ textAlign: 'center' }}>訂購數</div><div style={{ textAlign: 'center' }}>出貨數</div><div style={{ textAlign: 'right' }}>單價</div>
                     </div>
                     {items.map((item, i) => (
-                      <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-                        <div style={{ ...S.mono, fontSize: 14, color: '#374151' }}>{item.item_number || '-'}</div>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: '#1f2937', lineHeight: 1.4 }}>{item.description || '-'}</div>
-                        <div style={{ textAlign: 'center', ...S.mono, fontSize: 14, color: '#6b7280' }}>{item.order_qty || '-'}</div>
-                        <div style={{ textAlign: 'center', ...S.mono, fontSize: 14, fontWeight: 800, color: '#059669' }}>{item.qty_shipped || 0}</div>
-                        <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#6b7280' }}>{fmtP(item.unit_price)}</div>
+                      <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: t.color.bgCard, transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = t.color.bgCard}>
+                        <div style={{ ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary }}>{item.item_number || '-'}</div>
+                        <div style={{ fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.h3, color: '#1f2937', lineHeight: 1.4 }}>{item.description || '-'}</div>
+                        <div style={{ textAlign: 'center', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textMuted }}>{item.order_qty || '-'}</div>
+                        <div style={{ textAlign: 'center', ...S.mono, fontSize: t.fontSize.h3, fontWeight: 800, color: '#059669' }}>{item.qty_shipped || 0}</div>
+                        <div style={{ textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textMuted }}>{fmtP(item.unit_price)}</div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無出貨品項明細</div>
+                  <div style={{ padding: '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: t.fontSize.h3 }}>尚無出貨品項明細</div>
                 )}
               </div>
 
@@ -257,18 +258,18 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                     const isCurrent = statusKey === st;
                     return (
                       <div key={st} style={{ display: 'flex', alignItems: 'center' }}>
-                        {i > 0 && <div style={{ width: 40, height: 2, background: isActive ? '#16a34a' : '#e5e7eb' }} />}
-                        <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, background: isCurrent ? STATUS_COLOR[st] : isActive ? '#dcfce7' : '#f3f4f6', color: isCurrent ? '#fff' : isActive ? '#15803d' : '#9ca3af', border: isCurrent ? 'none' : `2px solid ${isActive ? '#86efac' : '#e5e7eb'}` }}>
+                        {i > 0 && <div style={{ width: 40, height: 2, background: isActive ? t.color.brand : t.color.border }} />}
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: isCurrent ? STATUS_COLOR[st] : isActive ? t.color.successBg : '#f3f4f6', color: isCurrent ? t.color.bgCard : isActive ? '#15803d' : t.color.textDisabled, border: isCurrent ? 'none' : `2px solid ${isActive ? '#86efac' : t.color.border}` }}>
                           {i + 1}
                         </div>
-                        <span style={{ marginLeft: 6, fontSize: 12, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? STATUS_COLOR[st] : isActive ? '#15803d' : '#9ca3af' }}>{STATUS_MAP[st]}</span>
+                        <span style={{ marginLeft: 6, fontSize: t.fontSize.caption, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? STATUS_COLOR[st] : isActive ? '#15803d' : t.color.textDisabled }}>{STATUS_MAP[st]}</span>
                       </div>
                     );
                   })}
                   {(statusKey === 'cancelled' || statusKey === 'returned') && (
                     <div style={{ display: 'flex', alignItems: 'center', marginLeft: 16 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, background: '#fee2e2', color: '#ef4444' }}>✕</div>
-                      <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 700, color: '#ef4444' }}>{STATUS_MAP[statusKey]}</span>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h3, background: t.color.errorBg, color: t.color.error }}>✕</div>
+                      <span style={{ marginLeft: 6, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.error }}>{STATUS_MAP[statusKey]}</span>
                     </div>
                   )}
                 </div>
@@ -290,8 +291,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                     { label: '備註', value: ship.remark },
                   ].filter(f => f.value).map((f, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                      <span style={{ fontSize: 12, color: '#b0b8c4', flexShrink: 0, fontWeight: 500 }}>{f.label}</span>
-                      <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 500, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                      <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -301,7 +302,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
               {order && (
                 <div style={{ ...cardStyle, padding: '10px 16px' }}>
                   <div style={labelStyle}>關聯訂單</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {[
                       { label: '訂單日期', value: order.order_date, mono: true },
@@ -310,8 +311,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                       { label: '訂單金額', value: fmtP(order.total_amount), mono: true },
                     ].filter(f => f.value).map((f, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                        <span style={{ fontSize: 12, color: '#b0b8c4', flexShrink: 0, fontWeight: 500 }}>{f.label}</span>
-                        <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 500, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                        <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                        <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                       </div>
                     ))}
                   </div>
@@ -322,7 +323,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
               {customer && (
                 <div style={{ ...cardStyle, padding: '10px 16px' }}>
                   <div style={labelStyle}>客戶資訊</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {[
                       { label: '聯絡人', value: customer.name },
@@ -330,8 +331,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                       { label: '地址', value: customer.address },
                     ].filter(f => f.value).map((f, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                        <span style={{ fontSize: 12, color: '#b0b8c4', flexShrink: 0, fontWeight: 500 }}>{f.label}</span>
-                        <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 500, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                        <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                        <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                       </div>
                     ))}
                   </div>
@@ -422,29 +423,29 @@ export default function Shipments() {
         </div>} />
 
       <div style={{ ...S.statGrid, gap: 10, marginBottom: 10, gridTemplateColumns: isMobile ? '1fr 1fr' : S.statGrid.gridTemplateColumns }}>
-        <StatCard code="PEND" label="待出貨" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
-        <StatCard code="SHIP" label="已出貨" value={fmt(sm.shipped)} tone="blue" accent="#3b82f6" />
-        <StatCard code="DELV" label="已送達" value={fmt(sm.delivered)} tone="blue" accent="#16a34a" />
+        <StatCard code="PEND" label="待出貨" value={fmt(sm.pending)} tone="blue" accent={t.color.warning} />
+        <StatCard code="SHIP" label="已出貨" value={fmt(sm.shipped)} tone="blue" accent={t.color.link} />
+        <StatCard code="DELV" label="已送達" value={fmt(sm.delivered)} tone="blue" accent={t.color.brand} />
       </div>
 
       {/* Filter bar */}
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.body, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? t.color.bgCard : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <span style={{ color: '#6b7280', fontSize: 13, display: isMobile ? 'none' : 'inline' }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: '6px 10px', ...S.mono }} />
-          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: '6px 10px' }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: '6px 10px', ...S.mono }} />
+          <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body, display: isMobile ? 'none' : 'inline' }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: '6px 10px', ...S.mono }} />
+          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="pending">待出貨</option>
             <option value="shipped">已出貨</option>
             <option value="delivered">已送達</option>
             <option value="cancelled">已取消</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: 13, padding: '6px 10px' }} />
-          <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: '6px 18px', fontSize: 13 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: t.fontSize.body, padding: '6px 10px' }} />
+          <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: '6px 18px', fontSize: t.fontSize.body }}>查詢</button>
         </div>
       </div>
 
@@ -456,7 +457,7 @@ export default function Shipments() {
               <div key={s.id} onClick={() => setSelectedShipment(s)} style={{ ...S.mobileCard, padding: '12px', cursor: 'pointer' }}>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>出貨單號</span>
-                  <span style={{ ...S.mobileCardValue, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{s.shipment_no || '-'}</span>
+                  <span style={{ ...S.mobileCardValue, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{s.shipment_no || '-'}</span>
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>物流商</span>
@@ -472,12 +473,12 @@ export default function Shipments() {
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>狀態</span>
-                  <span style={S.mobileCardValue}><span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: `${STATUS_COLOR[s.status] || '#6b7280'}14`, color: STATUS_COLOR[s.status] || '#6b7280', border: `1px solid ${STATUS_COLOR[s.status] || '#6b7280'}30` }}>{STATUS_MAP[s.status] || s.status}</span></span>
+                  <span style={S.mobileCardValue}><span style={{ padding: '3px 10px', borderRadius: t.radius.pill, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[s.status] || t.color.textMuted}14`, color: STATUS_COLOR[s.status] || t.color.textMuted, border: `1px solid ${STATUS_COLOR[s.status] || t.color.textMuted}30` }}>{STATUS_MAP[s.status] || s.status}</span></span>
                 </div>
                 <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 6, flexDirection: 'column' }}>
-                  {s.status === 'pending' && <button onClick={(e) => handleStatus(e, s.id, 'shipped')} style={{ ...S.btnGhost, minHeight: 44, width: '100%', borderColor: '#93c5fd', color: '#3b82f6' }}>出貨</button>}
-                  {s.status === 'shipped' && <button onClick={(e) => handleStatus(e, s.id, 'delivered')} style={{ ...S.btnGhost, minHeight: 44, width: '100%', borderColor: '#86efac', color: '#16a34a' }}>送達</button>}
-                  {s.status !== 'cancelled' && s.status !== 'delivered' && s.status !== 'returned' && <button onClick={(e) => handleStatus(e, s.id, 'cancelled')} style={{ ...S.btnGhost, minHeight: 44, width: '100%', borderColor: '#fecaca', color: '#ef4444' }}>取消</button>}
+                  {s.status === 'pending' && <button onClick={(e) => handleStatus(e, s.id, 'shipped')} style={{ ...S.btnGhost, minHeight: 44, width: '100%', borderColor: '#93c5fd', color: t.color.link }}>出貨</button>}
+                  {s.status === 'shipped' && <button onClick={(e) => handleStatus(e, s.id, 'delivered')} style={{ ...S.btnGhost, minHeight: 44, width: '100%', borderColor: '#86efac', color: t.color.brand }}>送達</button>}
+                  {s.status !== 'cancelled' && s.status !== 'delivered' && s.status !== 'returned' && <button onClick={(e) => handleStatus(e, s.id, 'cancelled')} style={{ ...S.btnGhost, minHeight: 44, width: '100%', borderColor: '#fecaca', color: t.color.error }}>取消</button>}
                 </div>
               </div>
             ))}
@@ -496,29 +497,29 @@ export default function Shipments() {
             ]} />
             {/* Table rows */}
             {data.shipments.map((s, idx) => {
-              const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13 };
+              const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: t.fontSize.body };
               const cCenter = { ...cell, justifyContent: 'center' };
               const cLastCell = { ...cell, borderRight: 'none' };
               const cLastCenterCell = { ...cCenter, borderRight: 'none' };
               return (
               <div key={s.id} onClick={() => setSelectedShipment(s)}
-                style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, background: '#fff', cursor: 'pointer', transition: 'background 0.1s', borderBottom: idx < data.shipments.length - 1 ? '1px solid #e5e7eb' : 'none' }}
+                style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, background: t.color.bgCard, cursor: 'pointer', transition: 'background 0.1s', borderBottom: idx < data.shipments.length - 1 ? '1px solid #e5e7eb' : 'none' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-                onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-                <div style={{ color: '#b0b8c4', fontWeight: 500, ...cCenter }}>{(data.page * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ fontWeight: 700, color: '#3b82f6', ...S.mono, ...cCenter }}>{s.shipment_no || '-'}</div>
-                <div style={{ color: '#374151', ...cell }}>{s.carrier || '-'}</div>
-                <div style={{ color: '#374151', ...S.mono, ...cell }}>{s.tracking_no || '-'}</div>
-                <div style={{ color: '#6b7280', ...S.mono, ...cCenter }}>{fmtDate(s.ship_date || s.created_at)}</div>
+                onMouseLeave={e => e.currentTarget.style.background = t.color.bgCard}>
+                <div style={{ color: '#b0b8c4', fontWeight: t.fontWeight.medium, ...cCenter }}>{(data.page * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono, ...cCenter }}>{s.shipment_no || '-'}</div>
+                <div style={{ color: t.color.textSecondary, ...cell }}>{s.carrier || '-'}</div>
+                <div style={{ color: t.color.textSecondary, ...S.mono, ...cell }}>{s.tracking_no || '-'}</div>
+                <div style={{ color: t.color.textMuted, ...S.mono, ...cCenter }}>{fmtDate(s.ship_date || s.created_at)}</div>
                 <div style={{ ...cCenter }}>
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: `${STATUS_COLOR[s.status] || '#6b7280'}14`, color: STATUS_COLOR[s.status] || '#6b7280', border: `1px solid ${STATUS_COLOR[s.status] || '#6b7280'}30` }}>
+                  <span style={{ padding: '3px 10px', borderRadius: t.radius.pill, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[s.status] || t.color.textMuted}14`, color: STATUS_COLOR[s.status] || t.color.textMuted, border: `1px solid ${STATUS_COLOR[s.status] || t.color.textMuted}30` }}>
                     {STATUS_MAP[s.status] || s.status}
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'center', ...cLastCenterCell }}>
-                  {s.status === 'pending' && <button onClick={(e) => handleStatus(e, s.id, 'shipped')} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, borderColor: '#93c5fd', color: '#3b82f6' }}>出貨</button>}
-                  {s.status === 'shipped' && <button onClick={(e) => handleStatus(e, s.id, 'delivered')} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, borderColor: '#86efac', color: '#16a34a' }}>送達</button>}
-                  {s.status !== 'cancelled' && s.status !== 'delivered' && s.status !== 'returned' && <button onClick={(e) => handleStatus(e, s.id, 'cancelled')} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: 11, borderColor: '#fecaca', color: '#ef4444' }}>取消</button>}
+                  {s.status === 'pending' && <button onClick={(e) => handleStatus(e, s.id, 'shipped')} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: t.fontSize.tiny, borderColor: '#93c5fd', color: t.color.link }}>出貨</button>}
+                  {s.status === 'shipped' && <button onClick={(e) => handleStatus(e, s.id, 'delivered')} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: t.fontSize.tiny, borderColor: '#86efac', color: t.color.brand }}>送達</button>}
+                  {s.status !== 'cancelled' && s.status !== 'delivered' && s.status !== 'returned' && <button onClick={(e) => handleStatus(e, s.id, 'cancelled')} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: t.fontSize.tiny, borderColor: '#fecaca', color: t.color.error }}>取消</button>}
                 </div>
               </div>
               );
@@ -533,9 +534,9 @@ export default function Shipments() {
 
       {/* Create modal */}
       {createOpen && (
-        <div style={{ ...(isMobile ? S.mobileModalOverlay : { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }) }}>
+        <div style={{ ...(isMobile ? S.mobileModalOverlay : { position: 'fixed', inset: 0, background: t.color.overlay, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }) }}>
           <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 440, maxWidth: '90vw', borderRadius: isMobile ? 0 : 14, padding: isMobile ? '16px' : '16px 18px 20px' }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 700 }}>建立出貨單</h3>
+            <h3 style={{ margin: '0 0 12px', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold }}>建立出貨單</h3>
             {[
               { key: 'order_id', label: '訂單 ID', type: 'text' },
               { key: 'carrier', label: '物流商', type: 'text' },

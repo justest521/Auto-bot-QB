@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, useResponsive } from '@/lib/admin/helpers';
 import { Loading, PageLead } from '../shared/ui';
@@ -438,9 +439,9 @@ export default function QuickReceive({ setTab }) {
   const totalCost = subtotal + taxAmount;
   const totalWaiting = checkedItemsList.reduce((s, i) => s + (i.waiting_orders?.length || 0), 0);
 
-  const cardStyle = { ...S.card, borderRadius: 10, border: '1px solid #eaeff5' };
-  const thStyle = { textAlign: 'left', padding: '8px 10px', color: '#6b7280', fontWeight: 600, fontSize: 12, borderBottom: '2px solid #e5e7eb', whiteSpace: 'nowrap' };
-  const tdStyle = { padding: '8px 10px', borderBottom: '1px solid #f3f4f6', fontSize: 13, verticalAlign: 'top' };
+  const cardStyle = { ...S.card, borderRadius: t.radius.lg, border: '1px solid #eaeff5' };
+  const thStyle = { textAlign: 'left', padding: '8px 10px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.caption, borderBottom: '2px solid #e5e7eb', whiteSpace: 'nowrap' };
+  const tdStyle = { padding: '8px 10px', borderBottom: '1px solid #f3f4f6', fontSize: t.fontSize.body, verticalAlign: 'top' };
 
   return (
     <div>
@@ -453,11 +454,11 @@ export default function QuickReceive({ setTab }) {
       <div style={{ ...cardStyle, marginBottom: 16, padding: '20px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>上傳檔案</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>支援 CSV、Excel、PDF、圖片 — 系統自動偵測格式並解析</div>
+            <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>上傳檔案</div>
+            <div style={{ fontSize: 12, color: t.color.textMuted, marginTop: 2 }}>支援 CSV、Excel、PDF、圖片 — 系統自動偵測格式並解析</div>
           </div>
           {uploadedFileName && !loading && (
-            <div style={{ fontSize: 12, color: '#6b7280', background: '#f3f4f6', padding: '4px 10px', borderRadius: 6 }}>
+            <div style={{ fontSize: 12, color: t.color.textMuted, background: '#f3f4f6', padding: '4px 10px', borderRadius: t.radius.sm }}>
               已上傳：{uploadedFileName}
             </div>
           )}
@@ -469,28 +470,28 @@ export default function QuickReceive({ setTab }) {
           onDrop={onDrop}
           onClick={() => fileRef.current?.click()}
           style={{
-            border: `2px dashed ${dragging ? '#3b82f6' : '#d1d5db'}`,
-            borderRadius: 12,
+            border: `2px dashed ${dragging ? t.color.link : '#d1d5db'}`,
+            borderRadius: t.radius.lg,
             padding: '44px 20px',
             textAlign: 'center',
             cursor: 'pointer',
-            background: dragging ? '#eff6ff' : '#fafbfd',
+            background: dragging ? t.color.infoBg : '#fafbfd',
             transition: 'all 0.2s',
           }}
         >
           <div style={{ fontSize: 40, marginBottom: 8, lineHeight: 1 }}>{dragging ? '\uD83D\uDCE5' : '\uD83D\uDCC1'}</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: dragging ? '#2563eb' : '#374151', marginBottom: 6 }}>
+          <div style={{ fontSize: t.fontSize.h3, fontWeight: 600, color: dragging ? '#2563eb' : t.color.textSecondary, marginBottom: 6 }}>
             {dragging ? '放開以上傳檔案' : '拖曳檔案到這裡'}
           </div>
-          <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 10 }}>或點擊選擇檔案</div>
+          <div style={{ fontSize: 12, color: t.color.textDisabled, marginBottom: 10 }}>或點擊選擇檔案</div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
             {[
-              { label: 'CSV', color: '#16a34a', bg: '#f0fdf4' },
+              { label: 'CSV', color: t.color.brand, bg: '#f0fdf4' },
               { label: 'Excel', color: '#0d9488', bg: '#f0fdfa' },
-              { label: 'PDF', color: '#dc2626', bg: '#fef2f2' },
+              { label: 'PDF', color: t.color.error, bg: '#fef2f2' },
               { label: '圖片', color: '#7c3aed', bg: '#f5f3ff' },
             ].map(t => (
-              <span key={t.label} style={{ fontSize: 11, fontWeight: 600, color: t.color, background: t.bg, padding: '2px 10px', borderRadius: 10 }}>{t.label}</span>
+              <span key={t.label} style={{ fontSize: t.fontSize.tiny, fontWeight: 600, color: t.color, background: t.bg, padding: '2px 10px', borderRadius: 10 }}>{t.label}</span>
             ))}
           </div>
         </div>
@@ -499,9 +500,9 @@ export default function QuickReceive({ setTab }) {
 
       {/* ── 文字輸入區 ── */}
       <div style={{ ...cardStyle, marginBottom: 16, padding: '20px 24px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 4 }}>手動輸入料號</div>
-        <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 10 }}>
-          每行一個品項，格式：<code style={{ background: '#f3f4f6', padding: '1px 6px', borderRadius: 4 }}>料號 x數量</code>
+        <div style={{ fontSize: 14, fontWeight: 700, color: t.color.textPrimary, marginBottom: 4 }}>手動輸入料號</div>
+        <div style={{ fontSize: 12, color: t.color.textMuted, marginBottom: 10 }}>
+          每行一個品項，格式：<code style={{ background: '#f3f4f6', padding: '1px 6px', borderRadius: t.radius.sm }}>料號 x數量</code>
         </div>
         <textarea
           value={textInput}
@@ -530,7 +531,7 @@ export default function QuickReceive({ setTab }) {
           { key: 'cost', label: '成本', align: 'right' },
         ];
         const mapped = getMappedItems();
-        const selectStyle = { padding: '3px 6px', fontSize: 11, border: '1px solid #c7d2fe', borderRadius: 4, background: '#fff', color: '#1e40af', fontWeight: 600, cursor: 'pointer', outline: 'none' };
+        const selectStyle = { padding: '3px 6px', fontSize: 11, border: '1px solid #c7d2fe', borderRadius: 4, background: t.color.bgCard, color: '#1e40af', fontWeight: 600, cursor: 'pointer', outline: 'none' };
 
         return (
           <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px', border: '2px solid #3b82f6', background: '#f8faff' }}>
@@ -538,19 +539,19 @@ export default function QuickReceive({ setTab }) {
               <div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: '#1e40af' }}>
                   解析預覽
-                  <span style={{ fontSize: 11, fontWeight: 500, color: '#6b7280', marginLeft: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: t.fontWeight.medium, color: t.color.textMuted, marginLeft: 8 }}>
                     來源：{FILE_TYPE_LABELS[preview.source] || preview.source}
                   </span>
-                  <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 6 }}>共 {preview.items.length} 項</span>
+                  <span style={{ fontSize: 11, color: t.color.textDisabled, marginLeft: 6 }}>共 {preview.items.length} 項</span>
                 </div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: t.color.textMuted, marginTop: 4 }}>
                   偵測到欄位：{preview.detectedCols.map(c => (
                     <span key={c} style={{ display: 'inline-block', fontSize: 11, fontWeight: 600, color: '#2563eb', background: '#dbeafe', padding: '1px 8px', borderRadius: 10, marginRight: 4 }}>{c}</span>
                   ))}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={() => setPreview(null)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 12, color: '#6b7280' }}>取消</button>
+                <button onClick={() => setPreview(null)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 12, color: t.color.textMuted }}>取消</button>
                 <button onClick={confirmPreview} disabled={previewChecked.size === 0} style={{
                   ...S.btnPrimary, padding: '6px 18px', fontSize: 13, fontWeight: 700,
                   background: previewChecked.size > 0 ? '#2563eb' : '#94a3b8',
@@ -561,11 +562,11 @@ export default function QuickReceive({ setTab }) {
             </div>
 
             {/* 欄位對應 */}
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 12px', background: '#eef2ff', borderRadius: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 12px', background: '#eef2ff', borderRadius: t.radius.md, marginBottom: 10, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: '#4338ca' }}>欄位對應</span>
               {TARGET_COLS.map(tc => (
                 <div key={tc.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 11, color: '#6b7280' }}>{tc.label}{tc.required ? '*' : ''}：</span>
+                  <span style={{ fontSize: 11, color: t.color.textMuted }}>{tc.label}{tc.required ? '*' : ''}：</span>
                   <select value={colMap[tc.key]} onChange={e => setColMap(prev => ({ ...prev, [tc.key]: e.target.value }))} style={selectStyle}>
                     {FIELD_OPTIONS.map(fo => (
                       <option key={fo.value} value={fo.value}>{fo.label}</option>
@@ -587,7 +588,7 @@ export default function QuickReceive({ setTab }) {
                           if (e.target.checked) setPreviewChecked(new Set(preview.items.map((_, i) => i)));
                           else setPreviewChecked(new Set());
                         }}
-                        style={{ width: 15, height: 15, accentColor: '#3b82f6', cursor: 'pointer' }}
+                        style={{ width: 15, height: 15, accentColor: t.color.link, cursor: 'pointer' }}
                       />
                     </th>
                     <th style={{ ...thStyle, textAlign: 'center', width: 36, borderBottom: '2px solid #c7d2fe' }}>#</th>
@@ -603,18 +604,18 @@ export default function QuickReceive({ setTab }) {
                     return (
                       <tr key={idx}
                         onClick={() => setPreviewChecked(prev => { const s = new Set(prev); if (s.has(idx)) s.delete(idx); else s.add(idx); return s; })}
-                        style={{ background: checked ? (idx % 2 === 0 ? '#fff' : '#f8faff') : '#f9fafb', opacity: checked ? 1 : 0.45, cursor: 'pointer', transition: 'all 0.1s' }}
+                        style={{ background: checked ? (idx % 2 === 0 ? t.color.bgCard : '#f8faff') : t.color.bgMuted, opacity: checked ? 1 : 0.45, cursor: 'pointer', transition: 'all 0.1s' }}
                       >
                         <td style={{ ...tdStyle, textAlign: 'center' }}>
-                          <input type="checkbox" checked={checked} readOnly style={{ width: 14, height: 14, accentColor: '#3b82f6', cursor: 'pointer' }} />
+                          <input type="checkbox" checked={checked} readOnly style={{ width: 14, height: 14, accentColor: t.color.link, cursor: 'pointer' }} />
                         </td>
-                        <td style={{ ...tdStyle, textAlign: 'center', color: '#9ca3af', fontSize: 11 }}>{idx + 1}</td>
+                        <td style={{ ...tdStyle, textAlign: 'center', color: t.color.textDisabled, fontSize: 11 }}>{idx + 1}</td>
                         <td style={tdStyle}>
-                          <span style={{ ...S.mono, fontWeight: 700, color: item.part_no ? '#1e40af' : '#ef4444', fontSize: 13 }}>{item.part_no || '(空)'}</span>
+                          <span style={{ ...S.mono, fontWeight: 700, color: item.part_no ? '#1e40af' : t.color.error, fontSize: 13 }}>{item.part_no || '(空)'}</span>
                         </td>
                         <td style={{ ...tdStyle, color: '#4b5563', fontSize: 12 }}>{item.name || <span style={{ color: '#d1d5db' }}>—</span>}</td>
                         <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600, fontSize: 13 }}>{item.qty}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, color: item.cost > 0 ? '#374151' : '#d1d5db', fontSize: 12 }}>{item.cost > 0 ? fmtP(item.cost) : '—'}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, color: item.cost > 0 ? t.color.textSecondary : '#d1d5db', fontSize: 12 }}>{item.cost > 0 ? fmtP(item.cost) : '—'}</td>
                       </tr>
                     );
                   })}
@@ -629,7 +630,7 @@ export default function QuickReceive({ setTab }) {
       {(loading || matching) && (
         <div style={{ ...cardStyle, padding: 30, textAlign: 'center', marginBottom: 16 }}>
           <Loading />
-          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 8 }}>{matching ? '正在比對產品與訂單...' : '解析中...'}</div>
+          <div style={{ fontSize: 13, color: t.color.textMuted, marginTop: 8 }}>{matching ? '正在比對產品與訂單...' : '解析中...'}</div>
         </div>
       )}
 
@@ -637,8 +638,8 @@ export default function QuickReceive({ setTab }) {
       {items.length > 0 && !loading && !matching && (
         <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>
-              進貨明細 <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>{checkedCount} / {items.length} 項 / {totalQty} 件</span>
+            <div style={{ fontSize: 15, fontWeight: 700, color: t.color.textPrimary }}>
+              進貨明細 <span style={{ fontSize: 12, color: t.color.textMuted, fontWeight: 400 }}>{checkedCount} / {items.length} 項 / {totalQty} 件</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {(() => { const memCount = items.filter(i => i.from_memory).length; return memCount > 0 ? (
@@ -647,11 +648,11 @@ export default function QuickReceive({ setTab }) {
                 </span>
               ) : null; })()}
               {totalWaiting > 0 && (
-                <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600, background: '#fef3c7', padding: '3px 10px', borderRadius: 6 }}>
+                <span style={{ fontSize: 12, color: t.color.warning, fontWeight: 600, background: t.color.warningBg, padding: '3px 10px', borderRadius: 6 }}>
                   {totalWaiting} 筆等待訂單
                 </span>
               )}
-              <button onClick={addManualItem} style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>+ 手動新增</button>
+              <button onClick={addManualItem} style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', background: t.color.infoBg, border: '1px solid #bfdbfe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>+ 手動新增</button>
             </div>
           </div>
           <div style={{ overflowX: 'auto' }}>
@@ -659,7 +660,7 @@ export default function QuickReceive({ setTab }) {
               <thead>
                 <tr>
                   <th style={{ ...thStyle, textAlign: 'center', width: 36 }}>
-                    <input type="checkbox" checked={checkedItems.size === items.length && items.length > 0} onChange={toggleAll} style={{ width: 15, height: 15, accentColor: '#3b82f6', cursor: 'pointer' }} />
+                    <input type="checkbox" checked={checkedItems.size === items.length && items.length > 0} onChange={toggleAll} style={{ width: 15, height: 15, accentColor: t.color.link, cursor: 'pointer' }} />
                   </th>
                   <th style={{ ...thStyle, textAlign: 'center', width: 40 }}>序</th>
                   <th style={thStyle}>料號</th>
@@ -674,14 +675,14 @@ export default function QuickReceive({ setTab }) {
               </thead>
               <tbody>
                 {items.map((item, idx) => (
-                  <tr key={idx} style={{ background: !checkedItems.has(idx) ? '#f9fafb' : idx % 2 === 0 ? '#fff' : '#fafbfd', opacity: checkedItems.has(idx) ? 1 : 0.5, transition: 'opacity 0.15s' }}>
+                  <tr key={idx} style={{ background: !checkedItems.has(idx) ? t.color.bgMuted : idx % 2 === 0 ? t.color.bgCard : '#fafbfd', opacity: checkedItems.has(idx) ? 1 : 0.5, transition: 'opacity 0.15s' }}>
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <input type="checkbox" checked={checkedItems.has(idx)} onChange={() => toggleCheck(idx)} style={{ width: 15, height: 15, accentColor: '#3b82f6', cursor: 'pointer' }} />
+                      <input type="checkbox" checked={checkedItems.has(idx)} onChange={() => toggleCheck(idx)} style={{ width: 15, height: 15, accentColor: t.color.link, cursor: 'pointer' }} />
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: t.color.textDisabled, fontSize: 12 }}>{idx + 1}</td>
                     <td style={tdStyle}>
-                      <span style={{ ...S.mono, fontWeight: 700, color: item.matched ? '#2563eb' : '#374151' }}>{item.part_no}</span>
-                      {!item.matched && <span style={{ fontSize: 10, color: '#f59e0b', marginLeft: 6, background: '#fef3c7', padding: '1px 6px', borderRadius: 4 }}>新品</span>}
+                      <span style={{ ...S.mono, fontWeight: 700, color: item.matched ? '#2563eb' : t.color.textSecondary }}>{item.part_no}</span>
+                      {!item.matched && <span style={{ fontSize: t.fontSize.tiny, color: t.color.warning, marginLeft: 6, background: t.color.warningBg, padding: '1px 6px', borderRadius: 4 }}>新品</span>}
                     </td>
                     <td style={tdStyle}>
                       <input value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , padding: '3px 6px', fontSize: 12  }} />
@@ -698,19 +699,19 @@ export default function QuickReceive({ setTab }) {
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
                       {(Number(item.cost) || 0) === 0
                         ? <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 700, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
-                        : <span style={{ ...S.mono, fontWeight: 700, color: '#10b981' }}>{fmtP((Number(item.qty) || 0) * (Number(item.cost) || 0))}</span>
+                        : <span style={{ ...S.mono, fontWeight: 700, color: t.color.success }}>{fmtP((Number(item.qty) || 0) * (Number(item.cost) || 0))}</span>
                       }
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <input type="number" value={item.safety_stock ?? ''} min={0} placeholder="自動" onChange={e => updateItem(idx, 'safety_stock', e.target.value === '' ? null : Number(e.target.value))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: 65, textAlign: 'right', padding: '3px 6px', fontSize: 12, color: '#6b7280' }} />
+                      <input type="number" value={item.safety_stock ?? ''} min={0} placeholder="自動" onChange={e => updateItem(idx, 'safety_stock', e.target.value === '' ? null : Number(e.target.value))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: 65, textAlign: 'right', padding: '3px 6px', fontSize: 12, color: t.color.textMuted }} />
                     </td>
                     <td style={tdStyle}>
                       {item.waiting_orders?.length > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {item.waiting_orders.map((o, oi) => (
                             <div key={oi} style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <span style={{ color: '#f59e0b', fontWeight: 700 }}>{o.order_no}</span>
-                              <span style={{ color: '#6b7280' }}>{o.customer_name}</span>
+                              <span style={{ color: t.color.warning, fontWeight: 700 }}>{o.order_no}</span>
+                              <span style={{ color: t.color.textMuted }}>{o.customer_name}</span>
                             </div>
                           ))}
                         </div>
@@ -719,7 +720,7 @@ export default function QuickReceive({ setTab }) {
                       )}
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <span onClick={() => removeItem(idx)} style={{ cursor: 'pointer', color: '#ef4444', fontSize: 16 }}>×</span>
+                      <span onClick={() => removeItem(idx)} style={{ cursor: 'pointer', color: t.color.error, fontSize: t.fontSize.h2 }}>×</span>
                     </td>
                   </tr>
                 ))}
@@ -729,24 +730,24 @@ export default function QuickReceive({ setTab }) {
 
           {/* 合計列 */}
           <div style={{ padding: '12px 8px 4px', borderTop: '2px solid #bfdbfe', marginTop: 4, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: '#374151', userSelect: 'none' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: t.color.textSecondary, userSelect: 'none' }}>
               <input type="checkbox" checked={taxExtra} onChange={e => setTaxExtra(e.target.checked)}
-                style={{ width: 16, height: 16, accentColor: '#3b82f6', cursor: 'pointer' }} />
+                style={{ width: 16, height: 16, accentColor: t.color.link, cursor: 'pointer' }} />
               稅額外加 5%
             </label>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 13, color: '#6b7280' }}>
-                小計 <span style={{ ...S.mono, fontWeight: 700, color: '#111827' }}>{fmtP(subtotal)}</span>
-                <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 4 }}>({checkedCount} 項 / {totalQty} 件)</span>
+              <div style={{ fontSize: 13, color: t.color.textMuted }}>
+                小計 <span style={{ ...S.mono, fontWeight: 700, color: t.color.textPrimary }}>{fmtP(subtotal)}</span>
+                <span style={{ fontSize: 11, color: t.color.textDisabled, marginLeft: 4 }}>({checkedCount} 項 / {totalQty} 件)</span>
               </div>
               {taxExtra && (
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                  稅金 5% <span style={{ ...S.mono, fontWeight: 600, color: '#374151' }}>{fmtP(taxAmount)}</span>
+                <div style={{ fontSize: 12, color: t.color.textMuted, marginTop: 2 }}>
+                  稅金 5% <span style={{ ...S.mono, fontWeight: 600, color: t.color.textSecondary }}>{fmtP(taxAmount)}</span>
                 </div>
               )}
             </div>
             <div style={{ borderLeft: '3px solid #16a34a', paddingLeft: 16, textAlign: 'right' }}>
-              <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, marginBottom: 2 }}>進貨合計{taxExtra ? '（含稅）' : ''}</div>
+              <div style={{ fontSize: 11, color: t.color.brand, fontWeight: 600, marginBottom: 2 }}>進貨合計{taxExtra ? '（含稅）' : ''}</div>
               <div style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalCost)}</div>
             </div>
           </div>
@@ -761,7 +762,7 @@ export default function QuickReceive({ setTab }) {
             <div style={{ background: '#f0f9ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '14px 16px', marginBottom: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af' }}>新增廠商</div>
-                <button type="button" onClick={resetNewVendor} style={{ fontSize: 12, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}>✕ 取消</button>
+                <button type="button" onClick={resetNewVendor} style={{ fontSize: 12, color: t.color.textMuted, background: 'none', border: 'none', cursor: 'pointer' }}>✕ 取消</button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
                 {[
@@ -782,10 +783,10 @@ export default function QuickReceive({ setTab }) {
               </div>
               <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
                 <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorForm.vendor_name.trim()}
-                  style={{ padding: '8px 20px', fontSize: 13, fontWeight: 700, color: '#fff', background: creatingVendor || !newVendorForm.vendor_name.trim() ? '#d1d5db' : '#16a34a', border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer' }}>
+                  style={{ padding: '8px 20px', fontSize: 13, fontWeight: 700, color: t.color.bgCard, background: creatingVendor || !newVendorForm.vendor_name.trim() ? '#d1d5db' : t.color.brand, border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer' }}>
                   {creatingVendor ? '建立中...' : '建立廠商'}
                 </button>
-                <button type="button" onClick={resetNewVendor} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
+                <button type="button" onClick={resetNewVendor} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: t.color.textMuted, background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
               </div>
             </div>
           )}
@@ -797,7 +798,7 @@ export default function QuickReceive({ setTab }) {
                   <option value="">不指定廠商</option>
                   {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
                 </select>
-                {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', lineHeight: 1 }}>+</button>}
+                {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: t.color.infoBg, border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', lineHeight: 1 }}>+</button>}
               </div>
             </div>
             <div style={{ flex: 2, minWidth: 200 }}>
@@ -807,7 +808,7 @@ export default function QuickReceive({ setTab }) {
             <div style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-end', paddingTop: 18 }}>
               <button onClick={handleStockIn} disabled={submitting || checkedCount === 0} style={{
                 ...S.btnPrimary, padding: '12px 32px', fontSize: 15, fontWeight: 700,
-                background: submitting ? '#94a3b8' : checkedCount === 0 ? '#d1d5db' : '#16a34a',
+                background: submitting ? '#94a3b8' : checkedCount === 0 ? '#d1d5db' : t.color.brand,
                 boxShadow: submitting || checkedCount === 0 ? 'none' : '0 2px 8px rgba(22,163,74,0.3)',
               }}>
                 {submitting ? '入庫中...' : `一鍵入庫 (${checkedCount} 項)`}

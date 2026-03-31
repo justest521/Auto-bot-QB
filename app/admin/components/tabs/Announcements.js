@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { useResponsive } from '@/lib/admin/helpers';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { Loading, EmptyState, PageLead } from '../shared/ui';
@@ -53,7 +54,7 @@ export default function Announcements() {
   return (
     <div>
       <PageLead eyebrow="ANNOUNCEMENTS" title="公告管理" description="發布公告給經銷商/業務/技師，會顯示在他們的入口頁面頂部。" action={<button onClick={() => setShowCreate(!showCreate)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto' }}>{showCreate ? '取消' : '+ 發布公告'}</button>} />
-      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 14, padding: isMobile ? '8px 12px' : '10px 16px', minHeight: isMobile ? 40 : 'auto' }}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: t.color.successBg, borderColor: '#bbf7d0', color: t.color.success, marginBottom: 14, padding: isMobile ? '8px 12px' : '10px 16px', minHeight: isMobile ? 40 : 'auto' }}>{msg}</div>}
       {showCreate && (
         <div style={{ ...S.card, marginBottom: 16, padding: isMobile ? '8px 12px' : '10px 16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
@@ -66,7 +67,7 @@ export default function Announcements() {
             <label style={S.label}>可見角色（不選 = 全部可見）</label>
             <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
               {ROLE_OPTIONS.map(r => (
-                <button key={r.value} onClick={() => toggleRole(r.value)} style={{ padding: isMobile ? '8px 12px' : '6px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: '2px solid', borderColor: form.target_roles.includes(r.value) ? '#6366f1' : '#e5e7eb', background: form.target_roles.includes(r.value) ? '#6366f1' : '#fff', color: form.target_roles.includes(r.value) ? '#fff' : '#374151', transition: 'all 0.15s', minHeight: isMobile ? 40 : 'auto', width: isMobile ? '100%' : 'auto' }}>{r.label}</button>
+                <button key={r.value} onClick={() => toggleRole(r.value)} style={{ padding: isMobile ? '8px 12px' : '6px 16px', borderRadius: t.radius.md, fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, cursor: 'pointer', border: '2px solid', borderColor: form.target_roles.includes(r.value) ? '#6366f1' : t.color.border, background: form.target_roles.includes(r.value) ? '#6366f1' : t.color.bgCard, color: form.target_roles.includes(r.value) ? t.color.bgCard : t.color.textSecondary, transition: 'all 0.15s', minHeight: isMobile ? 40 : 'auto', width: isMobile ? '100%' : 'auto' }}>{r.label}</button>
               ))}
             </div>
           </div>
@@ -79,10 +80,10 @@ export default function Announcements() {
             <div key={ann.id} style={{ ...S.card, display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 14, opacity: ann.is_active ? 1 : 0.5, padding: isMobile ? '8px 12px' : '12px 16px', flexDirection: isMobile ? 'column' : 'row', minHeight: isMobile ? 44 : 'auto' }}>
               <span style={S.tag(TYPE_TONE[ann.type] || 'blue')}>{TYPE_MAP[ann.type] || ann.type}</span>
               <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{ann.title}</div>
-                {ann.content && <div style={{ fontSize: 13, color: '#374151', marginTop: 4 }}>{ann.content}</div>}
+                <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{ann.title}</div>
+                {ann.content && <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, marginTop: 4 }}>{ann.content}</div>}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 10, color: '#9ca3af', ...S.mono }}>{ann.created_at?.slice(0, 16).replace('T', ' ')}</span>
+                  <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, ...S.mono }}>{ann.created_at?.slice(0, 16).replace('T', ' ')}</span>
                   {ann.target_roles && ann.target_roles.length > 0 ? ann.target_roles.map(r => (
                     <span key={r} style={S.tag(ROLE_TONE[r] || 'blue')}>{ROLE_LABEL[r] || r}</span>
                   )) : <span style={S.tag('')}>全部</span>}

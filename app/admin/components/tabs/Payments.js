@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
@@ -70,20 +71,20 @@ export default function Payments() {
           <button onClick={() => setCreateOpen(true)} style={{ ...S.btnPrimary, ...(isMobile ? { flex: 1, minHeight: 44 } : {}) }}>+ 新增收款</button>
         </div>} />
       <div style={{ ...S.statGrid, ...(isMobile ? S.mobile.statGrid : {}) }}>
-        <StatCard code="PEND" label="待確認" value={fmt(sm.pending)} tone="blue" accent="#f59e0b" />
-        <StatCard code="CONF" label="已確認" value={fmt(sm.confirmed)} tone="blue" accent="#16a34a" />
+        <StatCard code="PEND" label="待確認" value={fmt(sm.pending)} tone="blue" accent={t.color.warning} />
+        <StatCard code="CONF" label="已確認" value={fmt(sm.confirmed)} tone="blue" accent={t.color.brand} />
         <StatCard code="AMT" label="已收金額" value={fmtP(sm.total_confirmed_amount)} tone="blue" />
       </div>
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 8, flexWrap: 'wrap', alignItems: isMobile ? 'stretch' : 'center' }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
             {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border }}>{label}</button>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
             <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
-            <span style={{ color: '#6b7280', fontSize: 13, flexShrink: 0 }}>~</span>
+            <span style={{ color: t.color.textMuted, fontSize: 13, flexShrink: 0 }}>~</span>
             <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
@@ -102,7 +103,7 @@ export default function Payments() {
           <div key={p.id} style={{ ...S.mobileCard, marginBottom: 10 }}>
             <div style={{ ...S.mobileCardRow }}>
               <span style={S.mobileCardLabel}>收款單號</span>
-              <span style={{ ...S.mobileCardValue, color: '#3b82f6' }}>{p.payment_number || '-'}</span>
+              <span style={{ ...S.mobileCardValue, color: t.color.link }}>{p.payment_number || '-'}</span>
             </div>
             <div style={{ ...S.mobileCardRow }}>
               <span style={S.mobileCardLabel}>金額</span>
@@ -128,10 +129,10 @@ export default function Payments() {
         data.payments.map(p => (
           <div key={p.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '140px 100px 120px minmax(0,1fr) 100px', gap: 10, alignItems: 'center' }}>
-              <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>PAY_NO</div><div style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{p.payment_number || '-'}</div></div>
-              <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>AMOUNT</div><div style={{ fontSize: 14, fontWeight: 700 }}>{fmtP(p.amount)}</div></div>
-              <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>METHOD</div><div style={{ fontSize: 14 }}>{methodLabel(p.payment_method)}</div></div>
-              <div><div style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>DATE</div><div style={{ fontSize: 13 }}>{fmtDate(p.payment_date || p.created_at)}</div></div>
+              <div><div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>PAY_NO</div><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{p.payment_number || '-'}</div></div>
+              <div><div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>AMOUNT</div><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold }}>{fmtP(p.amount)}</div></div>
+              <div><div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>METHOD</div><div style={{ fontSize: t.fontSize.h3 }}>{methodLabel(p.payment_method)}</div></div>
+              <div><div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>DATE</div><div style={{ fontSize: t.fontSize.body }}>{fmtDate(p.payment_date || p.created_at)}</div></div>
               <div>{p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}</div>
             </div>
           </div>
@@ -141,7 +142,7 @@ export default function Payments() {
       {createOpen && isMobile ? (
         <div style={{ ...S.mobileModal }}>
           <div style={{ ...S.mobileModalHeader }}>
-            <h3 style={{ margin: '0', fontSize: 18, fontWeight: 700 }}>新增收款記錄</h3>
+            <h3 style={{ margin: '0', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold }}>新增收款記錄</h3>
             <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, padding: '8px 12px' }}>關閉</button>
           </div>
           <div style={{ ...S.mobileModalBody }}>
@@ -170,9 +171,9 @@ export default function Payments() {
           </div>
         </div>
       ) : createOpen ? (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...S.card, width: 440, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16 }}>新增收款記錄</h3>
+        <div style={{ ...p.modalOverlay }}>
+          <div style={{ ...p.modalBody('md') }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: t.fontSize.h2 }}>新增收款記錄</h3>
             {[
               { key: 'order_id', label: '訂單 ID (qb_sales_history)', type: 'text' },
               { key: 'amount', label: '金額', type: 'number' },

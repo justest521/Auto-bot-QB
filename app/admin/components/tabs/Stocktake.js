@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtDate, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead } from '../shared/ui';
@@ -27,19 +28,19 @@ export default function Stocktake() {
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="目前沒有盤點記錄" /> : data.rows.map(r => (
         <div key={r.id} style={{ ...S.card, padding: '10px 16px', marginBottom: 10, cursor: 'pointer' }} onClick={() => r.status !== 'completed' && openDetail(r.id)}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div><span style={{ fontSize: 14, fontWeight: 700, color: '#3b82f6', ...S.mono }}>{r.stocktake_no}</span><span style={{ marginLeft: 12, fontSize: 13, color: '#374151' }}>{fmtDate(r.stocktake_date)}</span></div>
+            <div><span style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{r.stocktake_no}</span><span style={{ marginLeft: 12, fontSize: t.fontSize.body, color: t.color.textSecondary }}>{fmtDate(r.stocktake_date)}</span></div>
             <span style={S.tag(r.status === 'completed' ? 'green' : 'default')}>{r.status === 'completed' ? '已完成' : r.status === 'counting' ? '盤點中' : '草稿'}</span>
           </div>
         </div>
       ))}
       {detail && (
-        <div style={{ ...(isMobile ? S.mobileModal : { position: 'fixed', inset: 0, background: 'rgba(8,12,20,0.46)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }) }} onClick={() => setDetail(null)}>
-          <div style={{ ...(isMobile ? S.mobileModalBody : { width: 'min(740px, 100%)', maxHeight: '90vh', overflowY: 'auto', background: '#f6f9fc', borderRadius: 14, padding: '16px 18px 20px', boxShadow: '0 24px 70px rgba(8,12,20,0.3)' }) }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ ...(isMobile ? S.mobileModal : { position: 'fixed', inset: 0, background: t.color.overlay, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }) }} onClick={() => setDetail(null)}>
+          <div style={{ ...(isMobile ? S.mobileModalBody : p.modalBody('lg')) }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: 12, gap: isMobile ? 10 : 0 }}>
               <div>
                 <div style={S.eyebrow}>Stocktake</div>
-                <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 700, color: '#111827' }}>盤點 {detail.stocktake_no}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>共 {detailItems.length} 品項，差異 {detailItems.filter(i => i.diff_qty !== 0).length} 項</div>
+                <div style={{ fontSize: isMobile ? 18 : t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>盤點 {detail.stocktake_no}</div>
+                <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>共 {detailItems.length} 品項，差異 {detailItems.filter(i => i.diff_qty !== 0).length} 項</div>
               </div>
               <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto', flexWrap: 'wrap' }}>
                 {detail.status !== 'completed' && <button onClick={handleComplete} style={{ ...S.btnPrimary, ...(isMobile ? { flex: 1, minHeight: 44 } : {}) }}>確認盤點</button>}
@@ -48,15 +49,15 @@ export default function Stocktake() {
             </div>
             <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
               <div style={{ maxHeight: isMobile ? 300 : 420, overflowY: 'auto', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: isMobile ? 11 : 12 }}>
-                  <thead><tr style={{ background: '#f3f4f6', position: 'sticky', top: 0, zIndex: 2 }}>{['料號','品名','系統數量','實際數量','差異'].map(h => <th key={h} style={{ padding: isMobile ? '6px 8px' : '8px 16px', textAlign: 'left', fontSize: isMobile ? 10 : 12, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #dbe3ee' }}>{h}</th>)}</tr></thead>
+                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>
+                  <thead><tr style={{ background: t.color.bgMuted, position: 'sticky', top: 0, zIndex: 2 }}>{['料號','品名','系統數量','實際數量','差異'].map(h => <th key={h} style={{ padding: isMobile ? '6px 8px' : '8px 16px', textAlign: 'left', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, color: t.color.textMuted, fontWeight: t.fontWeight.bold, borderBottom: `1px solid ${t.color.border}` }}>{h}</th>)}</tr></thead>
                   <tbody>{detailItems.map(it => (
-                    <tr key={it.id} style={{ borderBottom: '1px solid #edf0f5', background: it.diff_qty !== 0 ? '#fff8eb' : 'transparent' }}>
-                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px', ...S.mono, color: '#3b82f6', fontSize: isMobile ? 10 : 12 }}>{it.item_number}</td>
-                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px', fontSize: isMobile ? 10 : 12 }}>{isMobile ? (it.description || '-').slice(0, 8) : (it.description || '-')}</td>
-                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px', textAlign: 'right', fontSize: isMobile ? 10 : 12 }}>{it.system_qty}</td>
-                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px' }}>{detail.status !== 'completed' ? <input type="number" defaultValue={it.actual_qty} onBlur={(e) => updateActual(it.id, e.target.value)} style={{ ...S.input, width: isMobile ? 50 : 70, padding: '4px 6px', fontSize: isMobile ? 10 : 12, textAlign: 'right', minHeight: isMobile ? 32 : 'auto' }} /> : <span style={{ fontSize: isMobile ? 10 : 12 }}>{it.actual_qty}</span>}</td>
-                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px', textAlign: 'right', fontWeight: 700, fontSize: isMobile ? 10 : 12, color: it.diff_qty > 0 ? '#16a34a' : it.diff_qty < 0 ? '#ef4444' : '#374151' }}>{it.diff_qty > 0 ? '+' : ''}{it.diff_qty}</td>
+                    <tr key={it.id} style={{ borderBottom: `1px solid ${t.color.borderLight}`, background: it.diff_qty !== 0 ? t.color.warningBg : 'transparent' }}>
+                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px', ...S.mono, color: t.color.link, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>{it.item_number}</td>
+                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>{isMobile ? (it.description || '-').slice(0, 8) : (it.description || '-')}</td>
+                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px', textAlign: 'right', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>{it.system_qty}</td>
+                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px' }}>{detail.status !== 'completed' ? <input type="number" defaultValue={it.actual_qty} onBlur={(e) => updateActual(it.id, e.target.value)} style={{ ...S.input, width: isMobile ? 50 : 70, padding: '4px 6px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, textAlign: 'right', minHeight: isMobile ? 32 : 'auto' }} /> : <span style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>{it.actual_qty}</span>}</td>
+                      <td style={{ padding: isMobile ? '6px 8px' : '8px 16px', textAlign: 'right', fontWeight: t.fontWeight.bold, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, color: it.diff_qty > 0 ? t.color.brand : it.diff_qty < 0 ? t.color.error : t.color.textSecondary }}>{it.diff_qty > 0 ? '+' : ''}{it.diff_qty}</td>
                     </tr>
                   ))}</tbody>
                 </table>

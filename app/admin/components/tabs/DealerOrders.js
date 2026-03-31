@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { useResponsive } from '@/lib/admin/helpers';
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
@@ -109,8 +110,8 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
   const d = o.dealer || order.dealer || {};
   const items = detail?.items || [];
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
-  const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
+  const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+  const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: `1px solid ${t.color.borderLight}` };
 
   const sufficientCount = items.filter(i => i.stock_status === 'sufficient').length;
   const partialCount = items.filter(i => i.stock_status === 'partial').length;
@@ -121,22 +122,22 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
     <div style={{ animation: 'fadeIn 0.25s ease', padding: isMobile ? '0 8px' : '0 12px' }}>
       <div style={{ ...cardStyle, padding: isMobile ? '8px 12px' : '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, minHeight: isMobile ? 44 : 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <button onClick={onBack} style={{ width: isMobile ? 32 : 34, height: isMobile ? 32 : 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: isMobile ? 32 : 34, height: isMobile ? 32 : 34, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = t.color.bgMuted; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{order.order_no || '-'}</span>
-              <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `${STATUS_COLOR[o.status] || '#6b7280'}14`, color: STATUS_COLOR[o.status] || '#6b7280', border: `1px solid ${STATUS_COLOR[o.status] || '#6b7280'}30` }}>
+              <span style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{order.order_no || '-'}</span>
+              <span style={{ padding: '3px 10px', borderRadius: t.radius.pill, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[o.status] || t.color.textMuted}14`, color: STATUS_COLOR[o.status] || t.color.textMuted, border: `1px solid ${STATUS_COLOR[o.status] || t.color.textMuted}30` }}>
                 {STATUS_MAP[o.status] || o.status}
               </span>
             </div>
-            <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 4, ...S.mono }}>
+            <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>
               {order.order_date || '-'}
             </div>
           </div>
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: isMobile ? '8px 12px' : '10px 16px', fontSize: 14, minHeight: isMobile ? 40 : 'auto' }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? t.color.errorBg : t.color.successBg, borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? t.color.error : '#15803d', marginBottom: 10, padding: isMobile ? '8px 12px' : '10px 16px', fontSize: t.fontSize.h3, minHeight: isMobile ? 40 : 'auto' }}>{msg}</div>}
 
       {loading ? <Loading /> : (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 340px', gap: isMobile ? 10 : 20, alignItems: 'start' }}>
@@ -155,84 +156,84 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
             )}
 
             <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
-              <div style={{ padding: isMobile ? '8px 12px' : '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>訂單明細</span>
-                <span style={{ fontSize: 13, fontWeight: 500, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+              <div style={{ padding: isMobile ? '8px 12px' : '10px 16px', borderBottom: `1px solid ${t.color.borderLight}` }}>
+                <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>訂單明細</span>
+                <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
               </div>
               {items.length > 0 ? (
                 <div style={{ overflowX: isMobile ? 'auto' : 'visible' }}>
-                  {!isMobile && <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 10, padding: '8px 16px', background: '#f8f9fb', fontSize: 12, fontWeight: 700, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  {!isMobile && <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 10, padding: '8px 16px', background: t.color.bgMuted, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     <div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'center' }}>狀態</div><div style={{ textAlign: 'right' }}>小計</div><div>操作</div>
                   </div>}
                   {items.map((item) => {
                     const badge = item.stock_status ? (STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock) : null;
                     return (
-                      <div key={item.id} style={{ display: isMobile ? 'block' : 'grid', gridTemplateColumns: !isMobile ? '120px 1fr 80px 80px 70px 80px 80px 70px' : undefined, gap: isMobile ? 0 : 10, padding: isMobile ? '10px 12px' : '10px 16px', borderTop: '1px solid #f3f5f7', background: '#fff', transition: 'background 0.1s', alignItems: isMobile ? 'flex-start' : 'center', minHeight: isMobile ? 44 : 'auto' }} onMouseEnter={e => !isMobile && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isMobile && (e.currentTarget.style.background='#fff')}>
+                      <div key={item.id} style={{ display: isMobile ? 'block' : 'grid', gridTemplateColumns: !isMobile ? '120px 1fr 80px 80px 70px 80px 80px 70px' : undefined, gap: isMobile ? 0 : 10, padding: isMobile ? '10px 12px' : '10px 16px', borderTop: `1px solid ${t.color.borderLight}`, background: t.color.bgCard, transition: 'background 0.1s', alignItems: isMobile ? 'flex-start' : 'center', minHeight: isMobile ? 44 : 'auto' }} onMouseEnter={e => !isMobile && (e.currentTarget.style.background=t.color.bgMuted)} onMouseLeave={e => !isMobile && (e.currentTarget.style.background=t.color.bgCard)}>
                         {isMobile ? (
                           <>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                              <span style={{ fontSize: 14, color: '#3b82f6', fontWeight: 600, ...S.mono }}>{item.item_number_snapshot || '-'}</span>
-                              <span style={{ color: '#374151', fontWeight: 600, fontSize: 14 }}>{fmtP(item.unit_price)}</span>
+                              <span style={{ fontSize: t.fontSize.h3, color: t.color.link, fontWeight: t.fontWeight.semibold, ...S.mono }}>{item.item_number_snapshot || '-'}</span>
+                              <span style={{ color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.h3 }}>{fmtP(item.unit_price)}</span>
                             </div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2937', marginBottom: 6 }}>{item.description_snapshot || '-'}</div>
+                            <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 6 }}>{item.description_snapshot || '-'}</div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, gap: 10, alignItems: 'center' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <button onClick={() => updateItemQty(item, item.qty - 1)} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 11, minWidth: 24, minHeight: 32 }}>-</button>
-                                <span style={{ ...S.mono, fontWeight: 700, minWidth: 20, textAlign: 'center', fontSize: 13 }}>{item.qty}</span>
-                                <button onClick={() => updateItemQty(item, item.qty + 1)} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 11, minWidth: 24, minHeight: 32 }}>+</button>
+                                <button onClick={() => updateItemQty(item, item.qty - 1)} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: t.fontSize.tiny, minWidth: 24, minHeight: 32 }}>-</button>
+                                <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, minWidth: 20, textAlign: 'center', fontSize: t.fontSize.body }}>{item.qty}</span>
+                                <button onClick={() => updateItemQty(item, item.qty + 1)} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: t.fontSize.tiny, minWidth: 24, minHeight: 32 }}>+</button>
                               </div>
-                              <div style={{ textAlign: 'center', fontWeight: 700, color: item.stock_qty > 0 ? '#15803d' : '#b91c1c', ...S.mono, fontSize: 13 }}>庫:{item.stock_qty ?? '-'}</div>
+                              <div style={{ textAlign: 'center', fontWeight: t.fontWeight.bold, color: item.stock_qty > 0 ? t.color.success : t.color.error, ...S.mono, fontSize: t.fontSize.body }}>庫:{item.stock_qty ?? '-'}</div>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, gap: 10, alignItems: 'center' }}>
                               {badge ? (
-                                <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
+                                <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: t.radius.lg, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
                                   {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
                                 </span>
-                              ) : <span style={{ color: '#9ca3af', fontSize: 10 }}>-</span>}
-                              <span style={{ color: '#059669', fontWeight: 800, ...S.mono, fontSize: 14 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</span>
+                              ) : <span style={{ color: t.color.textDisabled, fontSize: t.fontSize.tiny }}>-</span>}
+                              <span style={{ color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.h3 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</span>
                             </div>
-                            {item.qty > 0 && <button onClick={() => { if (confirm('刪除此品項？')) updateItemQty(item, 0); }} style={{ ...S.btnGhost, padding: '6px 8px', fontSize: 10, color: '#ef4444', borderColor: '#fecdd3', width: '100%', minHeight: 40 }}>刪除</button>}
+                            {item.qty > 0 && <button onClick={() => { if (confirm('刪除此品項？')) updateItemQty(item, 0); }} style={{ ...S.btnGhost, padding: '6px 8px', fontSize: t.fontSize.tiny, color: t.color.error, borderColor: '#fecdd3', width: '100%', minHeight: 40 }}>刪除</button>}
                           </>
                         ) : (
                           <>
-                            <div style={{ ...S.mono, fontSize: 14, color: '#374151', fontWeight: 600 }}>{item.item_number_snapshot || '-'}</div>
-                            <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937' }}>{item.description_snapshot || '-'}</div>
-                            <div style={{ textAlign: 'right', ...S.mono, fontSize: 14, color: '#6b7280' }}>{fmtP(item.unit_price)}</div>
+                            <div style={{ ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{item.item_number_snapshot || '-'}</div>
+                            <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{item.description_snapshot || '-'}</div>
+                            <div style={{ textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textMuted }}>{fmtP(item.unit_price)}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
-                              <button onClick={() => updateItemQty(item, item.qty - 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: 11, minWidth: 24 }}>-</button>
-                              <span style={{ ...S.mono, fontWeight: 700, minWidth: 20, textAlign: 'center', fontSize: 14 }}>{item.qty}</span>
-                              <button onClick={() => updateItemQty(item, item.qty + 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: 11, minWidth: 24 }}>+</button>
+                              <button onClick={() => updateItemQty(item, item.qty - 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: t.fontSize.tiny, minWidth: 24 }}>-</button>
+                              <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, minWidth: 20, textAlign: 'center', fontSize: t.fontSize.h3 }}>{item.qty}</span>
+                              <button onClick={() => updateItemQty(item, item.qty + 1)} style={{ ...S.btnGhost, padding: '2px 6px', fontSize: t.fontSize.tiny, minWidth: 24 }}>+</button>
                             </div>
-                            <div style={{ textAlign: 'center', fontWeight: 700, color: item.stock_qty > 0 ? '#15803d' : '#b91c1c', ...S.mono, fontSize: 14 }}>{item.stock_qty ?? '-'}</div>
+                            <div style={{ textAlign: 'center', fontWeight: t.fontWeight.bold, color: item.stock_qty > 0 ? t.color.success : t.color.error, ...S.mono, fontSize: t.fontSize.h3 }}>{item.stock_qty ?? '-'}</div>
                             <div style={{ textAlign: 'center' }}>
                               {badge ? (
-                                <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
+                                <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: t.radius.lg, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
                                   {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
                                 </span>
-                              ) : <span style={{ color: '#9ca3af', fontSize: 10 }}>-</span>}
+                              ) : <span style={{ color: t.color.textDisabled, fontSize: t.fontSize.tiny }}>-</span>}
                             </div>
-                            <div style={{ color: '#059669', fontWeight: 800, textAlign: 'right', ...S.mono, fontSize: 16 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
-                            <div>{item.qty > 0 && <button onClick={() => { if (confirm('刪除此品項？')) updateItemQty(item, 0); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 10, color: '#ef4444', borderColor: '#fecdd3' }}>刪除</button>}</div>
+                            <div style={{ color: t.color.success, fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h2 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
+                            <div>{item.qty > 0 && <button onClick={() => { if (confirm('刪除此品項？')) updateItemQty(item, 0); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: t.fontSize.tiny, color: t.color.error, borderColor: '#fecdd3' }}>刪除</button>}</div>
                           </>
                         )}
                       </div>
                     );
                   })}
-                  <div style={{ padding: isMobile ? '8px 12px' : '10px 16px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: '2px solid #d1fae5' }}>
+                  <div style={{ padding: isMobile ? '8px 12px' : '10px 16px', background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', borderTop: `2px solid ${t.color.success}` }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 10, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'baseline' }}>
-                        <span style={{ fontSize: 14, color: '#6b7280' }}>小計 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(o.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0))}</strong></span>
-                        {o.tax_amount > 0 && <span style={{ fontSize: 14, color: '#6b7280' }}>稅金 <strong style={{ ...S.mono, fontSize: 16, color: '#374151', fontWeight: 600 }}>{fmtP(o.tax_amount)}</strong></span>}
+                        <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(o.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0))}</strong></span>
+                        {o.tax_amount > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>稅金 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(o.tax_amount)}</strong></span>}
                       </div>
-                      <div style={{ borderLeft: isMobile ? 'none' : '2px solid #a7f3d0', paddingLeft: isMobile ? 0 : 10, textAlign: 'right' }}>
-                        <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 600, display: 'block', marginBottom: 2 }}>合計</span>
-                        <span style={{ ...S.mono, fontSize: isMobile ? 20 : 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(o.total_amount || 0)}</span>
+                      <div style={{ borderLeft: isMobile ? 'none' : `2px solid ${t.color.success}`, paddingLeft: isMobile ? 0 : 10, textAlign: 'right' }}>
+                        <span style={{ fontSize: t.fontSize.caption, color: t.color.brand, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>合計</span>
+                        <span style={{ ...S.mono, fontSize: isMobile ? t.fontSize.h1 : 28, fontWeight: 900, color: t.color.success, letterSpacing: -1 }}>{fmtP(o.total_amount || 0)}</span>
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div style={{ padding: isMobile ? '30px 16px' : '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: 14 }}>尚無品項</div>
+                <div style={{ padding: isMobile ? '30px 16px' : '50px 20px', textAlign: 'center', color: '#c4cad3', fontSize: t.fontSize.h3 }}>尚無品項</div>
               )}
             </div>
 
@@ -242,7 +243,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
                   <button
                     onClick={handleInstockToSale}
                     disabled={!!processingAction}
-                    style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '8px 12px' : '8px 18px', fontSize: 13, background: '#16a34a', borderColor: '#16a34a', opacity: processingAction === 'sale' ? 0.6 : 1, minHeight: isMobile ? 44 : 'auto' }}
+                    style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '8px 12px' : '8px 18px', fontSize: t.fontSize.body, background: t.color.brand, borderColor: t.color.brand, opacity: processingAction === 'sale' ? 0.6 : 1, minHeight: isMobile ? 44 : 'auto' }}
                   >
                     {processingAction === 'sale' ? '處理中...' : `有貨項目 → 轉銷貨 (${sufficientCount}項)`}
                   </button>
@@ -251,7 +252,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
                   <button
                     onClick={handleShortageToP0}
                     disabled={!!processingAction}
-                    style={{ ...S.btnGhost, ...(isMobile ? { flex: 1, minHeight: 44 } : {}), padding: isMobile ? '8px 12px' : '8px 18px', fontSize: 13, color: '#dc2626', borderColor: '#fca5a5', opacity: processingAction === 'po' ? 0.6 : 1 }}
+                    style={{ ...S.btnGhost, ...(isMobile ? { flex: 1, minHeight: 44 } : {}), padding: isMobile ? '8px 12px' : '8px 18px', fontSize: t.fontSize.body, color: t.color.error, borderColor: '#fca5a5', opacity: processingAction === 'po' ? 0.6 : 1 }}
                   >
                     {processingAction === 'po' ? '處理中...' : `缺貨項目 → 轉採購單 (${shortageCount}項)`}
                   </button>
@@ -263,7 +264,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ ...cardStyle, padding: isMobile ? '8px 12px' : '10px 16px' }}>
               <div style={labelStyle}>下單人資訊</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: '#111827', marginBottom: 14, lineHeight: 1.3 }}>{d.company_name || d.display_name || '未綁定下單人'}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h2 : 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 14, lineHeight: 1.3 }}>{d.company_name || d.display_name || '未綁定下單人'}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {[
                   { label: '下單人', value: d.display_name },
@@ -271,9 +272,9 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
                   { label: '電話', value: d.phone, mono: true },
                   { label: '信箱', value: d.email, mono: true },
                 ].filter(f => f.value).map((f, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8', flexWrap: 'wrap', minHeight: isMobile ? 40 : 'auto', alignItems: 'center' }}>
-                    <span style={{ fontSize: 12, color: '#b0b8c4', flexShrink: 0, fontWeight: 500 }}>{f.label}</span>
-                    <span style={{ fontSize: 14, color: '#1f2937', textAlign: 'right', fontWeight: 500, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: `1px solid ${t.color.borderLight}`, flexWrap: 'wrap', minHeight: isMobile ? 40 : 'auto', alignItems: 'center' }}>
+                    <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                    <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                   </div>
                 ))}
               </div>
@@ -283,15 +284,15 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
               <div style={labelStyle}>變更狀態</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {Object.entries(STATUS_MAP).map(([k, v]) => (
-                  <button key={k} onClick={() => updateOrderStatus(k)} disabled={o.status === k} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '8px 12px', fontSize: 12, background: o.status === k ? '#3b82f6' : '#fff', color: o.status === k ? '#fff' : '#4b5563', borderColor: o.status === k ? '#3b82f6' : '#e5e7eb', opacity: o.status === k ? 1 : 0.8, justifyContent: 'flex-start', textAlign: 'left', minHeight: isMobile ? 40 : 'auto' }}>{v}</button>
+                  <button key={k} onClick={() => updateOrderStatus(k)} disabled={o.status === k} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '8px 12px', fontSize: t.fontSize.caption, background: o.status === k ? t.color.link : t.color.bgCard, color: o.status === k ? t.color.bgCard : '#4b5563', borderColor: o.status === k ? t.color.link : t.color.border, opacity: o.status === k ? 1 : 0.8, justifyContent: 'flex-start', textAlign: 'left', minHeight: isMobile ? 40 : 'auto' }}>{v}</button>
                 ))}
               </div>
             </div>
 
             <div style={{ ...cardStyle, padding: isMobile ? '8px 12px' : '10px 16px' }}>
               <div style={labelStyle}>備註</div>
-              <textarea value={editingRemark} onChange={(e) => setEditingRemark(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: 12, minHeight: isMobile ? 80 : 80, padding: isMobile ? '8px 12px' : '12px', borderRadius: 8, fontFamily: 'inherit', minHeight: isMobile ? 80 : 80 }} placeholder="訂單備註" />
-              <button onClick={updateOrderRemark} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '8px 12px' : '6px 14px', fontSize: 12, marginTop: 10, width: '100%', minHeight: isMobile ? 44 : 'auto' }}>儲存備註</button>
+              <textarea value={editingRemark} onChange={(e) => setEditingRemark(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: t.fontSize.caption, minHeight: isMobile ? 80 : 80, padding: isMobile ? '8px 12px' : '12px', borderRadius: t.radius.md, fontFamily: 'inherit', minHeight: isMobile ? 80 : 80 }} placeholder="訂單備註" />
+              <button onClick={updateOrderRemark} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '8px 12px' : '6px 14px', fontSize: t.fontSize.caption, marginTop: 10, width: '100%', minHeight: isMobile ? 44 : 'auto' }}>儲存備註</button>
             </div>
           </div>
         </div>
@@ -382,16 +383,16 @@ export default function DealerOrders() {
         </div>
       } />
       <ComingSoonBanner tabId="dealer_orders" />
-      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: isMobile ? '8px 12px' : '10px 16px', minHeight: isMobile ? 40 : 'auto' }}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? t.color.errorBg : t.color.successBg, borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? t.color.error : '#15803d', marginBottom: 10, padding: isMobile ? '8px 12px' : '10px 16px', minHeight: isMobile ? 40 : 'auto' }}>{msg}</div>}
       <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '8px 12px' : '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: 13, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', minHeight: isMobile ? 40 : 'auto' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: t.fontSize.body, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? t.color.bgCard : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border, minHeight: isMobile ? 40 : 'auto' }}>{label}</button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
-          <span style={{ color: '#6b7280', fontSize: 13 }}>~</span>
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', width: isMobile ? '100%' : 'auto' }}>
+          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
+          <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body }}>~</span>
+          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: isMobile ? '6px 12px' : '6px 10px', ...S.mono, minHeight: isMobile ? 40 : 'auto' }} />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), fontSize: t.fontSize.body, padding: isMobile ? '6px 12px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', width: isMobile ? '100%' : 'auto' }}>
             <option value="">全部狀態</option>
             <option value="pending">待處理</option>
             <option value="confirmed">已確認</option>
@@ -401,12 +402,12 @@ export default function DealerOrders() {
             <option value="completed">已完成</option>
             <option value="cancelled">已取消</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋訂單號、客戶..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: 13, padding: isMobile ? '6px 12px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '6px 12px' : '6px 16px', fontSize: 13, minHeight: isMobile ? 40 : 'auto' }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋訂單號、客戶..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: t.fontSize.body, padding: isMobile ? '6px 12px' : '6px 10px', minHeight: isMobile ? 40 : 'auto' }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: isMobile ? '6px 12px' : '6px 16px', fontSize: t.fontSize.body, minHeight: isMobile ? 40 : 'auto' }}>查詢</button>
         </div>
       </div>
       {loading ? <Loading /> : data.rows.length === 0 ? <EmptyState text="沒有訂單" /> : (
-        <div ref={tableRef} style={{ ...S.card, padding: isMobile ? 0 : 0, overflowX: 'auto', border: '1px solid #d1d5db' }}>
+        <div ref={tableRef} style={{ ...S.card, padding: isMobile ? 0 : 0, overflowX: 'auto', border: `1px solid ${t.color.border}` }}>
           {!isMobile && <ResizableHeader headers={[
             { label: '', align: 'center', render: () => <input type="checkbox" checked={selected.length > 0 && selected.length === data.rows.filter((r) => r.status === 'pending').length} onChange={selectAll} /> },
             { label: '訂單號', align: 'center' },
@@ -416,34 +417,34 @@ export default function DealerOrders() {
             { label: '金額', align: 'center' },
           ]} />}
           {data.rows.map((row, idx) => (
-            <div key={row.id} style={{ display: isMobile ? 'block' : 'grid', gridTemplateColumns: !isMobile ? gridTemplate : undefined, gap: 0, padding: isMobile ? '10px 12px' : 0, borderBottom: '1px solid #eef3f8', alignItems: isMobile ? 'flex-start' : 'center', background: selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s', minHeight: isMobile ? 44 : 'auto' }} onClick={() => !isMobile && setSelectedOrder(row)} onMouseEnter={(e) => !isMobile && (e.currentTarget.style.background = '#f0f7ff')} onMouseLeave={(e) => !isMobile && (e.currentTarget.style.background = selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? '#fff' : '#fafbfd')}>
+            <div key={row.id} style={{ display: isMobile ? 'block' : 'grid', gridTemplateColumns: !isMobile ? gridTemplate : undefined, gap: 0, padding: isMobile ? '10px 12px' : 0, borderBottom: `1px solid ${t.color.borderLight}`, alignItems: isMobile ? 'flex-start' : 'center', background: selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? t.color.bgCard : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s', minHeight: isMobile ? 44 : 'auto' }} onClick={() => !isMobile && setSelectedOrder(row)} onMouseEnter={(e) => !isMobile && (e.currentTarget.style.background = '#f0f7ff')} onMouseLeave={(e) => !isMobile && (e.currentTarget.style.background = selected.includes(row.id) ? '#dbeafe' : idx % 2 === 0 ? t.color.bgCard : '#fafbfd')}>
               {isMobile ? (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <input type="checkbox" checked={row.status === 'pending' && selected.includes(row.id)} onChange={() => toggleSelect(row.id)} style={{ cursor: 'pointer' }} />
-                    <span style={{ fontSize: 14, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{row.order_no || '-'}</span>
+                    <span style={{ fontSize: t.fontSize.h3, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono }}>{row.order_no || '-'}</span>
                     <span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, gap: 10 }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{row.dealer?.display_name || '-'}</div>
-                      <div style={{ fontSize: 11, color: '#374151' }}>{row.dealer?.company_name || ''}</div>
+                      <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{row.dealer?.display_name || '-'}</div>
+                      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textSecondary }}>{row.dealer?.company_name || ''}</div>
                     </div>
-                    <div style={{ textAlign: 'right', fontSize: 14, color: '#10b981', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+                    <div style={{ textAlign: 'right', fontSize: t.fontSize.h3, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(row.total_amount)}</div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#374151' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.caption, color: t.color.textSecondary }}>
                     <span>{row.order_date || '-'}</span>
-                    <button onClick={() => setSelectedOrder(row)} style={{ ...S.btnPrimary, padding: '6px 12px', fontSize: 12, minHeight: 36 }}>詳情</button>
+                    <button onClick={() => setSelectedOrder(row)} style={{ ...S.btnPrimary, padding: '6px 12px', fontSize: t.fontSize.caption, minHeight: 36 }}>詳情</button>
                   </div>
                 </>
               ) : (
                 <>
-                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', fontSize: 13 }} onClick={(e) => e.stopPropagation()}>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
-                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13, color: '#3b82f6', fontWeight: 700, textAlign: 'center', ...S.mono }}>{row.order_no || '-'}</div>
-                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}><div><div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: 11, color: '#374151' }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div></div>
-                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13, color: '#374151', textAlign: 'center', ...S.mono }}>{row.order_date || '-'}</div>
-                  <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}><span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span></div>
-                  <div style={{ padding: '8px 10px', borderRight: 'none', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 14, color: '#10b981', textAlign: 'right', fontWeight: 700, ...S.mono }}>{fmtP(row.total_amount)}</div>
+                  <div style={{ padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', fontSize: t.fontSize.body }} onClick={(e) => e.stopPropagation()}>{row.status === 'pending' && <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />}</div>
+                  <div style={{ padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, textAlign: 'center', ...S.mono }}>{row.order_no || '-'}</div>
+                  <div style={{ padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'left' }}><div><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{row.dealer?.display_name || '-'}</div><div style={{ fontSize: t.fontSize.tiny, color: t.color.textSecondary }}>{row.dealer?.company_name || ''} {row.dealer?.role ? `(${row.dealer.role === 'dealer' ? '經銷' : row.dealer.role === 'sales' ? '業務' : '技師'})` : ''}</div></div></div>
+                  <div style={{ padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: t.fontSize.body, color: t.color.textSecondary, textAlign: 'center', ...S.mono }}>{row.order_date || '-'}</div>
+                  <div style={{ padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}><span style={S.tag(STATUS_TONE[row.status] || '')}>{STATUS_MAP[row.status] || row.status}</span></div>
+                  <div style={{ padding: '8px 10px', borderRight: 'none', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: t.fontSize.h3, color: t.color.success, textAlign: 'right', fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(row.total_amount)}</div>
                 </>
               )}
             </div>

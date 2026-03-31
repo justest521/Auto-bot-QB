@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmtP, exportCsv, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
@@ -16,11 +17,11 @@ function StatCard({ code, label, value, tone }) {
     green: { bg: '#dcfce7', color: '#16a34a' },
     gray: { bg: '#f3f4f6', color: '#6b7280' },
   };
-  const t = TONE_MAP[tone] || TONE_MAP.gray;
+  const toneStyle = TONE_MAP[tone] || TONE_MAP.gray;
   return (
-    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${t.color}` }}>
-      <div style={{ fontSize: 24, fontWeight: 800, color: t.color, ...S.mono }}>{value}</div>
-      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>{label}</div>
+    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${toneStyle.color}` }}>
+      <div style={{ fontSize: 24, fontWeight: 800, color: toneStyle.color, ...S.mono }}>{value}</div>
+      <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>{label}</div>
     </div>
   );
 }
@@ -166,9 +167,9 @@ export default function PaymentMatching() {
     <div>
       <PageLead eyebrow="PAYMENT MATCHING" title="沖帳配對" description="配對未沖收款與未付應收，執行沖帳和特殊沖銷處理。"
         action={<button onClick={handleExport} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnGhost) }}>匯出 CSV</button>} />
-      {msg && <div style={{ ...S.card, background: '#edfdf3', borderColor: '#bbf7d0', color: '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: t.color.successBg, borderColor: '#bbf7d0', color: '#15803d', marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? t.spacing.xs : t.spacing.md }}>
         <StatCard code="RECQ" label="待沖收款筆數" value={s.unallocated_receipt_count || 0} tone="yellow" />
         <StatCard code="RECM" label="待沖收款金額" value={fmtP(s.unallocated_receipt_amount)} tone="blue" />
         <StatCard code="INVQ" label="未沖應收筆數" value={s.unpaid_invoice_count || 0} tone="red" />

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
+const { t, p } = S;
 import { apiGet, apiPost } from '@/lib/admin/api';
 import { fmt, fmtP, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard, PanelHeader, Pager, CsvImportButton, SaleDetailDrawer } from '../shared/ui';
@@ -21,7 +22,7 @@ function detectDuplicates(customers) {
     if (!groups[key]) groups[key] = [];
     groups[key].push(c.id);
   });
-  const colors = ['#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316'];
+  const colors = [t.color.warning, t.color.purple, t.color.error, t.color.info, t.color.brand, t.color.warning];
   const dupMap = {};
   let colorIdx = 0;
   Object.entries(groups).forEach(([key, ids]) => {
@@ -207,17 +208,17 @@ export default function FormalCustomers() {
           const gr = ys.growth_rate !== null && ys.growth_rate !== undefined ? Number(ys.growth_rate) : null;
           return (
             <>
-              <div style={{ ...S.panelMuted, background: '#ffffff' }}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>{ys.last_year || '去年'}年 交易客戶</div>
-                <div style={{ fontSize: 28, color: '#111827', fontWeight: 700, ...S.mono }}>{fmt(ys.last_year_customers || 0)}</div>
+              <div style={{ ...S.panelMuted, background: t.color.bgCard }}>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>{ys.last_year || '去年'}年 交易客戶</div>
+                <div style={{ fontSize: 28, color: t.color.textPrimary, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmt(ys.last_year_customers || 0)}</div>
               </div>
-              <div style={{ ...S.panelMuted, background: '#ffffff' }}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>{ys.this_year || '今年'}年 交易客戶</div>
-                <div style={{ fontSize: 28, color: '#3b82f6', fontWeight: 700, ...S.mono }}>{fmt(ys.this_year_customers || 0)}</div>
+              <div style={{ ...S.panelMuted, background: t.color.bgCard }}>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>{ys.this_year || '今年'}年 交易客戶</div>
+                <div style={{ fontSize: 28, color: t.color.info, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmt(ys.this_year_customers || 0)}</div>
               </div>
-              <div style={{ ...S.panelMuted, background: '#ffffff' }}>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6, ...S.mono }}>年增率</div>
-                <div style={{ fontSize: 28, color: gr === null ? '#9ca3af' : gr >= 0 ? '#10b981' : '#ef4444', fontWeight: 700, ...S.mono }}>
+              <div style={{ ...S.panelMuted, background: t.color.bgCard }}>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>年增率</div>
+                <div style={{ fontSize: 28, color: gr === null ? t.color.textDisabled : gr >= 0 ? t.color.success : t.color.error, fontWeight: t.fontWeight.bold, ...S.mono }}>
                   {gr === null ? '-' : `${gr >= 0 ? '+' : ''}${gr}%`}
                 </div>
               </div>
@@ -229,52 +230,52 @@ export default function FormalCustomers() {
         <div style={{ marginBottom: 12 }}>
           <div
             onClick={() => { if (!showDupPanel) { loadDupGroups(); } setShowDupPanel(!showDupPanel); }}
-            style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: showDupPanel ? '10px 10px 0 0' : 10, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', userSelect: 'none' }}
+            style={{ background: t.color.warningBg, border: '1px solid #fde68a', borderRadius: showDupPanel ? '10px 10px 0 0' : 10, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8, fontSize: t.fontSize.body, cursor: 'pointer', userSelect: 'none' }}
           >
-            <span style={{ background: '#f59e0b', color: '#fff', borderRadius: 4, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>疑似重複</span>
-            <span style={{ color: '#92400e', flex: 1 }}>全面偵測到 <strong>{dupCount}</strong> 筆可能重複的客戶（比對名稱、電話、統編），已用色條標記</span>
-            <span style={{ color: '#92400e', fontSize: 16 }}>{showDupPanel ? '▲' : '▼ 點擊展開管理'}</span>
+            <span style={{ background: t.color.warning, color: '#fff', borderRadius: t.radius.sm, padding: '2px 8px', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold }}>疑似重複</span>
+            <span style={{ color: t.color.textMuted, flex: 1 }}>全面偵測到 <strong>{dupCount}</strong> 筆可能重複的客戶（比對名稱、電話、統編），已用色條標記</span>
+            <span style={{ color: t.color.textMuted, fontSize: t.fontSize.h2 }}>{showDupPanel ? '▲' : '▼ 點擊展開管理'}</span>
           </div>
           {showDupPanel && (
             <div style={{ background: '#fff', border: '1px solid #fde68a', borderTop: 'none', borderRadius: '0 0 10px 10px', padding: '12px 14px', maxHeight: 500, overflowY: 'auto' }}>
-              {dupGroupsLoading ? <Loading /> : dupGroups.length === 0 ? <div style={{ color: '#6b7280', fontSize: 13 }}>沒有重複資料</div> : (
+              {dupGroupsLoading ? <Loading /> : dupGroups.length === 0 ? <div style={{ color: t.color.textMuted, fontSize: t.fontSize.body }}>沒有重複資料</div> : (
                 <div style={{ display: 'grid', gap: 14 }}>
                   {dupGroups.map((group, gi) => {
                     const typeLabel = group.matchType === 'name' ? '名稱' : group.matchType === 'phone' ? '電話' : '統編';
                     return (
-                      <div key={gi} style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
-                        <div style={{ background: '#f9fafb', padding: '6px 12px', fontSize: 12, fontWeight: 600, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
-                          重複條件：<span style={{ color: '#d97706' }}>{typeLabel}</span> = 「{group.matchValue}」 — {group.customers.length} 筆
+                      <div key={gi} style={{ border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, overflow: 'hidden' }}>
+                        <div style={{ background: t.color.bgMuted, padding: '6px 12px', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textMuted, borderBottom: `1px solid ${t.color.border}` }}>
+                          重複條件：<span style={{ color: t.color.warning }}>{typeLabel}</span> = 「{group.matchValue}」 — {group.customers.length} 筆
                         </div>
                         {group.customers.map((c) => (
                           isMobile ? (
-                            <div key={c.id} style={{ padding: '8px 12px', borderBottom: '1px solid #f3f4f6', fontSize: 13 }}>
+                            <div key={c.id} style={{ padding: '8px 12px', borderBottom: `1px solid ${t.color.bgMuted}`, fontSize: t.fontSize.body }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                                 <div>
-                                  <div style={{ fontWeight: 600, color: '#111827' }}>{c.company_name || c.name || '-'}</div>
-                                  <div style={{ color: '#6b7280', fontSize: 12, ...S.mono, marginTop: 2 }}>{c.customer_code}</div>
+                                  <div style={{ fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{c.company_name || c.name || '-'}</div>
+                                  <div style={{ color: t.color.textMuted, fontSize: t.fontSize.caption, ...S.mono, marginTop: 2 }}>{c.customer_code}</div>
                                 </div>
                                 <div style={{ display: 'flex', gap: 4 }}>
-                                  <button onClick={() => { setSelectedCustomerId(c.id); setShowDupPanel(false); }} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11, minHeight: 32 }}>編輯</button>
-                                  <button onClick={() => deleteCustomer(c.id, c.company_name || c.name)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11, color: '#ef4444', borderColor: '#fecaca', minHeight: 32 }}>刪除</button>
+                                  <button onClick={() => { setSelectedCustomerId(c.id); setShowDupPanel(false); }} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: t.fontSize.tiny, minHeight: 32 }}>編輯</button>
+                                  <button onClick={() => deleteCustomer(c.id, c.company_name || c.name)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: t.fontSize.tiny, color: t.color.error, borderColor: t.color.border, minHeight: 32 }}>刪除</button>
                                 </div>
                               </div>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12 }}>
-                                <div><span style={{ color: '#6b7280', ...S.mono }}>聯絡人 -</span> {c.name || '-'}</div>
-                                <div><span style={{ color: '#6b7280', ...S.mono }}>電話 -</span> {c.phone || '-'}</div>
-                                <div colSpan={2}><span style={{ color: '#6b7280', ...S.mono }}>統編 -</span> {c.tax_id || '-'}</div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: t.fontSize.caption }}>
+                                <div><span style={{ color: t.color.textMuted, ...S.mono }}>聯絡人 -</span> {c.name || '-'}</div>
+                                <div><span style={{ color: t.color.textMuted, ...S.mono }}>電話 -</span> {c.phone || '-'}</div>
+                                <div colSpan={2}><span style={{ color: t.color.textMuted, ...S.mono }}>統編 -</span> {c.tax_id || '-'}</div>
                               </div>
                             </div>
                           ) : (
-                            <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px 120px 80px 100px', gap: 6, padding: '8px 12px', borderBottom: '1px solid #f3f4f6', alignItems: 'center', fontSize: 13 }}>
-                              <div style={{ color: '#6b7280', fontFamily: 'monospace' }}>{c.customer_code}</div>
-                              <div style={{ fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.company_name || c.name || '-'}</div>
-                              <div style={{ color: '#374151' }}>{c.name || '-'}</div>
-                              <div style={{ color: '#374151', fontFamily: 'monospace' }}>{c.phone || '-'}</div>
-                              <div style={{ color: '#374151', fontFamily: 'monospace' }}>{c.tax_id || '-'}</div>
+                            <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px 120px 80px 100px', gap: 6, padding: '8px 12px', borderBottom: `1px solid ${t.color.bgMuted}`, alignItems: 'center', fontSize: t.fontSize.body }}>
+                              <div style={{ color: t.color.textMuted, fontFamily: 'monospace' }}>{c.customer_code}</div>
+                              <div style={{ fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.company_name || c.name || '-'}</div>
+                              <div style={{ color: t.color.textSecondary }}>{c.name || '-'}</div>
+                              <div style={{ color: t.color.textSecondary, fontFamily: 'monospace' }}>{c.phone || '-'}</div>
+                              <div style={{ color: t.color.textSecondary, fontFamily: 'monospace' }}>{c.tax_id || '-'}</div>
                               <div style={{ display: 'flex', gap: 4 }}>
-                                <button onClick={() => { setSelectedCustomerId(c.id); setShowDupPanel(false); }} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, minHeight: 32 }}>編輯</button>
-                                <button onClick={() => deleteCustomer(c.id, c.company_name || c.name)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, color: '#ef4444', borderColor: '#fecaca', minHeight: 32 }}>刪除</button>
+                                <button onClick={() => { setSelectedCustomerId(c.id); setShowDupPanel(false); }} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: t.fontSize.tiny, minHeight: 32 }}>編輯</button>
+                                <button onClick={() => deleteCustomer(c.id, c.company_name || c.name)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: t.fontSize.tiny, color: t.color.error, borderColor: t.color.border, minHeight: 32 }}>刪除</button>
                               </div>
                             </div>
                           )
@@ -295,15 +296,15 @@ export default function FormalCustomers() {
               <button
                 key={customer.id}
                 onClick={() => setSelectedCustomerId(customer.id)}
-                style={{ ...S.card, padding: '10px 16px', marginBottom: 0, textAlign: 'left', cursor: 'pointer', background: selectedCustomerId === customer.id ? '#f0f7ff' : '#fff', borderColor: selectedCustomerId === customer.id ? '#93c5fd' : '#e5e7eb' }}
+                style={{ ...S.card, padding: '10px 16px', marginBottom: 0, textAlign: 'left', cursor: 'pointer', background: selectedCustomerId === customer.id ? '#f0f7ff' : '#fff', borderColor: selectedCustomerId === customer.id ? '#93c5fd' : t.color.border }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 15, color: '#111827', fontWeight: 700 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
-                    <div style={{ marginTop: 6, fontSize: 12, color: '#374151', lineHeight: 1.7 }}>
-                      <div><span style={{ color: '#6b7280', ...S.mono }}>CODE</span> {customer.customer_code || '-'}</div>
-                      <div><span style={{ color: '#6b7280', ...S.mono }}>CONTACT -</span> {customer.name || '-'}</div>
-                      <div><span style={{ color: '#6b7280', ...S.mono }}>PHONE -</span> {customer.phone || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                    <div style={{ marginTop: 6, fontSize: t.fontSize.caption, color: t.color.textSecondary, lineHeight: 1.7 }}>
+                      <div><span style={{ color: t.color.textMuted, ...S.mono }}>CODE</span> {customer.customer_code || '-'}</div>
+                      <div><span style={{ color: t.color.textMuted, ...S.mono }}>CONTACT -</span> {customer.name || '-'}</div>
+                      <div><span style={{ color: t.color.textMuted, ...S.mono }}>PHONE -</span> {customer.phone || '-'}</div>
                     </div>
                   </div>
                   <div style={{ display: 'grid', gap: 6, justifyItems: 'end' }}>
@@ -316,7 +317,7 @@ export default function FormalCustomers() {
           </div>
         ) : (
           <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 10, padding: '10px 16px', borderBottom: '1px solid #F2F2F2', color: '#6b7280', fontSize: 12, fontWeight: 600 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 10, padding: '10px 16px', borderBottom: '1px solid #F2F2F2', color: t.color.textMuted, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold }}>
               <div>公司名稱</div>
               <div>聯絡人</div>
               <div>電話</div>
@@ -328,18 +329,18 @@ export default function FormalCustomers() {
               <button
                 key={customer.id}
                 onClick={() => setSelectedCustomerId(customer.id)}
-                style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 10, padding: '10px 16px', alignItems: 'center', background: selectedCustomerId === customer.id ? '#dcfce7' : idx % 2 === 1 ? '#f3f4f6' : '#fff', borderWidth: '1px 0 0 0', borderStyle: 'solid', borderColor: '#e5e7eb', textAlign: 'left', cursor: 'pointer', width: '100%', ...(dup ? { borderLeft: `4px solid ${dup.groupColor}` } : {}) }}
+                style={{ display: 'grid', gridTemplateColumns: isTablet ? 'minmax(0,1.3fr) 100px 120px' : 'minmax(0,1.5fr) 140px 160px minmax(0,1fr)', gap: 10, padding: '10px 16px', alignItems: 'center', background: selectedCustomerId === customer.id ? t.color.successBg : idx % 2 === 1 ? t.color.bgMuted : '#fff', borderWidth: '1px 0 0 0', borderStyle: 'solid', borderColor: t.color.border, textAlign: 'left', cursor: 'pointer', width: '100%', ...(dup ? { borderLeft: `4px solid ${dup.groupColor}` } : {}) }}
               >
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 14, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.company_name || customer.name || '未命名客戶'}</span>
-                    {dup && <span style={{ background: dup.groupColor, color: '#fff', borderRadius: 4, padding: '1px 5px', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>重複 {(dup.matchTypes || []).map(t => t === 'name' ? '名稱' : t === 'phone' ? '電話' : '統編').join('+')}</span>}
+                    <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.company_name || customer.name || '未命名客戶'}</span>
+                    {dup && <span style={{ background: dup.groupColor, color: '#fff', borderRadius: t.radius.sm, padding: '1px 5px', fontSize: 9, fontWeight: t.fontWeight.bold, flexShrink: 0 }}>重複 {(dup.matchTypes || []).map(t => t === 'name' ? '名稱' : t === 'phone' ? '電話' : '統編').join('+')}</span>}
                   </div>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, ...S.mono }}>{customer.customer_code || ''}</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2, ...S.mono }}>{customer.customer_code || ''}</div>
                 </div>
-                <div style={{ fontSize: 14, color: '#374151' }}>{customer.name || '-'}</div>
-                <div style={{ fontSize: 14, color: '#374151', ...S.mono }}>{customer.phone || '-'}</div>
-                {!isTablet && <div style={{ fontSize: 14, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.sales_person || '-'}</div>}
+                <div style={{ fontSize: t.fontSize.h3, color: t.color.textSecondary }}>{customer.name || '-'}</div>
+                <div style={{ fontSize: t.fontSize.h3, color: t.color.textSecondary, ...S.mono }}>{customer.phone || '-'}</div>
+                {!isTablet && <div style={{ fontSize: t.fontSize.h3, color: t.color.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.sales_person || '-'}</div>}
               </button>
               );
             })}
@@ -414,7 +415,7 @@ export default function FormalCustomers() {
         <div style={{ ...S.card, maxWidth: 960, margin: '0 auto' }}>
           <div style={{ display: 'grid', gap: 10 }}>
             <PanelHeader title="新增客戶" meta="手動建立一筆正式客戶" />
-            <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginTop: 4, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>基本資料</div>
+            <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginTop: 4, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>基本資料</div>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>客戶簡稱 *</label><input value={createForm.company_name} onChange={(e) => setCreateForm({ ...createForm, company_name: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
               <div><label style={S.label}>客戶全名</label><input value={createForm.full_name} onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
@@ -429,7 +430,7 @@ export default function FormalCustomers() {
               <div><label style={S.label}>請款客戶</label><input value={createForm.billing_customer} onChange={(e) => setCreateForm({ ...createForm, billing_customer: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
               <div><label style={S.label}>固定折扣 %</label><input type="number" value={createForm.discount_percent} onChange={(e) => setCreateForm({ ...createForm, discount_percent: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
             </div>
-            <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginTop: 8, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>發票與載具</div>
+            <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginTop: 8, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>發票與載具</div>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>發票通知手機</label><input value={createForm.invoice_mobile} onChange={(e) => setCreateForm({ ...createForm, invoice_mobile: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
               <div><label style={S.label}>發票通知 Email</label><input value={createForm.invoice_email} onChange={(e) => setCreateForm({ ...createForm, invoice_email: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
@@ -438,14 +439,14 @@ export default function FormalCustomers() {
               <div><label style={S.label}>匯款帳號</label><input value={createForm.bank_account} onChange={(e) => setCreateForm({ ...createForm, bank_account: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
               <div><label style={S.label}>停止往來日</label><input type="date" value={createForm.stop_date} onChange={(e) => setCreateForm({ ...createForm, stop_date: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
             </div>
-            <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginTop: 8, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>結帳與收款</div>
+            <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginTop: 8, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>結帳與收款</div>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>結帳方式</label><select value={createForm.payment_method} onChange={(e) => setCreateForm({ ...createForm, payment_method: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }}><option value="">請選擇</option><option value="出貨後">出貨後</option><option value="月結">月結</option></select></div>
               <div><label style={S.label}>結帳天數</label><input type="number" value={createForm.payment_days} onChange={(e) => setCreateForm({ ...createForm, payment_days: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
               <div><label style={S.label}>收款方式</label><select value={createForm.collection_method} onChange={(e) => setCreateForm({ ...createForm, collection_method: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }}><option value="">請選擇</option><option value="結帳後">結帳後</option><option value="每月">每月</option></select></div>
               <div><label style={S.label}>收款日</label><input type="number" value={createForm.collection_day} onChange={(e) => setCreateForm({ ...createForm, collection_day: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
             </div>
-            <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginTop: 8, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>地址</div>
+            <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginTop: 8, borderBottom: '1px solid #e6edf5', paddingBottom: 8 }}>地址</div>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
               <div><label style={S.label}>登記地址</label><input value={createForm.registered_address || createForm.address} onChange={(e) => setCreateForm({ ...createForm, registered_address: e.target.value, address: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
               <div><label style={S.label}>發票地址</label><input value={createForm.invoice_address} onChange={(e) => setCreateForm({ ...createForm, invoice_address: e.target.value })} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
@@ -454,31 +455,31 @@ export default function FormalCustomers() {
             </div>
             <div><label style={S.label}>備註</label><textarea value={createForm.notes} onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })} rows={3} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), resize: 'vertical', lineHeight: 1.6 }} /></div>
             {createDupWarning && (
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginTop: 4 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#dc2626', marginBottom: 6 }}>
+              <div style={{ background: t.color.errorBg, border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, padding: '10px 14px', marginTop: 4 }}>
+                <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.error, marginBottom: 6 }}>
                   偵測到 {createDupWarning.duplicates?.length} 筆疑似重複客戶，無法新增：
                 </div>
                 {(createDupWarning.duplicates || []).map((d, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'auto 1fr auto auto auto auto', gap: isMobile ? 8 : 8, alignItems: isMobile ? 'stretch' : 'center', padding: '4px 0', fontSize: 12, color: '#374151' }}>
-                    <span style={{ fontFamily: 'monospace', color: '#6b7280' }}>{d.customer_code}</span>
-                    <span style={{ fontWeight: 600, minWidth: 0 }}>{d.company_name || d.name}</span>
-                    {!isMobile && <span style={{ color: '#6b7280' }}>{d.phone || ''}</span>}
-                    {!isMobile && <span style={{ color: '#6b7280' }}>{d.tax_id || ''}</span>}
-                    <span style={{ background: '#fee2e2', color: '#dc2626', borderRadius: 4, padding: '1px 6px', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'auto 1fr auto auto auto auto', gap: isMobile ? 8 : 8, alignItems: isMobile ? 'stretch' : 'center', padding: '4px 0', fontSize: t.fontSize.caption, color: t.color.textSecondary }}>
+                    <span style={{ fontFamily: 'monospace', color: t.color.textMuted }}>{d.customer_code}</span>
+                    <span style={{ fontWeight: t.fontWeight.semibold, minWidth: 0 }}>{d.company_name || d.name}</span>
+                    {!isMobile && <span style={{ color: t.color.textMuted }}>{d.phone || ''}</span>}
+                    {!isMobile && <span style={{ color: t.color.textMuted }}>{d.tax_id || ''}</span>}
+                    <span style={{ background: t.color.errorBg, color: t.color.error, borderRadius: t.radius.sm, padding: '1px 6px', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, whiteSpace: 'nowrap' }}>
                       符合：{(d.matchFields || []).join('、')}
                     </span>
-                    <button onClick={() => { setSelectedCustomerId(d.id); setCreating(false); setCreateDupWarning(null); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: 11, minHeight: isMobile ? 32 : undefined }}>查看</button>
+                    <button onClick={() => { setSelectedCustomerId(d.id); setCreating(false); setCreateDupWarning(null); }} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: t.fontSize.tiny, minHeight: isMobile ? 32 : undefined }}>查看</button>
                   </div>
                 ))}
                 <div style={{ display: 'flex', gap: 8, marginTop: 8, flexDirection: isMobile ? 'column' : 'row' }}>
-                  <button onClick={() => saveCreate(true)} disabled={createSaving} style={{ ...S.btnGhost, padding: '6px 16px', fontSize: 12, color: '#d97706', borderColor: '#fde68a', minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : 'auto' }}>{createSaving ? '建立中...' : '仍要強制建立'}</button>
-                  <button onClick={() => setCreateDupWarning(null)} style={{ ...S.btnGhost, padding: '6px 16px', fontSize: 12, minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : 'auto' }}>返回修改</button>
+                  <button onClick={() => saveCreate(true)} disabled={createSaving} style={{ ...S.btnGhost, padding: '6px 16px', fontSize: t.fontSize.caption, color: t.color.warning, borderColor: '#fde68a', minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : 'auto' }}>{createSaving ? '建立中...' : '仍要強制建立'}</button>
+                  <button onClick={() => setCreateDupWarning(null)} style={{ ...S.btnGhost, padding: '6px 16px', fontSize: t.fontSize.caption, minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : 'auto' }}>返回修改</button>
                 </div>
               </div>
             )}
             <div style={{ display: 'flex', gap: 8, marginTop: 8, flexDirection: isMobile ? 'column' : 'row' }}>
-              <button onClick={() => saveCreate(false)} disabled={createSaving || !createForm.company_name.trim()} style={{ ...S.btnPrimary, padding: '10px 28px', fontSize: 14, minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : 'auto' }}>{createSaving ? '建立中...' : '建立客戶'}</button>
-              <button onClick={() => { setCreating(false); setCreateDupWarning(null); }} style={{ ...S.btnGhost, padding: '10px 28px', fontSize: 14, minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : 'auto' }}>取消</button>
+              <button onClick={() => saveCreate(false)} disabled={createSaving || !createForm.company_name.trim()} style={{ ...S.btnPrimary, padding: '10px 28px', fontSize: t.fontSize.h3, minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : 'auto' }}>{createSaving ? '建立中...' : '建立客戶'}</button>
+              <button onClick={() => { setCreating(false); setCreateDupWarning(null); }} style={{ ...S.btnGhost, padding: '10px 28px', fontSize: t.fontSize.h3, minHeight: isMobile ? 44 : undefined, width: isMobile ? '100%' : 'auto' }}>取消</button>
             </div>
           </div>
         </div>
@@ -507,21 +508,21 @@ export default function FormalCustomers() {
               {detailLoading ? <Loading /> : !detailCustomer ? <EmptyState text="請先選擇一位正式客戶" /> : (
                 <div style={{ display: 'grid', gap: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', lineHeight: 1.3 }}>{detailCustomer.company_name || detailCustomer.name || '客戶檔案'}</div>
-                    <button onClick={() => editing ? setEditing(false) : startEditing()} style={{ ...S.btnGhost, fontSize: 11, padding: '3px 8px', flexShrink: 0, minHeight: isMobile ? 32 : undefined }}>
+                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, lineHeight: 1.3 }}>{detailCustomer.company_name || detailCustomer.name || '客戶檔案'}</div>
+                    <button onClick={() => editing ? setEditing(false) : startEditing()} style={{ ...S.btnGhost, fontSize: t.fontSize.tiny, padding: '3px 8px', flexShrink: 0, minHeight: isMobile ? 32 : undefined }}>
                       {editing ? '取消' : '編輯'}
                     </button>
                   </div>
                   <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 11, color: '#6b7280', ...S.mono }}>{detailCustomer.customer_code || '-'}</span>
+                    <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>{detailCustomer.customer_code || '-'}</span>
                     <span style={{ ...S.tag(stageMeta[detailCustomer.customer_stage]?.color || ''), fontSize: 9, padding: '1px 6px' }}>{stageMeta[detailCustomer.customer_stage]?.label || '詢問名單'}</span>
                     {detailCustomer.line_user_id ? <span style={{ ...S.tag('line'), fontSize: 9, padding: '1px 6px' }}>LINE</span> : <span style={{ ...S.tag(''), fontSize: 9, padding: '1px 6px' }}>ERP</span>}
                     {detail?.line_profile ? <span style={{ ...S.tag('green'), fontSize: 9, padding: '1px 6px' }}>{detail.line_profile.display_name || 'LINE'}</span> : null}
                   </div>
                   {editing ? (() => {
-                    const sIn = { ...S.input, padding: '6px 10px', fontSize: 12, borderRadius: 8, ...sIn_mobile };
-                    const sLb = { fontSize: 10, color: '#9ca3af', fontWeight: 600, marginBottom: 2, display: 'block', ...S.mono };
-                    const sHd = { fontSize: 11, color: '#6b7280', fontWeight: 700, borderBottom: '1px solid #f0f0f0', paddingBottom: 3, marginTop: 6 };
+                    const sIn = { ...S.input, padding: '6px 10px', fontSize: t.fontSize.caption, borderRadius: t.radius.md, ...sIn_mobile };
+                    const sLb = { fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, marginBottom: 2, display: 'block', ...S.mono };
+                    const sHd = { fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.bold, borderBottom: `1px solid ${t.color.border}`, paddingBottom: 3, marginTop: 6 };
                     const g3 = { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 6 };
                     const fi = (label, key, opts) => <div key={key}><label style={sLb}>{label}</label>{opts ? <select value={editForm[key]} onChange={e => setEditForm({...editForm,[key]:e.target.value})} style={sIn}>{opts.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}</select> : <input type={key.includes('day') || key.includes('percent') ? 'number' : key === 'stop_date' ? 'date' : 'text'} value={editForm[key]} onChange={e => setEditForm({...editForm,[key]:e.target.value})} style={sIn} />}</div>;
                     return (
@@ -550,12 +551,12 @@ export default function FormalCustomers() {
                         {fi('登記','registered_address')}{fi('送貨','shipping_address')}
                       </div>
                       <div><label style={sLb}>備註</label><textarea value={editForm.notes} onChange={e => setEditForm({...editForm,notes:e.target.value})} rows={2} style={{ ...sIn, resize: 'vertical', lineHeight: 1.4 }} /></div>
-                      <button onClick={saveEdit} disabled={editSaving} style={{ ...S.btnPrimary, padding: '8px 0', fontSize: 13, minHeight: isMobile ? 44 : undefined }}>{editSaving ? '儲存中...' : '儲存'}</button>
+                      <button onClick={saveEdit} disabled={editSaving} style={{ ...S.btnPrimary, padding: '8px 0', fontSize: t.fontSize.body, minHeight: isMobile ? 44 : undefined }}>{editSaving ? '儲存中...' : '儲存'}</button>
                     </div>
                     );
                   })() : (
                     <div style={{ display: 'grid', gap: 6 }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '54px 1fr', gap: '2px 6px', fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '54px 1fr', gap: '2px 6px', fontSize: t.fontSize.caption, color: t.color.textSecondary, lineHeight: 1.5 }}>
                         {[
                           ['聯絡人', (detailCustomer.name || '-') + (detailCustomer.job_title ? ` (${detailCustomer.job_title})` : '')],
                           ['電話', (detailCustomer.phone || '-') + (detailCustomer.fax ? ` / ${detailCustomer.fax}` : '')],
@@ -568,58 +569,58 @@ export default function FormalCustomers() {
                           detailCustomer.shipping_address && detailCustomer.shipping_address !== (detailCustomer.registered_address || detailCustomer.address) ? ['送貨', detailCustomer.shipping_address] : null,
                         ].filter(Boolean).map(([k, v], i) => (
                           <React.Fragment key={i}>
-                            <div style={{ color: '#9ca3af', fontSize: 10, ...S.mono, paddingTop: 1 }}>{k}</div>
+                            <div style={{ color: t.color.textDisabled, fontSize: t.fontSize.tiny, ...S.mono, paddingTop: 1 }}>{k}</div>
                             <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{v}</div>
                           </React.Fragment>
                         ))}
                       </div>
                       {(detailCustomer.payment_method || detailCustomer.collection_method) && (
-                        <div style={{ fontSize: 10, color: '#6b7280', padding: '4px 8px', background: '#f3f4f6', borderRadius: 6 }}>
+                        <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, padding: '4px 8px', background: t.color.bgMuted, borderRadius: t.radius.md }}>
                           {detailCustomer.payment_method && <span>結帳：{detailCustomer.payment_method} {detailCustomer.payment_days || 0}天</span>}
-                          {detailCustomer.payment_method && detailCustomer.collection_method && <span style={{ margin: '0 4px', color: '#d1d5db' }}>|</span>}
+                          {detailCustomer.payment_method && detailCustomer.collection_method && <span style={{ margin: '0 4px', color: t.color.border }}>|</span>}
                           {detailCustomer.collection_method && <span>收款：{detailCustomer.collection_method} {detailCustomer.collection_day || ''}日</span>}
                         </div>
                       )}
-                      {detailCustomer.notes && <div style={{ fontSize: 10, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{detailCustomer.notes}</div>}
+                      {detailCustomer.notes && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{detailCustomer.notes}</div>}
                     </div>
                   )}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 4 }}>
                     {[
-                      { label: '報價', val: fmt(summary.quote_count), sub: fmtP(summary.quote_total), color: '#3b82f6' },
-                      { label: '訂單', val: fmt(summary.order_count), sub: fmtP(summary.order_total), color: '#d97706' },
-                      { label: '銷貨', val: fmt(summary.sale_count), sub: fmtP(summary.sales_total), color: '#10b981' },
-                      { label: '毛利', val: fmtP(summary.gross_profit_total), sub: `${fmt(summary.line_message_count)} 訊息`, color: '#dc2626' },
+                      { label: '報價', val: fmt(summary.quote_count), sub: fmtP(summary.quote_total), color: t.color.info },
+                      { label: '訂單', val: fmt(summary.order_count), sub: fmtP(summary.order_total), color: t.color.warning },
+                      { label: '銷貨', val: fmt(summary.sale_count), sub: fmtP(summary.sales_total), color: t.color.success },
+                      { label: '毛利', val: fmtP(summary.gross_profit_total), sub: `${fmt(summary.line_message_count)} 訊息`, color: t.color.error },
                     ].map(s => (
-                      <div key={s.label} style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid #f0f0f0', background: '#fafafa', textAlign: 'center' }}>
-                        <div style={{ fontSize: 10, color: '#6b7280' }}>{s.label}</div>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', ...S.mono }}>{s.val}</div>
-                        <div style={{ fontSize: 9, color: '#9ca3af', ...S.mono }}>{s.sub}</div>
+                      <div key={s.label} style={{ padding: '6px 8px', borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: '#fafafa', textAlign: 'center' }}>
+                        <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{s.label}</div>
+                        <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{s.val}</div>
+                        <div style={{ fontSize: 9, color: t.color.textDisabled, ...S.mono }}>{s.sub}</div>
                       </div>
                     ))}
                   </div>
                   {[
-                    { key: 'quotes', title: '報價', data: detail?.recent_quotes, noField: 'quote_no', dateField: 'quote_date', amtField: 'total_amount', statusField: 'status', color: '#3b82f6', amtColor: '#111827' },
-                    { key: 'orders', title: '訂單', data: detail?.recent_orders, noField: 'order_no', dateField: 'order_date', amtField: 'total_amount', statusField: 'status', color: '#3b82f6', amtColor: '#111827' },
-                    { key: 'sales', title: '銷貨', data: detail?.recent_sales, noField: 'slip_number', dateField: 'sale_date', amtField: 'total', color: '#10b981', amtColor: '#10b981', clickable: true },
+                    { key: 'quotes', title: '報價', data: detail?.recent_quotes, noField: 'quote_no', dateField: 'quote_date', amtField: 'total_amount', statusField: 'status', color: t.color.info, amtColor: t.color.textPrimary },
+                    { key: 'orders', title: '訂單', data: detail?.recent_orders, noField: 'order_no', dateField: 'order_date', amtField: 'total_amount', statusField: 'status', color: t.color.info, amtColor: t.color.textPrimary },
+                    { key: 'sales', title: '銷貨', data: detail?.recent_sales, noField: 'slip_number', dateField: 'sale_date', amtField: 'total', color: t.color.success, amtColor: t.color.success, clickable: true },
                   ].map(sec => {
                     const rows = sec.data || [];
-                    if (!rows.length) return <div key={sec.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', fontSize: 11, color: '#9ca3af' }}><span>{sec.title}</span><span>0</span></div>;
+                    if (!rows.length) return <div key={sec.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', fontSize: t.fontSize.tiny, color: t.color.textDisabled }}><span>{sec.title}</span><span>0</span></div>;
                     const visible = rows.slice(0, expandedPanels[sec.key] ? 10 : 3);
                     return (
                       <div key={sec.key} style={{ ...S.panelMuted, padding: '8px 10px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>{sec.title}</span>
-                          <span style={{ fontSize: 10, color: '#6b7280', ...S.mono }}>{rows.length} 筆</span>
+                          <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textSecondary }}>{sec.title}</span>
+                          <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>{rows.length} 筆</span>
                         </div>
                         {visible.map((row, i) => (
-                          <div key={row.id || i} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) auto', gap: 4, padding: '4px 0', borderTop: '1px solid #f0f0f0', alignItems: 'center' }}>
-                            {sec.clickable ? <button onClick={() => setSelectedSlipNumber(row[sec.noField])} style={{ background: 'none', border: 0, padding: 0, textAlign: 'left', color: sec.color, fontSize: 10, fontWeight: 700, cursor: 'pointer', ...S.mono, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row[sec.noField] || '-'}</button>
-                              : <div style={{ color: sec.color, fontSize: 10, fontWeight: 700, ...S.mono, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row[sec.noField] || '-'}</div>}
-                            <div style={{ color: '#6b7280', fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row[sec.dateField] || '-'}</div>
-                            <div style={{ textAlign: 'right', color: sec.amtColor, fontSize: 10, fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row[sec.amtField])}</div>
+                          <div key={row.id || i} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) auto', gap: 4, padding: '4px 0', borderTop: `1px solid ${t.color.border}`, alignItems: 'center' }}>
+                            {sec.clickable ? <button onClick={() => setSelectedSlipNumber(row[sec.noField])} style={{ background: 'none', border: 0, padding: 0, textAlign: 'left', color: sec.color, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, cursor: 'pointer', ...S.mono, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row[sec.noField] || '-'}</button>
+                              : <div style={{ color: sec.color, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, ...S.mono, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row[sec.noField] || '-'}</div>}
+                            <div style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row[sec.dateField] || '-'}</div>
+                            <div style={{ textAlign: 'right', color: sec.amtColor, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row[sec.amtField])}</div>
                           </div>
                         ))}
-                        {rows.length > 3 && <button onClick={() => togglePanel(sec.key)} style={{ ...S.btnGhost, width: '100%', marginTop: 4, fontSize: 10, padding: '3px 0', textAlign: 'center', minHeight: isMobile ? 32 : undefined }}>{expandedPanels[sec.key] ? '收合' : `全部 ${rows.length} 筆`}</button>}
+                        {rows.length > 3 && <button onClick={() => togglePanel(sec.key)} style={{ ...S.btnGhost, width: '100%', marginTop: 4, fontSize: t.fontSize.tiny, padding: '3px 0', textAlign: 'center', minHeight: isMobile ? 32 : undefined }}>{expandedPanels[sec.key] ? '收合' : `全部 ${rows.length} 筆`}</button>}
                       </div>
                     );
                   })}
