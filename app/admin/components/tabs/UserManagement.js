@@ -45,43 +45,60 @@ export default function UserManagement() {
   };
 
   const handleCreate = async () => {
+    // ── Front-end validation ──
+    if (!form.username.trim()) { setMsg('請輸入帳號'); return; }
+    if (!form.display_name.trim()) { setMsg('請輸入顯示名稱'); return; }
+    if (!form.email.trim()) { setMsg('請輸入 Email'); return; }
+    if (!form.password) { setMsg('請輸入密碼'); return; }
+    if (form.password.length < 6) { setMsg('密碼至少 6 碼'); return; }
+
     setSaving(true); setMsg('');
-    const res = await apiPost({ action: 'create_admin_user', ...form });
-    if (res?.ok) {
-      setMsg('建立成功'); setShowCreateForm(false);
-      setForm({ username: '', email: '', password: '', display_name: '', role_code: 'sales' });
-      loadData();
-    } else { setMsg(res?.error || '建立失敗'); }
+    try {
+      const res = await apiPost({ action: 'create_admin_user', ...form });
+      if (res?.ok) {
+        setMsg('建立成功'); setShowCreateForm(false);
+        setForm({ username: '', email: '', password: '', display_name: '', role_code: 'sales' });
+        loadData();
+      } else { setMsg(res?.error || '建立失敗'); }
+    } catch (e) {
+      setMsg(e.message || '建立失敗，請檢查輸入資料');
+    }
     setSaving(false);
   };
 
   const handleUpdate = async () => {
     if (!editingUser) return;
     setSaving(true); setMsg('');
-    const payload = { action: 'update_admin_user', user_id: editingUser.id };
-    if (editingUser._display_name) payload.display_name = editingUser._display_name;
-    if (editingUser._email) payload.email = editingUser._email;
-    if (editingUser._role_code) payload.role_code = editingUser._role_code;
-    if (editingUser._status) payload.status = editingUser._status;
-    if (editingUser._new_password) payload.new_password = editingUser._new_password;
-    const res = await apiPost(payload);
-    if (res?.ok) { setMsg('更新成功'); setEditingUser(null); loadData(); }
-    else { setMsg(res?.error || '更新失敗'); }
+    try {
+      const payload = { action: 'update_admin_user', user_id: editingUser.id };
+      if (editingUser._display_name) payload.display_name = editingUser._display_name;
+      if (editingUser._email) payload.email = editingUser._email;
+      if (editingUser._role_code) payload.role_code = editingUser._role_code;
+      if (editingUser._status) payload.status = editingUser._status;
+      if (editingUser._new_password) payload.new_password = editingUser._new_password;
+      const res = await apiPost(payload);
+      if (res?.ok) { setMsg('更新成功'); setEditingUser(null); loadData(); }
+      else { setMsg(res?.error || '更新失敗'); }
+    } catch (e) { setMsg(e.message || '更新失敗'); }
     setSaving(false);
   };
 
   const handleDisable = async (userId, username) => {
     if (!confirm(`確定要停用帳號「${username}」？`)) return;
-    const res = await apiPost({ action: 'delete_admin_user', user_id: userId });
-    if (res?.ok) { setMsg('已停用'); loadData(); }
-    else { setMsg(res?.error || '操作失敗'); }
+    try {
+      const res = await apiPost({ action: 'delete_admin_user', user_id: userId });
+      if (res?.ok) { setMsg('已停用'); loadData(); }
+      else { setMsg(res?.error || '操作失敗'); }
+    } catch (e) { setMsg(e.message || '操作失敗'); }
   };
 
   const handleSaveRolePerms = async (roleId, permIds) => {
     setSaving(true); setMsg('');
-    const res = await apiPost({ action: 'update_role_permissions', role_id: roleId, permission_ids: permIds });
-    if (res?.ok) { setMsg('權限已更新'); setRolePermMap(prev => ({ ...prev, [roleId]: permIds })); }
-    else { setMsg(res?.error || '更新失敗'); }
+    try {
+      const res = await apiPost({ action: 'update_role_permissions', role_id: roleId, permission_ids: permIds });
+      if (res?.ok) { setMsg('權限已更新'); setRolePermMap(prev => ({ ...prev, [roleId]: permIds })); }
+      else { setMsg(res?.error || '更新失敗'); }
+    } catch (e) { setMsg(e.message || '更新失敗'); }
     setSaving(false);
   };
 
@@ -120,13 +137,13 @@ export default function UserManagement() {
               <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 16 }}>新增使用者</div>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 12 : 14 }}>
                 {[
-                  { key: 'username', label: '帳號', placeholder: '英文帳號' },
-                  { key: 'display_name', label: '顯示名稱', placeholder: '使用者姓名' },
-                  { key: 'email', label: 'Email', placeholder: 'user@example.com', type: 'email' },
-                  { key: 'password', label: '密碼', placeholder: '至少 8 碼', type: 'password' },
+                  { key: 'username', label: '帳號', placeholder: '英文帳號', required: true },
+                  { key: 'display_name', label: '顯示名稱', placeholder: '使用者姓名', required: true },
+                  { key: 'email', label: 'Email', placeholder: 'user@example.com', type: 'email', required: true },
+                  { key: 'password', label: '密碼', placeholder: '至少 6 碼', type: 'password', required: true },
                 ].map(f => (
                   <div key={f.key}>
-                    <div style={{ ...S.label, fontSize: t.fontSize.caption, marginBottom: 4 }}>{f.label}</div>
+                    <div style={{ ...S.label, fontSize: t.fontSize.caption, marginBottom: 4 }}>{f.label}{f.required && <span style={{ color: t.color.error, marginLeft: 2 }}>*</span>}</div>
                     <input value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder} type={f.type || 'text'} style={{ width: '100%', ...(isMobile ? S.mobile.input : { padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: t.color.textPrimary, outline: 'none', boxSizing: 'border-box' }) }} />
                   </div>
                 ))}
