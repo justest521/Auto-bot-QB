@@ -17,7 +17,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
     setLoading(true);
     try {
       const res = await dealerGet({ action: 'products', token, page: pg.toString(), limit: '30', q, stock_only: so ? '1' : '0' });
-      if (res?.data?.items) { setProducts(res.data.items); setTotalPages(res.data.total_pages || 1); setPage(pg); }
+      if (res?.products) { setProducts(res.products); setTotalPages(Math.ceil((res.total || 0) / 30) || 1); setPage(pg); }
     } catch (e) { console.error('Products fetch:', e); }
     finally { setLoading(false); }
   }, [token, dealerGet]);

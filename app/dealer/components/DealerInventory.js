@@ -15,8 +15,8 @@ export default function DealerInventory({ token, dealerGet }) {
     try {
       const stockOnly = stockFilter === 'in' ? '1' : stockFilter === 'out' ? '0' : null;
       const res = await dealerGet({ action: 'products', token, page: String(page), limit: '30', q: search, ...(stockOnly !== null ? { stock_only: stockOnly } : {}) });
-      setProducts(res?.data?.items || res?.data || []);
-      setHasMore(res?.data?.total_pages ? page < res.data.total_pages : false);
+      setProducts(res?.products || []);
+      setHasMore(res?.total ? page < Math.ceil(res.total / 30) : false);
     } catch (e) { console.error('Inventory fetch:', e); }
     finally { setLoading(false); }
   }, [token, dealerGet, page, search, stockFilter]);
