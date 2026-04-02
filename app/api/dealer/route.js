@@ -167,6 +167,45 @@ export async function GET(request) {
         return jsonOk({ orders: rows, total: count || 0, page, limit });
       }
 
+      case 'my_arrivals': {
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '30', 10), 100);
+        const offset = (page - 1) * limit;
+
+        let query = supabase
+          .from('erp_orders')
+          .select('*', { count: 'exact' })
+          .eq('dealer_user_id', user.id)
+          .in('status', ['arrived', 'partial_arrived', 'shipped'])
+          .order('updated_at', { ascending: false })
+          .range(offset, offset + limit - 1);
+
+        const { data, count, error } = await query;
+        if (error) return jsonErr(error.message, 500);
+
+        // Get order items
+        const orderIds = (data || []).map((o) => o.id);
+        let itemsMap = {};
+        if (orderIds.length) {
+          const { data: items } = await supabase
+            .from('erp_order_items')
+            .select('*')
+            .in('order_id', orderIds);
+          for (const item of (items || [])) {
+            if (!itemsMap[item.order_id]) itemsMap[item.order_id] = [];
+            itemsMap[item.order_id].push(item);
+          }
+        }
+
+        const rows = (data || []).map((o) => ({
+          ...o,
+          items: itemsMap[o.id] || [],
+          status_label: ORDER_STATUS_LABEL[o.status] || o.status,
+        }));
+
+        return jsonOk({ arrivals: rows, total: count || 0, page, limit });
+      }
+
       case 'order_detail': {
         const orderId = searchParams.get('order_id');
         if (!orderId) return jsonErr('order_id required');
@@ -708,6 +747,66 @@ export async function POST(request) {
       if (itemsError) return jsonErr(itemsError.message, 500);
 
       return jsonOk({ order: { ...order, items: orderItems }, message: `訂單 ${orderNo} 建立成功` });
+    }
+
+    case 'notify_customer_arrival': {
+      const { order_id } = body;
+      if (!order_id) return jsonErr('order_id required');
+
+      // Verify the order belongs to current dealer user
+      const { data: order, error: orderError } = await supabase
+        .from('erp_orders')
+        .select('*')
+        .eq('id', order_id)
+        .eq('dealer_user_id', user.id)
+        .maybeSingle();
+
+      if (orderError) return jsonErr(orderError.message, 500);
+      if (!order) return jsonErr('訂單不存在或無權限', 404);
+
+      // Update order: set customer_notified = true, customer_notified_at = now
+      const { error: updateError } = await supabase
+        .from('erp_orders')
+        .update({
+          customer_notified: true,
+          customer_notified_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order_id);
+
+      if (updateError) return jsonErr(updateError.message, 500);
+
+      return jsonOk({ ok: true, message: '已通知客戶' });
+    }
+
+    case 'confirm_pickup': {
+      const { order_id } = body;
+      if (!order_id) return jsonErr('order_id required');
+
+      // Verify the order belongs to current dealer user
+      const { data: order, error: orderError } = await supabase
+        .from('erp_orders')
+        .select('*')
+        .eq('id', order_id)
+        .eq('dealer_user_id', user.id)
+        .maybeSingle();
+
+      if (orderError) return jsonErr(orderError.message, 500);
+      if (!order) return jsonErr('訂單不存在或無權限', 404);
+
+      // Update order: set status = 'completed', completed_at = now
+      const { error: updateError } = await supabase
+        .from('erp_orders')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order_id);
+
+      if (updateError) return jsonErr(updateError.message, 500);
+
+      return jsonOk({ ok: true, message: '已確認取貨' });
     }
 
     case 'update_profile': {

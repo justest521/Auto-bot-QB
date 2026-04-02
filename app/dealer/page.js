@@ -5,6 +5,7 @@ import Overview from './components/Overview';
 import OrderList from './components/OrderList';
 import OrderDetail from './components/OrderDetail';
 import Procurement from './components/Procurement';
+import ArrivalsNotify from './components/ArrivalsNotify';
 import DealerInventory from './components/DealerInventory';
 import MoreMenu from './components/MoreMenu';
 
@@ -38,8 +39,8 @@ function Icon({ d, size = 20, color = 'currentColor' }) {
 const TABS = [
   { id: 'overview', label: '總覽', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1' },
   { id: 'orders', label: '訂單', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
-  { id: 'procurement', label: '進貨', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
-  { id: 'inventory', label: '庫存', icon: 'M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M10 11h4' },
+  { id: 'procurement', label: '商品', icon: 'M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16M10 11h4' },
+  { id: 'arrivals', label: '到貨', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
   { id: 'more', label: '更多', icon: 'M4 6h16M4 12h16M4 18h16' },
 ];
 
@@ -306,10 +307,10 @@ export default function DealerPortal() {
           </div>
         );
 
-      case 'inventory':
+      case 'arrivals':
         return (
           <div style={{ maxWidth: 900, margin: '0 auto', padding: isWide ? '0 24px' : '0 16px' }}>
-            <DealerInventory token={token} dealerGet={dealerGet} />
+            <ArrivalsNotify token={token} dealerGet={dealerGet} dealerPost={dealerPost} />
           </div>
         );
 
