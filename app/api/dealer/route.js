@@ -99,15 +99,20 @@ export async function GET(request) {
         if (error) return jsonErr(error.message, 500);
 
         const roleConfig = ROLE_CONFIG[user.role] || ROLE_CONFIG.dealer;
+        const hasPersonalDiscount = user.discount_rate != null && user.discount_rate > 0;
         let rows = (data || []).map((p) => {
+          const retailPrice = Number(p.tw_retail_price || 0);
+          const basePrice = hasPersonalDiscount
+            ? Math.round(retailPrice * user.discount_rate)
+            : Number(p[roleConfig.price_field] || retailPrice);
           const item = {
             id: p.id,
             item_number: p.item_number,
             description: p.description,
             category: p.category,
             origin_country: p.origin_country || null,
-            price: Number(p[roleConfig.price_field] || p.tw_retail_price || 0),
-            price_label: roleConfig.price_label,
+            price: basePrice,
+            price_label: hasPersonalDiscount ? `${Math.round(user.discount_rate * 100)}折價` : roleConfig.price_label,
             stock_qty: user.can_see_stock !== false ? Number(p.stock_qty || 0) : null,
             safety_stock: user.can_see_stock !== false ? Number(p.safety_stock || 0) : null,
           };
@@ -698,11 +703,15 @@ export async function POST(request) {
 
       const productMap = Object.fromEntries((products || []).map((p) => [p.item_number, p]));
       const roleConfig = ROLE_CONFIG[user.role] || ROLE_CONFIG.dealer;
+      const hasPersonalDiscount = user.discount_rate != null && user.discount_rate > 0;
 
       const orderItems = items.map((i) => {
         const p = productMap[i.item_number];
         if (!p) return null;
-        const price = Number(p[roleConfig.price_field] || p.tw_retail_price || 0);
+        const retailPrice = Number(p.tw_retail_price || 0);
+        const price = hasPersonalDiscount
+          ? Math.round(retailPrice * user.discount_rate)
+          : Number(p[roleConfig.price_field] || retailPrice);
         return {
           item_number_snapshot: p.item_number,
           description_snapshot: p.description || '',

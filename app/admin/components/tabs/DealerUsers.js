@@ -76,6 +76,12 @@ export default function DealerUsers() {
     await load();
   };
 
+  const changeDiscountRate = async (user, rate) => {
+    const val = rate === '' ? null : parseFloat(rate);
+    await apiPost({ action: 'update_dealer_user', user_id: user.id, discount_rate: val });
+    await load();
+  };
+
   const PermToggle = ({ user, field, label }) => {
     const on = !!user[field];
     const isSaving = permSaving === user.id + field;
@@ -169,6 +175,25 @@ export default function DealerUsers() {
                       <select value={u.price_level || 'reseller'} onChange={(e) => changePriceLevel(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: isMobile ? '6px 8px' : '4px 8px', fontSize: 12, minHeight: isMobile ? 36 : 'auto' }}>
                         <option value="cost">成本價</option><option value="reseller">經銷價</option><option value="retail">零售價</option>
                       </select>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', gap: 10, flexWrap: 'wrap', minHeight: isMobile ? 40 : 'auto' }}>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary }}>個人折扣</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <select value={u.discount_rate != null ? String(u.discount_rate) : ''} onChange={(e) => changeDiscountRate(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: isMobile ? '6px 8px' : '4px 8px', fontSize: 12, minHeight: isMobile ? 36 : 'auto' }}>
+                          <option value="">不設定（用預設價格）</option>
+                          <option value="0.95">95折</option>
+                          <option value="0.9">9折</option>
+                          <option value="0.85">85折</option>
+                          <option value="0.8">8折</option>
+                          <option value="0.75">75折</option>
+                          <option value="0.7">7折</option>
+                          <option value="0.65">65折</option>
+                          <option value="0.6">6折</option>
+                          <option value="0.55">55折</option>
+                          <option value="0.5">5折</option>
+                        </select>
+                        {u.discount_rate != null && <span style={{ fontSize: 11, color: t.color.brand, fontWeight: t.fontWeight.bold }}>零售價×{Math.round(u.discount_rate * 100)}%</span>}
+                      </div>
                     </div>
                   </div>
                   <div style={{ ...S.card, padding: isMobile ? '8px 12px' : '10px 16px', background: t.color.bgCard }}>
