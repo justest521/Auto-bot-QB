@@ -68,28 +68,34 @@ export async function GET(request) {
     params.set('offset', String(offset));
     params.set('limit', String(limit));
 
-    // Status filter - allow both specified statuses
-    const statuses = status.split(',').map(s => s.trim()).filter(Boolean);
-    if (statuses.length > 0) {
-      const statusFilters = statuses.map(s => `product_status.eq.${encodeURIComponent(s)}`).join(',');
-      params.set('or', `(${statusFilters})`);
-    }
-
     // Price filter - only show items with tw_retail_price > 0
     params.set('tw_retail_price', 'gt.0');
 
     // Category filter
     if (category) {
-      params.set('category', `eq.${encodeURIComponent(category)}`);
+      params.set('category', `eq.${category}`);
     } else if (brand) {
-      // Filter by brand prefix - get all categories starting with brand name
-      params.set('category', `ilike.${encodeURIComponent(brand)}%`);
+      params.set('category', `ilike.${brand}%`);
     }
 
-    // Search filter - search in item_number and description
+    // Build combined OR/AND filter
+    // Status filter + optional search — must be combined to avoid overwriting 'or' param
+    const statuses = status.split(',').map(s => s.trim()).filter(Boolean);
     if (q) {
       const escaped = q.replace(/['"]/g, '');
-      params.set('or', `(item_number.ilike.%${encodeURIComponent(escaped)}%,description.ilike.%${encodeURIComponent(escaped)}%)`);
+      // Search with status: use 'and' to combine status OR with search OR
+      const statusFilter = statuses.length > 0
+        ? `or(${statuses.map(s => `product_status.eq.${s}`).join(',')})`
+        : '';
+      const searchFilter = `or(item_number.ilike.%${escaped}%,description.ilike.%${escaped}%)`;
+      if (statusFilter) {
+        params.set('and', `(${statusFilter},${searchFilter})`);
+      } else {
+        params.set('or', `(item_number.ilike.%${escaped}%,description.ilike.%${escaped}%)`);
+      }
+    } else if (statuses.length > 0) {
+      const statusFilters = statuses.map(s => `product_status.eq.${s}`).join(',');
+      params.set('or', `(${statusFilters})`);
     }
 
     const url = `${SUPABASE_URL}/rest/v1/quickbuy_products?${params}`;
