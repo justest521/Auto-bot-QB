@@ -332,6 +332,50 @@ export default function AccountsReceivable() {
               )}
             </div>
 
+            {/* Order deposits (訂金) */}
+            {detailData && (detailData.orderDeposits || []).length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ margin: '0 0 10px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>訂單收款記錄</h4>
+                <div style={{ ...S.card, background: '#fffbeb', borderColor: '#fde68a', padding: 0, overflow: 'auto', borderRadius: 6 }}>
+                  {isMobile ? (detailData.orderDeposits || []).map((dep, idx) => (
+                    <div key={idx} style={{ padding: '10px 12px', borderBottom: idx < detailData.orderDeposits.length - 1 ? '1px solid #fde68a' : 'none' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#92400e', ...S.mono }}>{dep.receipt_no}</span>
+                        <span style={{ fontSize: t.fontSize.tiny, color: '#92400e', ...S.mono }}>{dep.date?.slice(0, 10)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.caption }}>
+                        <span style={{ color: '#92400e' }}>{dep.type}（{dep.method}）</span>
+                        <span style={{ fontWeight: t.fontWeight.bold, color: '#92400e', ...S.mono }}>{fmtP(dep.amount)}</span>
+                      </div>
+                    </div>
+                  )) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.caption }}>
+                      <thead><tr style={{ background: '#fef3c7' }}>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', color: '#92400e', fontWeight: t.fontWeight.semibold }}>收款單號</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', color: '#92400e', fontWeight: t.fontWeight.semibold }}>日期</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right', color: '#92400e', fontWeight: t.fontWeight.semibold }}>金額</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', color: '#92400e', fontWeight: t.fontWeight.semibold }}>類型</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', color: '#92400e', fontWeight: t.fontWeight.semibold }}>方式</th>
+                      </tr></thead>
+                      <tbody>{(detailData.orderDeposits || []).map((dep, idx) => (
+                        <tr key={idx} style={{ borderTop: '1px solid #fde68a' }}>
+                          <td style={{ padding: '8px 12px', fontWeight: t.fontWeight.semibold, color: '#92400e', ...S.mono }}>{dep.receipt_no}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'center', ...S.mono }}>{dep.date?.slice(0, 10)}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: t.fontWeight.semibold, ...S.mono }}>{fmtP(dep.amount)}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.type}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.method}</td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  )}
+                  <div style={{ padding: '8px 12px', borderTop: '1px solid #fde68a', background: '#fef3c7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#92400e' }}>訂單已收合計</span>
+                    <span style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: '#92400e', ...S.mono }}>{fmtP((detailData.orderDeposits || []).reduce((s, d) => s + d.amount, 0))}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Allocation history */}
             <h4 style={{ margin: '0 0 12px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>沖帳記錄</h4>
             {!detailData ? (
