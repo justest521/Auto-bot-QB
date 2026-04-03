@@ -11,13 +11,14 @@ const defaultStyles = {
   card: { background: t.color.bgCard, borderRadius: t.radius.lg, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #f0f2f5', marginBottom: 16 },
 };
 
-export default function CompanySettings({ apiGet, apiPost }) {
+export default function CompanySettings({ apiGet, apiPost, erpFeatures = {}, setErpFeatures }) {
   const { isMobile } = useResponsive();
   const { setDirty } = useUnsavedGuard();
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [featureSaving, setFeatureSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const fileRef = useRef(null);
   const origSettings = useRef('{}');
@@ -155,6 +156,49 @@ export default function CompanySettings({ apiGet, apiPost }) {
         <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={save} disabled={saving} style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '12px 16px' : '10px 28px', borderRadius: 8, border: 'none', background: saving ? '#94a3b8' : t.color.brand, color: t.color.bgCard, fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
             {saving ? '儲存中...' : '儲存設定'}
+          </button>
+        </div>
+      </div>
+
+      {/* ERP Features */}
+      <div style={{ ...defaultStyles.card }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: t.color.textSecondary, marginBottom: 4 }}>ERP 功能開關</div>
+        <div style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, marginBottom: 16 }}>依照公司需求開啟或關閉 ERP 模組功能</div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: t.color.bgMuted, borderRadius: t.radius.md }}>
+          <div>
+            <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>訂單審核機制</div>
+            <div style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, marginTop: 2 }}>
+              {erpFeatures.order_approval
+                ? '開啟：訂單需經過審核流程才能進行銷貨'
+                : '關閉：建立訂單後直接進入已核准狀態，無需審核'}
+            </div>
+          </div>
+          <button
+            disabled={featureSaving}
+            onClick={async () => {
+              setFeatureSaving(true);
+              try {
+                const newVal = !erpFeatures.order_approval;
+                const res = await apiPost({ action: 'update_erp_features', features: { order_approval: newVal } });
+                if (res?.features) setErpFeatures?.(res.features);
+                else setErpFeatures?.(prev => ({ ...prev, order_approval: newVal }));
+                setMsg(newVal ? '已開啟訂單審核' : '已關閉訂單審核');
+                setTimeout(() => setMsg(''), 2000);
+              } catch (err) { setMsg(err.message || '更新失敗'); }
+              setFeatureSaving(false);
+            }}
+            style={{
+              width: 52, height: 28, borderRadius: 14, border: 'none', cursor: featureSaving ? 'not-allowed' : 'pointer',
+              background: erpFeatures.order_approval ? t.color.brand : '#d1d5db',
+              position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+            }}
+          >
+            <span style={{
+              position: 'absolute', top: 3, left: erpFeatures.order_approval ? 27 : 3,
+              width: 22, height: 22, borderRadius: '50%', background: '#fff',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
+            }} />
           </button>
         </div>
       </div>

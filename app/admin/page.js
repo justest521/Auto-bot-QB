@@ -433,6 +433,7 @@ function AdminPageInner() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false); // 手機版抽屜 sidebar
   const sectionRefs = useRef({});
   const [companySettings, setCompanySettings] = useState(null);
+  const [erpFeatures, setErpFeatures] = useState({ order_approval: true });
   // headerAction is rendered via portal from PageLead into HEADER_ACTION_PORTAL_ID div
   const { favs, toggle: toggleFav, isFav } = useFavorites();
   const { collapsed, toggle: toggleCollapsed, collapseAll, expandSection } = useCollapsed();
@@ -492,9 +493,11 @@ function AdminPageInner() {
             apiGet({ action: 'products', limit: '1' }).catch(() => null),
             apiGet({ action: 'chat_history_stats' }).catch(() => null),
             apiGet({ action: 'company_settings' }).catch(() => null),
-          ]).then(([prodRes, chatRes, csRes]) => {
+            apiGet({ action: 'erp_features' }).catch(() => null),
+          ]).then(([prodRes, chatRes, csRes, featRes]) => {
             setSidebarStats({ products: prodRes?.total ?? '-', chats: chatRes?.total ?? '-' });
             if (csRes?.settings) setCompanySettings(csRes.settings);
+            if (featRes?.features) setErpFeatures(featRes.features);
           });
         })
         .catch((error) => {
@@ -974,7 +977,7 @@ function AdminPageInner() {
           </div>
 
           <div className="qb-content" style={{ ...S.content, padding: isMobile ? '14px 12px 90px' : isTablet ? '22px 18px 34px' : S.content.padding }}>
-            {hasTab(tab) ? <ActiveTab setTab={setTab} apiGet={apiGet} apiPost={apiPost} /> : (
+            {hasTab(tab) ? <ActiveTab setTab={setTab} apiGet={apiGet} apiPost={apiPost} erpFeatures={erpFeatures} setErpFeatures={setErpFeatures} /> : (
               <div style={{ ...S.card, padding: 40, textAlign: 'center', maxWidth: 480, margin: '60px auto' }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>{'\uD83D\uDD12'}</div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 8 }}>權限不足</div>

@@ -19,7 +19,7 @@ const STOCK_BADGE = {
 };
 
 // ========== 訂單詳情頁 ==========
-function OrderDetailView({ order, onBack, onRefresh, setTab }) {
+function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} }) {
   const { isMobile, isTablet } = useResponsive();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -411,13 +411,17 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const isConverted = shipKey === 'shipped' || shipKey === 'delivered';
   // 用訂單本身的 status 判斷，不再依賴 erp_approvals 表
   const orderStatus = order.status || 'draft';
+  const approvalEnabled = erpFeatures.order_approval !== false;
   // Allow conversion if confirmed/processing, OR if previously approved + has linked sales (PO arrival scenario)
+  // When approval is OFF, draft orders can also convert directly
   const hasPriorApproval = linkedSales.length > 0; // If there are sales, it was previously approved
-  const canConvert = ['confirmed', 'processing'].includes(orderStatus) || (hasPriorApproval && orderStatus === 'pending_approval');
+  const canConvert = ['confirmed', 'processing'].includes(orderStatus)
+    || (hasPriorApproval && orderStatus === 'pending_approval')
+    || (!approvalEnabled && ['draft', 'rejected'].includes(orderStatus));
   const isPending = orderStatus === 'pending_approval';
   const isRejected = orderStatus === 'rejected';
-  const isLocked = isPending; // 審核中鎖定所有操作
-  const isEditLocked = !['draft', 'rejected'].includes(orderStatus); // 非草稿/駁回 → 鎖定品項編輯
+  const isLocked = isPending && approvalEnabled; // 審核中鎖定所有操作（僅審核開啟時）
+  const isEditLocked = approvalEnabled ? !['draft', 'rejected'].includes(orderStatus) : !['draft', 'rejected', 'confirmed'].includes(orderStatus); // 審核關閉時 confirmed 也可編輯
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: '0 12px' }}>
@@ -764,9 +768,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 已建立銷貨單 {linkedSales.map(s => s.slip_number).join(', ')}（自動核准）
               </span>
               )}
-              {!canConvert && !isConverted && (statusKey === 'draft' || statusKey === 'rejected') ? (
+              {!canConvert && !isConverted && (statusKey === 'draft' || statusKey === 'rejected') && erpFeatures.order_approval !== false ? (
               <span style={{ padding: '8px 18px', borderRadius: t.radius.lg, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, background: t.color.warningBg, color: '#92400e', border: '1px solid #fde68a' }}>請先送審並核准後才能轉銷貨</span>
-              ) : isPending ? (
+              ) : isPending && erpFeatures.order_approval !== false ? (
               <span style={{ padding: '8px 18px', borderRadius: t.radius.lg, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, background: t.color.infoBg, color: '#2563eb', border: '1px solid #bfdbfe' }}>訂單審核中，請等待審核完成</span>
               ) : canConvert && items.some(i => (i.remaining_qty != null ? Number(i.remaining_qty) > 0 : !i.sale_info)) && (
               <button
@@ -787,7 +791,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
               </button>
               )}
               {/* 送審 / 建立出貨 / PDF — moved from top bar */}
-              {!canConvert && !isConverted && !isPending && (statusKey === 'draft' || statusKey === 'rejected') && (
+              {erpFeatures.order_approval !== false && !canConvert && !isConverted && !isPending && (statusKey === 'draft' || statusKey === 'rejected') && (
                 <button onClick={submitForApproval} disabled={convertingId === order.id} style={{ padding: '8px 18px', borderRadius: t.radius.lg, border: 'none', background: isRejected ? '#ef4444' : '#3b82f6', color: '#fff', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: convertingId === order.id ? 0.7 : 1 }}>{convertingId === order.id ? '送審中...' : isRejected ? '重新送審' : '送審'}</button>
               )}
               {canConvert && linkedSales.length === 0 && (
@@ -864,8 +868,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
                 // Order created
                 const orderEv = timeline.find(e => (e.event || '').match(/建立訂單/));
                 entries.push({ dot: '#16a34a', label: '訂單建立', ref: order.order_no, time: orderEv?.time || order.created_at, status: 'done' });
-                // Approval status — based on order.status lifecycle
-                if (statusKey !== 'draft') {
+                // Approval status — based on order.status lifecycle (only when approval is enabled)
+                if (statusKey !== 'draft' && erpFeatures.order_approval !== false) {
                   const approvalSteps = [];
                   // 送審
                   if (['pending_approval', 'confirmed', 'processing', 'completed'].includes(statusKey)) {
@@ -1191,7 +1195,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   );
 }
 
-export default function Orders({ setTab }) {
+export default function Orders({ setTab, erpFeatures = {} }) {
   const { isMobile, isTablet } = useResponsive();
   const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { total_amount: 0, pending_count: 0 } });
   const [loading, setLoading] = useState(true);
@@ -1331,6 +1335,7 @@ export default function Orders({ setTab }) {
           }
         }}
         setTab={setTab}
+        erpFeatures={erpFeatures}
       />
     );
   }
