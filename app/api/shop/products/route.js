@@ -75,27 +75,43 @@ export async function GET(request) {
     if (category) {
       params.set('category', `eq.${category}`);
     } else if (brand) {
-      params.set('category', `ilike.${brand}%`);
+      // Brand filter: match category prefix OR description containing brand name
+      params.set('or', `(category.ilike.${brand}%,description.ilike.*${brand}*)`);
     }
 
-    // Build combined OR/AND filter
-    // Status filter + optional search — must be combined to avoid overwriting 'or' param
+    // Status filter
     const statuses = status.split(',').map(s => s.trim()).filter(Boolean);
+    if (statuses.length > 0 && !brand) {
+      // Only set status OR if brand filter didn't already use OR param
+      const statusFilters = statuses.map(s => `product_status.eq.${s}`).join(',');
+      params.set('or', `(${statusFilters})`);
+    } else if (statuses.length > 0 && brand) {
+      // Brand + status: use 'and' to combine both
+      const statusFilter = `or(${statuses.map(s => `product_status.eq.${s}`).join(',')})`;
+      const brandFilter = `or(category.ilike.${brand}%,description.ilike.*${brand}*)`;
+      params.set('and', `(${statusFilter},${brandFilter})`);
+      params.delete('or');
+    }
+
+    // Search filter
     if (q) {
       const escaped = q.replace(/['"]/g, '');
-      // Search with status: use 'and' to combine status OR with search OR
-      const statusFilter = statuses.length > 0
-        ? `or(${statuses.map(s => `product_status.eq.${s}`).join(',')})`
-        : '';
-      const searchFilter = `or(item_number.ilike.%${escaped}%,description.ilike.%${escaped}%)`;
-      if (statusFilter) {
-        params.set('and', `(${statusFilter},${searchFilter})`);
+      // Build AND conditions combining all filters
+      const conditions = [];
+      if (statuses.length > 0) {
+        conditions.push(`or(${statuses.map(s => `product_status.eq.${s}`).join(',')})`);
+      }
+      if (brand) {
+        conditions.push(`or(category.ilike.${brand}%,description.ilike.*${brand}*)`);
+      }
+      conditions.push(`or(item_number.ilike.%${escaped}%,description.ilike.%${escaped}%)`);
+
+      params.delete('or');
+      if (conditions.length > 1) {
+        params.set('and', `(${conditions.join(',')})`);
       } else {
         params.set('or', `(item_number.ilike.%${escaped}%,description.ilike.%${escaped}%)`);
       }
-    } else if (statuses.length > 0) {
-      const statusFilters = statuses.map(s => `product_status.eq.${s}`).join(',');
-      params.set('or', `(${statusFilters})`);
     }
 
     const url = `${SUPABASE_URL}/rest/v1/quickbuy_products?${params}`;

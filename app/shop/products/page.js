@@ -69,6 +69,8 @@ function ProductsContent() {
   const searchParams = useSearchParams();
 
   const [products, setProducts] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -118,6 +120,8 @@ function ProductsContent() {
         if (!res.ok) throw new Error('Failed to fetch products');
         const data = await res.json();
         setProducts(data.products || []);
+        setTotalCount(data.total || 0);
+        setTotalPages(data.totalPages || 1);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError(err.message);
@@ -327,7 +331,7 @@ function ProductsContent() {
         {/* Controls */}
         <div className="products-controls">
           <div className="products-count">
-            {loading ? '載入中...' : `找到 ${products.length} 件商品`}
+            {loading ? '載入中...' : `找到 ${totalCount.toLocaleString()} 件商品`}
           </div>
           <div>
             <select
@@ -373,7 +377,7 @@ function ProductsContent() {
         )}
 
         {/* Pagination */}
-        {products.length > 0 && (
+        {totalPages > 1 && (
           <div className="pagination">
             <button
               className="pagination-btn"
@@ -382,11 +386,12 @@ function ProductsContent() {
             >
               ← 上一頁
             </button>
-            <div style={{ padding: '0.5rem 1rem', alignSelf: 'center' }}>
-              第 {page} 頁
+            <div style={{ padding: '0.5rem 1rem', alignSelf: 'center', fontSize: '14px', color: '#64748b' }}>
+              第 {page} / {totalPages} 頁
             </div>
             <button
               className="pagination-btn"
+              disabled={page >= totalPages}
               onClick={() => handlePageChange(page + 1)}
             >
               下一頁 →
