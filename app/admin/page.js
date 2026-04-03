@@ -481,6 +481,9 @@ function AdminPageInner() {
           setAuthError('');
           setCurrentUser(data.user || null);
           setUserPermissions(data.permissions || []);
+          if (data.must_change_password) {
+            setMustChangePassword(true);
+          }
           return apiGet({ action: 'stats' });
         })
         .then((data) => {
@@ -537,6 +540,7 @@ function AdminPageInner() {
         setToken(data.token);
         setCurrentUser(data.user || null);
         setMustChangePassword(true);
+        setIsAuthed(true);
         setLoginStep('credentials');
         setLoginPassword('');
         return;

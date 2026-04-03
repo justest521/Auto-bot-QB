@@ -39,6 +39,7 @@ export async function GET(request) {
       },
       permissions: auth.permissions.map(p => p.code),
       legacy: auth.legacy || false,
+      must_change_password: auth.user.must_change_password || false,
     });
   }
 
