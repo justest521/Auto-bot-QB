@@ -429,6 +429,387 @@ input, select, textarea {
 }
 
 /* ============================================================================
+   5b. SHOP HEADER (ShopHeader.js) - Snap-on Japan Style
+   ============================================================================ */
+.shop-header-container {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.header-utility-bar {
+  background: #1a1a1a;
+  padding: 6px 0;
+  font-size: 12px;
+}
+
+.header-utility-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-utility-link {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.header-utility-link:hover {
+  color: #fff;
+}
+
+.header-utility-separator {
+  color: rgba(255,255,255,0.3);
+  margin: 0 6px;
+}
+
+.header-main {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header-main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header-logo-snapon {
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.header-logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #16a34a;
+  line-height: 1.2;
+}
+
+.header-search-wrapper {
+  flex: 1;
+  max-width: 480px;
+}
+
+.search-box-snapon {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 2px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-box-snapon:focus-within {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22,163,74,0.1);
+}
+
+.search-input-snapon {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.search-input-snapon::placeholder {
+  color: #94a3b8;
+}
+
+.search-button-snapon {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.search-button-snapon:hover {
+  background: #15803d;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-cart-button {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 6px;
+  color: #374151;
+  transition: color 0.2s;
+}
+
+.header-cart-button:hover {
+  color: #16a34a;
+}
+
+.header-cart-badge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 6px;
+  color: #374151;
+}
+
+/* Navigation */
+.header-nav {
+  background: #1e293b;
+}
+
+.header-nav-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+}
+
+.header-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 18px;
+  color: rgba(255,255,255,0.85);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s, background 0.2s;
+}
+
+.header-nav-item:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+}
+
+.header-nav-dropdown-wrapper {
+  position: relative;
+}
+
+.header-nav-dropdown-trigger {
+  gap: 4px;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.header-nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  min-width: 200px;
+  z-index: 50;
+  padding: 8px 0;
+}
+
+.header-nav-dropdown-wrapper:hover .header-nav-dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-menu-item {
+  padding: 10px 20px;
+  color: #374151;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.dropdown-menu-item:hover {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+/* Header Responsive */
+@media (max-width: 768px) {
+  .header-search-wrapper {
+    display: none;
+  }
+
+  .header-mobile-toggle {
+    display: block;
+  }
+
+  .header-nav {
+    display: none;
+  }
+
+  .header-nav.mobile-open {
+    display: block;
+  }
+
+  .header-nav-content {
+    flex-direction: column;
+    padding: 8px 0;
+  }
+
+  .header-nav-item {
+    width: 100%;
+    padding: 12px 24px;
+    justify-content: space-between;
+  }
+
+  .header-nav-dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    background: #f8fafc;
+  }
+
+  .header-nav-dropdown-wrapper:hover .header-nav-dropdown-menu,
+  .header-nav-dropdown-menu {
+    display: block;
+  }
+}
+
+/* ============================================================================
+   5c. SHOP FOOTER
+   ============================================================================ */
+.shop-footer {
+  background: #1a1a1a;
+  color: rgba(255,255,255,0.8);
+  padding: 48px 0 24px;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+.footer-column-title {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.footer-column-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.6);
+}
+
+.footer-social {
+  margin-top: 12px;
+}
+
+.footer-social-link {
+  color: #16a34a;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.footer-social-link:hover {
+  text-decoration: underline;
+}
+
+.footer-link-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-link-list li {
+  margin-bottom: 8px;
+}
+
+.footer-link {
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-link:hover {
+  color: #16a34a;
+}
+
+.footer-divider {
+  max-width: 1200px;
+  margin: 32px auto 16px;
+  padding: 0 24px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.footer-bottom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.footer-copyright {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* ============================================================================
    6. QB SHOP HOME - SCIKET Style
    ============================================================================ */
 .qb-shop-home {
