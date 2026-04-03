@@ -98,7 +98,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
     setConvertingOrder(true);
     try {
       const result = await apiPost({ action: 'convert_quote_to_order', quote_id: quote.id });
-      setMsg(`已轉成訂單 ${result.order?.order_no || ''}`.trim());
+      setMsg(result.message || `已轉成訂單 ${result.order?.order_no || ''}`.trim());
       setLocalStatus('converted');
       // Reload detail to refresh timeline
       const refreshed = await apiGet({ action: 'quote_detail', quote_id: quote.id });

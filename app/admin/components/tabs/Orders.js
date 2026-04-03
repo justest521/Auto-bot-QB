@@ -261,11 +261,17 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
     setConvertingId(order.id);
     setMsg('');
     try {
-      await apiPost({ action: 'submit_approval', doc_type: 'order', doc_id: order.id, doc_no: order.order_no, requested_by: 'admin', amount: order.total_amount });
-      setMsg('已送審');
+      const result = await apiPost({ action: 'submit_approval', doc_type: 'order', doc_id: order.id, doc_no: order.order_no, requested_by: 'admin', amount: order.total_amount });
+      setMsg(result.message || '已送審');
       onRefresh?.();
     } catch (error) {
-      setMsg(error.message || '送審失敗');
+      // If auto_restored, show as success message rather than error
+      if (error.message?.includes('已自動恢復') || error.message?.includes('不需重新送審')) {
+        setMsg(error.message);
+        onRefresh?.();
+      } else {
+        setMsg(error.message || '送審失敗');
+      }
     } finally {
       setConvertingId('');
     }
@@ -405,7 +411,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab }) {
   const isConverted = shipKey === 'shipped' || shipKey === 'delivered';
   // 用訂單本身的 status 判斷，不再依賴 erp_approvals 表
   const orderStatus = order.status || 'draft';
-  const canConvert = ['confirmed', 'processing'].includes(orderStatus);
+  // Allow conversion if confirmed/processing, OR if previously approved + has linked sales (PO arrival scenario)
+  const hasPriorApproval = linkedSales.length > 0; // If there are sales, it was previously approved
+  const canConvert = ['confirmed', 'processing'].includes(orderStatus) || (hasPriorApproval && orderStatus === 'pending_approval');
   const isPending = orderStatus === 'pending_approval';
   const isRejected = orderStatus === 'rejected';
   const isLocked = isPending; // 審核中鎖定所有操作
