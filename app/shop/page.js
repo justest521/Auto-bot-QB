@@ -1,205 +1,367 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// Brand data
+const BRANDS = [
+  { name: 'Snap-on', slug: 'Snap-on', color: '#ED1C24' },
+  { name: 'BAHCO', slug: 'BAHCO', color: '#FF6B35' },
+  { name: 'Blue Point', slug: '美國藍點', color: '#1E40AF' },
+  { name: 'Bosch', slug: 'Bosch', color: '#1F2937' },
+  { name: 'OTC Tools', slug: 'OTC', color: '#7C3AED' },
+  { name: 'Muc-Off', slug: 'Muc-Off', color: '#059669' },
+];
+
+// Categories - using real categories from DB
 const CATEGORIES = [
-  { name: '棘輪扳手 & 套筒', slug: '棘輪扳手 & 套筒', icon: '🔧' },
-  { name: '扳手', slug: '扳手', icon: '🔨' },
-  { name: '螺絲起子', slug: '螺絲起子', icon: '🪛' },
-  { name: '鉗子', slug: '鉗子', icon: '🔩' },
-  { name: '工具箱/收納', slug: '工具箱/收納', icon: '📦' },
-  { name: '電動工具', slug: '電動工具', icon: '⚡' },
-  { name: '氣動工具', slug: '氣動工具', icon: '💨' },
-  { name: '診斷設備', slug: '診斷設備', icon: '📊' },
+  { name: '套筒系列', slug: 'Snap-on 套筒系列' },
+  { name: '扳手系列', slug: 'Snap-on 扳手系列' },
+  { name: '工具車', slug: 'Snap-on 工具車' },
+  { name: '系統櫃', slug: 'Snap-on 系統櫃' },
+  { name: '鉗子系列', slug: 'BAHCO 鉗子系列' },
+  { name: '起子系列', slug: 'BAHCO 起子系列' },
 ];
 
-const BRANDS = ['Snap-on', 'Blue Point', 'BAHCO', 'OTC'];
-
+// Service cards data
 const SERVICE_CARDS = [
-  { title: '加盟經銷', icon: '🤝' },
-  { title: '產品型錄', icon: '📋' },
-  { title: '品牌專區', icon: '🏪' },
-  { title: 'LINE 諮詢', icon: '💬' },
-  { title: '保固服務', icon: '✓' },
-  { title: '維修校正', icon: '🔧' },
+  {
+    id: 1,
+    title: '經銷合作',
+    description: '成為授權經銷商',
+    icon: 'partnership', // SVG icon name
+  },
+  {
+    id: 2,
+    title: '保固服務',
+    description: '專業的產品保固',
+    icon: 'warranty',
+  },
+  {
+    id: 3,
+    title: 'LINE 即時諮詢',
+    description: '專業團隊隨時服務',
+    icon: 'chat',
+  },
 ];
 
-const NEWS_ITEMS = [
-  { date: '2026.03.26', title: '新品上市：Snap-on 最新棘輪扳手系列', category: ' 新商品' },
-  { date: '2026.03.20', title: '春季優惠活動開始', category: '優惠資訊' },
-  { date: '2026.03.15', title: '維修校正服務擴大範圍', category: '服務更新' },
-  { date: '2026.03.10', title: 'Blue Point 專業級工具組合折扣', category: '優惠資訊' },
-  { date: '2026.03.05', title: '新會員註冊享首購優惠', category: '會員優惠' },
-];
-
-function formatPrice(price) {
-  return `NT$${price.toLocaleString('zh-TW')}`;
+// Icon components - SVG based, no emoji
+function IconPartnership() {
+  return (
+    <svg className="qb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
 }
 
-function HeroSlider() {
-  const [currentSlide, setCurrentSlide] = useState(0);
+function IconWarranty() {
+  return (
+    <svg className="qb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
 
-  const slides = [
-    {
-      gradient: 'linear-gradient(135deg, #ED1C24 0%, #C71419 100%)',
-      heading: 'Snap-on 專業工具',
-      subheading: '台灣官方授權經銷商',
-    },
-    {
-      gradient: 'linear-gradient(135deg, #1a1a1a 0%, #333333 100%)',
-      heading: '品質保證',
-      subheading: '正品行貨 快速出貨',
-    },
-    {
-      gradient: 'linear-gradient(135deg, #ED1C24 0%, #333333 100%)',
-      heading: 'LINE 諮詢',
-      subheading: '專業團隊隨時為您服務',
-    },
-  ];
+function IconChat() {
+  return (
+    <svg className="qb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+function IconSearch() {
+  return (
+    <svg className="qb-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
+  );
+}
+
+function IconChevronRight() {
+  return (
+    <svg className="qb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+}
+
+function IconTrendingUp() {
+  return (
+    <svg className="qb-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 17" />
+      <polyline points="17 6 23 6 23 12" />
+    </svg>
+  );
+}
+
+// Hero Banner Component
+function HeroBanner() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/shop/products?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const quickSearchTags = ['Snap-on', 'BAHCO', '藍點工具', '診斷設備'];
 
   return (
-    <div className="home-hero-slider">
-      {slides.map((slide, idx) => (
-        <div
-          key={idx}
-          className={`hero-slide ${idx === currentSlide ? 'active' : ''}`}
-          style={{ background: slide.gradient }}
-        >
-          <div className="hero-slide-content">
-            <h1 className="hero-slide-heading">{slide.heading}</h1>
-            <p className="hero-slide-subheading">{slide.subheading}</p>
-            <Link href="/shop/products" className="hero-slide-cta">
-              商品一覽 →
-            </Link>
+    <section className="qb-hero">
+      <div className="qb-hero-container">
+        <div className="qb-hero-content">
+          <h1 className="qb-hero-title">
+            一站購齊
+            <br />
+            專業工具與設備
+          </h1>
+          <p className="qb-hero-subtitle">
+            台灣官方授權代理 Snap-on、BAHCO、Blue Point、Bosch、OTC Tools、Muc-Off
+            <br />
+            提供超過 122,000 項商品，品質保證、快速出貨
+          </p>
+
+          <form onSubmit={handleSearch} className="qb-search-form">
+            <div className="qb-search-input-wrapper">
+              <input
+                type="text"
+                className="qb-search-input"
+                placeholder="搜尋商品名稱、型號或品牌..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button type="submit" className="qb-search-button">
+                <IconSearch />
+                <span>搜尋</span>
+              </button>
+            </div>
+          </form>
+
+          <div className="qb-quick-search">
+            <span className="qb-quick-label">快速搜尋:</span>
+            <div className="qb-quick-tags">
+              {quickSearchTags.map((tag) => (
+                <Link
+                  key={tag}
+                  href={`/shop/products?q=${encodeURIComponent(tag)}`}
+                  className="qb-quick-tag"
+                >
+                  {tag}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
-      ))}
-
-      <div className="hero-slider-dots">
-        {slides.map((_, idx) => (
-          <button
-            key={idx}
-            className={`hero-slider-dot ${idx === currentSlide ? 'active' : ''}`}
-            onClick={() => setCurrentSlide(idx)}
-            aria-label={`スライド ${idx + 1}`}
-          />
-        ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-function ServiceCardsSection() {
+// Stats Row Component
+function StatsRow() {
+  const [stats, setStats] = useState({
+    products: 122483,
+    brands: 6,
+    categories: 74,
+    years: 25,
+  });
+
   return (
-    <section className="home-service-cards">
-      <div className="shop-container">
-        <div className="service-cards-grid">
-          {SERVICE_CARDS.map((card, idx) => (
-            <div key={idx} className="service-card">
-              <div className="service-card-icon">{card.icon}</div>
-              <div className="service-card-title">{card.title}</div>
+    <section className="qb-stats">
+      <div className="qb-container">
+        <div className="qb-stats-grid">
+          <div className="qb-stat-card">
+            <div className="qb-stat-icon-wrapper">
+              <IconTrendingUp />
             </div>
-          ))}
+            <div className="qb-stat-value">122,000+</div>
+            <div className="qb-stat-label">全站商品</div>
+          </div>
+
+          <div className="qb-stat-card">
+            <div className="qb-stat-icon-wrapper">
+              <svg className="qb-stat-icon" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10" />
+              </svg>
+            </div>
+            <div className="qb-stat-value">{stats.brands}</div>
+            <div className="qb-stat-label">代理品牌</div>
+          </div>
+
+          <div className="qb-stat-card">
+            <div className="qb-stat-icon-wrapper">
+              <svg className="qb-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+            </div>
+            <div className="qb-stat-value">{stats.categories}</div>
+            <div className="qb-stat-label">商品分類</div>
+          </div>
+
+          <div className="qb-stat-card">
+            <div className="qb-stat-icon-wrapper">
+              <svg className="qb-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+              </svg>
+            </div>
+            <div className="qb-stat-value">25+</div>
+            <div className="qb-stat-label">服務年資</div>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function NewsSection() {
+// Brand Showcase Component
+function BrandShowcase() {
   return (
-    <section className="home-section">
-      <div className="shop-container">
-        <div className="section-heading">
-          <div className="section-heading-en">NEWS & INFORMATION</div>
-          <h2 className="section-heading-ja">最新消息</h2>
-          <div className="section-heading-line"></div>
-        </div>
+    <section className="qb-brands">
+      <div className="qb-container">
+        <h2 className="qb-section-title">代理品牌</h2>
+        <p className="qb-section-subtitle">全球頂級工具品牌，品質保證</p>
 
-        <div className="news-list">
-          {NEWS_ITEMS.map((item, idx) => (
-            <a key={idx} href="#" className="news-item">
-              <div className="news-item-date">{item.date}</div>
-              <div className="news-item-content">
-                <span className="news-item-category">{item.category}</span>
-                <span className="news-item-title">{item.title}</span>
+        <div className="qb-brands-grid">
+          {BRANDS.map((brand) => (
+            <Link
+              key={brand.slug}
+              href={`/shop/products?brand=${encodeURIComponent(brand.slug)}`}
+              className="qb-brand-card"
+              style={{ '--brand-color': brand.color }}
+            >
+              <div className="qb-brand-logo">{brand.name}</div>
+              <div className="qb-brand-hover">
+                瀏覽 {brand.name} 商品
+                <IconChevronRight />
               </div>
-              <div className="news-item-arrow">→</div>
-            </a>
+            </Link>
           ))}
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: '24px' }}>
-          <Link href="#" className="section-link">
-            更多最新消息 →
-          </Link>
         </div>
       </div>
     </section>
   );
 }
 
-function NewProductsSection() {
+// Category Grid Component
+function CategoryGrid() {
+  return (
+    <section className="qb-categories">
+      <div className="qb-container">
+        <h2 className="qb-section-title">熱門分類</h2>
+        <p className="qb-section-subtitle">找到你需要的工具</p>
+
+        <div className="qb-category-grid">
+          {CATEGORIES.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/shop/products?category=${encodeURIComponent(cat.slug)}`}
+              className="qb-category-card"
+            >
+              <div className="qb-category-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                </svg>
+              </div>
+              <h3 className="qb-category-name">{cat.name}</h3>
+              <div className="qb-category-arrow">
+                <IconChevronRight />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// New Products Carousel Component
+function NewProductsCarousel() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchNewProducts = async () => {
+    const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/shop/products?status=New Announced&limit=10&page=1');
+        const res = await fetch('/api/shop/products?status=New Announced&limit=12&page=1&sort=newest');
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         setProducts(data.products || []);
       } catch (err) {
-        console.error('Error fetching products:', err);
+        console.error('Error fetching new products:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchNewProducts();
+    fetchProducts();
   }, []);
 
-  if (loading || products.length === 0) return null;
+  if (loading) {
+    return (
+      <section className="qb-new-products">
+        <div className="qb-container">
+          <h2 className="qb-section-title">新品上市</h2>
+          <p className="qb-section-subtitle">最新推出的工具和設備</p>
+          <div className="qb-loading">載入中...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (products.length === 0) {
+    return null;
+  }
 
   return (
-    <section className="home-section">
-      <div className="shop-container">
-        <div className="section-heading">
-          <div className="section-heading-en">NEW PRODUCTS</div>
-          <h2 className="section-heading-ja">新品上市</h2>
-          <div className="section-heading-line"></div>
-        </div>
+    <section className="qb-new-products">
+      <div className="qb-container">
+        <h2 className="qb-section-title">新品上市</h2>
+        <p className="qb-section-subtitle">最新推出的工具和設備</p>
 
-        <div className="home-products-carousel">
+        <div className="qb-products-carousel">
           {products.map((product) => (
             <Link
               key={product.id}
               href={`/shop/products/${product.id}`}
-              className="home-product-card"
+              className="qb-product-card"
             >
-              <div className="home-product-image">
+              <div className="qb-product-image">
                 {product.image_url ? (
-                  <img src={product.image_url} alt={product.description} />
+                  <img
+                    src={product.image_url}
+                    alt={product.description}
+                    loading="lazy"
+                  />
                 ) : (
-                  <div className="product-image-placeholder">🔧</div>
+                  <div className="qb-product-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    </svg>
+                  </div>
                 )}
                 {product.product_status === 'New Announced' && (
-                  <div className="home-product-badge">新品</div>
+                  <div className="qb-product-badge">新品</div>
                 )}
               </div>
-              <div className="home-product-info">
-                <div className="home-product-number">{product.item_number}</div>
-                <div className="home-product-desc">{product.description}</div>
-                <div className="home-product-price">{formatPrice(product.tw_retail_price)}</div>
+
+              <div className="qb-product-info">
+                <div className="qb-product-number">{product.item_number}</div>
+                <h4 className="qb-product-title">{product.description}</h4>
+                <div className="qb-product-price">
+                  NT${(product.tw_retail_price || 0).toLocaleString('zh-TW')}
+                </div>
               </div>
             </Link>
           ))}
@@ -209,90 +371,78 @@ function NewProductsSection() {
   );
 }
 
-function ProductLineupSection() {
+// Service Cards Component
+function ServiceSection() {
   return (
-    <section className="home-section">
-      <div className="shop-container">
-        <div className="section-heading">
-          <div className="section-heading-en">PRODUCT LINEUP</div>
-          <h2 className="section-heading-ja">產品專區</h2>
-          <div className="section-heading-line"></div>
-        </div>
+    <section className="qb-services">
+      <div className="qb-container">
+        <h2 className="qb-section-title">我們提供的服務</h2>
 
-        <div className="home-lineup-grid">
-          {CATEGORIES.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/shop/products?category=${encodeURIComponent(cat.slug)}`}
-              className="home-lineup-card"
-            >
-              <div className="home-lineup-icon">{cat.icon}</div>
-              <div className="home-lineup-title">{cat.name}</div>
+        <div className="qb-service-grid">
+          {SERVICE_CARDS.map((service) => {
+            let IconComponent = null;
+            if (service.icon === 'partnership') {
+              IconComponent = IconPartnership;
+            } else if (service.icon === 'warranty') {
+              IconComponent = IconWarranty;
+            } else if (service.icon === 'chat') {
+              IconComponent = IconChat;
+            }
+
+            return (
+              <div key={service.id} className="qb-service-card">
+                <div className="qb-service-icon">
+                  {IconComponent && <IconComponent />}
+                </div>
+                <h3 className="qb-service-title">{service.title}</h3>
+                <p className="qb-service-description">{service.description}</p>
+                <div className="qb-service-arrow">
+                  <IconChevronRight />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// CTA Banner Component
+function CTABanner() {
+  return (
+    <section className="qb-cta-banner">
+      <div className="qb-container">
+        <div className="qb-cta-content">
+          <h2 className="qb-cta-title">成為我們的經銷合作夥伴</h2>
+          <p className="qb-cta-subtitle">
+            加入台灣最信賴的專業工具經銷商，獲得獨家支援和優惠
+          </p>
+          <div className="qb-cta-buttons">
+            <Link href="#contact" className="qb-cta-primary">
+              聯絡我們
             </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FamilyBrandsSection() {
-  return (
-    <section className="home-section" style={{ backgroundColor: '#f9f9f9' }}>
-      <div className="shop-container">
-        <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '24px', textAlign: 'center', color: '#333' }}>
-          ファミリーブランド
-        </h2>
-        <div className="family-brands-row">
-          {BRANDS.map((brand) => (
-            <Link
-              key={brand}
-              href={`/shop/products?brand=${encodeURIComponent(brand === 'Blue Point' ? '美國藍點' : brand)}`}
-              className="family-brand-item"
-            >
-              <span>{brand}</span>
+            <Link href="/shop/products" className="qb-cta-secondary">
+              瀏覽全部商品
             </Link>
-          ))}
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function InfoBlocksSection() {
-  const infoBlocks = [
-    { title: '產品購買方式', en: 'HOW TO BUY', icon: '🛍️' },
-    { title: '維修與校正', en: 'REPAIR', icon: '🔧' },
-    { title: 'LINE 即時諮詢', en: 'LINE SUPPORT', icon: '💬' },
-  ];
-
-  return (
-    <section className="home-section">
-      <div className="shop-container">
-        <div className="home-info-blocks">
-          {infoBlocks.map((block, idx) => (
-            <a key={idx} href="#" className="info-block">
-              <div className="info-block-icon">{block.icon}</div>
-              <div className="info-block-en">{block.en}</div>
-              <div className="info-block-title">{block.title}</div>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
+// Main Export
 export default function ShopHome() {
   return (
-    <main>
-      <HeroSlider />
-      <ServiceCardsSection />
-      <NewsSection />
-      <NewProductsSection />
-      <ProductLineupSection />
-      <FamilyBrandsSection />
-      <InfoBlocksSection />
+    <main className="qb-shop-home">
+      <HeroBanner />
+      <StatsRow />
+      <BrandShowcase />
+      <CategoryGrid />
+      <NewProductsCarousel />
+      <ServiceSection />
+      <CTABanner />
     </main>
   );
 }
