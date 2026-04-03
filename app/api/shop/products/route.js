@@ -71,42 +71,76 @@ export async function GET(request) {
     // Price filter - only show items with tw_retail_price > 0
     params.set('tw_retail_price', 'gt.0');
 
+    // Brand filter logic:
+    // - "other" category products are all Snap-on catalog imports
+    // - Other brands have their category prefix (BAHCO xxx, 美國藍點 xxx, Muc-Off, OTC xxx)
+    // - Snap-on also has "Snap-on xxx" categories
+    const BRAND_CATEGORY_MAP = {
+      'Snap-on': ['Snap-on', 'other'],         // Snap-on = category prefix + all "other"
+      '美國藍點': ['美國藍點'],
+      'BAHCO': ['BAHCO'],
+      'Muc-Off': ['Muc-Off'],
+      'OTC': ['OTC'],
+      'QB TOOLS': ['QB TOOLS'],
+    };
+
     // Category filter
     if (category) {
       params.set('category', `eq.${category}`);
+    } else if (brand && BRAND_CATEGORY_MAP[brand]) {
+      const cats = BRAND_CATEGORY_MAP[brand];
+      if (cats.length === 1) {
+        params.set('category', `ilike.${cats[0]}%`);
+      } else {
+        // For Snap-on: match "Snap-on%" OR "other"
+        const catFilters = cats.map(c => c === 'other' ? 'category.eq.other' : `category.ilike.${c}%`);
+        params.set('or', `(${catFilters.join(',')})`);
+      }
     } else if (brand) {
-      // Brand filter: match category prefix OR description containing brand name
-      params.set('or', `(category.ilike.${brand}%,description.ilike.*${brand}*)`);
+      params.set('category', `ilike.${brand}%`);
     }
 
     // Status filter
     const statuses = status.split(',').map(s => s.trim()).filter(Boolean);
-    if (statuses.length > 0 && !brand) {
-      // Only set status OR if brand filter didn't already use OR param
+    const brandUsedOr = brand && BRAND_CATEGORY_MAP[brand] && BRAND_CATEGORY_MAP[brand].length > 1;
+
+    if (statuses.length > 0 && !brandUsedOr && !brand) {
       const statusFilters = statuses.map(s => `product_status.eq.${s}`).join(',');
       params.set('or', `(${statusFilters})`);
-    } else if (statuses.length > 0 && brand) {
-      // Brand + status: use 'and' to combine both
+    } else if (statuses.length > 0 && brandUsedOr) {
+      // Brand used OR, so combine with status using AND
       const statusFilter = `or(${statuses.map(s => `product_status.eq.${s}`).join(',')})`;
-      const brandFilter = `or(category.ilike.${brand}%,description.ilike.*${brand}*)`;
-      params.set('and', `(${statusFilter},${brandFilter})`);
+      const cats = BRAND_CATEGORY_MAP[brand];
+      const catFilters = cats.map(c => c === 'other' ? 'category.eq.other' : `category.ilike.${c}%`);
+      const brandFilter = `or(${catFilters.join(',')})`;
       params.delete('or');
+      params.set('and', `(${statusFilter},${brandFilter})`);
+    } else if (statuses.length > 0 && brand) {
+      const statusFilters = statuses.map(s => `product_status.eq.${s}`).join(',');
+      params.set('or', `(${statusFilters})`);
     }
 
     // Search filter
     if (q) {
       const escaped = q.replace(/['"]/g, '');
-      // Build AND conditions combining all filters
       const conditions = [];
       if (statuses.length > 0) {
         conditions.push(`or(${statuses.map(s => `product_status.eq.${s}`).join(',')})`);
       }
-      if (brand) {
-        conditions.push(`or(category.ilike.${brand}%,description.ilike.*${brand}*)`);
+      if (brand && BRAND_CATEGORY_MAP[brand]) {
+        const cats = BRAND_CATEGORY_MAP[brand];
+        const catFilters = cats.map(c => c === 'other' ? 'category.eq.other' : `category.ilike.${c}%`);
+        conditions.push(`or(${catFilters.join(',')})`);
+      } else if (brand) {
+        conditions.push(`category.ilike.${brand}%`);
+      } else if (category) {
+        conditions.push(`category.eq.${category}`);
       }
       conditions.push(`or(item_number.ilike.%${escaped}%,description.ilike.%${escaped}%)`);
 
       params.delete('or');
+      params.delete('and');
+      if (category) params.delete('category');
       if (conditions.length > 1) {
         params.set('and', `(${conditions.join(',')})`);
       } else {
