@@ -412,11 +412,11 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
   // 用訂單本身的 status 判斷，不再依賴 erp_approvals 表
   const orderStatus = order.status || 'draft';
   const approvalEnabled = erpFeatures.order_approval !== false;
-  // Allow conversion if confirmed/processing, OR if previously approved + has linked sales (PO arrival scenario)
+  // Allow conversion if confirmed/processing, OR if has linked sales (previously approved, PO arrival scenario)
   // When approval is OFF, draft orders can also convert directly
   const hasPriorApproval = linkedSales.length > 0; // If there are sales, it was previously approved
   const canConvert = ['confirmed', 'processing'].includes(orderStatus)
-    || (hasPriorApproval && orderStatus === 'pending_approval')
+    || hasPriorApproval  // 有銷貨記錄 = 曾經核准過，任何狀態都可轉銷貨
     || (!approvalEnabled && ['draft', 'rejected'].includes(orderStatus));
   const isPending = orderStatus === 'pending_approval';
   const isRejected = orderStatus === 'rejected';
