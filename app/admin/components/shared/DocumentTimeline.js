@@ -85,6 +85,15 @@ export function DocumentTimeline({ type, id, setTab, title = '單據記錄' }) {
                   ))}
                 </div>
               )}
+              {e.proof_url && (
+                <div style={{ marginTop: 4 }}>
+                  <a href={e.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 6, overflow: 'hidden', lineHeight: 0 }}>
+                    <img src={e.proof_url} alt="匯款證明" style={{ width: 120, height: 80, objectFit: 'cover' }} />
+                  </a>
+                  <div style={{ fontSize: 10, color: '#2563eb', marginTop: 2 }}>點擊查看匯款證明</div>
+                </div>
+              )}
+              {e.verified && <div style={{ fontSize: 10, fontWeight: 700, color: '#059669', marginTop: 2 }}>✓ 已核帳</div>}
               {e.note && <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: 4, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
               {e.time && <div style={{ fontSize: 10, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
             </div>
