@@ -507,6 +507,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                     const hasPO = !!(item.po_ref || item.po_info);
                     const isEditing = editingItemId === item.id;
                     const cannotEdit = !!item.sale_ref;
+                    const fullySold = item.sale_info && Number(item.remaining_qty || 0) <= 0;
                     const inputStyle = { width: '100%', padding: '2px 4px', border: '1px solid #d1d5db', borderRadius: t.radius.sm, fontSize: t.fontSize.caption, textAlign: 'center', outline: 'none' };
                     const rowBg = isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff';
 
@@ -516,10 +517,8 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                           {/* Mobile card header with checkbox */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #e5e7eb' }}>
                             <div>
-                              {cannotEdit ? (
-                                <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, background: '#f3f4f6', padding: '2px 6px', borderRadius: t.radius.sm }}>已銷</span>
-                              ) : hasPO ? (
-                                <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, background: '#f3f4f6', padding: '2px 6px', borderRadius: t.radius.sm }}>已採購</span>
+                              {fullySold ? (
+                                <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#16a34a', background: '#dcfce7', padding: '2px 6px', borderRadius: t.radius.sm }}>✓ 已銷</span>
                               ) : (
                                 <input type="checkbox" checked={isChecked} onChange={() => toggleItemSelect(item.id)} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                               )}
@@ -596,10 +595,8 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                       <div key={item.id}>
                       <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: t.fontSize.body, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
-                          {cannotEdit ? (
-                            <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>已銷</span>
-                          ) : hasPO ? (
-                            <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>已採購</span>
+                          {fullySold ? (
+                            <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: '#16a34a' }}>✓ 已銷</span>
                           ) : (
                             <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                           )}
@@ -940,11 +937,20 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 } else {
                   entries.push({ dot: payKey === 'paid' ? '#16a34a' : '#d1d5db', label: '付款', detail: PAY_STATUS_MAP[payKey] || payKey, status: payKey === 'paid' ? 'done' : 'pending' });
                 }
-                // Shipping — with LINE notification status
-                const shipTimelineEv = timeline.find(e => (e.event || '').match(/出貨單/));
-                const shipLineNote = shipTimelineEv?.note || ((shipKey === 'shipped' || shipKey === 'delivered') ? (order.customer?.line_user_id ? '[已送] LINE 出貨通知已發送' : '[未送] 未綁定 LINE，未推播') : '');
-                const shipLineSent = shipTimelineEv?.line_sent ?? !!order.customer?.line_user_id;
-                entries.push({ dot: (shipKey === 'shipped' || shipKey === 'delivered') ? '#16a34a' : '#d1d5db', label: '出貨', detail: SHIP_STATUS_MAP[shipKey] || shipKey, status: (shipKey === 'shipped' || shipKey === 'delivered') ? 'done' : 'pending', note: (shipKey === 'shipped' || shipKey === 'delivered') ? shipLineNote : '', lineSent: shipLineSent });
+                // Shipping — with LINE notification status + item details
+                const shipTimelineEvs = timeline.filter(e => (e.event || '').match(/出貨單/));
+                if (shipTimelineEvs.length > 0) {
+                  shipTimelineEvs.forEach(ev => {
+                    const refNo = (ev.event || '').match(/(SH[\w-]+)/)?.[1] || '';
+                    const shipLineNote = ev.note || (order.customer?.line_user_id ? '[已送] LINE 出貨通知已發送' : '[未送] 未綁定 LINE，未推播');
+                    const shipLineSent = ev.line_sent ?? !!order.customer?.line_user_id;
+                    entries.push({ dot: '#16a34a', label: '出貨', ref: refNo, detail: `已出貨${ev.detail ? `：${ev.detail}` : ''}`, time: ev.time, status: 'done', note: shipLineNote, lineSent: shipLineSent });
+                  });
+                } else {
+                  const shipLineNote = (shipKey === 'shipped' || shipKey === 'delivered') ? (order.customer?.line_user_id ? '[已送] LINE 出貨通知已發送' : '[未送] 未綁定 LINE，未推播') : '';
+                  const shipLineSent = !!order.customer?.line_user_id;
+                  entries.push({ dot: (shipKey === 'shipped' || shipKey === 'delivered') ? '#16a34a' : '#d1d5db', label: '出貨', detail: SHIP_STATUS_MAP[shipKey] || shipKey, status: (shipKey === 'shipped' || shipKey === 'delivered') ? 'done' : 'pending', note: (shipKey === 'shipped' || shipKey === 'delivered') ? shipLineNote : '', lineSent: shipLineSent });
+                }
                 // Completion
                 const isCompleted = statusKey === 'completed' || (payKey === 'paid' && (shipKey === 'shipped' || shipKey === 'delivered'));
                 if (isCompleted) {
