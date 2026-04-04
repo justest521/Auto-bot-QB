@@ -19,8 +19,10 @@ const STOCK_BADGE = {
 };
 
 // ========== 訂單詳情頁 ==========
-function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} }) {
+function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatures = {} }) {
   const { isMobile, isTablet } = useResponsive();
+  const [orderFull, setOrderFull] = useState(orderProp); // Will be enriched with customer data
+  const order = orderFull; // Use enriched order everywhere
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
@@ -72,6 +74,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
         setLinkedSales(result.linked_sales || []);
         setLinkedPOs(result.linked_pos || []);
         setTimeline(result.timeline || []);
+        // Enrich order with full data from API (customer, status, etc.)
+        if (result.order_data) setOrderFull(prev => ({ ...prev, ...result.order_data }));
         // Fetch approvals for both order and related sales
         const [orderApprovalRes, saleApprovalRes] = await Promise.all([
           apiGet({ action: 'approvals', doc_type: 'order' }),
@@ -898,6 +902,12 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
                   const poItemBadges = items.filter(i => i.po_info).map(i => ({ text: `已採購`, item: i.item_number_snapshot }));
                   entries.push({ dot: pc, label: '採購', ref: po.po_no, refType: 'po', detail: poStatusMap[pk] || pk, detailColor: pc, time: po.po_date, status: pk === 'received' ? 'done' : 'current', badges: poItemBadges });
                 });
+                // Stock-in arrival events (from timeline)
+                const arrivalEvents = timeline.filter(e => (e.event || '').startsWith('已到貨'));
+                arrivalEvents.forEach(ev => {
+                  const refNo = (ev.event || '').replace('已到貨 ', '').trim();
+                  entries.push({ dot: '#16a34a', label: '📦 到貨', ref: refNo, detail: ev.detail || '已到貨，可進行銷貨', time: ev.time, status: 'done' });
+                });
                 // Stock
                 const stockOk = noStockCount === 0 && insufficientCount === 0;
                 entries.push({ dot: stockOk ? '#16a34a' : '#d97706', label: '庫存', detail: stockOk ? `全部充足 (${items.length}項)` : `充足${sufficientCount} 不足${insufficientCount} 無庫存${noStockCount}`, status: stockOk ? 'done' : 'warning' });
@@ -988,7 +998,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
             </div>
 
             {/* 4. Payment registration card — clean grid */}
-            {payKey !== 'paid' && statusKey !== 'draft' && statusKey !== 'pending_approval' && statusKey !== 'rejected' && (
+            {payKey !== 'paid' && (approvalEnabled ? (statusKey !== 'draft' && statusKey !== 'pending_approval' && statusKey !== 'rejected') : statusKey !== 'pending_approval') && (
               <div style={{ ...cardStyle, padding: '14px 16px' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
