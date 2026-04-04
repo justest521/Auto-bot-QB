@@ -792,10 +792,10 @@ export default function QuickReceive({ setTab }) {
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 180 }}>
-              <label style={{ ...S.label, marginBottom: 4 }}>廠商（選填）</label>
+              <label style={{ ...S.label, marginBottom: 4 }}>廠商（必填）<span style={{ color: '#ef4444', marginLeft: 2 }}>*</span></label>
               <div style={{ display: 'flex', gap: 6 }}>
-                <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: 13, flex: 1  }}>
-                  <option value="">不指定廠商</option>
+                <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: 13, flex: 1, borderColor: !selectedVendor ? '#fca5a5' : undefined  }}>
+                  <option value="">請選擇廠商</option>
                   {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
                 </select>
                 {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: t.color.infoBg, border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', lineHeight: 1 }}>+</button>}
@@ -806,12 +806,12 @@ export default function QuickReceive({ setTab }) {
               <input value={note} onChange={e => setNote(e.target.value)} placeholder="進貨備註..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: 13  }} />
             </div>
             <div style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-end', paddingTop: 18 }}>
-              <button onClick={handleStockIn} disabled={submitting || checkedCount === 0} style={{
+              <button onClick={handleStockIn} disabled={submitting || checkedCount === 0 || !selectedVendor} style={{
                 ...S.btnPrimary, padding: '12px 32px', fontSize: 15, fontWeight: 700,
-                background: submitting ? '#94a3b8' : checkedCount === 0 ? '#d1d5db' : t.color.brand,
-                boxShadow: submitting || checkedCount === 0 ? 'none' : '0 2px 8px rgba(22,163,74,0.3)',
+                background: submitting ? '#94a3b8' : (checkedCount === 0 || !selectedVendor) ? '#d1d5db' : t.color.brand,
+                boxShadow: submitting || checkedCount === 0 || !selectedVendor ? 'none' : '0 2px 8px rgba(22,163,74,0.3)',
               }}>
-                {submitting ? '入庫中...' : `一鍵入庫 (${checkedCount} 項)`}
+                {submitting ? '入庫中...' : !selectedVendor ? '請先選擇廠商' : `一鍵入庫 (${checkedCount} 項)`}
               </button>
             </div>
           </div>

@@ -47,6 +47,8 @@ export default function AccountsReceivable() {
   const [payDialog, setPayDialog] = useState(null);
   const [payForm, setPayForm] = useState({ amount: '', method: 'transfer', remark: '' });
   const [paying, setPaying] = useState(false);
+  const [payProofFile, setPayProofFile] = useState(null);
+  const [payProofPreview, setPayProofPreview] = useState(null);
   const [sortKey, setSortKey] = useState('');
   const [sortDir, setSortDir] = useState('desc');
   const toggleSort = (key) => { if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSortKey(key); setSortDir('desc'); } };
@@ -113,15 +115,51 @@ export default function AccountsReceivable() {
     const balance = ar.balance != null ? Number(ar.balance) : Number(ar.total_amount || 0) - Number(ar.paid_amount_display || ar.paid_amount || 0);
     setPayDialog(ar);
     setPayForm({ amount: balance > 0 ? String(balance) : '', method: 'transfer', remark: '' });
+    setPayProofFile(null);
+    setPayProofPreview(null);
+  };
+
+  const compressImage = (file, maxW = 1200, quality = 0.7) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl.split(',')[1]);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const handleProofSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPayProofFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPayProofPreview(ev.target.result);
+    reader.readAsDataURL(file);
   };
 
   const handlePay = async () => {
     if (!payDialog || !payForm.amount || Number(payForm.amount) <= 0) { setMsg('請填寫收款金額'); return; }
     setPaying(true);
     try {
-      const res = await apiPost({ action: 'record_payment', invoice_id: payDialog.id, amount: Number(payForm.amount), payment_method: payForm.method, remark: payForm.remark || '' });
+      const payload = { action: 'record_payment', invoice_id: payDialog.id, amount: Number(payForm.amount), payment_method: payForm.method, remark: payForm.remark || '' };
+      if (payProofFile) {
+        payload.proof_data = await compressImage(payProofFile);
+        payload.proof_name = payProofFile.name || 'proof.jpg';
+      }
+      const res = await apiPost(payload);
       setMsg(res.message || '沖帳成功');
       setPayDialog(null);
+      setPayProofFile(null);
+      setPayProofPreview(null);
       await load(page, statusFilter, search, pageSize);
     } catch (e) { setMsg(e.message || '沖帳失敗'); }
     finally { setPaying(false); }
@@ -403,6 +441,27 @@ export default function AccountsReceivable() {
                       <div><span style={{ color: t.color.textMuted }}>類型</span><div style={{ fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{alloc.type || '-'}</div></div>
                     </div>
                     {alloc.remark && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 6, paddingTop: 6, borderTop: '1px solid #e5e7eb' }}>備註：{alloc.remark}</div>}
+                    {alloc.proof_url ? (
+                      <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid #e5e7eb' }}>
+                        <a href={alloc.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 4, overflow: 'hidden', lineHeight: 0 }}>
+                          <img src={alloc.proof_url} alt="憑證" style={{ width: 80, height: 54, objectFit: 'cover' }} />
+                        </a>
+                        <div style={{ fontSize: 9, color: t.color.link, marginTop: 2 }}>點擊查看憑證</div>
+                      </div>
+                    ) : alloc.receipt_id && (
+                      <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid #e5e7eb' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', border: '1px dashed #d1d5db', borderRadius: 4, cursor: 'pointer', fontSize: 10, color: t.color.link, background: '#f9fafb' }}>
+                          📎 上傳憑證
+                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
+                            const f = ev.target.files?.[0]; if (!f) return;
+                            const b64 = await compressImage(f);
+                            const res = await apiPost({ action: 'upload_receipt_proof', receipt_id: alloc.receipt_id, proof_data: b64, proof_name: f.name });
+                            setMsg(res.message || '已上傳');
+                            if (currentInvoice) { const dd = await apiGet({ action: 'invoice_allocations', invoice_id: currentInvoice.id }); setDetailData(dd); }
+                          }} />
+                        </label>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -414,6 +473,7 @@ export default function AccountsReceivable() {
                     <th style={{ padding: '8px 12px', textAlign: 'center', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>日期</th>
                     <th style={{ padding: '8px 12px', textAlign: 'right', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>金額</th>
                     <th style={{ padding: '8px 12px', textAlign: 'center', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>類型</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>憑證</th>
                     <th style={{ padding: '8px 12px', textAlign: 'left', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>備註</th>
                   </tr></thead>
                   <tbody>{(detailData.rows || []).map((alloc, idx) => (
@@ -422,6 +482,22 @@ export default function AccountsReceivable() {
                       <td style={{ padding: '8px 12px', textAlign: 'center', fontSize: t.fontSize.tiny, ...S.mono }}>{alloc.date?.slice(0, 10)}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: t.fontWeight.semibold, ...S.mono }}>{fmtP(alloc.amount)}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'center' }}>{alloc.type || '-'}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'center' }}>{alloc.proof_url ? (
+                        <a href={alloc.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 4, overflow: 'hidden', lineHeight: 0 }}>
+                          <img src={alloc.proof_url} alt="憑證" style={{ width: 48, height: 32, objectFit: 'cover' }} />
+                        </a>
+                      ) : alloc.receipt_id ? (
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', border: '1px dashed #d1d5db', borderRadius: 4, cursor: 'pointer', fontSize: 10, color: t.color.link, background: '#f9fafb' }}>
+                          📎 上傳
+                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
+                            const f = ev.target.files?.[0]; if (!f) return;
+                            const b64 = await compressImage(f);
+                            const res = await apiPost({ action: 'upload_receipt_proof', receipt_id: alloc.receipt_id, proof_data: b64, proof_name: f.name });
+                            setMsg(res.message || '已上傳');
+                            if (currentInvoice) { const dd = await apiGet({ action: 'invoice_allocations', invoice_id: currentInvoice.id }); setDetailData(dd); }
+                          }} />
+                        </label>
+                      ) : <span style={{ color: '#d1d5db' }}>-</span>}</td>
                       <td style={{ padding: '8px 12px', fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{alloc.remark || '-'}</td>
                     </tr>
                   ))}</tbody>
@@ -484,9 +560,24 @@ export default function AccountsReceivable() {
                 <option value="monthly">月結沖帳</option>
               </select>
             </div>
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 12 }}>
               <label style={S.label}>備註</label>
               <textarea value={payForm.remark} onChange={e => setPayForm(f => ({ ...f, remark: e.target.value }))} placeholder="可選填備註" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), minHeight: 50, resize: 'vertical' }} />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={S.label}>匯款憑證（選填）</label>
+              {payProofPreview ? (
+                <div style={{ position: 'relative', display: 'inline-block', marginTop: 4 }}>
+                  <img src={payProofPreview} alt="憑證預覽" style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid #d1d5db' }} />
+                  <button onClick={() => { setPayProofFile(null); setPayProofPreview(null); }} style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#ef4444', color: '#fff', border: 'none', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
+                </div>
+              ) : (
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', marginTop: 4, border: '1px dashed #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: t.fontSize.caption, color: t.color.link, background: '#f9fafb' }}>
+                  📎 選擇圖片
+                  <input type="file" accept="image/*" onChange={handleProofSelect} style={{ display: 'none' }} />
+                </label>
+              )}
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 4 }}>支援 JPG / PNG，自動壓縮</div>
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
               <button onClick={() => setPayDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: t.color.textMuted, border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>

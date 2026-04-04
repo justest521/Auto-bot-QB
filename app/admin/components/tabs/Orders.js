@@ -955,71 +955,91 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                   entries.push({ dot: '#16a34a', label: '完成', detail: '訂單完成', status: 'done' });
                 }
 
+                // Icon map for visual labels
+                const iconMap = { '訂單建立': '📋', '報價': '📝', '送審': '📤', '審核': '✅', '採購': '🛒', '📦 到貨': '📦', '庫存': '📊', '銷貨': '💰', '付款': '💳', '出貨': '🚚', '完成': '🎉' };
+                const getIcon = (label) => iconMap[label] || (label.includes('審核') ? '✅' : label.includes('付款') ? '💳' : '•');
+
                 return (
-                  <div style={{ position: 'relative', paddingLeft: 18 }}>
+                  <div style={{ position: 'relative', paddingLeft: 22 }}>
                     {entries.map((e, i) => {
                       const isLast = i === entries.length - 1;
                       const isCurrent = e.status === 'current' || e.status === 'warning';
-                      const nextDot = !isLast ? (entries[i + 1]?.dot || '#e5e7eb') : '#e5e7eb';
+                      const isDone = e.status === 'done';
+                      const isRej = e.status === 'rejected';
+                      const isPend = e.status === 'pending';
+                      // Colors
+                      const labelColor = isDone ? '#374151' : isRej ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af';
+                      const lineBg = isDone || isCurrent ? `${e.dot}30` : '#e5e7eb';
+
                       return (
-                        <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 14, minHeight: isLast ? 'auto' : 28 }}>
-                          {!isLast && <div style={{ position: 'absolute', left: -11, top: 10, width: 2, bottom: 0, background: '#e5e7eb' }} />}
-                          <div style={{ position: 'absolute', left: -14, top: 3, width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8, borderRadius: '50%', background: e.dot, border: '2px solid #fff', boxShadow: isCurrent ? `0 0 0 3px ${e.dot}25` : `0 0 0 1.5px ${e.dot}30` }} />
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', lineHeight: 1.3 }}>
-                            <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: e.status === 'done' ? '#1f2937' : e.status === 'rejected' ? '#dc2626' : isCurrent ? '#1d4ed8' : '#9ca3af' }}>{e.label}</span>
-                            {e.ref && (() => {
-                              const clickHandler = e.refType === 'sale' ? () => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
-                                : e.refType === 'po' ? () => { window.localStorage.setItem(PO_FOCUS_KEY, e.ref); setTab?.('purchase_orders'); }
-                                : e.refType === 'quote' ? () => { window.localStorage.setItem('qb_quote_focus', e.ref); setTab?.('quotes'); }
-                                : e.refType === 'payment' ? () => { setTab?.('收款管理'); }
-                                : e.refType === 'shipment' ? () => { window.localStorage.setItem('qb_shipment_focus', e.ref); setTab?.('shipments'); }
-                                : null;
-                              return <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none' }} onClick={clickHandler}>{e.ref}</span>;
-                            })()}
-                            {e.detail && <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: e.detailColor || (e.status === 'done' ? '#6b7280' : e.status === 'warning' ? '#92400e' : '#9ca3af'), background: isCurrent || e.status === 'warning' ? `${e.dot}14` : 'transparent', padding: isCurrent || e.status === 'warning' ? '1px 6px' : 0, borderRadius: t.radius.sm }}>{e.detail}</span>}
+                        <div key={i} style={{ position: 'relative', paddingBottom: isLast ? 0 : 10, minHeight: isLast ? 'auto' : 24 }}>
+                          {/* Vertical line */}
+                          {!isLast && <div style={{ position: 'absolute', left: -14, top: 18, width: 2, bottom: 0, background: lineBg }} />}
+                          {/* Dot with icon */}
+                          <div style={{ position: 'absolute', left: -22, top: 0, width: 18, height: 18, borderRadius: '50%', background: isDone ? `${e.dot}18` : isCurrent ? `${e.dot}20` : '#f3f4f6', border: `2px solid ${isDone || isCurrent ? e.dot : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>
+                            {isDone ? <span style={{ color: e.dot, fontSize: 9, lineHeight: 1 }}>✓</span> : isCurrent ? <span style={{ width: 5, height: 5, borderRadius: '50%', background: e.dot, display: 'block' }} /> : <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d1d5db', display: 'block' }} />}
                           </div>
-                          {e.badges && e.badges.length > 0 && (
-                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 3 }}>
-                              {e.badges.map((b, bi) => (
-                                <span key={bi} style={{ fontSize: t.fontSize.tiny, padding: '1px 6px', borderRadius: t.radius.sm, background: e.label === '銷貨' ? '#dbeafe' : '#f3e8ff', color: e.label === '銷貨' ? '#1d4ed8' : '#7c3aed', fontWeight: t.fontWeight.semibold }}>{b.item} {b.text}</span>
-                              ))}
+                          {/* Content */}
+                          <div style={{ paddingLeft: 2 }}>
+                            {/* Main row: label + ref + detail */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', lineHeight: 1.4 }}>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: labelColor, whiteSpace: 'nowrap' }}>{e.label}</span>
+                              {e.ref && (() => {
+                                const clickHandler = e.refType === 'sale' ? () => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
+                                  : e.refType === 'po' ? () => { window.localStorage.setItem(PO_FOCUS_KEY, e.ref); setTab?.('purchase_orders'); }
+                                  : e.refType === 'quote' ? () => { window.localStorage.setItem('qb_quote_focus', e.ref); setTab?.('quotes'); }
+                                  : e.refType === 'payment' ? () => { setTab?.('收款管理'); }
+                                  : e.refType === 'shipment' ? () => { window.localStorage.setItem('qb_shipment_focus', e.ref); setTab?.('shipments'); }
+                                  : null;
+                                return <span style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none', background: '#eff6ff', padding: '0 5px', borderRadius: 3 }} onClick={clickHandler}>{e.ref}</span>;
+                              })()}
+                              {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.detailColor || (isDone ? '#6b7280' : isCurrent ? '#1d4ed8' : isRej ? '#dc2626' : '#9ca3af'), background: (isCurrent || e.status === 'warning') ? `${e.dot}12` : 'transparent', padding: (isCurrent || e.status === 'warning') ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
                             </div>
-                          )}
-                          {e.proof_url ? (
-                            <div style={{ marginTop: 4 }}>
-                              <a href={e.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 6, overflow: 'hidden', lineHeight: 0 }}>
-                                <img src={e.proof_url} alt="匯款證明" style={{ width: 120, height: 80, objectFit: 'cover' }} />
-                              </a>
-                              <div style={{ fontSize: t.fontSize.tiny, color: t.color.link, marginTop: 2 }}>點擊查看匯款證明</div>
-                            </div>
-                          ) : e.payment_id ? (
-                            <div style={{ marginTop: 4 }}>
-                              <input type="file" id={`proof-${e.payment_id}`} accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
-                                const file = ev.target.files?.[0];
-                                if (!file) return;
-                                try {
-                                  // Compress image
-                                  const compressImg = (f, maxW = 1200, q = 0.7) => new Promise((resolve, reject) => {
-                                    const img = new Image();
-                                    const url = URL.createObjectURL(f);
-                                    img.onload = () => { URL.revokeObjectURL(url); const c = document.createElement('canvas'); let w = img.width, h = img.height; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; } c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/jpeg', q).split(',')[1]); };
-                                    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
-                                    img.src = url;
-                                  });
-                                  const base64 = await compressImg(file);
-                                  setMsg('上傳中...');
-                                  const res = await apiPost({ action: 'upload_payment_proof', payment_id: e.payment_id, proof_data: base64, proof_name: file.name.replace(/\.\w+$/, '.jpg') });
-                                  setMsg(res.message || '憑證已上傳');
-                                  // Refresh payments
-                                  try { const pr = await apiGet({ action: 'order_payments', order_id: order.id }); setOrderPayments(pr.payments || []); } catch(_){}
-                                } catch (err) { setMsg('憑證上傳失敗: ' + (err.message || '')); }
-                                ev.target.value = '';
-                              }} />
-                              <button onClick={() => document.getElementById(`proof-${e.payment_id}`)?.click()} style={{ fontSize: t.fontSize.tiny, color: '#6b7280', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontWeight: t.fontWeight.semibold }}>📎 上傳匯款憑證</button>
-                            </div>
-                          ) : null}
-                          {e.note && <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: t.radius.sm, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
-                          {e.time && <div style={{ fontSize: t.fontSize.tiny, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
+                            {/* Badges */}
+                            {e.badges && e.badges.length > 0 && (
+                              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginTop: 2 }}>
+                                {e.badges.map((b, bi) => (
+                                  <span key={bi} style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: e.label === '銷貨' ? '#dbeafe' : '#f3e8ff', color: e.label === '銷貨' ? '#1d4ed8' : '#7c3aed', fontWeight: 600 }}>{b.item} {b.text}</span>
+                                ))}
+                              </div>
+                            )}
+                            {/* Proof image or upload button */}
+                            {e.proof_url ? (
+                              <div style={{ marginTop: 3, display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+                                <a href={e.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden', lineHeight: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                                  <img src={e.proof_url} alt="憑證" style={{ width: 90, height: 60, objectFit: 'cover' }} />
+                                </a>
+                                <span style={{ fontSize: 10, color: '#3b82f6', cursor: 'pointer' }}>查看</span>
+                              </div>
+                            ) : e.payment_id ? (
+                              <div style={{ marginTop: 3 }}>
+                                <input type="file" id={`proof-${e.payment_id}`} accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
+                                  const file = ev.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    const compressImg = (f, maxW = 1200, q = 0.7) => new Promise((resolve, reject) => {
+                                      const img = new Image();
+                                      const url = URL.createObjectURL(f);
+                                      img.onload = () => { URL.revokeObjectURL(url); const c = document.createElement('canvas'); let w = img.width, h = img.height; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; } c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/jpeg', q).split(',')[1]); };
+                                      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
+                                      img.src = url;
+                                    });
+                                    const base64 = await compressImg(file);
+                                    setMsg('上傳中...');
+                                    const res = await apiPost({ action: 'upload_payment_proof', payment_id: e.payment_id, proof_data: base64, proof_name: file.name.replace(/\.\w+$/, '.jpg') });
+                                    setMsg(res.message || '憑證已上傳');
+                                    try { const pr = await apiGet({ action: 'order_payments', order_id: order.id }); setOrderPayments(pr.payments || []); } catch(_){}
+                                  } catch (err) { setMsg('憑證上傳失敗: ' + (err.message || '')); }
+                                  ev.target.value = '';
+                                }} />
+                                <button onClick={() => document.getElementById(`proof-${e.payment_id}`)?.click()} style={{ fontSize: 10, color: '#6b7280', background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s' }} onMouseEnter={ev => { ev.currentTarget.style.borderColor = '#3b82f6'; ev.currentTarget.style.color = '#3b82f6'; }} onMouseLeave={ev => { ev.currentTarget.style.borderColor = '#d1d5db'; ev.currentTarget.style.color = '#6b7280'; }}>📎 上傳憑證</button>
+                              </div>
+                            ) : null}
+                            {/* Note (LINE notification) */}
+                            {e.note && <div style={{ fontSize: 10, fontWeight: 600, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '1px 6px', borderRadius: 3, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
+                            {/* Timestamp */}
+                            {e.time && <div style={{ fontSize: 10, color: '#c4c9d2', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
+                          </div>
                         </div>
                       );
                     })}
