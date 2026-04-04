@@ -53,8 +53,6 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   const [payMethod, setPayMethod] = useState('transfer');
   const [payType, setPayType] = useState('full');
   const [payProcessing, setPayProcessing] = useState(false);
-  const [payProofFile, setPayProofFile] = useState(null);
-  const payProofRef = useRef(null);
 
   const statusKey = String(order.status || 'draft').toLowerCase();
   const payKey = String(order.payment_status || 'unpaid').toLowerCase();
@@ -929,7 +927,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                     const tl = typeLabels[p.payment_type] || '收款';
                     const ml = methodLabels[p.payment_method] || p.payment_method;
                     const verifiedTag = p.verified ? ' ✓已核帳' : '';
-                    entries.push({ dot: '#16a34a', label: `付款`, ref: p.payment_number, refType: 'payment', detail: `${tl} NT$${Number(p.amount || 0).toLocaleString()}（${ml}）${verifiedTag}`, time: p.confirmed_at || p.created_at, status: 'done', proof_url: p.proof_url || null });
+                    entries.push({ dot: '#16a34a', label: `付款`, ref: p.payment_number, refType: 'payment', detail: `${tl} NT$${Number(p.amount || 0).toLocaleString()}（${ml}）${verifiedTag}`, time: p.confirmed_at || p.created_at, status: 'done', proof_url: p.proof_url || null, payment_id: p.id });
                   });
                   if (payKey !== 'paid') {
                     entries.push({ dot: '#2563eb', label: '付款', detail: `${PAY_STATUS_MAP[payKey]}，尚欠 NT$${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}`, status: 'current' });
@@ -987,14 +985,39 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                               ))}
                             </div>
                           )}
-                          {e.proof_url && (
+                          {e.proof_url ? (
                             <div style={{ marginTop: 4 }}>
                               <a href={e.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 6, overflow: 'hidden', lineHeight: 0 }}>
                                 <img src={e.proof_url} alt="匯款證明" style={{ width: 120, height: 80, objectFit: 'cover' }} />
                               </a>
                               <div style={{ fontSize: t.fontSize.tiny, color: t.color.link, marginTop: 2 }}>點擊查看匯款證明</div>
                             </div>
-                          )}
+                          ) : e.payment_id ? (
+                            <div style={{ marginTop: 4 }}>
+                              <input type="file" id={`proof-${e.payment_id}`} accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
+                                const file = ev.target.files?.[0];
+                                if (!file) return;
+                                try {
+                                  // Compress image
+                                  const compressImg = (f, maxW = 1200, q = 0.7) => new Promise((resolve, reject) => {
+                                    const img = new Image();
+                                    const url = URL.createObjectURL(f);
+                                    img.onload = () => { URL.revokeObjectURL(url); const c = document.createElement('canvas'); let w = img.width, h = img.height; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; } c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/jpeg', q).split(',')[1]); };
+                                    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
+                                    img.src = url;
+                                  });
+                                  const base64 = await compressImg(file);
+                                  setMsg('上傳中...');
+                                  const res = await apiPost({ action: 'upload_payment_proof', payment_id: e.payment_id, proof_data: base64, proof_name: file.name.replace(/\.\w+$/, '.jpg') });
+                                  setMsg(res.message || '憑證已上傳');
+                                  // Refresh payments
+                                  try { const pr = await apiGet({ action: 'order_payments', order_id: order.id }); setOrderPayments(pr.payments || []); } catch(_){}
+                                } catch (err) { setMsg('憑證上傳失敗: ' + (err.message || '')); }
+                                ev.target.value = '';
+                              }} />
+                              <button onClick={() => document.getElementById(`proof-${e.payment_id}`)?.click()} style={{ fontSize: t.fontSize.tiny, color: '#6b7280', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontWeight: t.fontWeight.semibold }}>📎 上傳匯款憑證</button>
+                            </div>
+                          ) : null}
                           {e.note && <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: t.radius.sm, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
                           {e.time && <div style={{ fontSize: t.fontSize.tiny, color: '#b0b5bf', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
                         </div>
@@ -1060,38 +1083,9 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                       setPayProcessing(true);
                       try {
                         const payload = { action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod, payment_type: payType };
-                        // Attach proof if selected — compress image to avoid Vercel body size limit
-                        if (payProofFile) {
-                          try {
-                            const compressImage = (file, maxW = 1200, quality = 0.7) => new Promise((resolve, reject) => {
-                              const img = new Image();
-                              const url = URL.createObjectURL(file);
-                              img.onload = () => {
-                                URL.revokeObjectURL(url);
-                                const canvas = document.createElement('canvas');
-                                let w = img.width, h = img.height;
-                                if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
-                                canvas.width = w; canvas.height = h;
-                                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                                const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                                resolve(dataUrl.split(',')[1]);
-                              };
-                              img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
-                              img.src = url;
-                            });
-                            const base64 = await compressImage(payProofFile);
-                            payload.proof_data = base64;
-                            payload.proof_name = payProofFile.name.replace(/\.\w+$/, '.jpg');
-                          } catch (proofErr) {
-                            console.error('Proof compress error:', proofErr);
-                            setMsg('憑證圖片處理失敗，請重試或換一張圖片');
-                            setPayProcessing(false);
-                            return;
-                          }
-                        }
                         const res = await apiPost(payload);
                         setMsg(res.message || '付款已登記');
-                        setPayAmount(''); setPayProofFile(null);
+                        setPayAmount('');
                         try { const pr = await apiGet({ action: 'order_payments', order_id: order.id }); setOrderPayments(pr.payments || []); } catch(_){}
                         onRefresh?.();
                       } catch (err) { setMsg(err.message || '付款登記失敗'); }
@@ -1112,13 +1106,9 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                     <button key={q.type} onClick={() => { setPayType(q.type); setPayAmount(String(q.amt)); }} style={{ flex: 1, fontSize: t.fontSize.tiny, color: q.color, background: q.bg, border: `1px solid ${q.bd}`, borderRadius: 5, padding: '3px 0', cursor: 'pointer', fontWeight: t.fontWeight.semibold, textAlign: 'center' }}>{q.label}</button>
                   ))}
                 </div>
-                {/* Proof upload */}
-                <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <input type="file" ref={payProofRef} accept="image/*" style={{ display: 'none' }} onChange={e => setPayProofFile(e.target.files?.[0] || null)} />
-                  <button onClick={() => payProofRef.current?.click()} style={{ fontSize: t.fontSize.tiny, color: payProofFile ? '#059669' : '#6b7280', background: payProofFile ? '#ecfdf5' : '#f9fafb', border: `1px solid ${payProofFile ? '#a7f3d0' : '#e5e7eb'}`, borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontWeight: t.fontWeight.semibold }}>
-                    {payProofFile ? `已選: ${payProofFile.name.slice(0, 15)}...` : '附匯款證明'}
-                  </button>
-                  {payProofFile && <button onClick={() => { setPayProofFile(null); if (payProofRef.current) payProofRef.current.value = ''; }} style={{ fontSize: t.fontSize.tiny, color: t.color.error, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>移除</button>}
+                {/* Proof upload note */}
+                <div style={{ marginTop: 6, fontSize: t.fontSize.tiny, color: t.color.textMuted }}>
+                  確認收款後，可在訂單記錄中上傳匯款憑證
                 </div>
               </div>
             )}
