@@ -45,7 +45,7 @@ function sortRows(rows, sortKey, sortDir) {
     } else if (sortKey === 'pct') {
       va = a.total_ordered > 0 ? a.total_received / a.total_ordered : 0;
       vb = b.total_ordered > 0 ? b.total_received / b.total_ordered : 0;
-    } else if (sortKey === 'item_number' || sortKey === 'description' || sortKey === 'latest_po_date') {
+    } else if (sortKey === 'item_number' || sortKey === 'description' || sortKey === 'latest_po_date' || sortKey === 'last_received_at') {
       va = (a[sortKey] || '').toLowerCase();
       vb = (b[sortKey] || '').toLowerCase();
       return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
@@ -96,7 +96,7 @@ export default function ProcurementCenter({ setTab }) {
   const [page, setPage] = useState(1);
   const [expandedItem, setExpandedItem] = useState(null);
   const [allocationData, setAllocationData] = useState({});
-  const [sortKey, setSortKey] = useState('latest_po_date');
+  const [sortKey, setSortKey] = useState('last_received_at');
   const [sortDir, setSortDir] = useState('desc');
 
   const load = useCallback(async (pg = page, q = search, st = statusF) => {
