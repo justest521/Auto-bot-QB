@@ -44,6 +44,10 @@ export default function Payments() {
     try { await apiPost({ action: 'confirm_payment', payment_id: id }); load(); } catch (e) { alert(e.message); }
   };
 
+  const handleVerify = async (id, currentVerified) => {
+    try { await apiPost({ action: 'verify_payment', payment_id: id, verified: !currentVerified }); load(); } catch (e) { alert(e.message); }
+  };
+
   const handleExport = async () => {
     try {
       const result = await apiGet({ action: 'payments', page: '1', search: search, status: statusF, date_from: dateFrom, date_to: dateTo, limit: '9999', export: 'true' });
@@ -123,16 +127,35 @@ export default function Payments() {
                 {p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '8px 16px', fontSize: 14, minHeight: 44 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}
               </div>
             </div>
+            <div style={{ ...S.mobileCardRow }}>
+              <span style={S.mobileCardLabel}>核帳</span>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button onClick={() => handleVerify(p.id, p.verified)} style={{ padding: '6px 14px', borderRadius: 6, border: `1px solid ${p.verified ? '#a7f3d0' : '#e5e7eb'}`, background: p.verified ? '#ecfdf5' : '#f9fafb', color: p.verified ? '#059669' : '#9ca3af', fontSize: 13, fontWeight: 700, cursor: 'pointer', minHeight: 36 }}>
+                  {p.verified ? '✓ 已核帳' : '未核帳'}
+                </button>
+                {p.proof_url && <a href={p.proof_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: t.color.link }}>查看憑證</a>}
+              </div>
+            </div>
           </div>
         ))
       ) : (
         data.payments.map(p => (
           <div key={p.id} style={{ ...S.card, padding: '14px 16px', marginBottom: 10 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '140px 100px 120px minmax(0,1fr) 100px', gap: 10, alignItems: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '140px 100px 100px minmax(0,1fr) 80px 100px', gap: 10, alignItems: 'center' }}>
               <div><div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>PAY_NO</div><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{p.payment_number || '-'}</div></div>
               <div><div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>AMOUNT</div><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold }}>{fmtP(p.amount)}</div></div>
               <div><div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>METHOD</div><div style={{ fontSize: t.fontSize.h3 }}>{methodLabel(p.payment_method)}</div></div>
-              <div><div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>DATE</div><div style={{ fontSize: t.fontSize.body }}>{fmtDate(p.payment_date || p.created_at)}</div></div>
+              <div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>DATE</div>
+                <div style={{ fontSize: t.fontSize.body }}>{fmtDate(p.payment_date || p.created_at)}</div>
+                {p.proof_url && <a href={p.proof_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: t.fontSize.tiny, color: t.color.link, textDecoration: 'underline' }}>查看憑證</a>}
+              </div>
+              <div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>核帳</div>
+                <button onClick={() => handleVerify(p.id, p.verified)} style={{ padding: '3px 10px', borderRadius: 5, border: `1px solid ${p.verified ? '#a7f3d0' : '#e5e7eb'}`, background: p.verified ? '#ecfdf5' : '#f9fafb', color: p.verified ? '#059669' : '#9ca3af', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, cursor: 'pointer' }}>
+                  {p.verified ? '✓ 已核帳' : '未核帳'}
+                </button>
+              </div>
               <div>{p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}</div>
             </div>
           </div>

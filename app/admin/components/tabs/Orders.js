@@ -51,6 +51,8 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
   const [payMethod, setPayMethod] = useState('transfer');
   const [payType, setPayType] = useState('full');
   const [payProcessing, setPayProcessing] = useState(false);
+  const [payProofFile, setPayProofFile] = useState(null);
+  const payProofRef = useRef(null);
 
   const statusKey = String(order.status || 'draft').toLowerCase();
   const payKey = String(order.payment_status || 'unpaid').toLowerCase();
@@ -917,7 +919,9 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
                   orderPayments.forEach(p => {
                     const tl = typeLabels[p.payment_type] || '收款';
                     const ml = methodLabels[p.payment_method] || p.payment_method;
-                    entries.push({ dot: '#16a34a', label: `付款`, ref: p.payment_number, refType: 'payment', detail: `${tl} NT$${Number(p.amount || 0).toLocaleString()}（${ml}）`, time: p.confirmed_at || p.created_at, status: 'done' });
+                    const verifiedTag = p.verified ? ' ✓已核帳' : '';
+                    const proofTag = p.proof_url ? ' [有憑證]' : '';
+                    entries.push({ dot: '#16a34a', label: `付款`, ref: p.payment_number, refType: 'payment', detail: `${tl} NT$${Number(p.amount || 0).toLocaleString()}（${ml}）${proofTag}${verifiedTag}`, time: p.confirmed_at || p.created_at, status: 'done' });
                   });
                   if (payKey !== 'paid') {
                     entries.push({ dot: '#2563eb', label: '付款', detail: `${PAY_STATUS_MAP[payKey]}，尚欠 NT$${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}`, status: 'current' });
@@ -1030,9 +1034,21 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
                       if (!payAmount || Number(payAmount) <= 0) return;
                       setPayProcessing(true);
                       try {
-                        const res = await apiPost({ action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod, payment_type: payType });
+                        const payload = { action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod, payment_type: payType };
+                        // Attach proof if selected
+                        if (payProofFile) {
+                          const reader = new FileReader();
+                          const base64 = await new Promise((resolve, reject) => {
+                            reader.onload = () => resolve(reader.result.split(',')[1]);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(payProofFile);
+                          });
+                          payload.proof_data = base64;
+                          payload.proof_name = payProofFile.name;
+                        }
+                        const res = await apiPost(payload);
                         setMsg(res.message || '付款已登記');
-                        setPayAmount('');
+                        setPayAmount(''); setPayProofFile(null);
                         try { const pr = await apiGet({ action: 'order_payments', order_id: order.id }); setOrderPayments(pr.payments || []); } catch(_){}
                         onRefresh?.();
                       } catch (err) { setMsg(err.message || '付款登記失敗'); }
@@ -1052,6 +1068,14 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
                   ].map(q => (
                     <button key={q.type} onClick={() => { setPayType(q.type); setPayAmount(String(q.amt)); }} style={{ flex: 1, fontSize: t.fontSize.tiny, color: q.color, background: q.bg, border: `1px solid ${q.bd}`, borderRadius: 5, padding: '3px 0', cursor: 'pointer', fontWeight: t.fontWeight.semibold, textAlign: 'center' }}>{q.label}</button>
                   ))}
+                </div>
+                {/* Proof upload */}
+                <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <input type="file" ref={payProofRef} accept="image/*" style={{ display: 'none' }} onChange={e => setPayProofFile(e.target.files?.[0] || null)} />
+                  <button onClick={() => payProofRef.current?.click()} style={{ fontSize: t.fontSize.tiny, color: payProofFile ? '#059669' : '#6b7280', background: payProofFile ? '#ecfdf5' : '#f9fafb', border: `1px solid ${payProofFile ? '#a7f3d0' : '#e5e7eb'}`, borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontWeight: t.fontWeight.semibold }}>
+                    {payProofFile ? `已選: ${payProofFile.name.slice(0, 15)}...` : '附匯款證明'}
+                  </button>
+                  {payProofFile && <button onClick={() => { setPayProofFile(null); if (payProofRef.current) payProofRef.current.value = ''; }} style={{ fontSize: t.fontSize.tiny, color: t.color.error, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>移除</button>}
                 </div>
               </div>
             )}
