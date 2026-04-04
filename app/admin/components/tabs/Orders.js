@@ -414,7 +414,9 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
 
   const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
   const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
-  const isConverted = shipKey === 'shipped' || shipKey === 'delivered';
+  // isConverted = all items fully sold AND shipped (not just shipping status)
+  const allItemsSold = items.length > 0 && items.every(i => Number(i.sold_qty || 0) >= Number(i.qty || 0));
+  const isConverted = allItemsSold && (shipKey === 'shipped' || shipKey === 'delivered');
   // 用訂單本身的 status 判斷，不再依賴 erp_approvals 表
   const orderStatus = order.status || 'draft';
   const approvalEnabled = erpFeatures.order_approval !== false;
