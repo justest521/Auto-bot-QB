@@ -67,6 +67,10 @@ import AccountsReceivable from './components/tabs/AccountsReceivable';
 import ReconciliationStatements from './components/tabs/ReconciliationStatements';
 import PaymentRecords from './components/tabs/PaymentRecords';
 import PaymentMatching from './components/tabs/PaymentMatching';
+import WarrantySettings from './components/tabs/WarrantySettings';
+import WarrantyRegistrations from './components/tabs/WarrantyRegistrations';
+import RepairOrders from './components/tabs/RepairOrders';
+import WarrantyClaims from './components/tabs/WarrantyClaims';
 
 // ── SECTIONS ──
 const SECTION_ICONS = {
@@ -198,6 +202,16 @@ const SECTIONS = [
     ],
   },
   {
+    title: '維修保固',
+    accent: '#ea580c',
+    tabs: [
+      { id: 'warranty_settings', label: '保固設定', code: 'WSET' },
+      { id: 'warranty_registrations', label: '保固登錄', code: 'WREG' },
+      { id: 'repair_orders', label: '維修工單', code: 'RPR' },
+      { id: 'warranty_claims', label: '索賠管理', code: 'CLM' },
+    ],
+  },
+  {
     title: '經銷商入口',
     accent: '#8b5cf6',
     tabs: [
@@ -287,6 +301,10 @@ const TAB_META = {
   chat_history: { eyebrow: 'LINE Archive', title: '歷史對話', desc: '檢視匯入的 LINE 對話資料。' },
   user_management: { eyebrow: 'Users', title: '使用者管理', desc: '管理後台使用者帳號與權限。' },
   company_settings: { eyebrow: 'Settings', title: '公司設定', desc: '設定公司資訊與 Logo。' },
+  warranty_settings: { eyebrow: 'WARRANTY SETTINGS', title: '保固政策設定', desc: '依品牌與產品分類設定保固條款。' },
+  warranty_registrations: { eyebrow: 'WARRANTY', title: '保固登錄', desc: '產品保固登錄查詢與管理。' },
+  repair_orders: { eyebrow: 'REPAIR', title: '維修工單', desc: '管理產品維修進度與記錄。' },
+  warranty_claims: { eyebrow: 'CLAIMS', title: '索賠管理', desc: '保固索賠與換貨流程追蹤。' },
 };
 
 const TAB_COMPONENTS = {
@@ -347,6 +365,10 @@ const TAB_COMPONENTS = {
   hr_module: HRModule,
   pulse_module: PulseModule,
   company_settings: CompanySettings,
+  warranty_settings: WarrantySettings,
+  warranty_registrations: WarrantyRegistrations,
+  repair_orders: RepairOrders,
+  warranty_claims: WarrantyClaims,
 };
 
 // ── Sidebar Hooks ──
