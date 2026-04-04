@@ -347,6 +347,10 @@ export default function AccountsReceivable() {
                         <span style={{ color: '#92400e' }}>{dep.type}（{dep.method}）</span>
                         <span style={{ fontWeight: t.fontWeight.bold, color: '#92400e', ...S.mono }}>{fmtP(dep.amount)}</span>
                       </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+                        {dep.verified && <span style={{ fontSize: t.fontSize.tiny, color: '#059669', fontWeight: t.fontWeight.bold }}>✓ 已核帳</span>}
+                        {dep.proof_url && <a href={dep.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 4, overflow: 'hidden', lineHeight: 0 }}><img src={dep.proof_url} alt="憑證" style={{ width: 60, height: 40, objectFit: 'cover' }} /></a>}
+                      </div>
                     </div>
                   )) : (
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.caption }}>
@@ -356,6 +360,8 @@ export default function AccountsReceivable() {
                         <th style={{ padding: '8px 12px', textAlign: 'right', color: '#92400e', fontWeight: t.fontWeight.semibold }}>金額</th>
                         <th style={{ padding: '8px 12px', textAlign: 'center', color: '#92400e', fontWeight: t.fontWeight.semibold }}>類型</th>
                         <th style={{ padding: '8px 12px', textAlign: 'center', color: '#92400e', fontWeight: t.fontWeight.semibold }}>方式</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', color: '#92400e', fontWeight: t.fontWeight.semibold }}>憑證</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', color: '#92400e', fontWeight: t.fontWeight.semibold }}>核帳</th>
                       </tr></thead>
                       <tbody>{(detailData.orderDeposits || []).map((dep, idx) => (
                         <tr key={idx} style={{ borderTop: '1px solid #fde68a' }}>
@@ -364,6 +370,8 @@ export default function AccountsReceivable() {
                           <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: t.fontWeight.semibold, ...S.mono }}>{fmtP(dep.amount)}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.type}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.method}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.proof_url ? <a href={dep.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 4, overflow: 'hidden', lineHeight: 0 }}><img src={dep.proof_url} alt="憑證" style={{ width: 48, height: 32, objectFit: 'cover' }} /></a> : <span style={{ color: '#d1d5db' }}>-</span>}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.verified ? <span style={{ color: '#059669', fontWeight: t.fontWeight.bold }}>✓ 已核帳</span> : <span style={{ color: '#d1d5db' }}>未核帳</span>}</td>
                         </tr>
                       ))}</tbody>
                     </table>

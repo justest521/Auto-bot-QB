@@ -920,8 +920,7 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
                     const tl = typeLabels[p.payment_type] || '收款';
                     const ml = methodLabels[p.payment_method] || p.payment_method;
                     const verifiedTag = p.verified ? ' ✓已核帳' : '';
-                    const proofTag = p.proof_url ? ' [有憑證]' : '';
-                    entries.push({ dot: '#16a34a', label: `付款`, ref: p.payment_number, refType: 'payment', detail: `${tl} NT$${Number(p.amount || 0).toLocaleString()}（${ml}）${proofTag}${verifiedTag}`, time: p.confirmed_at || p.created_at, status: 'done' });
+                    entries.push({ dot: '#16a34a', label: `付款`, ref: p.payment_number, refType: 'payment', detail: `${tl} NT$${Number(p.amount || 0).toLocaleString()}（${ml}）${verifiedTag}`, time: p.confirmed_at || p.created_at, status: 'done', proof_url: p.proof_url || null });
                   });
                   if (payKey !== 'paid') {
                     entries.push({ dot: '#2563eb', label: '付款', detail: `${PAY_STATUS_MAP[payKey]}，尚欠 NT$${Math.max(0, (order.total_amount || 0) - totalPaidAmount).toLocaleString()}`, status: 'current' });
@@ -968,6 +967,14 @@ function OrderDetailView({ order, onBack, onRefresh, setTab, erpFeatures = {} })
                               {e.badges.map((b, bi) => (
                                 <span key={bi} style={{ fontSize: t.fontSize.tiny, padding: '1px 6px', borderRadius: t.radius.sm, background: e.label === '銷貨' ? '#dbeafe' : '#f3e8ff', color: e.label === '銷貨' ? '#1d4ed8' : '#7c3aed', fontWeight: t.fontWeight.semibold }}>{b.item} {b.text}</span>
                               ))}
+                            </div>
+                          )}
+                          {e.proof_url && (
+                            <div style={{ marginTop: 4 }}>
+                              <a href={e.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 6, overflow: 'hidden', lineHeight: 0 }}>
+                                <img src={e.proof_url} alt="匯款證明" style={{ width: 120, height: 80, objectFit: 'cover' }} />
+                              </a>
+                              <div style={{ fontSize: t.fontSize.tiny, color: t.color.link, marginTop: 2 }}>點擊查看匯款證明</div>
                             </div>
                           )}
                           {e.note && <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '2px 8px', borderRadius: t.radius.sm, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
