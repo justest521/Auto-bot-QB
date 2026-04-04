@@ -113,9 +113,9 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   const shortageCount = items.filter(i => i.stock_status !== 'sufficient').length;
 
   const toggleItemSelect = (itemId) => {
-    // 防呆：已有 PO 的品項不可勾選
+    // 已全部銷完的品項不可勾選
     const item = items.find(i => i.id === itemId);
-    if (item && (item.po_ref || item.po_info)) return;
+    if (item && item.sale_info && Number(item.remaining_qty || 0) <= 0) return;
     setSelectedItemIds(prev => {
       const next = new Set(prev);
       if (next.has(itemId)) next.delete(itemId); else next.add(itemId);
@@ -124,7 +124,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   };
 
   const selectAllByStatus = (items, statuses) => {
-    const ids = items.filter(i => statuses.includes(i.stock_status) && !i.po_ref && !i.po_info).map(i => i.id);
+    const ids = items.filter(i => statuses.includes(i.stock_status) && !(i.sale_info && Number(i.remaining_qty || 0) <= 0)).map(i => i.id);
     setSelectedItemIds(new Set(ids));
   };
 
