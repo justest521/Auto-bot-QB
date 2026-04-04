@@ -1060,16 +1060,34 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                       setPayProcessing(true);
                       try {
                         const payload = { action: 'record_order_payment', order_id: order.id, amount: Number(payAmount), method: payMethod, payment_type: payType };
-                        // Attach proof if selected
+                        // Attach proof if selected — compress image to avoid Vercel body size limit
                         if (payProofFile) {
-                          const reader = new FileReader();
-                          const base64 = await new Promise((resolve, reject) => {
-                            reader.onload = () => resolve(reader.result.split(',')[1]);
-                            reader.onerror = reject;
-                            reader.readAsDataURL(payProofFile);
-                          });
-                          payload.proof_data = base64;
-                          payload.proof_name = payProofFile.name;
+                          try {
+                            const compressImage = (file, maxW = 1200, quality = 0.7) => new Promise((resolve, reject) => {
+                              const img = new Image();
+                              const url = URL.createObjectURL(file);
+                              img.onload = () => {
+                                URL.revokeObjectURL(url);
+                                const canvas = document.createElement('canvas');
+                                let w = img.width, h = img.height;
+                                if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+                                canvas.width = w; canvas.height = h;
+                                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                                resolve(dataUrl.split(',')[1]);
+                              };
+                              img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
+                              img.src = url;
+                            });
+                            const base64 = await compressImage(payProofFile);
+                            payload.proof_data = base64;
+                            payload.proof_name = payProofFile.name.replace(/\.\w+$/, '.jpg');
+                          } catch (proofErr) {
+                            console.error('Proof compress error:', proofErr);
+                            setMsg('憑證圖片處理失敗，請重試或換一張圖片');
+                            setPayProcessing(false);
+                            return;
+                          }
                         }
                         const res = await apiPost(payload);
                         setMsg(res.message || '付款已登記');
