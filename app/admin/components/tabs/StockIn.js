@@ -250,7 +250,21 @@ export default function StockIn() {
 
   const updateItem = (idx, key, val) => setItems(prev => { const next = [...prev]; next[idx] = { ...next[idx], [key]: val }; if (key === 'qty_received' || key === 'unit_cost') next[idx].line_total = Number(next[idx].qty_received || 0) * Number(next[idx].unit_cost || 0); return next; });
 
-  const handleCreate = async () => { try { await apiPost({ action: 'create_stock_in', ...form, items: items.filter(i => i.item_number) }); setCreateOpen(false); setForm({ vendor_id: '', po_id: '', remark: '' }); setItems([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }]); resetNewVendor(); load(); } catch (e) { alert(e.message); } };
+  const handleCreate = async () => {
+    // 未關聯採購單時，廠商為必填
+    if (!form.po_id && !form.vendor_id) {
+      alert('未關聯採購單時，請選擇進貨廠商');
+      return;
+    }
+    try {
+      await apiPost({ action: 'create_stock_in', ...form, items: items.filter(i => i.item_number) });
+      setCreateOpen(false);
+      setForm({ vendor_id: '', po_id: '', remark: '' });
+      setItems([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }]);
+      resetNewVendor();
+      load();
+    } catch (e) { alert(e.message); }
+  };
   const handleConfirm = async (id, e) => { e?.stopPropagation(); if (!confirm('確認進貨將自動增加庫存，確定？')) return; try { await apiPost({ action: 'confirm_stock_in', stock_in_id: id }); load(); } catch (e) { alert(e.message); } };
 
   const handleExport = async () => {
@@ -465,10 +479,15 @@ export default function StockIn() {
                 {/* Vendor + PO */}
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 14 }}>
                   <div>
-                    <label style={modalLabel}>進貨廠商</label>
+                    <label style={modalLabel}>
+                      進貨廠商
+                      {!form.po_id && <span style={{ color: '#ef4444', marginLeft: 4 }}>*</span>}
+                      {form.po_id && <span style={{ color: '#9ca3af', fontWeight: 400, marginLeft: 4 }}>(選填)</span>}
+                    </label>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <select value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))} style={{ ...modalInput, flex: 1 }}>
-                        <option value="">不指定廠商</option>
+                      <select value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))}
+                        style={{ ...modalInput, flex: 1, borderColor: (!form.po_id && !form.vendor_id) ? '#ef4444' : undefined }}>
+                        <option value="">{form.po_id ? '不指定廠商' : '請選擇廠商...'}</option>
                         {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
                       </select>
                       {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: t.fontWeight.bold, color: t.color.link, background: t.color.infoBg, border: `1px solid ${t.color.link}`, borderRadius: t.radius.md, cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1 }}>+</button>}
