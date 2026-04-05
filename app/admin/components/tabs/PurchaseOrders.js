@@ -59,6 +59,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
   const PO_STATUS_COLOR = { draft: '#6b7280', sent: '#3b82f6', confirmed: '#16a34a', shipped: '#f59e0b', received: '#10b981', rejected: '#ef4444', cancelled: t.color.textDisabled };
   const isEditable = statusKey === 'draft' || statusKey === 'sent';
+  const isVendorEditable = !['rejected', 'cancelled'].includes(statusKey);
   const isApproved = approvalData?.status === 'approved';
   const isPending = approvalData?.status === 'pending';
   const isRejected = approvalData?.status === 'rejected';
@@ -684,7 +685,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={{ ...labelStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>廠商資訊</span>
-                {vendorInfo && isEditable && (
+                {vendorInfo && isVendorEditable && (
                   <span onClick={clearVendor} style={{ fontSize: t.fontSize.tiny, color: t.color.error, cursor: 'pointer' }}>移除</span>
                 )}
               </div>
@@ -697,14 +698,14 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                   {vendorInfo.mobile && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 2 }}>手機: {vendorInfo.mobile}</div>}
                   {vendorInfo.email && <div style={{ fontSize: t.fontSize.caption, color: '#2563eb', marginBottom: 2 }}>{vendorInfo.email}</div>}
                   {vendorInfo.address && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 2 }}>{vendorInfo.address}</div>}
-                  {isEditable && (
+                  {isVendorEditable && (
                     <button onClick={openVendorPicker} style={{ ...S.btnGhost, fontSize: t.fontSize.caption, padding: '3px 10px', marginTop: 6, color: t.color.textMuted, borderColor: '#d1d5db' }}>更換廠商</button>
                   )}
                 </div>
               ) : (
                 <div>
                   <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, marginBottom: 8 }}>未指定廠商</div>
-                  {isEditable && (
+                  {isVendorEditable && (
                     <button onClick={openVendorPicker} style={{ ...S.btnGhost, fontSize: t.fontSize.body, padding: '6px 14px', color: t.color.link, borderColor: '#93c5fd', width: '100%', justifyContent: 'center' }}>＋ 選擇廠商</button>
                   )}
                 </div>
