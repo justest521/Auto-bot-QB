@@ -65,6 +65,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   // 元件卸載時強制清除（切到列表或離開訂單 tab 時）
   useEffect(() => () => setDirty(false), [setDirty]);
 
+
   // Sync parent prop updates (e.g., after onRefresh re-fetches order data)
   useEffect(() => {
     setOrderFull(prev => ({ ...prev, ...orderProp }));
