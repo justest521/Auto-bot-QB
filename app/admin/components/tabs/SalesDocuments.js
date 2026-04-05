@@ -29,6 +29,8 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const [savingInvoice, setSavingInvoice] = useState(false);
   const [shipments, setShipments] = useState([]);
   const [origInvoice, setOrigInvoice] = useState({ number: '', date: '' });
+  const [proofUrl, setProofUrl] = useState(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
 
   const loadDetail = useCallback(async () => {
     setLoading(true);
@@ -40,6 +42,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
       setDetail(result);
       setTimeline(result.timeline || []);
       setShipments(result.shipments || []);
+      setProofUrl(result.sale?.proof_url || null);
       const origNum = result.sale?.invoice_number || sale.invoice_number || '';
       const origDate = result.sale?.invoice_date || result.invoice?.invoice_date || result.sale?.sale_date || sale.sale_date || '';
       setInvoiceNumber(origNum);
@@ -255,6 +258,46 @@ function SaleDetailView({ sale, onBack, setTab }) {
                 {savingInvoice ? '儲存中...' : '儲存發票資訊'}
               </button>
               {!invoiceNumber && !s.invoice_number && <div style={{ padding: '4px 8px', borderRadius: 6, background: t.color.warningBg, color: '#92400e', fontSize: t.fontSize.tiny, textAlign: 'center', border: `1px solid ${t.color.warningBg}`, marginTop: 6 }}>請填寫發票號碼以利入帳</div>}
+            </div>
+
+            {/* 付款憑證 */}
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+              <div style={labelStyle}>付款憑證</div>
+              {proofUrl ? (
+                <div style={{ marginBottom: 8 }}>
+                  <a href={proofUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', lineHeight: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                    <img src={proofUrl} alt="付款憑證" style={{ width: '100%', maxHeight: 120, objectFit: 'cover' }} />
+                  </a>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.link, textAlign: 'center', marginTop: 4 }}>點擊查看原圖</div>
+                </div>
+              ) : (
+                <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, textAlign: 'center', padding: '8px 0' }}>尚未上傳憑證</div>
+              )}
+              <input type="file" id={`sale-proof-${s.id}`} accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
+                const file = ev.target.files?.[0];
+                if (!file) return;
+                try {
+                  const compressImg = (f, maxW = 1200, q = 0.7) => new Promise((resolve, reject) => {
+                    const img = new Image();
+                    const url = URL.createObjectURL(f);
+                    img.onload = () => { URL.revokeObjectURL(url); const c = document.createElement('canvas'); let w = img.width, h = img.height; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; } c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/jpeg', q).split(',')[1]); };
+                    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
+                    img.src = url;
+                  });
+                  const base64 = await compressImg(file);
+                  setUploadingProof(true); setMsg('上傳中...');
+                  const res = await apiPost({ action: 'upload_sale_payment_proof', sale_id: s.id, proof_data: base64, proof_name: file.name.replace(/\.\w+$/, '.jpg') });
+                  setMsg(res.message || '憑證已上傳');
+                  setProofUrl(res.proof_url);
+                } catch (err) { setMsg('憑證上傳失敗: ' + (err.message || '')); }
+                finally { setUploadingProof(false); ev.target.value = ''; }
+              }} />
+              <button onClick={() => document.getElementById(`sale-proof-${s.id}`)?.click()} disabled={uploadingProof}
+                style={{ fontSize: t.fontSize.caption, color: '#6b7280', background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '4px 0', cursor: uploadingProof ? 'not-allowed' : 'pointer', fontWeight: 600, width: '100%', marginTop: proofUrl ? 6 : 0, transition: 'all 0.15s' }}
+                onMouseEnter={e => { if (!uploadingProof) { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; } }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.color = '#6b7280'; }}>
+                {uploadingProof ? '上傳中...' : proofUrl ? '📎 重新上傳' : '📎 上傳憑證'}
+              </button>
             </div>
 
             {/* 2. 運送資訊 — 顯示出貨紀錄，或提示尚未出貨 */}
