@@ -426,7 +426,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
     || (!approvalEnabled && ['draft', 'rejected'].includes(orderStatus));
   const isPending = orderStatus === 'pending_approval';
   const isRejected = orderStatus === 'rejected';
-  const isLocked = isPending && approvalEnabled; // 審核中鎖定所有操作（僅審核開啟時）
+  const isLocked = approvalEnabled && (isPending || (approvalData?.status === 'pending' && approvalData?.doc_type === 'order')); // 審核中鎖定所有操作
   const isEditLocked = approvalEnabled ? !['draft', 'rejected'].includes(orderStatus) : !['draft', 'rejected', 'confirmed'].includes(orderStatus); // 審核關閉時 confirmed 也可編輯
 
   return (
@@ -457,7 +457,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: t.fontSize.h3 }}>{msg}</div>}
+      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') || msg.includes('已在簽核') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('已在簽核') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('已在簽核') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: t.fontSize.h3 }}>{msg}</div>}
 
       {loading ? <Loading /> : (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: 10, alignItems: 'start' }}>
@@ -465,8 +465,8 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
           <div style={{ position: 'relative' }}>
             {/* 審核中鎖定遮罩 */}
             {isLocked && (
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(243,244,246,0.6)', zIndex: 10, borderRadius: t.radius.xl, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 60 }}>
-                <div style={{ background: '#fff', padding: '12px 24px', borderRadius: t.radius.lg, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', border: '1px solid #fde68a', textAlign: 'center' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 10, borderRadius: t.radius.xl, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 60 }}>
+                <div style={{ background: '#fff', padding: '12px 24px', borderRadius: t.radius.lg, boxShadow: '0 4px 24px rgba(0,0,0,0.25)', border: '1px solid #fde68a', textAlign: 'center' }}>
                   <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: '#92400e' }}>訂單審核中</div>
                   <div style={{ fontSize: t.fontSize.caption, color: '#b45309', marginTop: 4 }}>審核完成後才能進行操作</div>
                 </div>
