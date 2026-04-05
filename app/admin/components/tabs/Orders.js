@@ -73,7 +73,11 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
       setLoading(true);
       try {
         const result = await apiGet({ action: 'order_items_with_stock', order_id: order.id });
-        setItems(result.items || []);
+        const loadedItems = result.items || [];
+        setItems(loadedItems);
+        // Auto-select in-stock items that haven't been fully sold
+        const autoIds = loadedItems.filter(i => i.stock_status === 'sufficient' && !(i.sale_info && Number(i.remaining_qty || 0) <= 0)).map(i => i.id);
+        if (autoIds.length > 0) setSelectedItemIds(new Set(autoIds));
         setLinkedSales(result.linked_sales || []);
         setLinkedPOs(result.linked_pos || []);
         setTimeline(result.timeline || []);
