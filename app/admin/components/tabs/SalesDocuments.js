@@ -64,21 +64,23 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const items = detail?.items || [];
 
   // ── Calculate shipped vs ordered to determine remaining ──
+  // Key: order_item_id (qb_order_items.id, set by instock_to_sale path) preferred, product_id as fallback
   const shippedQtyMap = {};
   (shipments || []).filter(sh => sh.status !== 'cancelled').forEach(sh => {
     (sh.erp_shipment_items || sh.items || []).forEach(si => {
-      const pid = si.product_id;
-      if (pid) shippedQtyMap[pid] = (shippedQtyMap[pid] || 0) + Number(si.qty_shipped || 0);
+      const key = si.order_item_id || si.product_id;
+      if (key) shippedQtyMap[String(key)] = (shippedQtyMap[String(key)] || 0) + Number(si.qty_shipped || 0);
     });
   });
   const allFullyShipped = items.length > 0 && items.every(it => {
     const ordered = Number(it.quantity || it.qty || 0);
-    const shipped = shippedQtyMap[it.product_id] || 0;
+    // it.id = qb_order_items.id (matches order_item_id stored in erp_shipment_items for instock_to_sale flow)
+    const shipped = shippedQtyMap[String(it.id)] || shippedQtyMap[String(it.product_id || '')] || 0;
     return shipped >= ordered;
   });
   const remainingItems = items.map(it => {
     const ordered = Number(it.quantity || it.qty || 0);
-    const shipped = shippedQtyMap[it.product_id] || 0;
+    const shipped = shippedQtyMap[String(it.id)] || shippedQtyMap[String(it.product_id || '')] || 0;
     return { ...it, shipped, remaining: Math.max(0, ordered - shipped) };
   }).filter(it => it.remaining > 0);
 
