@@ -2,97 +2,80 @@
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 const { t, p } = S;
-import { apiGet, apiPost } from '@/lib/admin/api';
+import { apiGet } from '@/lib/admin/api';
 import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
-const INVOICE_DEFAULT_WIDTHS = [50, 100, 140, 100, 100, 100, 100, 120, 100];
+// 序, 銷貨單號, 客戶, 業務, 發票號碼, 發票日期, 金額
+const INVOICE_DEFAULT_WIDTHS = [50, 150, 160, 100, 150, 110, 120];
 
-function StatCard({ code, label, value, tone }) {
+function StatCard({ label, value, tone }) {
   const TONE_MAP = {
-    red: { bg: t.color.errorBg, color: t.color.error },
+    red:    { bg: t.color.errorBg,   color: t.color.error   },
     yellow: { bg: t.color.warningBg, color: t.color.warning },
-    blue: { bg: t.color.infoBg, color: t.color.link },
-    green: { bg: t.color.successBg, color: t.color.success },
-    gray: { bg: t.color.bgMuted, color: t.color.textMuted },
+    blue:   { bg: t.color.infoBg,    color: t.color.link    },
+    green:  { bg: t.color.successBg, color: t.color.success },
+    gray:   { bg: t.color.bgMuted,   color: t.color.textMuted },
   };
-  const toneColor = TONE_MAP[tone] || TONE_MAP.gray;
+  const tc = TONE_MAP[tone] || TONE_MAP.gray;
   return (
-    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${toneColor.color}` }}>
-      <div style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: toneColor.color, ...S.mono }}>{value}</div>
+    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${tc.color}` }}>
+      <div style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: tc.color, ...S.mono }}>{value}</div>
       <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>{label}</div>
     </div>
   );
 }
 
 export default function Invoices() {
-  const { isMobile, isTablet } = useResponsive();
-  const [data, setData] = useState({ rows: [], total: 0, summary: {} });
-  const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
-  const [search, setSearch] = useState('');
+  const { isMobile } = useResponsive();
+  const [data, setData]         = useState({ rows: [], total: 0, page: 1, limit: 30, summary: {} });
+  const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState('');
   const [dateFrom, setDateFrom] = useState(() => getPresetDateRange('month').from);
-  const [dateTo, setDateTo] = useState(() => getPresetDateRange('month').to);
+  const [dateTo,   setDateTo]   = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
-  const [msg, setMsg] = useState('');
-  const [payDialog, setPayDialog] = useState(null);
-  const [payAmount, setPayAmount] = useState('');
-  const { gridTemplate: invoiceGridTemplate, ResizableHeader: InvoiceHeader } = useResizableColumns('invoices_list', INVOICE_DEFAULT_WIDTHS);
+  const { gridTemplate, ResizableHeader } = useResizableColumns('invoices_list', INVOICE_DEFAULT_WIDTHS);
 
-  const load = async (status = statusFilter, q = search) => {
+  const load = async (q = search, df = dateFrom, dt = dateTo) => {
     setLoading(true);
     try {
-      const params = { action: 'invoices', status, search: q };
-      if (dateFrom) params.date_from = dateFrom;
-      if (dateTo) params.date_to = dateTo;
-      const res = await apiGet(params);
-      setData(res);
+      const params = { action: 'invoices', search: q };
+      if (df) params.date_from = df;
+      if (dt) params.date_to   = dt;
+      setData(await apiGet(params));
     } finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
 
-  const STATUS_MAP = {
-    draft: { label: '草稿', color: t.color.textDisabled },
-    issued: { label: '已開立', color: t.color.link },
-    sent: { label: '已寄送', color: t.color.link },
-    unpaid: { label: '未付款', color: t.color.warning },
-    partial: { label: '部分付款', color: t.color.warning },
-    paid: { label: '已付清', color: t.color.success },
-    overdue: { label: '逾期', color: t.color.error },
-    cancelled: { label: '已取消', color: t.color.textMuted },
-  };
-
   const applyDatePreset = (preset) => {
     setDatePreset(preset);
-    if (preset === 'all') { setDateFrom(''); setDateTo(''); }
-    else { const range = getPresetDateRange(preset); setDateFrom(range.from); setDateTo(range.to); }
+    if (preset === 'all') {
+      setDateFrom(''); setDateTo('');
+      load(search, '', '');
+    } else {
+      const range = getPresetDateRange(preset);
+      setDateFrom(range.from); setDateTo(range.to);
+      load(search, range.from, range.to);
+    }
   };
 
-  const doSearch = () => load(statusFilter, search);
-
-  const handlePay = async () => {
-    if (!payDialog || !payAmount || Number(payAmount) <= 0) return;
-    try {
-      await apiPost({ action: 'record_payment', invoice_id: payDialog.id, amount: Number(payAmount), payment_method: 'transfer' });
-      setMsg('付款已記錄'); setPayDialog(null); setPayAmount(''); await load();
-    } catch (e) { setMsg(e.message); }
-  };
+  const doSearch = () => load(search, dateFrom, dateTo);
 
   const handleExport = async () => {
     try {
-      const params = { action: 'invoices', status: statusFilter, limit: '9999', export: 'true', search };
+      const params = { action: 'invoices', limit: '9999', export: 'true', search };
       if (dateFrom) params.date_from = dateFrom;
-      if (dateTo) params.date_to = dateTo;
+      if (dateTo)   params.date_to   = dateTo;
       const all = await apiGet(params);
       exportCsv(all.rows || [], [
-        { key: 'invoice_no', label: '發票號' },
-        { key: 'customer_name', label: '客戶' },
-        { key: 'status', label: '狀態' },
-        { key: 'total_amount', label: '金額' },
-        { key: 'paid_amount', label: '已付' },
-        { key: r => Number(r.total_amount || 0) - Number(r.paid_amount || 0), label: '餘額' },
-        { key: r => r.due_date?.slice(0, 10) || '', label: '到期日' },
+        { key: 'slip_number',   label: '銷貨單號' },
+        { key: 'sale_date',     label: '銷貨日期' },
+        { key: 'customer_name', label: '客戶'     },
+        { key: 'sales_person',  label: '業務'     },
+        { key: 'invoice_no',    label: '發票號碼' },
+        { key: r => r.invoice_date?.slice(0, 10) || '', label: '發票日期' },
+        { key: 'total_amount',  label: '金額'     },
       ], `發票清單_${new Date().toISOString().slice(0, 10)}.csv`);
     } catch { alert('匯出失敗'); }
   };
@@ -101,134 +84,151 @@ export default function Invoices() {
 
   return (
     <div>
-      <PageLead eyebrow="INVOICES" title="發票管理" description="管理發票開立、付款狀態追蹤，參考 Odoo 會計模組。"
-        action={<button onClick={handleExport} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnGhost) }}>匯出 CSV</button>} />
-      {msg && <div style={{ ...S.card, background: t.color.successBg, borderColor: t.color.border, color: t.color.success, marginBottom: 10, cursor: 'pointer' }} onClick={() => setMsg('')}>{msg}</div>}
+      <PageLead
+        eyebrow="INVOICES"
+        title="發票管理"
+        description="依銷貨單列示發票號碼與開立情況。"
+        action={<button onClick={handleExport} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnGhost) }}>匯出 CSV</button>}
+      />
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 12 }}>
-        <StatCard code="UNPD" label="未付款" value={fmtP(s.unpaid_amount)} tone="yellow" />
-        <StatCard code="PAID" label="已收款" value={fmtP(s.paid_amount)} tone="green" />
-        <StatCard code="OVRD" label="逾期" value={fmtP(s.overdue_amount)} tone="red" />
-        <StatCard code="TOTL" label="發票數" value={data.total} tone="blue" />
+      {/* Summary cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? 8 : 12, marginBottom: 14 }}>
+        <StatCard label="本期銷售總額"  value={fmtP(s.total_amount)}      tone="blue"   />
+        <StatCard label="已開發票"      value={s.invoiced_count     || 0}  tone="green"  />
+        <StatCard label="未開發票"      value={s.not_invoiced_count || 0}  tone="yellow" />
       </div>
 
-      {/* Unified filter card */}
+      {/* Filters */}
       <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '12px 14px' : '10px 16px' }}>
         <div style={{ display: 'flex', gap: isMobile ? 6 : 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? '#fff' : t.color.textSecondary, borderColor: datePreset === key ? t.color.link : t.color.borderLight }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)}
+              style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.caption : t.fontSize.body,
+                background: datePreset === key ? t.color.link : t.color.bgCard,
+                color: datePreset === key ? '#fff' : t.color.textSecondary,
+                borderColor: datePreset === key ? t.color.link : t.color.borderLight }}>
+              {label}
+            </button>
           ))}
-          <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
+          <input type="date" value={dateFrom}
+            onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }}
+            style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
           {!isMobile && <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body }}>~</span>}
-          <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
-          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(e.target.value, search); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px' }}>
-            <option value="">全部狀態</option>
-            <option value="draft">草稿</option>
-            <option value="sent">已寄出</option>
-            <option value="unpaid">未付款</option>
-            <option value="partial">部分付款</option>
-            <option value="paid">已付款</option>
-            <option value="overdue">逾期</option>
-            <option value="cancelled">已取消</option>
-          </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋發票號、客戶..." style={{ ...S.input, flex: isMobile ? '1 1 100%' : '1 1 auto', minWidth: isMobile ? 0 : 160, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: t.fontSize.body }}>查詢</button>
+          <input type="date" value={dateTo}
+            onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }}
+            style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
+          <input value={search} onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && doSearch()}
+            placeholder="搜尋銷貨單號、客戶、發票號..."
+            style={{ ...S.input, flex: isMobile ? '1 1 100%' : '1 1 auto', minWidth: isMobile ? 0 : 180, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px' }} />
+          <button onClick={doSearch}
+            style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: t.fontSize.body }}>
+            查詢
+          </button>
         </div>
       </div>
 
-      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有發票資料" /> : isMobile ? (
+      {/* List */}
+      {loading ? <Loading /> : (data.rows || []).length === 0 ? <EmptyState text="沒有銷貨資料" /> : isMobile ? (
+        /* ── Mobile cards ── */
         <div>
-          {(data.rows || []).map(inv => {
-            const st = STATUS_MAP[inv.status] || STATUS_MAP.draft;
-            const balance = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
+          {(data.rows || []).map(row => {
+            const hasInv = Boolean(row.invoice_no);
             return (
-              <div key={inv.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 10 }}>
+              <div key={row.id} style={{ ...S.card, padding: '12px 16px', marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
                   <div>
-                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{inv.invoice_no || '-'}</div>
-                    <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4 }}>{inv.customer_name || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{row.slip_number}</div>
+                    <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 2 }}>{row.customer_name}</div>
                   </div>
-                  <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: t.fontSize.tiny, padding: '3px 8px', borderRadius: t.radius.sm }}>{st.label}</span>
+                  <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtP(row.total_amount)}</div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 10, paddingBottom: 10, borderBottom: `1px solid ${t.color.borderLight}` }}>
-                  <div><span style={{ color: t.color.textMuted }}>金額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtP(inv.total_amount)}</div></div>
-                  <div><span style={{ color: t.color.textMuted }}>已付</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>{fmtP(inv.paid_amount)}</div></div>
-                  <div><span style={{ color: t.color.textMuted }}>餘額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: balance > 0 ? t.color.error : t.color.success, ...S.mono }}>{fmtP(balance)}</div></div>
-                  <div><span style={{ color: t.color.textMuted }}>到期日</span><div style={{ fontSize: t.fontSize.caption, color: t.color.textPrimary, ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</div></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: t.fontSize.caption }}>
+                  <div>
+                    <span style={{ color: t.color.textMuted }}>業務</span>
+                    <div style={{ color: t.color.textPrimary, marginTop: 2 }}>{row.sales_person || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ color: t.color.textMuted }}>發票號碼</span>
+                    <div style={{ color: hasInv ? t.color.success : t.color.textDisabled, fontWeight: hasInv ? t.fontWeight.semibold : t.fontWeight.normal, ...S.mono, marginTop: 2 }}>
+                      {row.invoice_no || '未開立'}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ color: t.color.textMuted }}>銷貨日期</span>
+                    <div style={{ ...S.mono, marginTop: 2 }}>{row.sale_date?.slice(0, 10) || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ color: t.color.textMuted }}>發票日期</span>
+                    <div style={{ ...S.mono, marginTop: 2 }}>{row.invoice_date?.slice(0, 10) || '-'}</div>
+                  </div>
                 </div>
-                {balance > 0 && inv.status !== 'cancelled' && (
-                  <button onClick={() => { setPayDialog(inv); setPayAmount(String(balance)); }} style={{ width: '100%', ...S.mobile.btnPrimary }}>收款</button>
-                )}
               </div>
             );
           })}
         </div>
       ) : (
+        /* ── Desktop table ── */
         <div style={{ ...S.card, padding: 0, overflow: 'auto', border: `1px solid ${t.color.border}`, marginBottom: 10 }}>
-          <InvoiceHeader headers={[
-            { label: '序', align: 'center' },
-            { label: '發票號', align: 'left' },
-            { label: '客戶', align: 'left' },
-            { label: '狀態', align: 'center' },
-            { label: '金額', align: 'right' },
-            { label: '已付', align: 'right' },
-            { label: '餘額', align: 'right' },
-            { label: '到期日', align: 'center' },
-            { label: '操作', align: 'center' },
+          <ResizableHeader headers={[
+            { label: '序',      align: 'center' },
+            { label: '銷貨單號', align: 'left'   },
+            { label: '客戶',    align: 'left'   },
+            { label: '業務',    align: 'left'   },
+            { label: '發票號碼', align: 'left'   },
+            { label: '發票日期', align: 'center' },
+            { label: '金額',    align: 'right'  },
           ]} />
-          {(data.rows || []).map((inv, idx) => {
-            const st = STATUS_MAP[inv.status] || STATUS_MAP.draft;
-            const balance = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
-            const cell = { padding: '8px 10px', borderRight: `1px solid ${t.color.borderLight}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
-            const cCenter = { ...cell, justifyContent: 'center' };
-            const cRight = { ...cell, justifyContent: 'flex-end' };
-            const cellLast = { ...cell, borderRight: 'none', justifyContent: 'center' };
-
+          {(data.rows || []).map((row, idx) => {
+            const cell     = { padding: '8px 10px', borderRight: `1px solid ${t.color.borderLight}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
+            const cCenter  = { ...cell, justifyContent: 'center' };
+            const cRight   = { ...cell, justifyContent: 'flex-end', borderRight: 'none' };
+            const hasInv   = Boolean(row.invoice_no);
+            const rowBg    = idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted;
             return (
-              <div key={inv.id} style={{ display: 'grid', gridTemplateColumns: invoiceGridTemplate, borderBottom: `1px solid ${t.color.borderLight}`, background: idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted, cursor: 'pointer', transition: 'background 0.15s' }}
+              <div key={row.id}
+                style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: `1px solid ${t.color.borderLight}`, background: rowBg, transition: 'background 0.1s' }}
                 onMouseEnter={(e) => e.currentTarget.style.background = t.color.infoBg}
-                onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted}>
+                onMouseLeave={(e) => e.currentTarget.style.background = rowBg}>
+                {/* 序 */}
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{idx + 1}</div>
-                <div style={{ ...cell, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{inv.invoice_no || '-'}</div>
-                <div style={cell}>
-                  <span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.customer_name || '-'}</span>
+                {/* 銷貨單號 */}
+                <div style={{ ...cell, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                  {row.slip_number}
                 </div>
-                <div style={cCenter}><span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: t.fontSize.tiny }}>{st.label}</span></div>
-                <div style={{ ...cRight, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(inv.total_amount)}</div>
-                <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.success, ...S.mono }}>{fmtP(inv.paid_amount)}</div>
-                <div style={{ ...cRight, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: balance > 0 ? t.color.error : t.color.success, ...S.mono }}>{fmtP(balance)}</div>
-                <div style={{ ...cCenter, fontSize: t.fontSize.body, ...S.mono }}>{inv.due_date?.slice(0, 10) || '-'}</div>
-                <div style={cellLast}>
-                  {balance > 0 && inv.status !== 'cancelled' && (
-                    <button onClick={() => { setPayDialog(inv); setPayAmount(String(balance)); }} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: t.fontSize.tiny }}>收款</button>
-                  )}
+                {/* 客戶 */}
+                <div style={{ ...cell, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                  {row.customer_name}
+                </div>
+                {/* 業務 */}
+                <div style={{ ...cell, color: t.color.textSecondary, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                  {row.sales_person || '-'}
+                </div>
+                {/* 發票號碼 */}
+                <div style={{ ...cell, color: hasInv ? t.color.success : t.color.textDisabled, fontWeight: hasInv ? t.fontWeight.semibold : t.fontWeight.normal, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                  {row.invoice_no || '未開立'}
+                </div>
+                {/* 發票日期 */}
+                <div style={{ ...cCenter, ...S.mono, color: row.invoice_date ? t.color.textPrimary : t.color.textDisabled }}>
+                  {row.invoice_date?.slice(0, 10) || '-'}
+                </div>
+                {/* 金額 */}
+                <div style={{ ...cRight, fontWeight: t.fontWeight.bold, ...S.mono }}>
+                  {fmtP(row.total_amount)}
                 </div>
               </div>
             );
           })}
         </div>
       )}
-      <Pager
-        page={data.page || 1}
-        limit={data.limit || 20}
-        total={data.total || 0}
-        onPageChange={(nextPage) => load()}
-        onLimitChange={(nextLimit) => load()}
-      />
 
-      {payDialog && (
-        <div style={{ position: 'fixed', inset: 0, background: t.color.overlay, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ ...p.modalBody('md'), borderRadius: t.radius.xl, padding: isMobile ? '16px 18px' : '16px 18px 20px' }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: t.fontSize.h2 }}>記錄收款</h3>
-            <div style={{ marginBottom: 12, fontSize: t.fontSize.body, color: t.color.textSecondary }}>發票：{payDialog.invoice_no} / 餘額：{fmtP(Number(payDialog.total_amount || 0) - Number(payDialog.paid_amount || 0))}</div>
-            <div style={{ marginBottom: 12 }}><label style={S.label}>收款金額</label><input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) }} /></div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
-              <button onClick={() => setPayDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: t.color.bgMuted, color: t.color.textMuted, border: `1px solid ${t.color.borderLight}` } : S.btnGhost) }}>取消</button>
-              <button onClick={handlePay} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnPrimary) }}>確認收款</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Pager
+        page={data.page   || 1}
+        limit={data.limit || 30}
+        total={data.total || 0}
+        onPageChange={() => load()}
+        onLimitChange={() => load()}
+      />
     </div>
   );
 }
