@@ -2,6 +2,9 @@ export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1';
 
 import { supabase } from '@/lib/supabase';
+import { isAuthorizedV2 } from '@/lib/admin/auth-v2';
+import { adminLimiter } from '@/lib/security/rate-limit';
+import { sanitizeBody } from '@/lib/security/sanitize';
 import crypto from 'crypto';
 
 /* ── helpers ── */
@@ -92,8 +95,15 @@ export async function GET(request) {
 
 /* ── POST: export & send email ── */
 export async function POST(request) {
+  const rl = adminLimiter(request);
+  if (!rl.ok) return rl.response;
+
+  const auth = await isAuthorizedV2(request);
+  if (!auth.ok) return Response.json({ error: '未授權' }, { status: 401 });
+
   try {
-    const body = await request.json();
+    const raw = await request.json();
+    const body = sanitizeBody(raw);
     const { action } = body;
 
     switch (action) {

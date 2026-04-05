@@ -2,7 +2,27 @@
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1';
 
+import { publicLimiter } from '@/lib/security/rate-limit';
+
 export async function GET(request) {
+  const rl = publicLimiter(request);
+  if (!rl.ok) return rl.response;
+
+  // Origin/Referer check — only allow requests from own domain
+  const origin = request.headers.get('origin') || '';
+  const referer = request.headers.get('referer') || '';
+  const allowedHosts = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ].filter(Boolean);
+
+  const isAllowed = !origin || allowedHosts.some(h => origin.startsWith(h) || referer.startsWith(h));
+  if (!isAllowed) {
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   const { searchParams } = new URL(request.url);
   const itemNumber = searchParams.get('item');
 

@@ -2,17 +2,32 @@
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1';
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import { publicLimiter } from '@/lib/security/rate-limit';
+import crypto from 'crypto';
 
-let _supabase;
-function getSupabase() {
-  if (!_supabase) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY env vars');
-    _supabase = createClient(url, key);
-  }
-  return _supabase;
+const PDF_SECRET = process.env.PDF_SIGN_SECRET || process.env.ADMIN_SECRET || 'qb-pdf-default-secret';
+
+/** Verify HMAC signed URL token */
+function verifyPdfToken(type, id, token, exp) {
+  if (!token || !exp) return false;
+  const now = Math.floor(Date.now() / 1000);
+  if (now > Number(exp)) return false; // expired
+  const expected = crypto
+    .createHmac('sha256', PDF_SECRET)
+    .update(`${type}:${id}:${exp}`)
+    .digest('hex');
+  return crypto.timingSafeEqual(Buffer.from(token, 'hex'), Buffer.from(expected, 'hex'));
+}
+
+/** Generate signed URL (called from admin API) */
+export function generatePdfSignedParams(type, id, ttlSeconds = 86400) {
+  const exp = Math.floor(Date.now() / 1000) + ttlSeconds;
+  const token = crypto
+    .createHmac('sha256', PDF_SECRET)
+    .update(`${type}:${id}:${exp}`)
+    .digest('hex');
+  return { token, exp: String(exp) };
 }
 
 function esc(str) {
@@ -101,27 +116,37 @@ document.getElementById('dlBtn').addEventListener('click', function() {
 }
 
 export async function GET(req) {
+  const rl = publicLimiter(req);
+  if (!rl.ok) return rl.response;
+
   const url = new URL(req.url);
   const type = url.searchParams.get('type');
   const id = url.searchParams.get('id');
+  const token = url.searchParams.get('token');
+  const exp = url.searchParams.get('exp');
 
   if (!type || !id) {
     return new Response('Missing type or id', { status: 400 });
   }
 
+  // Verify HMAC signed token
+  if (!verifyPdfToken(type, id, token, exp)) {
+    return new Response('Unauthorized: invalid or expired link', { status: 403 });
+  }
+
   try {
     // Fetch company settings (logo, name, etc.)
-    const { data: configRow } = await getSupabase().from('quickbuy_config').select('value').eq('key', 'company_settings').maybeSingle();
+    const { data: configRow } = await supabase.from('quickbuy_config').select('value').eq('key', 'company_settings').maybeSingle();
     const cs = configRow?.value || {};
     const logoUrl = cs.logo_url || '';
 
     if (type === 'quote') {
-      const { data: quote } = await getSupabase().from('erp_quotes').select('*').eq('id', id).single();
+      const { data: quote } = await supabase.from('erp_quotes').select('*').eq('id', id).single();
       if (!quote) return new Response('Quote not found', { status: 404 });
 
-      const { data: items } = await getSupabase().from('erp_quote_items').select('*').eq('quote_id', id).order('id');
+      const { data: items } = await supabase.from('erp_quote_items').select('*').eq('quote_id', id).order('id');
       const { data: customer } = quote.customer_id
-        ? await getSupabase().from('erp_customers').select('name,company_name,phone,email,address,tax_id').eq('id', quote.customer_id).maybeSingle()
+        ? await supabase.from('erp_customers').select('name,company_name,phone,email,address,tax_id').eq('id', quote.customer_id).maybeSingle()
         : { data: null };
 
       const html = wrapHtml(`報價單 ${quote.quote_no}`, `
@@ -178,12 +203,12 @@ export async function GET(req) {
     }
 
     if (type === 'order') {
-      const { data: order } = await getSupabase().from('erp_orders').select('*').eq('id', id).single();
+      const { data: order } = await supabase.from('erp_orders').select('*').eq('id', id).single();
       if (!order) return new Response('Order not found', { status: 404 });
 
-      const { data: items } = await getSupabase().from('erp_order_items').select('*').eq('order_id', id).order('id');
+      const { data: items } = await supabase.from('erp_order_items').select('*').eq('order_id', id).order('id');
       const { data: customer } = order.customer_id
-        ? await getSupabase().from('erp_customers').select('name,company_name,phone,email,address,tax_id').eq('id', order.customer_id).maybeSingle()
+        ? await supabase.from('erp_customers').select('name,company_name,phone,email,address,tax_id').eq('id', order.customer_id).maybeSingle()
         : { data: null };
 
       const html = wrapHtml(`訂單 ${order.order_no}`, `
@@ -239,16 +264,16 @@ export async function GET(req) {
     }
 
     if (type === 'sale') {
-      const { data: sale } = await getSupabase().from('qb_sales_history').select('*').eq('id', id).single();
+      const { data: sale } = await supabase.from('qb_sales_history').select('*').eq('id', id).single();
       if (!sale) return new Response('Sale not found', { status: 404 });
 
       let invoice = null;
       let items = [];
       if (sale.invoice_number) {
-        const { data: inv } = await getSupabase().from('qb_invoices').select('*').eq('invoice_number', sale.invoice_number).maybeSingle();
+        const { data: inv } = await supabase.from('qb_invoices').select('*').eq('invoice_number', sale.invoice_number).maybeSingle();
         invoice = inv;
         if (inv?.order_id) {
-          const { data: itms } = await getSupabase().from('qb_order_items').select('*').eq('order_id', inv.order_id).order('id');
+          const { data: itms } = await supabase.from('qb_order_items').select('*').eq('order_id', inv.order_id).order('id');
           items = itms || [];
         }
       }
@@ -289,6 +314,7 @@ export async function GET(req) {
 
     return new Response('Unknown type. Use: quote, order, sale', { status: 400 });
   } catch (err) {
-    return new Response(`Error: ${err.message}`, { status: 500 });
+    console.error('PDF route error:', err.message);
+    return new Response('Internal server error', { status: 500 });
   }
 }

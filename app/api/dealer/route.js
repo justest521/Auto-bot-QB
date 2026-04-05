@@ -3,10 +3,26 @@ export const preferredRegion = 'sin1';
 
 import { supabase } from '@/lib/supabase';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { publicLimiter, authLimiter } from '@/lib/security/rate-limit';
+import { safeSearch, escapePostgrestValue } from '@/lib/security/sanitize';
 
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password + (process.env.DEALER_SALT || 'qb_dealer_2024')).digest('hex');
+const DEALER_TOKEN_SECRET = process.env.DEALER_SECRET || process.env.DEALER_SALT || 'qb-dealer-token-secret';
+
+/** Hash password with bcrypt (for new passwords / password changes) */
+async function hashPasswordBcrypt(password) {
+  return bcrypt.hash(password, 10);
+}
+
+/** Verify password: try bcrypt first, fallback to legacy SHA-256 for migration */
+async function verifyPassword(password, storedHash) {
+  // bcrypt hashes start with $2a$ or $2b$
+  if (storedHash.startsWith('$2')) {
+    return bcrypt.compare(password, storedHash);
+  }
+  // Legacy SHA-256 fallback (for existing users not yet migrated)
+  const legacyHash = crypto.createHash('sha256').update(password + (DEALER_TOKEN_SECRET)).digest('hex');
+  return legacyHash === storedHash;
 }
 
 function jsonOk(data) { return Response.json(data); }
@@ -89,7 +105,8 @@ export async function GET(request) {
           .range(offset, offset + limit - 1);
 
         if (q) {
-          query = query.or(`item_number.ilike.%${q}%,description.ilike.%${q}%,search_text.ilike.%${q}%`);
+          const eq = escapePostgrestValue(safeSearch(q));
+          query = query.or(`item_number.ilike.%${eq}%,description.ilike.%${eq}%,search_text.ilike.%${eq}%`);
         }
         if (category && category !== 'all') {
           query = query.eq('category', category);
@@ -393,7 +410,10 @@ export async function GET(request) {
         if (statusF) query = query.eq('status', statusF);
         if (categoryF) query = query.eq('category', categoryF);
         if (cityF) query = query.eq('city', cityF);
-        if (q) query = query.or(`shop_name.ilike.%${q}%,contact_person.ilike.%${q}%,address.ilike.%${q}%,phone.ilike.%${q}%`);
+        if (q) {
+          const eq = escapePostgrestValue(safeSearch(q));
+          query = query.or(`shop_name.ilike.%${eq}%,contact_person.ilike.%${eq}%,address.ilike.%${eq}%,phone.ilike.%${eq}%`);
+        }
 
         const { data, count, error } = await query;
         if (error) return jsonErr(error.message, 500);
@@ -666,14 +686,21 @@ export async function POST(request) {
 
     if (error) return jsonErr(error.message, 500);
     if (!user) return jsonErr('帳號不存在或已停用');
-    if (user.password_hash !== hashPassword(password)) return jsonErr('密碼錯誤');
+    const passwordValid = await verifyPassword(password, user.password_hash);
+    if (!passwordValid) return jsonErr('密碼錯誤');
+
+    // Auto-migrate legacy SHA-256 hash to bcrypt on successful login
+    if (!user.password_hash.startsWith('$2')) {
+      const newHash = await hashPasswordBcrypt(password);
+      await supabase.from('erp_dealer_users').update({ password_hash: newHash }).eq('id', user.id);
+    }
 
     // Update last login
     await supabase.from('erp_dealer_users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id);
 
     // Token = simple signed value (user_id + timestamp + hash)
     const tokenData = `${user.id}|${Date.now()}`;
-    const tokenHash = crypto.createHash('sha256').update(tokenData + (process.env.DEALER_SALT || 'qb_dealer_2024')).digest('hex').slice(0, 16);
+    const tokenHash = crypto.createHash('sha256').update(tokenData + (DEALER_TOKEN_SECRET)).digest('hex').slice(0, 16);
     const token = Buffer.from(`${tokenData}|${tokenHash}`).toString('base64');
 
     return jsonOk({
@@ -837,11 +864,13 @@ export async function POST(request) {
       const { old_password, new_password } = body;
       if (!old_password || !new_password) return jsonErr('請填入舊密碼和新密碼');
       if (new_password.length < 4) return jsonErr('新密碼至少 4 碼');
-      if (user.password_hash !== hashPassword(old_password)) return jsonErr('舊密碼錯誤');
+      const oldValid = await verifyPassword(old_password, user.password_hash);
+      if (!oldValid) return jsonErr('舊密碼錯誤');
 
+      const newHash = await hashPasswordBcrypt(new_password);
       const { error } = await supabase
         .from('erp_dealer_users')
-        .update({ password_hash: hashPassword(new_password), updated_at: new Date().toISOString() })
+        .update({ password_hash: newHash, updated_at: new Date().toISOString() })
         .eq('id', user.id);
 
       if (error) return jsonErr(error.message, 500);
@@ -864,7 +893,7 @@ export async function POST(request) {
       const { data: existCust } = await supabase
         .from('erp_customers')
         .select('id, company_name, name')
-        .or(`company_name.ilike.%${shop_name.trim()}%,name.ilike.%${shop_name.trim()}%`)
+        .or(`company_name.ilike.%${escapePostgrestValue(shop_name.trim())}%,name.ilike.%${escapePostgrestValue(shop_name.trim())}%`)
         .limit(3);
 
       let warn = null;
@@ -989,7 +1018,7 @@ async function getUserFromToken(token) {
 
     // Verify hash
     const tokenData = `${userId}|${timestamp}`;
-    const expectedHash = crypto.createHash('sha256').update(tokenData + (process.env.DEALER_SALT || 'qb_dealer_2024')).digest('hex').slice(0, 16);
+    const expectedHash = crypto.createHash('sha256').update(tokenData + (DEALER_TOKEN_SECRET)).digest('hex').slice(0, 16);
     if (hash !== expectedHash) return null;
 
     // Token expires in 7 days

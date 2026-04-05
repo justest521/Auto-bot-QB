@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import S from '@/lib/admin/styles';
 const { t, p } = S;
-import { apiGet, apiPost } from '@/lib/admin/api';
+import { apiGet, apiPost, openPdf } from '@/lib/admin/api';
 import { fmt, fmtP, useResponsive, exportCsv, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
@@ -216,7 +216,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
               if (!invoiceNumber && !s.invoice_number) {
                 if (!confirm('尚未填寫發票號碼，是否仍要列印？\n（建議先填寫發票號碼以便入帳）')) return;
               }
-              window.open(`/api/pdf?type=sale&id=${sale.id}`, '_blank');
+              openPdf('sale', sale.id);
             }} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, justifyContent: 'center' }}>下載 PDF</button>
 
             {/* 2. 客戶資訊 */}

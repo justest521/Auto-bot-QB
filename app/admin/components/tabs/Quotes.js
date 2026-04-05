@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import S from '@/lib/admin/styles';
 const { t, p } = S;
-import { apiGet, apiPost } from '@/lib/admin/api';
+import { apiGet, apiPost, openPdf } from '@/lib/admin/api';
 import { fmt, fmtP, exportCsv, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, StatCard, PanelHeader, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
@@ -611,7 +611,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
         {/* ====== Right sidebar (same as Order) ====== */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, ...(isMobile ? { gridColumn: '1/-1' } : {}) }}>
           {/* 1. PDF button */}
-          <button onClick={() => window.open(`/api/pdf?type=quote&id=${quote.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
+          <button onClick={() => openPdf('quote', quote.id)} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: 14, fontWeight: 600, justifyContent: 'center' }}>下載 PDF</button>
 
           {/* 2. 客戶資訊 */}
           <div style={{ ...cardStyle, marginBottom: 0, padding: '10px 16px' }}>
@@ -880,7 +880,7 @@ export default function Quotes({ setTab }) {
 
                   <div style={{ display: 'flex', gap: 6, marginTop: 8, paddingTop: 8, borderTop: '1px solid #e5e7eb' }}>
                     <button onClick={(e) => { e.stopPropagation(); duplicateQuote(row); }} style={{ ...S.btnGhost, flex: 1, fontSize: 12, minHeight: 36 }}>複製</button>
-                    <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=quote&id=${row.id}`, '_blank'); }} style={{ ...S.btnGhost, flex: 1, fontSize: 12, minHeight: 36 }}>PDF</button>
+                    <button onClick={(e) => { e.stopPropagation(); openPdf('quote', row.id); }} style={{ ...S.btnGhost, flex: 1, fontSize: 12, minHeight: 36 }}>PDF</button>
                   </div>
                 </div>
               );
@@ -932,7 +932,7 @@ export default function Quotes({ setTab }) {
                   {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151' }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</span></div>}
                   <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => duplicateQuote(row)} title="複製報價單" style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>複製</button>
-                    <button onClick={() => window.open(`/api/pdf?type=quote&id=${row.id}`, '_blank')} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>PDF</button>
+                    <button onClick={() => openPdf('quote', row.id)} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>PDF</button>
                   </div>
                 </div>
               );

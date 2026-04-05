@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createRateLimiter } from '@/lib/security/rate-limit';
+import { getSupabaseConfig } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1';
-
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY env vars');
-}
 
 const shopLimiter = createRateLimiter({ windowMs: 60_000, max: 60, prefix: 'shop_categories' });
 
@@ -47,6 +41,7 @@ function slugify(text) {
 
 async function fetchCategoriesFromDB() {
   try {
+    const { url: SUPABASE_URL, key: SUPABASE_KEY } = getSupabaseConfig();
     // Fetch all distinct categories with product counts
     const params = new URLSearchParams();
     params.set('select', 'category,count(*)');

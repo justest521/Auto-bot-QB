@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import dynamic from 'next/dynamic';
 import S from '@/lib/admin/styles';
 const { t, p } = S;
 import { API, ADMIN_TOKEN_KEY, apiGet, apiPost } from '@/lib/admin/api';
@@ -8,69 +9,82 @@ import { useViewportWidth } from '@/lib/admin/helpers';
 import { HEADER_ACTION_PORTAL_ID } from './components/shared/ui';
 import { UnsavedChangesProvider, useUnsavedGuard } from './components/shared/UnsavedChangesGuard';
 
-// ── Tab Components ──
-import EnvHealth from './components/tabs/EnvHealth';
-import ReportCenter from './components/tabs/ReportCenter';
-import Dashboard from './components/tabs/Dashboard';
-import FormalCustomers from './components/tabs/FormalCustomers';
-import Customers from './components/tabs/Customers';
-import Quotes from './components/tabs/Quotes';
-import Orders from './components/tabs/Orders';
-import SalesDocuments from './components/tabs/SalesDocuments';
-import Messages from './components/tabs/Messages';
-import LineChat from './components/tabs/LineChat';
-import LineCRM from './components/tabs/LineCRM';
-import ProductSearch from './components/tabs/ProductSearch';
-import ImportCenter from './components/tabs/ImportCenter';
-import Vendors from './components/tabs/Vendors';
-import SalesReturns from './components/tabs/SalesReturns';
-import ProfitAnalysis from './components/tabs/ProfitAnalysis';
-import Promotions from './components/tabs/Promotions';
-import PricingRules from './components/tabs/PricingRules';
-import Inventory from './components/tabs/Inventory';
-// import Payments from './components/tabs/Payments'; // removed
-import Shipments from './components/tabs/Shipments';
-import Returns from './components/tabs/Returns';
+// ── Tab Loading Fallback ──
+function TabLoading() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0', color: '#9ca3af' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+        <div style={{ fontSize: 14 }}>載入中...</div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    </div>
+  );
+}
 
-import AIPrompt from './components/tabs/AIPrompt';
-import ChatHistory from './components/tabs/ChatHistory';
-import PurchaseOrders from './components/tabs/PurchaseOrders';
-import QuickReceive from './components/tabs/QuickReceive';
-import ProcurementCenter from './components/tabs/ProcurementCenter';
-import StockIn from './components/tabs/StockIn';
-import PurchaseReturns from './components/tabs/PurchaseReturns';
-import VendorPayments from './components/tabs/VendorPayments';
-import Stocktake from './components/tabs/Stocktake';
-import StockAdjustments from './components/tabs/StockAdjustments';
-import StockTransfer from './components/tabs/StockTransfer';
-import StockAssembly from './components/tabs/StockAssembly';
-import PSIReport from './components/tabs/PSIReport';
-import FinancialReport from './components/tabs/FinancialReport';
-import DealerUsers from './components/tabs/DealerUsers';
-import DealerOrders from './components/tabs/DealerOrders';
-import Announcements from './components/tabs/Announcements';
-import CRMLeads from './components/tabs/CRMLeads';
-import StockAlerts from './components/tabs/StockAlerts';
-import ReorderSuggestions from './components/tabs/ReorderSuggestions';
-import Invoices from './components/tabs/Invoices';
-import Approvals from './components/tabs/Approvals';
-import Tickets from './components/tabs/Tickets';
-import UserManagement from './components/tabs/UserManagement';
-import PartsExchange from './components/tabs/PartsExchange';
-import EquipmentLease from './components/tabs/EquipmentLease';
-import AIForecast from './components/tabs/AIForecast';
-import HRModule from './components/tabs/HRModule';
-import PulseModule from './components/tabs/PulseModule';
-import Flowchart from './components/tabs/Flowchart';
-import CompanySettings from './components/tabs/CompanySettings';
-import AccountsReceivable from './components/tabs/AccountsReceivable';
-import ReconciliationStatements from './components/tabs/ReconciliationStatements';
-import PaymentRecords from './components/tabs/PaymentRecords';
-import PaymentMatching from './components/tabs/PaymentMatching';
-import WarrantySettings from './components/tabs/WarrantySettings';
-import WarrantyRegistrations from './components/tabs/WarrantyRegistrations';
-import RepairOrders from './components/tabs/RepairOrders';
-import WarrantyClaims from './components/tabs/WarrantyClaims';
+const dyn = (path) => dynamic(() => import(`./components/tabs/${path}`), { loading: () => <TabLoading />, ssr: false });
+
+// ── Tab Components (lazy-loaded) ──
+const Dashboard = dyn('Dashboard');
+const EnvHealth = dyn('EnvHealth');
+const ReportCenter = dyn('ReportCenter');
+const FormalCustomers = dyn('FormalCustomers');
+const Customers = dyn('Customers');
+const Quotes = dyn('Quotes');
+const Orders = dyn('Orders');
+const SalesDocuments = dyn('SalesDocuments');
+const Messages = dyn('Messages');
+const LineChat = dyn('LineChat');
+const LineCRM = dyn('LineCRM');
+const ProductSearch = dyn('ProductSearch');
+const ImportCenter = dyn('ImportCenter');
+const Vendors = dyn('Vendors');
+const SalesReturns = dyn('SalesReturns');
+const ProfitAnalysis = dyn('ProfitAnalysis');
+const Promotions = dyn('Promotions');
+const PricingRules = dyn('PricingRules');
+const Inventory = dyn('Inventory');
+const Shipments = dyn('Shipments');
+const Returns = dyn('Returns');
+const AIPrompt = dyn('AIPrompt');
+const ChatHistory = dyn('ChatHistory');
+const PurchaseOrders = dyn('PurchaseOrders');
+const QuickReceive = dyn('QuickReceive');
+const ProcurementCenter = dyn('ProcurementCenter');
+const StockIn = dyn('StockIn');
+const PurchaseReturns = dyn('PurchaseReturns');
+const VendorPayments = dyn('VendorPayments');
+const Stocktake = dyn('Stocktake');
+const StockAdjustments = dyn('StockAdjustments');
+const StockTransfer = dyn('StockTransfer');
+const StockAssembly = dyn('StockAssembly');
+const PSIReport = dyn('PSIReport');
+const FinancialReport = dyn('FinancialReport');
+const DealerUsers = dyn('DealerUsers');
+const DealerOrders = dyn('DealerOrders');
+const Announcements = dyn('Announcements');
+const CRMLeads = dyn('CRMLeads');
+const StockAlerts = dyn('StockAlerts');
+const ReorderSuggestions = dyn('ReorderSuggestions');
+const Invoices = dyn('Invoices');
+const Approvals = dyn('Approvals');
+const Tickets = dyn('Tickets');
+const UserManagement = dyn('UserManagement');
+const PartsExchange = dyn('PartsExchange');
+const EquipmentLease = dyn('EquipmentLease');
+const AIForecast = dyn('AIForecast');
+const HRModule = dyn('HRModule');
+const PulseModule = dyn('PulseModule');
+const Flowchart = dyn('Flowchart');
+const CompanySettings = dyn('CompanySettings');
+const AccountsReceivable = dyn('AccountsReceivable');
+const ReconciliationStatements = dyn('ReconciliationStatements');
+const PaymentRecords = dyn('PaymentRecords');
+const PaymentMatching = dyn('PaymentMatching');
+const WarrantySettings = dyn('WarrantySettings');
+const WarrantyRegistrations = dyn('WarrantyRegistrations');
+const RepairOrders = dyn('RepairOrders');
+const WarrantyClaims = dyn('WarrantyClaims');
 
 // ── SECTIONS ──
 const SECTION_ICONS = {

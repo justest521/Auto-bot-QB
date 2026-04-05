@@ -17,16 +17,17 @@ export function middleware(request) {
   const supabaseDomain = supabaseUrl ? new URL(supabaseUrl).hostname : '';
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com`,
+    `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `font-src 'self' https://fonts.gstatic.com`,
-    `img-src 'self' data: blob: https: http:`,
+    `img-src 'self' data: blob: https:`,
     `connect-src 'self' ${supabaseUrl} https://*.supabase.co https://api.line.me`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; ');
   response.headers.set('Content-Security-Policy', csp);
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
   // ── Admin routes: prevent caching of API responses ─────────────
   if (pathname.startsWith('/api/admin')) {

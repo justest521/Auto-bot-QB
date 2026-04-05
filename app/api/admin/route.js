@@ -5,6 +5,7 @@ import { handlePostAction } from '@/lib/admin/actions-post';
 import { adminLimiter, authLimiter } from '@/lib/security/rate-limit';
 import { sanitizeBody } from '@/lib/security/sanitize';
 import { supabase } from '@/lib/supabase';
+import { generatePdfSignedParams } from '@/app/api/pdf/route';
 
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1'; // 新加坡，靠近 Supabase (ap-southeast-1)
@@ -83,6 +84,17 @@ export async function GET(request) {
       .select('permission_id, can_read, can_write, can_delete')
       .eq('role_id', roleId);
     return Response.json({ role_permissions: data || [] });
+  }
+
+  // Generate signed PDF URL
+  if (action === 'generate_pdf_url') {
+    const docType = searchParams.get('doc_type');
+    const docId = searchParams.get('doc_id');
+    if (!docType || !docId) return Response.json({ error: '缺少 doc_type 或 doc_id' }, { status: 400 });
+    const { token, exp } = generatePdfSignedParams(docType, docId);
+    const base = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    const url = `${base}/api/pdf?type=${docType}&id=${docId}&token=${token}&exp=${exp}`;
+    return Response.json({ url });
   }
 
   try {

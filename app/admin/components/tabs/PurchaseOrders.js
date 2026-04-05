@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import S from '@/lib/admin/styles';
 const { t, p } = S;
-import { apiGet, apiPost } from '@/lib/admin/api';
+import { apiGet, apiPost, openPdf } from '@/lib/admin/api';
 import { fmt, fmtP, fmtDate, getPresetDateRange } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard } from '../shared/ui';
 import { useResponsive } from '@/lib/admin/helpers';
@@ -667,7 +667,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {/* 1. PDF button */}
-            <button onClick={() => window.open(`/api/pdf?type=po&id=${po.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, justifyContent: 'center' }}>下載 PDF</button>
+            <button onClick={() => openPdf('po', po.id)} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, justifyContent: 'center' }}>下載 PDF</button>
 
             {/* Receive goods button */}
             {canReceive && (

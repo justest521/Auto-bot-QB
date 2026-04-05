@@ -1,19 +1,15 @@
 import { NextResponse } from 'next/server';
 import { publicLimiter } from '@/lib/security/rate-limit';
+import { safeSearch, escapePostgrestValue } from '@/lib/security/sanitize';
+import { getSupabaseConfig } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY env vars');
-}
-
 export async function GET(request) {
   const rl = publicLimiter(request);
   if (!rl.ok) return rl.response;
+  const { url: SUPABASE_URL, key: SUPABASE_KEY } = getSupabaseConfig();
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('q') || '';
@@ -35,8 +31,9 @@ export async function GET(request) {
 
     const trimmed = search.trim();
     if (trimmed) {
-      const escaped = trimmed.replace(/['"]/g, '');
-      const tsQuery = escaped.split(/\s+/).filter(Boolean).join(' & ');
+      const cleaned = safeSearch(trimmed);
+      const escaped = escapePostgrestValue(cleaned);
+      const tsQuery = cleaned.replace(/['"]/g, '').split(/\s+/).filter(Boolean).join(' & ');
       params.set('or', `(item_number.ilike.*${escaped}*,search_text.fts.${tsQuery})`);
     }
 

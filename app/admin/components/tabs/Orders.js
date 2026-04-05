@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import S from '@/lib/admin/styles';
 const { t, p } = S;
-import { apiGet, apiPost } from '@/lib/admin/api';
+import { apiGet, apiPost, openPdf } from '@/lib/admin/api';
 import { fmt, fmtP, getPresetDateRange, useResponsive, exportCsv } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
@@ -807,7 +807,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
           {/* ====== Right sidebar ====== */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, ...(isMobile ? { gridColumn: '1/-1' } : {}) }}>
             {/* 1. PDF button */}
-            <button onClick={() => window.open(`/api/pdf?type=order&id=${order.id}`, '_blank')} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, justifyContent: 'center' }}>下載 PDF</button>
+            <button onClick={() => openPdf('order', order.id)} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, justifyContent: 'center' }}>下載 PDF</button>
 
             {/* 2. 客戶資訊 */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
@@ -1494,7 +1494,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
                     if (isConverted) return <span style={{ ...S.tag('green'), fontSize: t.fontSize.tiny }}>已轉銷貨</span>;
                     return null;
                   })()}
-                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ flex: 1, ...S.btnGhost, padding: '8px 0', fontSize: t.fontSize.caption, minHeight: 40 }}>PDF</button>
+                  <button onClick={(e) => { e.stopPropagation(); openPdf('order', row.id); }} style={{ flex: 1, ...S.btnGhost, padding: '8px 0', fontSize: t.fontSize.caption, minHeight: 40 }}>PDF</button>
                 </div>
               </div>
             );
@@ -1555,7 +1555,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
                     if (isConverted) return <span style={{ ...S.tag('green'), fontSize: t.fontSize.tiny }}>已轉銷貨</span>;
                     return null;
                   })()}
-                  <button onClick={(e) => { e.stopPropagation(); window.open(`/api/pdf?type=order&id=${row.id}`, '_blank'); }} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: t.fontSize.caption, whiteSpace: 'nowrap' }}>PDF</button>
+                  <button onClick={(e) => { e.stopPropagation(); openPdf('order', row.id); }} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: t.fontSize.caption, whiteSpace: 'nowrap' }}>PDF</button>
                 </div>
               </div>
             );

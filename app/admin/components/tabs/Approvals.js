@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import S from '@/lib/admin/styles';
 const { t, p } = S;
-import { apiGet, apiPost } from '@/lib/admin/api';
+import { apiGet, apiPost, openPdf } from '@/lib/admin/api';
 import { fmtP, useResponsive } from '@/lib/admin/helpers';
 import { Loading, EmptyState, PageLead } from '../shared/ui';
 
@@ -194,7 +194,7 @@ export default function Approvals() {
                       {a.customer_history && (
                         <button onClick={() => setHistoryModal({ history: a.customer_history, customerName })} style={{ ...S.btnGhost, padding: isMobile ? '4px 6px' : '4px 8px', fontSize: isMobile ? 9 : 10, borderColor: t.color.info, color: t.color.info, minHeight: isMobile ? 44 : undefined }}>{isMobile ? '歷史' : '客戶歷史'}</button>
                       )}
-                      <button onClick={() => { const pdfType = a.doc_type === 'purchase_order' ? 'purchase_order' : a.doc_type === 'quote' ? 'quote' : a.doc_type === 'sale' ? 'sale' : 'order'; window.open(`/api/pdf?type=${pdfType}&id=${a.doc_id}`, '_blank'); }} style={{ ...S.btnGhost, padding: isMobile ? '4px 6px' : '4px 8px', fontSize: isMobile ? 9 : 10, minHeight: isMobile ? 44 : undefined }}>PDF</button>
+                      <button onClick={() => { const pdfType = a.doc_type === 'purchase_order' ? 'purchase_order' : a.doc_type === 'quote' ? 'quote' : a.doc_type === 'sale' ? 'sale' : 'order'; openPdf(pdfType, a.doc_id); }} style={{ ...S.btnGhost, padding: isMobile ? '4px 6px' : '4px 8px', fontSize: isMobile ? 9 : 10, minHeight: isMobile ? 44 : undefined }}>PDF</button>
                       {a.status === 'pending' && (
                         <>
                           <button onClick={() => handleProcess(a, 'approved')} style={{ ...S.btnPrimary, padding: isMobile ? '4px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, minHeight: isMobile ? 44 : undefined }}>核准</button>

@@ -1,22 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createRateLimiter } from '@/lib/security/rate-limit';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY env vars');
-}
-
 const shopLimiter = createRateLimiter({ windowMs: 60_000, max: 30, prefix: 'shop_order' });
-
-function getSupabase() {
-  return createClient(SUPABASE_URL, SUPABASE_KEY);
-}
 
 function validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,7 +27,6 @@ async function validateProducts(items) {
     return { valid: false, error: 'No items provided' };
   }
 
-  const supabase = getSupabase();
   const productIds = items.map(item => item.product_id);
 
   try {
@@ -128,8 +116,6 @@ export async function POST(request) {
       status: 'pending',
       created_at: new Date().toISOString(),
     };
-
-    const supabase = getSupabase();
 
     // Check if erp_orders table exists and has required columns
     const { data: checkTable, error: checkError } = await supabase

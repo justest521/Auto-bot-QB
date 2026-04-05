@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  poweredBy: false, // Remove X-Powered-By header
+  poweredByHeader: false, // Remove X-Powered-By header
 
   async headers() {
     return [

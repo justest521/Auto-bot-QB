@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createRateLimiter } from '@/lib/security/rate-limit';
+import { getSupabaseConfig } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 export const preferredRegion = 'sin1';
-
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY env vars');
-}
 
 const statsLimiter = createRateLimiter({ windowMs: 60_000, max: 60, prefix: 'shop_stats' });
 
@@ -38,6 +32,7 @@ export async function GET(request) {
   if (!rl.ok) return rl.response;
 
   try {
+    const { url: SUPABASE_URL, key: SUPABASE_KEY } = getSupabaseConfig();
     const headers = {
       apikey: SUPABASE_KEY,
       Authorization: `Bearer ${SUPABASE_KEY}`,
@@ -45,8 +40,8 @@ export async function GET(request) {
       Prefer: 'count=exact',
     };
 
-    // Fetch all products (minimal columns for performance)
-    const productsUrl = `${SUPABASE_URL}/rest/v1/quickbuy_products?select=id,category,product_status,created_at&limit=1000000`;
+    // Fetch products (minimal columns for performance)
+    const productsUrl = `${SUPABASE_URL}/rest/v1/quickbuy_products?select=id,category,product_status,created_at&limit=200000`;
     const productsRes = await fetch(productsUrl, { headers });
 
     if (!productsRes.ok) {
