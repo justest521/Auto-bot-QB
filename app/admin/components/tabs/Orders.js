@@ -916,8 +916,10 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 linkedSales.forEach(sale => {
                   const sk = String(sale.status || 'draft').toLowerCase();
                   const sc = saleColorMap[sk] || '#6b7280';
-                  const saleBadges = items.filter(i => i.sale_info).map(i => ({ text: `已銷${i.sale_info.sold_qty}/${i.qty}`, item: i.item_number_snapshot }));
-                  entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: saleStatusMap[sk] || sk, detailColor: sc, time: sale.sale_date, status: sk === 'paid' ? 'done' : 'current', badges: saleBadges });
+                  const saleBadges = items
+                    .filter(i => i.sale_info?.sale_refs?.includes(sale.slip_number))
+                    .map(i => ({ text: `×${i.sale_info.sold_qty}`, item: i.item_number_snapshot }));
+                  entries.push({ dot: sc, label: '銷貨', ref: sale.slip_number, refType: 'sale', detail: saleStatusMap[sk] || sk, detailColor: sc, time: sale.created_at, status: sk === 'paid' ? 'done' : 'current', badges: saleBadges });
                 });
                 // Sale approval note (銷貨免審)
                 if (approvalData && approvalData.doc_type === 'sale') {
