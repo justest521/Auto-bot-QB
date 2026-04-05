@@ -87,174 +87,136 @@ const RepairOrders = dyn('RepairOrders');
 const WarrantyClaims = dyn('WarrantyClaims');
 
 // ── SECTIONS ──
+// SVG icon helper — 16x16 stroke-based icons
+const I = (d, sw = 1.5) => (color) => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
 const SECTION_ICONS = {
-  'ERP 總覽': { icon: '\u25C9', bg: '#ede9fe', fg: '#7c3aed' },
-  'ERP 主檔資料': { icon: '\u2630', bg: '#e0f2fe', fg: '#0284c7' },
-  'ERP 採購進貨': { icon: '\u2B07', bg: '#fef3c7', fg: '#d97706' },
-  'ERP 銷售出貨': { icon: '\u2B06', bg: '#dcfce7', fg: '#16a34a' },
-  'ERP 倉儲管理': { icon: '\u2338', bg: '#f3e8ff', fg: '#9333ea' },
-  'ERP 分析報表': { icon: '\u2637', bg: '#fce7f3', fg: '#db2777' },
-  'CRM 客戶管線': { icon: '\u2764', bg: '#fce7f3', fg: '#ec4899' },
-  'ERP 財務會計': { icon: '\u2696', bg: '#ccfbf1', fg: '#0d9488' },
-  'ERP 審批簽核': { icon: '\u2611', bg: '#ede9fe', fg: '#7c3aed' },
-  '客服工單': { icon: '\u260E', bg: '#cffafe', fg: '#0891b2' },
-  '經銷商入口': { icon: '\u263A', bg: '#ede9fe', fg: '#8b5cf6' },
-  'LINE 與系統': { icon: '\u269B', bg: '#dcfce7', fg: '#06c755' },
-  '系統管理': { icon: '\u2699', bg: '#f3f4f6', fg: '#374151' },
+  '總覽':       { icon: I('M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z'), bg: '#ede9fe', fg: '#7c3aed' },
+  '銷售出貨':   { icon: I('M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0'), bg: '#dcfce7', fg: '#16a34a' },
+  '採購進貨':   { icon: I('M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 9v6M9 12h6', 1.8), bg: '#fef3c7', fg: '#d97706' },
+  '倉儲管理':   { icon: I('M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16zM3.27 6.96L12 12.01l8.73-5.05M12 22.08V12'), bg: '#f3e8ff', fg: '#9333ea' },
+  '財務會計':   { icon: I('M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6'), bg: '#ccfbf1', fg: '#0d9488' },
+  '審批簽核':   { icon: I('M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11'), bg: '#ede9fe', fg: '#7c3aed' },
+  '主檔資料':   { icon: I('M4 7V4a2 2 0 012-2h8.5L20 7.5V20a2 2 0 01-2 2H6a2 2 0 01-2-2v-3M8 12h8M8 16h5M14 2v6h6'), bg: '#e0f2fe', fg: '#0284c7' },
+  '分析報表':   { icon: I('M18 20V10M12 20V4M6 20v-6'), bg: '#fce7f3', fg: '#db2777' },
+  'CRM 客戶管線': { icon: I('M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75'), bg: '#fce7f3', fg: '#ec4899' },
+  '客服工單':   { icon: I('M3 18v-6a9 9 0 0118 0v6M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z'), bg: '#cffafe', fg: '#0891b2' },
+  '維修保固':   { icon: I('M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z'), bg: '#fff7ed', fg: '#ea580c' },
+  '經銷商入口': { icon: I('M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2zM9 22V12h6v10'), bg: '#ede9fe', fg: '#8b5cf6' },
+  '人力資源':   { icon: I('M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 3a4 4 0 100 8 4 4 0 000-8z'), bg: '#fdf4ff', fg: '#a855f7' },
+  'AI 輿情分析': { icon: I('M22 12h-4l-3 9L9 3l-3 9H2'), bg: '#fef9c3', fg: '#ca8a04' },
+  'LINE 與系統': { icon: I('M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z'), bg: '#dcfce7', fg: '#06c755' },
+  '系統管理':   { icon: I('M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z'), bg: '#f3f4f6', fg: '#374151' },
 };
 
 const SECTIONS = [
-  {
-    title: 'ERP 總覽',
-    tabs: [
-      { id: 'flowchart', label: '系統流程圖', code: 'FLOW' },
-      { id: 'env_health', label: '環境檢查', code: 'HEAL' },
-      { id: 'report_center', label: '進銷存報表', code: 'A1' },
-      { id: 'dashboard', label: '儀表板', code: 'DASH' },
-    ],
-  },
-  {
-    title: 'ERP 主檔資料',
-    tabs: [
-      { id: 'customers', label: '客戶主檔', code: 'CUST' },
-      { id: 'products', label: '產品查價', code: 'SRCH' },
-      { id: 'vendors', label: '廠商主檔', code: 'VNDR' },
-      { id: 'line_customers', label: 'LINE 客戶', code: 'LINE' },
-    ],
-  },
-  {
-    title: 'ERP 採購進貨',
-    tabs: [
-      { id: 'quick_receive', label: '快速進貨', code: 'RCIV' },
-      { id: 'purchase_orders', label: '採購單', code: 'PO' },
-      { id: 'procurement_center', label: '採購中心', code: 'PC' },
-      { id: 'stock_in', label: '進貨單', code: 'SI' },
-      { id: 'purchase_returns', label: '進貨退出', code: 'PRTN' },
-    ],
-  },
-  {
-    title: 'ERP 銷售出貨',
-    tabs: [
-
-      { id: 'quotes', label: '報價單', code: 'QUOT' },
-      { id: 'orders', label: '訂單', code: 'ORDR' },
-      { id: 'sales_documents', label: '銷貨單', code: 'SALE' },
-      { id: 'shipments', label: '出貨管理', code: 'SHIP' },
-      { id: 'returns', label: '退貨管理', code: 'RTN' },
-      { id: 'parts_exchange', label: '🔮 零件交易所', code: 'PTEX' },
-      { id: 'equipment_lease', label: '🔮 設備租賃', code: 'LEAS' },
-    ],
-  },
-  {
-    title: 'ERP 倉儲管理',
-    tabs: [
-      { id: 'inventory', label: '庫存總覽', code: 'INVT' },
-      { id: 'stock_alerts', label: '庫存警示', code: 'ALRT' },
-      { id: 'reorder', label: '補貨建議', code: 'REOD' },
-      { id: 'stocktake', label: '盤點作業', code: 'STTK' },
-      { id: 'stock_adjustments', label: '調整單', code: 'ADJ' },
-      { id: 'stock_transfers', label: '調撥單', code: 'TRF' },
-      { id: 'stock_assemblies', label: '組合單', code: 'ASM' },
-    ],
-  },
-  {
-    title: 'ERP 分析報表',
-    tabs: [
-      { id: 'psi_report', label: '進銷存報表', code: 'PSI' },
-      { id: 'financial_report', label: '財務報表', code: 'FIN' },
-      { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
-      { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
-      { id: 'ai_forecast', label: '🔮 AI 預測', code: 'AIFC' },
-      { id: 'imports', label: '資料匯入', code: 'IMPT' },
-    ],
-  },
-  {
-    title: 'CRM 客戶管線',
-    accent: '#ec4899',
-    tabs: [
-      { id: 'crm_leads', label: '商機管線', code: 'CRM' },
-    ],
-  },
-  {
-    title: 'ERP 財務會計',
-    accent: '#0d9488',
-    tabs: [
-      { id: 'invoices', label: '發票管理', code: 'INV' },
-      { id: 'accounts_receivable', label: '應收帳款', code: 'AR' },
-      { id: 'reconciliation', label: '對帳單', code: 'RCON' },
-      { id: 'payment_records', label: '收款登錄', code: 'RCPT' },
-      { id: 'payment_matching', label: '沖帳配對', code: 'MTCH' },
-      { id: 'vendor_payments', label: '付款單', code: 'VP' },
-    ],
-  },
-  {
-    title: 'ERP 審批簽核',
-    accent: '#7c3aed',
-    tabs: [
-      { id: 'approvals', label: '簽核審批', code: 'APPR' },
-    ],
-  },
-  {
-    title: '人力資源',
-    accent: '#8b5cf6',
-    tabs: [
-      { id: 'hr_module', label: '人資管理', code: 'HR' },
-    ],
-  },
-  {
-    title: 'AI 輿情分析',
-    accent: '#f59e0b',
-    tabs: [
-      { id: 'pulse_module', label: 'MoreYou Pulse', code: 'PLSE' },
-    ],
-  },
-  {
-    title: '客服工單',
-    accent: '#0891b2',
-    tabs: [
-      { id: 'tickets', label: '工單管理', code: 'TCKT' },
-    ],
-  },
-  {
-    title: '維修保固',
-    accent: '#ea580c',
-    tabs: [
-      { id: 'warranty_settings', label: '保固設定', code: 'WSET' },
-      { id: 'warranty_registrations', label: '保固登錄', code: 'WREG' },
-      { id: 'repair_orders', label: '維修工單', code: 'RPR' },
-      { id: 'warranty_claims', label: '索賠管理', code: 'CLM' },
-    ],
-  },
-  {
-    title: '經銷商入口',
-    accent: '#8b5cf6',
-    tabs: [
-      { id: 'dealer_users', label: '帳號管理', code: 'DUSR' },
-      { id: 'dealer_orders', label: '經銷商訂單', code: 'DORD' },
-      { id: 'announcements', label: '公告管理', code: 'ANN' },
-    ],
-  },
-  {
-    title: 'LINE 與系統',
-    accent: '#06c755',
-    tabs: [
-      { id: 'line_chat', label: '聊天視窗', code: 'CHAT' },
-      { id: 'line_crm', label: '客戶標籤', code: 'TAG' },
-      { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
-      { id: 'ai_prompt', label: 'AI Prompt 設定', code: 'AI' },
-      { id: 'chat_history', label: '歷史對話', code: 'HIST' },
-      { id: 'promotions', label: '活動管理', code: 'PRMO' },
-      { id: 'pricing', label: '報價規則', code: 'PRCE' },
-    ],
-  },
-  {
-    title: '系統管理',
-    accent: '#374151',
-    tabs: [
-      { id: 'user_management', label: '使用者管理', code: 'UMGT' },
-      { id: 'company_settings', label: '公司設定', code: 'CSET' },
-    ],
-  },
+  // 1. 總覽 — dashboard hub
+  { title: '總覽', tabs: [
+    { id: 'flowchart', label: '系統流程圖', code: 'FLOW' },
+    { id: 'env_health', label: '環境檢查', code: 'HEAL' },
+    { id: 'report_center', label: '進銷存報表', code: 'A1' },
+    { id: 'dashboard', label: '儀表板', code: 'DASH' },
+  ]},
+  // 2. 銷售出貨 — core revenue
+  { title: '銷售出貨', tabs: [
+    { id: 'quotes', label: '報價單', code: 'QUOT' },
+    { id: 'orders', label: '訂單', code: 'ORDR' },
+    { id: 'sales_documents', label: '銷貨單', code: 'SALE' },
+    { id: 'shipments', label: '出貨管理', code: 'SHIP' },
+    { id: 'returns', label: '退貨管理', code: 'RTN' },
+    { id: 'parts_exchange', label: '零件交易所', code: 'PTEX' },
+    { id: 'equipment_lease', label: '設備租賃', code: 'LEAS' },
+  ]},
+  // 3. 採購進貨 — supply chain
+  { title: '採購進貨', tabs: [
+    { id: 'quick_receive', label: '快速進貨', code: 'RCIV' },
+    { id: 'purchase_orders', label: '採購單', code: 'PO' },
+    { id: 'procurement_center', label: '採購中心', code: 'PC' },
+    { id: 'stock_in', label: '進貨單', code: 'SI' },
+    { id: 'purchase_returns', label: '進貨退出', code: 'PRTN' },
+  ]},
+  // 4. 倉儲管理 — inventory
+  { title: '倉儲管理', tabs: [
+    { id: 'inventory', label: '庫存總覽', code: 'INVT' },
+    { id: 'stock_alerts', label: '庫存警示', code: 'ALRT' },
+    { id: 'reorder', label: '補貨建議', code: 'REOD' },
+    { id: 'stocktake', label: '盤點作業', code: 'STTK' },
+    { id: 'stock_adjustments', label: '調整單', code: 'ADJ' },
+    { id: 'stock_transfers', label: '調撥單', code: 'TRF' },
+    { id: 'stock_assemblies', label: '組合單', code: 'ASM' },
+  ]},
+  // 5. 財務會計 — finance
+  { title: '財務會計', accent: '#0d9488', tabs: [
+    { id: 'invoices', label: '發票管理', code: 'INV' },
+    { id: 'accounts_receivable', label: '應收帳款', code: 'AR' },
+    { id: 'reconciliation', label: '對帳單', code: 'RCON' },
+    { id: 'payment_records', label: '收款登錄', code: 'RCPT' },
+    { id: 'payment_matching', label: '沖帳配對', code: 'MTCH' },
+    { id: 'vendor_payments', label: '付款單', code: 'VP' },
+  ]},
+  // 6. 審批簽核 — approvals
+  { title: '審批簽核', accent: '#7c3aed', tabs: [
+    { id: 'approvals', label: '簽核審批', code: 'APPR' },
+  ]},
+  // 7. 主檔資料 — master data
+  { title: '主檔資料', tabs: [
+    { id: 'customers', label: '客戶主檔', code: 'CUST' },
+    { id: 'products', label: '產品查價', code: 'SRCH' },
+    { id: 'vendors', label: '廠商主檔', code: 'VNDR' },
+    { id: 'line_customers', label: 'LINE 客戶', code: 'LINE' },
+  ]},
+  // 8. 分析報表 — analytics
+  { title: '分析報表', tabs: [
+    { id: 'psi_report', label: '進銷存報表', code: 'PSI' },
+    { id: 'financial_report', label: '財務報表', code: 'FIN' },
+    { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
+    { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
+    { id: 'ai_forecast', label: 'AI 預測', code: 'AIFC' },
+    { id: 'imports', label: '資料匯入', code: 'IMPT' },
+  ]},
+  // 9. CRM 客戶管線
+  { title: 'CRM 客戶管線', accent: '#ec4899', tabs: [
+    { id: 'crm_leads', label: '商機管線', code: 'CRM' },
+  ]},
+  // 10. 客服工單
+  { title: '客服工單', accent: '#0891b2', tabs: [
+    { id: 'tickets', label: '工單管理', code: 'TCKT' },
+  ]},
+  // 11. 維修保固
+  { title: '維修保固', accent: '#ea580c', tabs: [
+    { id: 'warranty_settings', label: '保固設定', code: 'WSET' },
+    { id: 'warranty_registrations', label: '保固登錄', code: 'WREG' },
+    { id: 'repair_orders', label: '維修工單', code: 'RPR' },
+    { id: 'warranty_claims', label: '索賠管理', code: 'CLM' },
+  ]},
+  // 12. 經銷商入口
+  { title: '經銷商入口', accent: '#8b5cf6', tabs: [
+    { id: 'dealer_users', label: '帳號管理', code: 'DUSR' },
+    { id: 'dealer_orders', label: '經銷商訂單', code: 'DORD' },
+    { id: 'announcements', label: '公告管理', code: 'ANN' },
+  ]},
+  // 13. 人力資源
+  { title: '人力資源', accent: '#a855f7', tabs: [
+    { id: 'hr_module', label: '人資管理', code: 'HR' },
+  ]},
+  // 14. AI 輿情分析
+  { title: 'AI 輿情分析', accent: '#ca8a04', tabs: [
+    { id: 'pulse_module', label: 'MoreYou Pulse', code: 'PLSE' },
+  ]},
+  // 15. LINE 與系統
+  { title: 'LINE 與系統', accent: '#06c755', tabs: [
+    { id: 'line_chat', label: '聊天視窗', code: 'CHAT' },
+    { id: 'line_crm', label: '客戶標籤', code: 'TAG' },
+    { id: 'messages', label: 'AI 對話紀錄', code: 'MSG' },
+    { id: 'ai_prompt', label: 'AI Prompt 設定', code: 'AI' },
+    { id: 'chat_history', label: '歷史對話', code: 'HIST' },
+    { id: 'promotions', label: '活動管理', code: 'PRMO' },
+    { id: 'pricing', label: '報價規則', code: 'PRCE' },
+  ]},
+  // 16. 系統管理 — always last
+  { title: '系統管理', accent: '#374151', tabs: [
+    { id: 'user_management', label: '使用者管理', code: 'UMGT' },
+    { id: 'company_settings', label: '公司設定', code: 'CSET' },
+  ]},
 ];
 
 // Tab metadata for header display (eyebrow + title + description)
@@ -824,12 +786,12 @@ function AdminPageInner() {
                   : permSections;
                 return filteredSections.map((section) => {
                   const isCollapsed = !sq && collapsed[section.title];
-                  const iconCfg = SECTION_ICONS[section.title] || { icon: '○', bg: '#f3f4f6', fg: '#6b7280' };
+                  const iconCfg = SECTION_ICONS[section.title] || { icon: () => '○', bg: '#f3f4f6', fg: '#6b7280' };
                   const hasActiveTab = section.tabs.some((tb) => tb.id === tab);
                   return (
                     <div key={section.title}>
                       <div className="qb-sb-section-hdr" onClick={() => { if (isCollapsed) { expandSection(section.title); } else { toggleCollapsed(section.title); } }} style={{ padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, borderRadius: t.radius.md, margin: '1px 8px', background: hasActiveTab ? t.color.brandLight : 'transparent' }}>
-                        <span style={{ width: 26, height: 26, minWidth: 26, borderRadius: t.radius.sm, background: hasActiveTab ? iconCfg.bg : t.color.bgMuted, color: hasActiveTab ? iconCfg.fg : t.color.textDisabled, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.body }}>{iconCfg.icon}</span>
+                        <span style={{ width: 26, height: 26, minWidth: 26, borderRadius: t.radius.sm, background: hasActiveTab ? iconCfg.bg : t.color.bgMuted, color: hasActiveTab ? iconCfg.fg : t.color.textDisabled, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.body }}>{typeof iconCfg.icon === 'function' ? iconCfg.icon(hasActiveTab ? iconCfg.fg : t.color.textDisabled) : iconCfg.icon}</span>
                         <span style={{ fontSize: t.fontSize.body, color: hasActiveTab ? t.color.textPrimary : t.color.textMuted, fontWeight: t.fontWeight.semibold, flex: 1 }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>
                         <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, display: 'inline-block', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', transition: 'transform 0.2s' }}>›</span>
                       </div>
@@ -917,13 +879,13 @@ function AdminPageInner() {
               : permSections;
             return filteredSections.map((section, si) => {
               const isCollapsed = !sq && collapsed[section.title];
-              const iconCfg = SECTION_ICONS[section.title] || { icon: '○', bg: '#f3f4f6', fg: '#6b7280' };
+              const iconCfg = SECTION_ICONS[section.title] || { icon: () => '○', bg: '#f3f4f6', fg: '#6b7280' };
               const hasActiveTab = section.tabs.some((tb) => tb.id === tab);
               return (
                 <div key={section.title}>
                   <div className="qb-sb-section-hdr" ref={(el) => { sectionRefs.current[section.title] = el; }} onClick={() => { if (sidebarCollapsed) { if (sidebarPopup === section.title) { setSidebarPopup(null); } else { const el = sectionRefs.current[section.title]; if (el) { const rect = el.getBoundingClientRect(); setPopupPos({ top: rect.top, left: rect.right + 6 }); } setSidebarPopup(section.title); } return; } if (isCollapsed) { setTab(section.tabs[0].id); } else { toggleCollapsed(section.title); } }} style={{ padding: sidebarCollapsed ? '6px 0 4px' : '6px 12px', cursor: 'pointer', display: 'flex', flexDirection: sidebarCollapsed ? 'column' : 'row', alignItems: 'center', gap: sidebarCollapsed ? 2 : 10, borderRadius: t.radius.md, transition: 'background 0.15s', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', margin: sidebarCollapsed ? '0 4px' : '1px 8px', background: hasActiveTab ? t.color.brandLight : (sidebarPopup === section.title ? t.color.bgMuted : 'transparent'), position: 'relative' }}>
                     <span style={{ width: sidebarCollapsed ? 34 : 26, height: sidebarCollapsed ? 34 : 26, minWidth: sidebarCollapsed ? 34 : 26, borderRadius: t.radius.sm, background: hasActiveTab ? iconCfg.bg : t.color.bgMuted, color: hasActiveTab ? iconCfg.fg : t.color.textDisabled, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: sidebarCollapsed ? 15 : 13, transition: 'all 0.2s', position: 'relative' }}>
-                      {iconCfg.icon}
+                      {typeof iconCfg.icon === 'function' ? iconCfg.icon(hasActiveTab ? iconCfg.fg : t.color.textDisabled) : iconCfg.icon}
                       {sidebarCollapsed && (() => { const sectionBadge = section.tabs.reduce((s, tb) => s + (pendingBadges[tb.id] || 0), 0); return sectionBadge > 0 ? <span style={{ position: 'absolute', top: -2, right: -2, width: 7, height: 7, borderRadius: '50%', background: t.color.error }} /> : null; })()}
                     </span>
                     {sidebarCollapsed && <span style={{ fontSize: 9, color: hasActiveTab ? t.color.brand : t.color.textDisabled, fontWeight: hasActiveTab ? t.fontWeight.semibold : t.fontWeight.medium, lineHeight: 1.1, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 56 }}>{section.title.replace(/^(ERP|CRM)\s/, '')}</span>}
