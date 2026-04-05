@@ -54,6 +54,11 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   const [payType, setPayType] = useState('full');
   const [payProcessing, setPayProcessing] = useState(false);
 
+  // Sync parent prop updates (e.g., after onRefresh re-fetches order data)
+  useEffect(() => {
+    setOrderFull(prev => ({ ...prev, ...orderProp }));
+  }, [orderProp.status, orderProp.payment_status, orderProp.shipping_status]);
+
   const statusKey = String(order.status || 'draft').toLowerCase();
   const payKey = String(order.payment_status || 'unpaid').toLowerCase();
   const shipKey = String(order.shipping_status || 'pending').toLowerCase();
