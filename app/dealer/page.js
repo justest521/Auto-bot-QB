@@ -13,14 +13,22 @@ const TOKEN_KEY = 'qb_dealer_token';
 
 // ── API helpers ──
 async function dealerGet(params) {
-  const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`/api/dealer?${qs}`);
+  // Extract token and send it via header to avoid exposing in URL/logs
+  const { token, ...rest } = params;
+  const qs = new URLSearchParams(rest).toString();
+  const headers = {};
+  if (token) headers['x-dealer-token'] = token;
+  const res = await fetch(`/api/dealer?${qs}`, { headers });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
 }
 async function dealerPost(body) {
-  const res = await fetch('/api/dealer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  // Extract token and send it via header to avoid exposing in request body logs
+  const { token, ...rest } = body;
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['x-dealer-token'] = token;
+  const res = await fetch('/api/dealer', { method: 'POST', headers, body: JSON.stringify(rest) });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;

@@ -61,7 +61,8 @@ export async function GET(request) {
   try {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action') || '';
-  const token = searchParams.get('token') || '';
+  // Prefer header-based token (avoids token appearing in server logs/URLs)
+  const token = request.headers.get('x-dealer-token') || searchParams.get('token') || '';
 
   // Actions that don't need auth
   if (action === 'ping') return jsonOk({ ok: true });
@@ -711,7 +712,8 @@ export async function POST(request) {
   }
 
   // All other actions need auth
-  const token = body.token || '';
+  // Prefer header-based token (avoids token in body logs)
+  const token = request.headers.get('x-dealer-token') || body.token || '';
   const user = await getUserFromToken(token);
   if (!user) return jsonErr('未授權，請重新登入', 401);
 
