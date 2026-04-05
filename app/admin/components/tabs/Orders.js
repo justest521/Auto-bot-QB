@@ -517,6 +517,8 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                             <div>
                               {fullySold ? (
                                 <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#16a34a', background: '#dcfce7', padding: '2px 6px', borderRadius: t.radius.sm }}>✓ 已銷</span>
+                              ) : hasPO ? (
+                                <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#d97706', background: '#fef3c7', padding: '2px 6px', borderRadius: t.radius.sm }}>✓ 已採</span>
                               ) : (
                                 <input type="checkbox" checked={isChecked} onChange={() => toggleItemSelect(item.id)} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                               )}
@@ -595,6 +597,8 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                         <div style={{ textAlign: 'center' }}>
                           {fullySold ? (
                             <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: '#16a34a' }}>✓ 已銷</span>
+                          ) : hasPO ? (
+                            <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: '#d97706' }}>✓ 已採</span>
                           ) : (
                             <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                           )}
