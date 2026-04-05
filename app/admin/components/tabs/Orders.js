@@ -772,7 +772,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { gridColumn: '1/-1' } : {}) }}>
               {linkedSales.length > 0 && (
               <span style={{ padding: '8px 18px', borderRadius: t.radius.lg, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, background: t.color.infoBg, color: '#2563eb', border: '1px solid #bfdbfe' }}>
-                已建立銷貨單 {linkedSales.map(s => s.slip_number).join(', ')}（自動核准）
+                已建立銷貨單 {linkedSales.map(s => s.slip_number).join(', ')}（訂單已審核）
               </span>
               )}
               {!canConvert && !isConverted && (statusKey === 'draft' || statusKey === 'rejected') && erpFeatures.order_approval !== false ? (
@@ -1440,9 +1440,11 @@ export default function Orders({ setTab, erpFeatures = {} }) {
           {!isMobile && <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, width: 150, fontSize: t.fontSize.h3, padding: '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="draft">草稿</option>
+            <option value="pending_approval">待審核</option>
             <option value="confirmed">已核准</option>
-            <option value="shipped">已出貨</option>
+            <option value="processing">出貨中</option>
             <option value="completed">完成</option>
+            <option value="rejected">已駁回</option>
             <option value="cancelled">已取消</option>
           </select>}
           <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder={isMobile ? "搜尋..." : "搜尋訂單號..."} style={{ ...S.input, flex: 1, minWidth: isMobile ? 120 : 160, fontSize: isMobile ? 13 : 14, padding: isMobile ? '6px 8px' : '6px 10px' }} />
@@ -1477,7 +1479,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>狀態</span>
-                  <span style={S.mobileCardValue}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></span>
+                  <span style={S.mobileCardValue}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'processing' ? 'yellow' : statusKey === 'pending_approval' ? 'red' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></span>
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>付款</span>
@@ -1548,7 +1550,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
                 </div>
                 {!isTablet && <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.order_date || '-'}</div>
-                <div style={cCenter}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'pending_approval' || statusKey === 'processing' ? 'yellow' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
+                <div style={cCenter}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'processing' ? 'yellow' : statusKey === 'pending_approval' ? 'red' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
                 {!isTablet && <div style={cCenter}><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : 'gray')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
                 {!isTablet && <div style={cCenter}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : 'gray')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
                 {!isTablet && <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}

@@ -144,7 +144,7 @@ export default function Approvals() {
         {/* Type filters */}
         {!isMobile && (
           <div style={{ display: 'flex', gap: 4 }}>
-            {[['', '全部'], ['order', '訂單'], ['purchase_order', '採購單']].map(([k, label]) => (
+            {[['', '全部'], ['order', '訂單'], ['purchase_order', '採購單'], ['sale', '銷貨單']].map(([k, label]) => (
               <button key={k} onClick={() => setTypeFilter(k)} style={{ ...S.btnGhost, padding: '3px 10px', fontSize: t.fontSize.tiny, background: typeFilter === k ? t.color.textSecondary : '#fff', color: typeFilter === k ? '#fff' : t.color.textMuted, borderColor: typeFilter === k ? t.color.textSecondary : t.color.border }}>{label}</button>
             ))}
           </div>
@@ -153,7 +153,7 @@ export default function Approvals() {
 
       {/* Approval list */}
       {loading ? <Loading /> : (() => {
-        const filtered = (data.rows || []).filter(a => a.doc_type !== 'sale').filter(a => !typeFilter || a.doc_type === typeFilter);
+        const filtered = (data.rows || []).filter(a => !typeFilter || a.doc_type === typeFilter);
         return filtered.length === 0 ? <EmptyState text="沒有審批記錄" /> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {filtered.map(a => {

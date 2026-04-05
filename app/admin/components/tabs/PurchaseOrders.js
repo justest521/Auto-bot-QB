@@ -46,6 +46,8 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
   const [approvalData, setApprovalData] = useState(null);
   const [submittingApproval, setSubmittingApproval] = useState(false);
+  const [vendorPayments, setVendorPayments] = useState([]);
+  const [uploadingVpProof, setUploadingVpProof] = useState(null); // vendor_payment_id being uploaded
 
   // Vendor selection states
   const [vendorInfo, setVendorInfo] = useState(null);
@@ -69,15 +71,17 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
         const fetches = [
           apiGet({ action: 'po_items', po_id: po.id }),
           apiGet({ action: 'approvals', doc_type: 'purchase_order' }),
+          apiGet({ action: 'vendor_payments', po_id: po.id, limit: '50' }),
         ];
         // If PO has vendor_id, fetch vendor info
         if (po.vendor_id) {
           fetches.push(apiGet({ action: 'vendors', search: '', limit: 100 }));
         }
         const results = await Promise.all(fetches);
-        const [result, approvalRes] = results;
+        const [result, approvalRes, vpRes] = results;
         setDetail(result);
         setTimeline(result.timeline || []);
+        setVendorPayments(vpRes?.rows || []);
         // Find approval for this PO
         const poApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(po.id));
         if (poApprovals.length > 0) {
@@ -737,6 +741,57 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                   <button onClick={() => { setShowVendorPicker(false); setVendorSearch(''); }} style={{ ...S.btnGhost, fontSize: t.fontSize.caption, padding: '3px 10px', marginTop: 6, color: t.color.textMuted, width: '100%', justifyContent: 'center' }}>取消</button>
                 </div>
               )}
+            </div>
+
+            {/* 付款憑證 */}
+            <div style={{ ...cardStyle, padding: '10px 16px' }}>
+              <div style={labelStyle}>付款憑證</div>
+              {vendorPayments.length === 0 ? (
+                <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, textAlign: 'center', padding: '8px 0' }}>尚無付款記錄</div>
+              ) : vendorPayments.map((vp, i) => (
+                <div key={vp.id} style={{ marginBottom: i < vendorPayments.length - 1 ? 12 : 0, paddingBottom: i < vendorPayments.length - 1 ? 12 : 0, borderBottom: i < vendorPayments.length - 1 ? `1px solid ${t.color.borderLight}` : 'none' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, ...S.mono }}>{vp.payment_no}</span>
+                    <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: vp.status === 'confirmed' ? '#16a34a' : '#f59e0b' }}>{vp.status === 'confirmed' ? '已確認' : '待確認'}</span>
+                  </div>
+                  <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginBottom: 6 }}>
+                    NT${Number(vp.amount || 0).toLocaleString()} · {vp.payment_method || '-'} · {vp.payment_date || '-'}
+                  </div>
+                  {vp.proof_url ? (
+                    <div style={{ marginBottom: 6 }}>
+                      <a href={vp.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', lineHeight: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                        <img src={vp.proof_url} alt="付款憑證" style={{ width: '100%', maxHeight: 100, objectFit: 'cover' }} />
+                      </a>
+                      <div style={{ fontSize: t.fontSize.tiny, color: t.color.link, textAlign: 'center', marginTop: 2 }}>點擊查看原圖</div>
+                    </div>
+                  ) : null}
+                  <input type="file" id={`vp-proof-${vp.id}`} accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
+                    const file = ev.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const compressImg = (f, maxW = 1200, q = 0.7) => new Promise((resolve, reject) => {
+                        const img = new Image();
+                        const url = URL.createObjectURL(f);
+                        img.onload = () => { URL.revokeObjectURL(url); const c = document.createElement('canvas'); let w = img.width, h = img.height; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; } c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/jpeg', q).split(',')[1]); };
+                        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
+                        img.src = url;
+                      });
+                      const base64 = await compressImg(file);
+                      setUploadingVpProof(vp.id); setMsg('上傳中...');
+                      const res = await apiPost({ action: 'upload_vendor_payment_proof', vendor_payment_id: vp.id, proof_data: base64, proof_name: file.name.replace(/\.\w+$/, '.jpg') });
+                      setMsg(res.message || '憑證已上傳');
+                      setVendorPayments(prev => prev.map(p => p.id === vp.id ? { ...p, proof_url: res.proof_url } : p));
+                    } catch (err) { setMsg('憑證上傳失敗: ' + (err.message || '')); }
+                    finally { setUploadingVpProof(null); ev.target.value = ''; }
+                  }} />
+                  <button onClick={() => document.getElementById(`vp-proof-${vp.id}`)?.click()} disabled={uploadingVpProof === vp.id}
+                    style={{ fontSize: t.fontSize.tiny, color: '#6b7280', background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '3px 0', cursor: uploadingVpProof === vp.id ? 'not-allowed' : 'pointer', fontWeight: 600, width: '100%', transition: 'all 0.15s' }}
+                    onMouseEnter={e => { if (uploadingVpProof !== vp.id) { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; } }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.color = '#6b7280'; }}>
+                    {uploadingVpProof === vp.id ? '上傳中...' : vp.proof_url ? '📎 重新上傳' : '📎 上傳憑證'}
+                  </button>
+                </div>
+              ))}
             </div>
 
             {/* 3. Unified record timeline card - combine source order + creation + approval + receiving */}
