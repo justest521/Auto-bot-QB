@@ -867,8 +867,8 @@ export default function Quotes({ setTab }) {
                   </div>
 
                   <div>
-                    <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, marginBottom: 2 }}>總金額</div>
-                    <div style={{ fontSize: 15, color: '#059669', fontWeight: 800, ...S.mono }}>{fmtP(row.total_amount)}</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, marginBottom: 2 }}>{row.tax_inclusive ? '含稅總額' : '未稅小計'}</div>
+                    <div style={{ fontSize: 15, color: '#059669', fontWeight: 800, ...S.mono }}>{fmtP(row.tax_inclusive ? row.total_amount : (row.subtotal || row.total_amount))}</div>
                   </div>
 
                   {row.remark && (
@@ -928,7 +928,7 @@ export default function Quotes({ setTab }) {
                   {!isTablet && <div style={{ ...cCenter, fontSize: 13, color: '#374151', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
                   <div style={{ ...cCenter, fontSize: 13, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.quote_date || '-'}</div>
                   <div style={cCenter}><span style={S.tag(QUOTE_STATUS_TONE[statusKey] || '')}>{QUOTE_STATUS_MAP[statusKey] || statusKey}</span></div>
-                  {!isTablet && <div style={{ ...cRight, fontSize: 13, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
+                  {!isTablet && <div style={{ ...cRight, fontSize: 13, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.tax_inclusive ? row.total_amount : (row.subtotal || row.total_amount))}</div>}
                   {!isTablet && <div style={{ ...cell, fontSize: 13, color: '#374151' }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</span></div>}
                   <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => duplicateQuote(row)} title="複製報價單" style={{ ...S.btnGhost, padding: '4px 6px', fontSize: 12, whiteSpace: 'nowrap' }}>複製</button>
