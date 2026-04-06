@@ -76,9 +76,18 @@ function StockInDetailView({ id, onBack }) {
             <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold }}>{fmtDate(si.stock_in_date)}</div>
           </div>
           <div>
-            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>總金額</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>總金額（TWD）</div>
             <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>{fmtP(si.total_amount)}</div>
           </div>
+          {si.currency && si.currency !== 'TWD' && (
+            <div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>採購幣別</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>{si.currency}</span>
+                <span style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, ...S.mono }}>×{Number(si.exchange_rate || 1).toFixed(2)}</span>
+              </div>
+            </div>
+          )}
           <div>
             <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>狀態</div>
             <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold }}>{si.status === 'confirmed' ? '已入庫' : '待確認'}</div>

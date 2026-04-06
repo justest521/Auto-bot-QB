@@ -401,6 +401,11 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
               <span style={{ padding: isMobile ? '3px 8px' : '3px 10px', borderRadius: t.radius.lg, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: `${PO_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: PO_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${PO_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
                 {PO_STATUS_MAP[statusKey] || statusKey}
               </span>
+              {po.currency && po.currency !== 'TWD' && (
+                <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                  {po.currency} {po.exchange_rate ? `×${Number(po.exchange_rate).toFixed(2)}` : ''}
+                </span>
+              )}
             </div>
             <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>
               {po.po_date || '-'}
@@ -952,7 +957,13 @@ function CreatePOModal({ onClose, onCreated }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [taxExcluded, setTaxExcluded] = useState(true);
+  const [currency, setCurrency] = useState('TWD');
+  const [exchangeRate, setExchangeRate] = useState('1');
   const searchRef = useRef(null);
+
+  const CURRENCIES = ['TWD', 'USD', 'EUR', 'JPY'];
+  const isForeign = currency !== 'TWD';
+  const rate = Number(exchangeRate) || 1;
 
   useEffect(() => {
     (async () => {
@@ -995,23 +1006,39 @@ function CreatePOModal({ onClose, onCreated }) {
 
   const addItem = (product) => {
     if (items.some(i => i.item_number === product.item_number)) return;
-    const cost = Number(product.cost_price || product.tw_reseller_price || product.us_price || product.tw_retail_price || 0);
+    const r = Number(exchangeRate) || 1;
+    let foreignCost = 0;
+    let twdCost = 0;
+    if (currency === 'USD') {
+      foreignCost = Number(product.us_price || 0);
+      twdCost = foreignCost > 0 ? Math.round(foreignCost * r) : Number(product.cost_price || product.tw_reseller_price || 0);
+    } else if (currency !== 'TWD') {
+      foreignCost = 0;
+      twdCost = Number(product.cost_price || product.tw_reseller_price || product.us_price || product.tw_retail_price || 0);
+    } else {
+      twdCost = Number(product.cost_price || product.tw_reseller_price || product.us_price || product.tw_retail_price || 0);
+    }
     setItems(prev => [...prev, {
       item_number: product.item_number,
       description: product.description || product.product_name || '',
       qty: 1,
-      unit_cost: cost,
-      line_total: cost,
+      foreign_unit_cost: foreignCost,
+      unit_cost: twdCost,
+      line_total: twdCost,
     }]);
     setProductSearch('');
     setProductResults([]);
   };
 
   const updateItem = (idx, field, value) => {
+    const r = Number(exchangeRate) || 1;
     setItems(prev => prev.map((item, i) => {
       if (i !== idx) return item;
       const updated = { ...item, [field]: value };
-      if (field === 'qty' || field === 'unit_cost') {
+      if (field === 'foreign_unit_cost' && isForeign) {
+        updated.unit_cost = Math.round(Number(value || 0) * r);
+        updated.line_total = updated.unit_cost * Number(updated.qty || 0);
+      } else if (field === 'qty' || field === 'unit_cost') {
         updated.line_total = Number(updated.qty || 0) * Number(updated.unit_cost || 0);
       }
       return updated;
@@ -1034,6 +1061,8 @@ function CreatePOModal({ onClose, onCreated }) {
         remark,
         items,
         tax_excluded: taxExcluded,
+        currency,
+        exchange_rate: Number(exchangeRate) || 1,
       });
       setDirty(false);
       onCreated?.();
@@ -1087,11 +1116,40 @@ function CreatePOModal({ onClose, onCreated }) {
             </div>
           </div>
 
-          {/* Remark + Tax */}
+          {/* Remark + Tax + Currency */}
           <div style={S.card}>
             <div style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 8 }}>備註</div>
-              <textarea value={remark} onChange={e => setRemark(e.target.value)} placeholder="輸入備註..." rows={3} style={{ ...S.input, resize: 'vertical', fontFamily: 'inherit', marginBottom: 10 }} />
+              <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 8 }}>備註 / 幣別</div>
+              <textarea value={remark} onChange={e => setRemark(e.target.value)} placeholder="輸入備註..." rows={2} style={{ ...S.input, resize: 'vertical', fontFamily: 'inherit', marginBottom: 10 }} />
+              {/* Currency selector */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>採購幣別</span>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {CURRENCIES.map(c => (
+                    <button key={c} onClick={() => { setCurrency(c); if (c === 'TWD') setExchangeRate('1'); }}
+                      style={{ padding: '3px 10px', borderRadius: 6, border: `1px solid ${currency === c ? t.color.brand : t.color.border}`, background: currency === c ? t.color.brand : '#fff', color: currency === c ? '#fff' : t.color.textSecondary, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, cursor: 'pointer' }}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+                {isForeign && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>匯率 1 {currency} =</span>
+                    <input type="number" value={exchangeRate} min={0} step={0.01}
+                      onChange={e => {
+                        setExchangeRate(e.target.value);
+                        const r2 = Number(e.target.value) || 1;
+                        setItems(prev => prev.map(it => {
+                          if (!it.foreign_unit_cost) return it;
+                          const uc = Math.round(Number(it.foreign_unit_cost) * r2);
+                          return { ...it, unit_cost: uc, line_total: uc * Number(it.qty || 0) };
+                        }));
+                      }}
+                      style={{ ...S.input, width: 80, textAlign: 'right', padding: '3px 8px', fontSize: t.fontSize.body }} />
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>TWD</span>
+                  </div>
+                )}
+              </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: t.fontSize.body, color: t.color.textSecondary }}>
                 <input type="checkbox" checked={taxExcluded} onChange={e => setTaxExcluded(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#16a34a', cursor: 'pointer' }} />
                 <span style={{ fontWeight: t.fontWeight.semibold }}>未稅（另加 5% 營業稅）</span>
@@ -1132,8 +1190,9 @@ function CreatePOModal({ onClose, onCreated }) {
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     <th style={{ textAlign: 'left', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>料號</th>
                     <th style={{ textAlign: 'right', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, width: 70 }}>數量</th>
-                    <th style={{ textAlign: 'right', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, width: 100 }}>單價</th>
-                    <th style={{ textAlign: 'right', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>小計</th>
+                    {isForeign && <th style={{ textAlign: 'right', padding: '6px 8px', color: '#b45309', fontWeight: t.fontWeight.semibold, width: 100 }}>{currency} 單價</th>}
+                    <th style={{ textAlign: 'right', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, width: 100 }}>TWD 單價</th>
+                    <th style={{ textAlign: 'right', padding: '6px 8px', color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>小計(TWD)</th>
                     <th style={{ width: 30 }}></th>
                   </tr>
                 </thead>
@@ -1147,8 +1206,19 @@ function CreatePOModal({ onClose, onCreated }) {
                       <td style={{ padding: '6px 8px', textAlign: 'right' }}>
                         <input type="number" value={item.qty} min={1} onChange={e => updateItem(idx, 'qty', Number(e.target.value) || 1)} style={{ ...S.input, width: 60, textAlign: 'right', fontSize: t.fontSize.body, padding: '3px 6px' }} />
                       </td>
+                      {isForeign && (
+                        <td style={{ padding: '6px 8px', textAlign: 'right' }}>
+                          <input type="number" value={item.foreign_unit_cost || 0} min={0} step={0.01}
+                            onChange={e => updateItem(idx, 'foreign_unit_cost', Number(e.target.value) || 0)}
+                            style={{ ...S.input, width: 90, textAlign: 'right', fontSize: t.fontSize.body, padding: '3px 6px', borderColor: '#f59e0b' }} />
+                        </td>
+                      )}
                       <td style={{ padding: '6px 8px', textAlign: 'right' }}>
-                        <input type="number" value={item.unit_cost} min={0} onChange={e => updateItem(idx, 'unit_cost', Number(e.target.value) || 0)} style={{ ...S.input, width: 90, textAlign: 'right', fontSize: t.fontSize.body, padding: '3px 6px' }} />
+                        {isForeign ? (
+                          <span style={{ ...S.mono, color: t.color.textSecondary, fontSize: t.fontSize.caption }}>{fmtP(item.unit_cost)}</span>
+                        ) : (
+                          <input type="number" value={item.unit_cost} min={0} onChange={e => updateItem(idx, 'unit_cost', Number(e.target.value) || 0)} style={{ ...S.input, width: 90, textAlign: 'right', fontSize: t.fontSize.body, padding: '3px 6px' }} />
+                        )}
                       </td>
                       <td style={{ padding: '6px 8px', textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.success }}>{fmtP(item.line_total)}</td>
                       <td style={{ padding: '6px 8px', textAlign: 'center' }}>
@@ -1164,11 +1234,19 @@ function CreatePOModal({ onClose, onCreated }) {
             {items.length > 0 && (
               <div style={{ padding: '12px 8px 4px', borderTop: '2px solid #bfdbfe', marginTop: 4, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 20 }}>
                 <div style={{ textAlign: 'right' }}>
+                  {isForeign && (() => {
+                    const foreignSubtotal = items.reduce((s, it) => s + Number(it.foreign_unit_cost || 0) * Number(it.qty || 0), 0);
+                    return (
+                      <div style={{ fontSize: t.fontSize.caption, color: '#b45309', ...S.mono, marginBottom: 4 }}>
+                        {currency} {foreignSubtotal.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} × {rate} ≈ NT${Math.round(foreignSubtotal * rate).toLocaleString()}
+                      </div>
+                    );
+                  })()}
                   <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted, marginBottom: 2 }}>小計 <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{fmtP(subtotal)}</span> <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>({items.length} 項)</span></div>
                   {taxExcluded && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>稅額 <span style={{ ...S.mono, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary }}>{fmtP(taxAmount)}</span></div>}
                 </div>
                 <div style={{ borderLeft: '3px solid #2563eb', paddingLeft: 16, textAlign: 'right' }}>
-                  <div style={{ fontSize: t.fontSize.tiny, color: '#2563eb', fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>採購合計</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: '#2563eb', fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>採購合計（TWD）</div>
                   <div style={{ ...S.mono, fontSize: 22, fontWeight: t.fontWeight.bold, color: '#1d4ed8', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
                 </div>
               </div>
@@ -1400,7 +1478,12 @@ export default function PurchaseOrders({ setTab }) {
                 <div style={{ ...cCenter, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.po_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
                 <div style={{ ...cell, color: t.color.textSecondary, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.remark || '-'}</div>
-                <div style={{ ...cRight, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>
+                <div style={{ ...cRight, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', gap: 6 }}>
+                  {row.currency && row.currency !== 'TWD' && (
+                    <span style={{ padding: '1px 5px', borderRadius: 4, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', marginRight: 4 }}>{row.currency}</span>
+                  )}
+                  {fmtP(row.total_amount)}
+                </div>
                 {!isTablet && <div style={{ ...cCenter, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.vendor?.vendor_name || '-'}</div>}
                 <div style={{ ...cell, borderRight: 'none', justifyContent: 'flex-end' }}>→</div>
               </div>
