@@ -89,9 +89,9 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
           poApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
           setApprovalData(poApprovals[0]);
         }
-        // Set vendor info if available
-        if (po.vendor_id && results[2]) {
-          const v = (results[2].vendors || []).find(v => String(v.id) === String(po.vendor_id));
+        // Set vendor info if available (vendors is always fetched as results[3])
+        if (po.vendor_id && results[3]) {
+          const v = (results[3].vendors || []).find(v => String(v.id) === String(po.vendor_id));
           if (v) setVendorInfo(v);
         }
       } catch (e) {
