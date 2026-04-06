@@ -63,6 +63,7 @@ export default function ReportCenter({ setTab }) {
           <PanelHeader title="分析圖表" meta="鼎新 A1：十大客戶 / 業務銷售 / 排行" />
           <div style={{ display: 'grid', gap: 10 }}>
             <ReportShortcut code="DASH" title="儀表板" desc="綜合 KPI、趨勢、互動概況。" onClick={() => setTab?.('dashboard')} tone="blue" />
+            <ReportShortcut code="SHIP" title="出貨分析報表" desc="品號出貨排行、客戶出貨排行、月別趨勢圖。" onClick={() => setTab?.('shipment_analysis')} tone="green" />
             <ReportShortcut code="IMPT" title="資料匯入中心" desc="CSV / XLSX 對應匯入客戶、供應商、報價、訂單、銷貨與報表資料。" onClick={() => setTab?.('imports')} tone="green" />
             <ReportShortcut code="MSG" title="客服/AI 對話紀錄" desc="雖然不是鼎新 A1 原生模組，但可對應客服紀錄與詢價來源。" onClick={() => setTab?.('messages')} tone="yellow" />
           </div>

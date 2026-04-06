@@ -59,6 +59,7 @@ const StockAdjustments = dyn('StockAdjustments');
 const StockTransfer = dyn('StockTransfer');
 const StockAssembly = dyn('StockAssembly');
 const PSIReport = dyn('PSIReport');
+const ShipmentAnalysis = dyn('ShipmentAnalysis');
 const FinancialReport = dyn('FinancialReport');
 const DealerUsers = dyn('DealerUsers');
 const DealerOrders = dyn('DealerOrders');
@@ -167,6 +168,7 @@ const SECTIONS = [
   // 8. 分析報表 — analytics
   { title: '分析報表', tabs: [
     { id: 'psi_report', label: '進銷存報表', code: 'PSI' },
+    { id: 'shipment_analysis', label: '出貨分析', code: 'SHIP' },
     { id: 'financial_report', label: '財務報表', code: 'FIN' },
     { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
     { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
@@ -252,6 +254,7 @@ const TAB_META = {
   stock_transfers: { eyebrow: 'Transfer', title: '調撥單', desc: '記錄商品在不同儲位間的調撥異動。' },
   stock_assemblies: { eyebrow: 'Assembly', title: '組合單', desc: '將原料組合成套件或成品。' },
   psi_report: { eyebrow: 'PSI Report', title: '進銷存報表', desc: '銷貨、進貨、退貨金額彙總。' },
+  shipment_analysis: { eyebrow: 'Shipment', title: '出貨分析報表', desc: '按品號、客戶、月份統計出貨量與趨勢。' },
   financial_report: { eyebrow: 'Financial', title: '財務報表', desc: '應收帳款、應付帳款與淨現金流。' },
   sales_returns: { eyebrow: 'Returns', title: '銷退貨彙總', desc: '銷貨與退貨單據彙總。' },
   profit_analysis: { eyebrow: 'Profit', title: '利潤分析', desc: '銷貨利潤、成本與毛利分析。' },
@@ -320,6 +323,7 @@ const TAB_COMPONENTS = {
   stock_transfers: StockTransfer,
   stock_assemblies: StockAssembly,
   psi_report: PSIReport,
+  shipment_analysis: ShipmentAnalysis,
   financial_report: FinancialReport,
   dealer_users: DealerUsers,
   dealer_orders: DealerOrders,
