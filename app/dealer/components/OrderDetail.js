@@ -109,30 +109,46 @@ function CustomerSearch({ token, dealerGet, dealerPost, onSelect }) {
 }
 
 export default function OrderDetail({ order, token, user, dealerGet, dealerPost, onBack, onRefresh }) {
-  if (!order) return null;
-
+  // ── All hooks must run unconditionally (no early return before hooks) ──
   const canSearchCustomers = user?.role === 'sales' || user?.role === 'technician';
-  const pct = order.total_amount > 0 ? Math.round(((order.paid_amount || 0) / order.total_amount) * 100) : 0;
-  const remaining = (order.total_amount || 0) - (order.paid_amount || 0);
 
-  const ci = parseCustomerInfo(order.remark || '');
-  const lc = order.linked_customer; // customer from main system (if previously linked)
   const [form, setForm] = useState({
-    customer_id: order.customer_id || '',
-    // Prefer remark data (user-typed), fall back to linked customer data
-    end_customer_name:    ci.name    || lc?.company_name || lc?.name    || '',
-    end_customer_phone:   ci.phone   || lc?.phone   || '',
-    end_customer_email:   ci.email   || lc?.email   || '',
-    end_customer_address: ci.address || lc?.address || '',
-    payment_method: order.payment_method || '',
-    dealer_note: ci.note || '',
+    customer_id: '',
+    end_customer_name: '',
+    end_customer_phone: '',
+    end_customer_email: '',
+    end_customer_address: '',
+    payment_method: '',
+    dealer_note: '',
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [linkedCustomer, setLinkedCustomer] = useState(
-    order.linked_customer || (order.customer_id ? { id: order.customer_id, company_name: '' } : null)
-  );
+  const [linkedCustomer, setLinkedCustomer] = useState(null);
+  const [formInitialized, setFormInitialized] = useState(false);
 
+  // Initialize form from order data (runs when order.id changes)
+  useEffect(() => {
+    if (!order) return;
+    const ci = parseCustomerInfo(order.remark || '');
+    const lc = order.linked_customer;
+    setForm({
+      customer_id: order.customer_id || '',
+      end_customer_name:    ci.name    || lc?.company_name || lc?.name    || '',
+      end_customer_phone:   ci.phone   || lc?.phone   || '',
+      end_customer_email:   ci.email   || lc?.email   || '',
+      end_customer_address: ci.address || lc?.address || '',
+      payment_method: order.payment_method || '',
+      dealer_note: ci.note || '',
+    });
+    setLinkedCustomer(lc || (order.customer_id ? { id: order.customer_id, company_name: '' } : null));
+    setFormInitialized(true);
+  }, [order?.id]);
+
+  // ── Now safe to early return ──
+  if (!order) return null;
+
+  const pct = order.total_amount > 0 ? Math.round(((order.paid_amount || 0) / order.total_amount) * 100) : 0;
+  const remaining = (order.total_amount || 0) - (order.paid_amount || 0);
   const isNewOrder = ['pending', 'draft', 'pending_review'].includes(order.status);
   const needsInfo = !form.payment_method || !form.end_customer_name;
 
