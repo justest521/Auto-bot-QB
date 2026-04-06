@@ -90,6 +90,20 @@ export default function AccountsReceivable() {
     } catch (e) { setMsg('無法載入沖帳記錄'); }
   };
 
+  const verifyPayment = async (paymentId, currentVerified) => {
+    const action = currentVerified ? '取消核帳' : '核帳';
+    if (!confirm(`確定${action}此筆收款？`)) return;
+    try {
+      await apiPost({ action: 'verify_payment', payment_id: paymentId, verified: !currentVerified });
+      // Reload detail to reflect change
+      if (detailDialog) {
+        const res = await apiGet({ action: 'invoice_allocations', invoice_id: detailDialog });
+        setDetailData(res);
+      }
+      setMsg(`已${action}`);
+    } catch (e) { setMsg(e.message || `${action}失敗`); }
+  };
+
   const handleCreate = async () => {
     if (!newAr.customer_id || !newAr.amount || Number(newAr.amount) <= 0) {
       setMsg('請填寫必要欄位');
@@ -386,7 +400,10 @@ export default function AccountsReceivable() {
                         <span style={{ fontWeight: t.fontWeight.bold, color: '#92400e', ...S.mono }}>{fmtP(dep.amount)}</span>
                       </div>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-                        {dep.verified && <span style={{ fontSize: t.fontSize.tiny, color: '#059669', fontWeight: t.fontWeight.bold }}>✓ 已核帳</span>}
+                        {dep.verified
+                          ? <button onClick={() => verifyPayment(dep.id, true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.tiny, padding: 0 }}>✓ 已核帳</button>
+                          : <button onClick={() => verifyPayment(dep.id, false)} style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: '#fff', background: '#2563eb', border: 'none', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }}>核帳</button>
+                        }
                         {dep.proof_url && <a href={dep.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 4, overflow: 'hidden', lineHeight: 0 }}><img src={dep.proof_url} alt="憑證" style={{ width: 60, height: 40, objectFit: 'cover' }} /></a>}
                       </div>
                     </div>
@@ -409,7 +426,12 @@ export default function AccountsReceivable() {
                           <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.type}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.method}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.proof_url ? <a href={dep.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 4, overflow: 'hidden', lineHeight: 0 }}><img src={dep.proof_url} alt="憑證" style={{ width: 48, height: 32, objectFit: 'cover' }} /></a> : <span style={{ color: '#d1d5db' }}>-</span>}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.verified ? <span style={{ color: '#059669', fontWeight: t.fontWeight.bold }}>✓ 已核帳</span> : <span style={{ color: '#d1d5db' }}>未核帳</span>}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                            {dep.verified
+                              ? <button onClick={() => verifyPayment(dep.id, true)} title={dep.verified_by ? `${dep.verified_by} 核帳` : '點擊取消核帳'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.caption, padding: '2px 6px', borderRadius: 4 }}>✓ 已核帳</button>
+                              : <button onClick={() => verifyPayment(dep.id, false)} style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#fff', background: '#2563eb', border: 'none', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>核帳</button>
+                            }
+                          </td>
                         </tr>
                       ))}</tbody>
                     </table>
