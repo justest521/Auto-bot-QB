@@ -105,30 +105,33 @@ export default function Invoices() {
       </div>
 
       {/* Filters */}
-      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '12px 14px' : '10px 16px' }}>
-        <div style={{ display: 'flex', gap: isMobile ? 6 : 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '10px 12px' : '10px 16px' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)}
-              style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.caption : t.fontSize.body,
+              style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 13 : 14,
                 background: datePreset === key ? t.color.link : t.color.bgCard,
-                color: datePreset === key ? '#fff' : t.color.textSecondary,
-                borderColor: datePreset === key ? t.color.link : t.color.borderLight }}>
+                color: datePreset === key ? '#fff' : '#4b5563',
+                borderColor: datePreset === key ? t.color.link : t.color.border,
+                ...(isMobile && { flex: 1 }) }}>
               {label}
             </button>
           ))}
-          <input type="date" value={dateFrom}
-            onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }}
-            style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
-          {!isMobile && <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body }}>~</span>}
-          <input type="date" value={dateTo}
-            onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }}
-            style={{ ...S.input, width: isMobile ? 'calc(50% - 4px)' : 150, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px', ...S.mono }} />
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
+            <input type="date" value={dateFrom}
+              onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }}
+              style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+            {!isMobile && <span style={{ color: t.color.textMuted }}>~</span>}
+            <input type="date" value={dateTo}
+              onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }}
+              style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
+          </div>
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && doSearch()}
             placeholder="搜尋銷貨單號、客戶、發票號..."
-            style={{ ...S.input, flex: isMobile ? '1 1 100%' : '1 1 auto', minWidth: isMobile ? 0 : 180, fontSize: t.fontSize.body, padding: isMobile ? '8px 10px' : '6px 10px' }} />
+            style={{ ...S.input, flex: 1, minWidth: isMobile ? 'auto' : 160, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', width: isMobile ? '100%' : 'auto' }} />
           <button onClick={doSearch}
-            style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: t.fontSize.body }}>
+            style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: t.fontSize.h3, minHeight: isMobile ? 40 : 'auto', whiteSpace: 'nowrap' }}>
             查詢
           </button>
         </div>
