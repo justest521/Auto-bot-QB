@@ -65,7 +65,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   const ORDER_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', confirmed: '已核准', processing: '出貨中', completed: '已完成', rejected: '已駁回', shipped: '已出貨', cancelled: '已取消', pending: '待確認', purchasing: '採購中' };
   const ORDER_STATUS_COLOR = { draft: '#6b7280', pending_approval: '#f59e0b', confirmed: '#16a34a', processing: '#3b82f6', completed: '#059669', rejected: '#ef4444', shipped: '#059669', cancelled: '#ef4444', pending: '#f59e0b', purchasing: '#8b5cf6' };
   const PAY_STATUS_MAP = { unpaid: '未付款', partial: '部分付款', paid: '已付款' };
-  const SHIP_STATUS_MAP = { pending: '待出貨', shipped: '已出貨', delivered: '已送達' };
+  const SHIP_STATUS_MAP = { pending: '待出貨', partial: '部分出貨', shipped: '已出貨', delivered: '已送達' };
   const totalPaidAmount = orderPayments.filter(p => p.status === 'confirmed').reduce((s, p) => s + Number(p.amount || 0), 0);
 
   useEffect(() => {
@@ -960,12 +960,14 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                     entries.push({ dot: '#16a34a', label: '出貨', ref: refNo, detail: `已出貨${ev.detail ? `：${ev.detail}` : ''}`, time: ev.time, status: 'done', note: shipLineNote, lineSent: shipLineSent });
                   });
                 } else {
-                  const shipLineNote = (shipKey === 'shipped' || shipKey === 'delivered') ? (order.customer?.line_user_id ? '[已送] LINE 出貨通知已發送' : '[未送] 未綁定 LINE，未推播') : '';
+                  const shipDone = shipKey === 'shipped' || shipKey === 'delivered';
+                  const shipStarted = shipDone || shipKey === 'partial';
+                  const shipLineNote = shipStarted ? (order.customer?.line_user_id ? '[已送] LINE 出貨通知已發送' : '[未送] 未綁定 LINE，未推播') : '';
                   const shipLineSent = !!order.customer?.line_user_id;
-                  entries.push({ dot: (shipKey === 'shipped' || shipKey === 'delivered') ? '#16a34a' : '#d1d5db', label: '出貨', detail: SHIP_STATUS_MAP[shipKey] || shipKey, status: (shipKey === 'shipped' || shipKey === 'delivered') ? 'done' : 'pending', note: (shipKey === 'shipped' || shipKey === 'delivered') ? shipLineNote : '', lineSent: shipLineSent });
+                  entries.push({ dot: shipStarted ? (shipDone ? '#16a34a' : '#f59e0b') : '#d1d5db', label: '出貨', detail: SHIP_STATUS_MAP[shipKey] || shipKey, status: shipDone ? 'done' : (shipStarted ? 'partial' : 'pending'), note: shipStarted ? shipLineNote : '', lineSent: shipLineSent });
                 }
                 // Completion
-                const isCompleted = statusKey === 'completed' || (payKey === 'paid' && (shipKey === 'shipped' || shipKey === 'delivered'));
+                const isCompleted = statusKey === 'completed' || (payKey === 'paid' && (shipKey === 'shipped' || shipKey === 'delivered' || shipKey === 'partial'));
                 if (isCompleted) {
                   entries.push({ dot: '#16a34a', label: '完成', detail: '訂單完成', status: 'done' });
                 }
@@ -1330,7 +1332,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
 
   const ORDER_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', confirmed: '已核准', processing: '出貨中', completed: '已完成', rejected: '已駁回', shipped: '已出貨', cancelled: '已取消', pending: '待確認', purchasing: '採購中' };
   const PAY_STATUS_MAP = { unpaid: '未付款', partial: '部分付款', paid: '已付款' };
-  const SHIP_STATUS_MAP = { pending: '待出貨', shipped: '已出貨', delivered: '已送達' };
+  const SHIP_STATUS_MAP = { pending: '待出貨', partial: '部分出貨', shipped: '已出貨', delivered: '已送達' };
 
   const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
     setLoading(true);
@@ -1498,7 +1500,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>出貨</span>
-                  <span style={S.mobileCardValue}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : 'gray')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></span>
+                  <span style={S.mobileCardValue}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : shipKey === 'partial' ? 'yellow' : 'gray')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></span>
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>金額</span>
@@ -1563,7 +1565,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.order_date || '-'}</div>
                 <div style={cCenter}><span style={S.tag(statusKey === 'confirmed' || statusKey === 'completed' ? 'green' : statusKey === 'processing' ? 'yellow' : statusKey === 'pending_approval' ? 'red' : statusKey === 'rejected' ? 'red' : '')}>{ORDER_STATUS_MAP[statusKey] || statusKey}</span></div>
                 {!isTablet && <div style={cCenter}><span style={S.tag(payKey === 'paid' ? 'green' : payKey === 'partial' ? 'yellow' : 'gray')}>{PAY_STATUS_MAP[payKey] || payKey}</span></div>}
-                {!isTablet && <div style={cCenter}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : 'gray')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
+                {!isTablet && <div style={cCenter}><span style={S.tag(shipKey === 'shipped' || shipKey === 'delivered' ? 'green' : shipKey === 'partial' ? 'yellow' : 'gray')}>{SHIP_STATUS_MAP[shipKey] || shipKey}</span></div>}
                 {!isTablet && <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount)}</div>}
                 <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                   {(() => {
