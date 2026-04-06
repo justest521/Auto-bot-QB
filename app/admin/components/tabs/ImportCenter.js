@@ -63,7 +63,7 @@ export default function ImportCenter() {
         ) : null}
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: isMobile ? 'stretch' : 'center', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
           <div style={{ fontSize: t.fontSize.body, color: '#8a5b00', lineHeight: 1.8 }}>
-            清空範圍：商品、正式客戶、廠商、報價、訂單、銷貨、銷退貨、利潤分析。
+            清空範圍：商品、客戶、廠商、報價、訂單、出貨、採購、進貨、銷貨、發票、審批、庫存異動、銷退貨、利潤分析。
             <br />
             保留範圍：LINE 客戶、LINE 訊息、系統設定、AI Prompt、匯入歷史。
           </div>
