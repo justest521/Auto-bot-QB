@@ -135,6 +135,15 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   }, {});
   const visibleItems = itemGroupFilter === 'all' ? items : items.filter(i => getItemGroup(i) === itemGroupFilter);
 
+  // ── Fulfillment summary ──
+  const fulfillStats = {
+    totalOrdered:   items.reduce((s, i) => s + Number(i.qty || 0), 0),
+    totalSold:      items.reduce((s, i) => s + Number(i.sold_qty || 0), 0),
+    totalRemaining: items.reduce((s, i) => s + Number(i.remaining_qty || 0), 0),
+    noStockItems:   items.filter(i => i.stock_status === 'no_stock' && !i.po_ref && !i.po_info).length,
+    arrivedItems:   items.filter(i => i.po_info && ['received','completed'].includes(i.po_info.status)).length,
+  };
+
   const toggleItemSelect = (itemId) => {
     // 已全部銷完的品項不可勾選
     const item = items.find(i => i.id === itemId);
@@ -552,12 +561,34 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>商品明細</span>
                 <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
               </div>
+              {/* ── Fulfillment summary bar ── */}
+              {items.length > 0 && (() => {
+                const stats = [
+                  { label: '訂購', value: fulfillStats.totalOrdered,   unit: '隻', color: '#374151',  bg: '#f9fafb' },
+                  { label: '已出貨', value: fulfillStats.totalSold,    unit: '隻', color: '#15803d',  bg: '#f0fdf4' },
+                  { label: '待出貨', value: fulfillStats.totalRemaining, unit: '隻', color: fulfillStats.totalRemaining > 0 ? '#b45309' : '#9ca3af', bg: fulfillStats.totalRemaining > 0 ? '#fffbeb' : '#f9fafb' },
+                  ...(fulfillStats.noStockItems > 0 ? [{ label: '缺貨待採', value: fulfillStats.noStockItems, unit: '項', color: '#b91c1c', bg: '#fff1f2' }] : []),
+                  ...(fulfillStats.arrivedItems > 0 ? [{ label: '採購已到貨', value: fulfillStats.arrivedItems, unit: '項', color: '#0369a1', bg: '#f0f9ff' }] : []),
+                ];
+                return (
+                  <div style={{ display: 'flex', borderBottom: '1px solid #f0f2f5', flexWrap: 'wrap' }}>
+                    {stats.map((s, i) => (
+                      <div key={i} style={{ flex: '1 1 70px', padding: '7px 10px', textAlign: 'center', background: s.bg, borderRight: i < stats.length - 1 ? '1px solid #f0f2f5' : 'none' }}>
+                        <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 500, marginBottom: 2, letterSpacing: 0.3 }}>{s.label}</div>
+                        <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: s.color, fontFamily: 'var(--font-mono)' }}>{s.value} <span style={{ fontSize: 10, fontWeight: 500 }}>{s.unit}</span></div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
               {items.length > 0 ? (
                 <div>
                   {isMobile ? null : (
                   /* Table header (desktop only) */
-                  <div style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                    <div></div><div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 80px 90px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    <div></div><div>料號</div><div style={{ textAlign: 'right' }}>單價</div>
+                    <div style={{ textAlign: 'center', lineHeight: 1.2 }}>數量<br/><span style={{ fontSize: 9, fontWeight: 400, letterSpacing: 0, textTransform: 'none' }}>訂 / 已出 / 待出</span></div>
+                    <div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
                   </div>
                   )}
                   {/* Table rows / Mobile cards */}
@@ -607,10 +638,22 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                               {isEditing ? (
                                 <input type="number" value={editValues.qty} onChange={(e) => setEditValues({ ...editValues, qty: parseInt(e.target.value) || 0 })} style={inputStyle} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
                               ) : (
-                                item.qty
+                                <span style={{ ...S.mono }}>{item.qty} 隻訂</span>
                               )}
                             </span>
                           </div>
+                          {!isEditing && Number(item.sold_qty) > 0 && (
+                            <div style={S.mobileCardRow}>
+                              <span style={S.mobileCardLabel}>已出貨</span>
+                              <span style={{ ...S.mobileCardValue, color: '#15803d', fontWeight: t.fontWeight.bold, ...S.mono }}>{item.sold_qty} 隻</span>
+                            </div>
+                          )}
+                          {!isEditing && Number(item.remaining_qty) > 0 && (
+                            <div style={S.mobileCardRow}>
+                              <span style={S.mobileCardLabel}>待出貨</span>
+                              <span style={{ ...S.mobileCardValue, color: '#b45309', fontWeight: t.fontWeight.bold, ...S.mono }}>{item.remaining_qty} 隻</span>
+                            </div>
+                          )}
                           <div style={S.mobileCardRow}>
                             <span style={S.mobileCardLabel}>庫存</span>
                             <span style={S.mobileCardValue}>
@@ -618,6 +661,14 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                               <span style={{ padding: '1px 5px', borderRadius: t.radius.md, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap', marginLeft: 4 }}>
                                 {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
                               </span>
+                              {item.po_info && (
+                                <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 99, fontWeight: 600,
+                                  ...(['received','completed'].includes(item.po_info.status)
+                                    ? { background: '#dbeafe', color: '#1d4ed8' }
+                                    : { background: '#fef3c7', color: '#92400e' }) }}>
+                                  {['received','completed'].includes(item.po_info.status) ? '✓ 已到貨' : '採購中'}
+                                </span>
+                              )}
                             </span>
                           </div>
                           <div style={S.mobileCardRow}>
@@ -655,7 +706,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
 
                     return (
                       <div key={item.id}>
-                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 50px 80px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: t.fontSize.body, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
+                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 80px 90px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: t.fontSize.body, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
                           {fullySold ? (
                             <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: '#16a34a' }}>✓ 已銷</span>
@@ -675,18 +726,38 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                             fmtP(item.unit_price)
                           )}
                         </div>
-                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3, cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: t.radius.sm, background: 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
+                        {/* ── 數量 cell: 訂 / 已出 / 待出 ── */}
+                        <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: t.radius.sm, background: 'transparent' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
                           {isEditing ? (
                             <input type="number" value={editValues.qty} onChange={(e) => setEditValues({ ...editValues, qty: parseInt(e.target.value) || 0 })} style={inputStyle} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
                           ) : (
-                            item.qty
+                            <div>
+                              <div style={{ fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.h3 }}>{item.qty}</div>
+                              {Number(item.sold_qty) > 0 && (
+                                <div style={{ fontSize: 10, color: '#15803d', ...S.mono, lineHeight: 1.3 }}>↑{item.sold_qty} 已出</div>
+                              )}
+                              {Number(item.remaining_qty) > 0 && (
+                                <div style={{ fontSize: 10, color: '#b45309', ...S.mono, lineHeight: 1.3 }}>↓{item.remaining_qty} 待</div>
+                              )}
+                            </div>
                           )}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                          <span style={{ fontWeight: t.fontWeight.bold, color: badge.color, ...S.mono, fontSize: t.fontSize.caption }}>{item.stock_qty}</span>
-                          <span style={{ padding: '1px 5px', borderRadius: t.radius.md, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
-                            {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
-                          </span>
+                        {/* ── 庫存 cell + PO 到貨狀態 ── */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <span style={{ fontWeight: t.fontWeight.bold, color: badge.color, ...S.mono, fontSize: t.fontSize.caption }}>{item.stock_qty}</span>
+                            <span style={{ padding: '1px 5px', borderRadius: t.radius.md, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
+                              {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
+                            </span>
+                          </div>
+                          {item.po_info && (
+                            <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 99, fontWeight: 600, whiteSpace: 'nowrap',
+                              ...(['received','completed'].includes(item.po_info.status)
+                                ? { background: '#dbeafe', color: '#1d4ed8' }
+                                : { background: '#fef3c7', color: '#92400e' }) }}>
+                              {['received','completed'].includes(item.po_info.status) ? '✓ 已到貨' : '採購中'}
+                            </span>
+                          )}
                         </div>
                         <div style={{ color: '#059669', fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3 }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
                         <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ fontSize: t.fontSize.h3, color: t.color.textMuted, cursor: cannotEdit || isEditing ? 'default' : 'pointer', padding: '2px 4px', borderRadius: t.radius.sm, background: 'transparent', lineHeight: 1.4 }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
