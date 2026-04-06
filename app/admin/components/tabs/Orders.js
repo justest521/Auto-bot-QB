@@ -116,6 +116,25 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   const sufficientCount = items.filter(i => i.stock_status === 'sufficient').length;
   const shortageCount = items.filter(i => i.stock_status !== 'sufficient').length;
 
+  // ── Item-level action groups ──
+  const [itemGroupFilter, setItemGroupFilter] = useState('all');
+  const getItemGroup = (item) => {
+    const fullySold = item.sale_info && Number(item.remaining_qty || 0) <= 0;
+    if (fullySold || item.po_ref || item.po_info) return 'done';
+    if (item.stock_status === 'sufficient' || item.stock_status === 'partial') return 'to_sell';
+    return 'to_purchase'; // no_stock + no PO
+  };
+  const ITEM_GROUPS = [
+    { id: 'to_purchase', label: '待採購',   dot: '#ef4444', tip: '無庫存且無採購單' },
+    { id: 'to_sell',     label: '可轉銷貨', dot: '#f59e0b', tip: '有庫存未銷完' },
+    { id: 'done',        label: '已處理',   dot: '#16a34a', tip: '已採購或已銷完' },
+    { id: 'all',         label: '全部',     dot: '#9ca3af', tip: '所有品項' },
+  ];
+  const itemGroupCounts = items.reduce((acc, i) => {
+    const g = getItemGroup(i); acc[g] = (acc[g] || 0) + 1; return acc;
+  }, {});
+  const visibleItems = itemGroupFilter === 'all' ? items : items.filter(i => getItemGroup(i) === itemGroupFilter);
+
   const toggleItemSelect = (itemId) => {
     // 已全部銷完的品項不可勾選
     const item = items.find(i => i.id === itemId);
@@ -481,15 +500,49 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 </div>
               </div>
             )}
-            {/* ===== Quick select buttons ===== */}
-            <div style={{ padding: '6px 12px', marginBottom: 10, border: `1px solid ${t.color.border}`, borderRadius: t.radius.lg, background: isLocked ? '#f9fafb' : '#fff', display: 'flex', alignItems: 'center', opacity: isLocked ? 0.5 : 1 }}>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                <button onClick={() => setSelectedItemIds(new Set(items.filter(i => !i.po_ref && !i.po_info).map(i => i.id)))} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.caption }}>全選</button>
-                <button onClick={() => setSelectedItemIds(new Set())} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.caption }}>取消全選</button>
-                {sufficientCount > 0 && <button onClick={() => selectAllByStatus(items, ['sufficient'])} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.caption, color: '#15803d', borderColor: '#bbf7d0' }}>選有貨 ({sufficientCount})</button>}
-                {shortageCount > 0 && <button onClick={() => selectAllByStatus(items, ['partial', 'no_stock'])} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.caption, color: '#b91c1c', borderColor: '#fecaca' }}>選缺貨 ({shortageCount})</button>}
-                {selectedItemIds.size > 0 && <span style={{ fontSize: t.fontSize.caption, color: t.color.link, fontWeight: t.fontWeight.semibold, padding: '4px 0' }}>已選 {selectedItemIds.size} 項</span>}
-                {items.filter(i => i.po_ref || i.po_info).length > 0 && <span style={{ fontSize: t.fontSize.caption, color: t.color.warning, fontWeight: t.fontWeight.semibold, padding: '4px 8px', background: '#fffbeb', borderRadius: t.radius.sm }}>已有 {items.filter(i => i.po_ref || i.po_info).length} 項已建採購單</span>}
+            {/* ===== Item Group Tabs ===== */}
+            <div style={{ marginBottom: 10, opacity: isLocked ? 0.5 : 1, pointerEvents: isLocked ? 'none' : 'auto' }}>
+              <div style={{ display: 'flex', gap: 0, background: t.color.bgMuted, border: `1px solid ${t.color.borderLight}`, borderRadius: t.radius.lg, padding: 3, flexWrap: 'wrap' }}>
+                {ITEM_GROUPS.map(g => {
+                  const isActive = itemGroupFilter === g.id;
+                  const cnt = itemGroupCounts[g.id] || 0;
+                  return (
+                    <button key={g.id} title={g.tip}
+                      onClick={() => {
+                        setItemGroupFilter(g.id);
+                        // Auto-select items in group (except 'done' and 'all')
+                        if (g.id === 'all') {
+                          setSelectedItemIds(new Set());
+                        } else if (g.id !== 'done') {
+                          const ids = items.filter(i => getItemGroup(i) === g.id).map(i => i.id);
+                          setSelectedItemIds(new Set(ids));
+                        } else {
+                          setSelectedItemIds(new Set());
+                        }
+                      }}
+                      style={{
+                        flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                        padding: '6px 12px', borderRadius: t.radius.md, cursor: 'pointer', border: 'none',
+                        background: isActive ? '#fff' : 'transparent',
+                        boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        color: isActive ? t.color.textPrimary : t.color.textMuted,
+                        fontWeight: isActive ? t.fontWeight.bold : t.fontWeight.normal,
+                        fontSize: t.fontSize.caption, transition: 'all 0.12s', whiteSpace: 'nowrap',
+                      }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: isActive ? g.dot : '#d1d5db', flexShrink: 0 }} />
+                      {g.label}
+                      {cnt > 0 && (
+                        <span style={{ fontSize: 11, fontWeight: t.fontWeight.bold, padding: '1px 6px', borderRadius: 99, background: isActive ? g.dot : t.color.bgCard, color: isActive ? '#fff' : t.color.textMuted, border: `1px solid ${isActive ? g.dot : t.color.borderLight}` }}>{cnt}</span>
+                      )}
+                    </button>
+                  );
+                })}
+                {selectedItemIds.size > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 10px', fontSize: t.fontSize.caption }}>
+                    <span style={{ color: t.color.link, fontWeight: t.fontWeight.semibold }}>已選 {selectedItemIds.size} 項</span>
+                    <button onClick={() => setSelectedItemIds(new Set())} style={{ ...S.btnGhost, padding: '2px 8px', fontSize: t.fontSize.tiny }}>清除</button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -508,7 +561,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                   </div>
                   )}
                   {/* Table rows / Mobile cards */}
-                  {items.map((item) => {
+                  {visibleItems.map((item) => {
                     const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
                     const isChecked = selectedItemIds.has(item.id);
                     const hasPO = !!(item.po_ref || item.po_info);
