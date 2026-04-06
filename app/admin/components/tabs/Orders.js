@@ -1438,7 +1438,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
   const [dateFrom, setDateFrom] = useState(() => getPresetDateRange('month').from);
   const [dateTo, setDateTo] = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
-  const [statusGroupId, setStatusGroupId] = useState('action_needed'); // default: 待處理
+  const [statusGroupId, setStatusGroupId] = useState(''); // 顯示全部（不分 tab）
   const [approvalMap, setApprovalMap] = useState({});
   const [showCreate, setShowCreate] = useState(false);
   // ★ 新增：選中的訂單（進入詳情頁）
@@ -1582,44 +1582,6 @@ export default function Orders({ setTab, erpFeatures = {} }) {
           {actionMessage}
         </div>
       ) : null}
-      {/* ── Status Tab Group ── */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 10, background: t.color.bgCard, border: `1px solid ${t.color.borderLight}`, borderRadius: t.radius.lg, padding: 4, flexWrap: 'wrap' }}>
-        {STATUS_GROUPS.map(g => {
-          const isActive = statusGroupId === g.id;
-          const cnt = g.id === 'action_needed' ? data.tab_counts?.action_needed
-                    : g.id === 'in_progress'   ? data.tab_counts?.in_progress
-                    : g.id === 'shipped'        ? data.tab_counts?.shipped
-                    : g.id === 'cancelled'      ? data.tab_counts?.cancelled
-                    : data.total;
-          return (
-            <button key={g.id} onClick={() => { setStatusGroupId(g.id); load(1, search, pageSize, g.id); }}
-              style={{
-                flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                padding: isMobile ? '7px 10px' : '8px 16px', borderRadius: t.radius.md, cursor: 'pointer',
-                border: 'none', transition: 'all 0.15s',
-                background: isActive ? '#fff' : 'transparent',
-                boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                color: isActive ? t.color.textPrimary : t.color.textMuted,
-                fontWeight: isActive ? t.fontWeight.bold : t.fontWeight.normal,
-                fontSize: isMobile ? 12 : t.fontSize.body,
-                whiteSpace: 'nowrap',
-              }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: isActive ? g.dot : '#d1d5db', flexShrink: 0, transition: 'background 0.15s' }} />
-              {g.label}
-              {cnt != null && cnt > 0 && (
-                <span style={{
-                  fontSize: 11, fontWeight: t.fontWeight.bold, fontFamily: 'monospace',
-                  padding: '1px 7px', borderRadius: 99,
-                  background: isActive ? g.dot : t.color.bgMuted,
-                  color: isActive ? '#fff' : t.color.textMuted,
-                  transition: 'all 0.15s',
-                }}>{cnt}</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
       {/* ── Date & Search filters ── */}
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
