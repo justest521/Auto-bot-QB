@@ -268,9 +268,17 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                         const displayName = customer.company_name || customer.name || '未命名客戶';
                         const contactName = customer.name && customer.name !== customer.company_name ? customer.name : '';
                         const info = [customer.customer_code, customer.tax_id, customer.phone].filter(Boolean).join(' · ');
+                        const orderCount = customer._order_count || 0;
                         return (
                           <button key={customer.id} onClick={() => selectCustomer(customer)} style={{ ...S.panelMuted, width: '100%', textAlign: 'left', cursor: 'pointer', border: `1px solid ${t.color.borderLight}`, background: t.color.bgMuted }}>
-                            <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{displayName}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                              <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{displayName}</div>
+                              {orderCount > 0 && (
+                                <span style={{ fontSize: 11, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 99, padding: '1px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                  {orderCount} 次採購
+                                </span>
+                              )}
+                            </div>
                             {contactName && <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 2 }}>{contactName}</div>}
                             <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4 }}>{info || '-'}</div>
                           </button>
