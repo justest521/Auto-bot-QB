@@ -20,9 +20,9 @@ function StatCard({ label, value, tone }) {
   };
   const tc = TONE_MAP[tone] || TONE_MAP.gray;
   return (
-    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${tc.color}` }}>
-      <div style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: tc.color, ...S.mono }}>{value}</div>
-      <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>{label}</div>
+    <div style={{ ...S.card, padding: '14px 16px', borderTop: `3px solid ${tc.color}` }}>
+      <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 8, marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: t.fontWeight.bold, color: tc.color, ...S.mono }}>{value}</div>
     </div>
   );
 }
@@ -35,12 +35,14 @@ export default function Invoices() {
   const [dateFrom, setDateFrom] = useState(() => getPresetDateRange('month').from);
   const [dateTo,   setDateTo]   = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
+  const [page, setPage]         = useState(1);
+  const [limit, setLimit]       = useState(30);
   const { gridTemplate, ResizableHeader } = useResizableColumns('invoices_list', INVOICE_DEFAULT_WIDTHS);
 
-  const load = async (q = search, df = dateFrom, dt = dateTo) => {
+  const load = async (q = search, df = dateFrom, dt = dateTo, pg = page, lm = limit) => {
     setLoading(true);
     try {
-      const params = { action: 'invoices', search: q };
+      const params = { action: 'invoices', search: q, page: String(pg), limit: String(lm) };
       if (df) params.date_from = df;
       if (dt) params.date_to   = dt;
       setData(await apiGet(params));
@@ -50,17 +52,18 @@ export default function Invoices() {
 
   const applyDatePreset = (preset) => {
     setDatePreset(preset);
+    setPage(1);
     if (preset === 'all') {
       setDateFrom(''); setDateTo('');
-      load(search, '', '');
+      load(search, '', '', 1, limit);
     } else {
       const range = getPresetDateRange(preset);
       setDateFrom(range.from); setDateTo(range.to);
-      load(search, range.from, range.to);
+      load(search, range.from, range.to, 1, limit);
     }
   };
 
-  const doSearch = () => load(search, dateFrom, dateTo);
+  const doSearch = () => { setPage(1); load(search, dateFrom, dateTo, 1, limit); };
 
   const handleExport = async () => {
     try {
@@ -241,8 +244,8 @@ export default function Invoices() {
         page={data.page   || 1}
         limit={data.limit || 30}
         total={data.total || 0}
-        onPageChange={() => load()}
-        onLimitChange={() => load()}
+        onPageChange={(p) => { setPage(p); load(search, dateFrom, dateTo, p, limit); }}
+        onLimitChange={(l) => { setLimit(l); setPage(1); load(search, dateFrom, dateTo, 1, l); }}
       />
     </div>
   );
