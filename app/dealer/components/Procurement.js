@@ -12,6 +12,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(null); // { id, no }
 
   const fetchProducts = useCallback(async (q = '', pg = 1, so = false) => {
     setLoading(true);
@@ -45,11 +46,16 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
       });
       if (res?.success || res?.order) {
         setCart([]);
-        if (onOrderPlaced) onOrderPlaced(res?.order?.id);
+        setOrderSuccess({ id: res?.order?.id, no: res?.order?.order_no });
+        // 1.5 秒後跳轉到訂單 tab 並自動展開該訂單
+        setTimeout(() => {
+          setOrderSuccess(null);
+          if (onOrderPlaced) onOrderPlaced(res?.order?.id);
+        }, 1500);
       } else {
-        alert('提交失敗，請重試');
+        alert(res?.error || '提交失敗，請重試');
       }
-    } catch (e) { console.error(e); alert('提交出錯'); }
+    } catch (e) { console.error(e); alert(e.message || '提交出錯'); }
     finally { setPosting(false); }
   };
 
@@ -308,55 +314,82 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
 
           {/* Panel footer */}
           <div style={{ padding: '12px 14px 14px', borderTop: `1px solid ${D.color.borderLight}` }}>
-            <div style={{
-              background: D.color.brandDim, borderRadius: D.radius.md,
-              padding: '7px 10px', marginBottom: 10, lineHeight: 1.7,
-              fontSize: 10, color: D.color.brand,
-            }}>
-              <div>① 送出訂單 → ② 主系統確認庫存</div>
-              <div>③ 安排出貨 → ④ 到貨通知</div>
-              {hasPreorder && (
-                <div style={{ marginTop: 3, color: '#d97706', fontWeight: D.weight.semi }}>
-                  ⚠️ 含預定商品 → 管理員轉採購單
+            {orderSuccess ? (
+              /* ── 成功畫面 ── */
+              <div style={{ textAlign: 'center', padding: '16px 10px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#dcfce7', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
                 </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-              <span style={{ fontSize: D.size.caption, color: D.color.text3 }}>合計（未稅）</span>
-              <span style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono }}>{fmtNT(cartTotal)}</span>
-            </div>
-            <button onClick={handlePlaceOrder} disabled={posting}
-              style={{ ...D.btnPrimary, width: '100%', padding: '12px', fontWeight: D.weight.bold, fontSize: D.size.body, opacity: posting ? 0.6 : 1 }}>
-              {posting ? '提交中...' : '✓ 送出訂單'}
-            </button>
+                <div style={{ fontSize: D.size.body, fontWeight: D.weight.bold, color: D.color.text, marginBottom: 4 }}>訂單已建立！</div>
+                <div style={{ fontSize: D.size.tiny, fontFamily: D.font.mono, color: D.color.brand, marginBottom: 8 }}>{orderSuccess.no}</div>
+                <div style={{ fontSize: D.size.tiny, color: D.color.text3 }}>正在跳轉到訂單頁面...</div>
+              </div>
+            ) : (
+              <>
+                <div style={{
+                  background: D.color.brandDim, borderRadius: D.radius.md,
+                  padding: '7px 10px', marginBottom: 10, lineHeight: 1.7,
+                  fontSize: 10, color: D.color.brand,
+                }}>
+                  <div>① 送出訂單 → ② 主系統確認庫存</div>
+                  <div>③ 安排出貨 → ④ 到貨通知</div>
+                  {hasPreorder && (
+                    <div style={{ marginTop: 3, color: '#d97706', fontWeight: D.weight.semi }}>
+                      ⚠️ 含預定商品 → 管理員轉採購單
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+                  <span style={{ fontSize: D.size.caption, color: D.color.text3 }}>合計（未稅）</span>
+                  <span style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono }}>{fmtNT(cartTotal)}</span>
+                </div>
+                <button onClick={handlePlaceOrder} disabled={posting || orderSuccess}
+                  style={{ ...D.btnPrimary, width: '100%', padding: '12px', fontWeight: D.weight.bold, fontSize: D.size.body, opacity: posting ? 0.6 : 1 }}>
+                  {posting ? '提交中...' : '✓ 送出訂單'}
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
 
       {/* ── Mobile: Cart floating bar ── */}
-      {!isWide && cart.length > 0 && (
+      {!isWide && (cart.length > 0 || orderSuccess) && (
         <div style={{
           position: 'fixed', bottom: 68, left: 0, right: 0, zIndex: 150,
-          background: '#fff', borderTop: `2px solid ${D.color.brand}`,
+          background: '#fff', borderTop: `2px solid ${orderSuccess ? D.color.success : D.color.brand}`,
           boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
           padding: '12px 16px',
           borderRadius: '12px 12px 0 0',
+          transition: 'border-color 0.3s',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: D.size.tiny, color: D.color.text3, fontWeight: D.weight.semi }}>
-                購物車 · {cartCount} 件{hasPreorder && <span style={{ color: '#d97706', marginLeft: 4 }}>含預定</span>}
+          {orderSuccess ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
-              <div style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono, marginTop: 2 }}>{fmtNT(cartTotal)}</div>
+              <div>
+                <div style={{ fontSize: D.size.body, fontWeight: D.weight.bold, color: D.color.text }}>訂單已建立！正在跳轉...</div>
+                <div style={{ fontSize: D.size.tiny, fontFamily: D.font.mono, color: D.color.brand }}>{orderSuccess.no}</div>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setCart([])} style={{ ...D.btnGhost, padding: '8px 14px', fontSize: D.size.caption }}>清空</button>
-              <button onClick={handlePlaceOrder} disabled={posting}
-                style={{ ...D.btnPrimary, padding: '10px 24px', fontSize: D.size.body, fontWeight: D.weight.bold, opacity: posting ? 0.6 : 1, minWidth: 90 }}>
-                {posting ? '提交中...' : '✓ 送出訂單'}
-              </button>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: D.size.tiny, color: D.color.text3, fontWeight: D.weight.semi }}>
+                  購物車 · {cartCount} 件{hasPreorder && <span style={{ color: '#d97706', marginLeft: 4 }}>含預定</span>}
+                </div>
+                <div style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono, marginTop: 2 }}>{fmtNT(cartTotal)}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setCart([])} style={{ ...D.btnGhost, padding: '8px 14px', fontSize: D.size.caption }}>清空</button>
+                <button onClick={handlePlaceOrder} disabled={posting}
+                  style={{ ...D.btnPrimary, padding: '10px 24px', fontSize: D.size.body, fontWeight: D.weight.bold, opacity: posting ? 0.6 : 1, minWidth: 90 }}>
+                  {posting ? '提交中...' : '✓ 送出訂單'}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
