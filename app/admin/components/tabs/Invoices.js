@@ -7,8 +7,8 @@ import { fmtP, exportCsv, getPresetDateRange, useResponsive } from '@/lib/admin/
 import { Loading, EmptyState, PageLead, Pager } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 
-// 序, 銷貨單號, 客戶, 業務, 發票號碼, 發票日期, 金額
-const INVOICE_DEFAULT_WIDTHS = [50, 150, 160, 100, 150, 110, 120];
+// 序, 銷貨單號, 客戶, 業務, 發票號碼, 抬頭, 統一編號, 發票日期, 金額
+const INVOICE_DEFAULT_WIDTHS = [50, 150, 140, 90, 140, 140, 110, 100, 110];
 
 function StatCard({ label, value, tone }) {
   const TONE_MAP = {
@@ -79,6 +79,8 @@ export default function Invoices() {
         { key: 'invoice_no',    label: '發票號碼' },
         { key: r => r.invoice_date?.slice(0, 10) || '', label: '發票日期' },
         { key: 'invoice_type',  label: '發票類別' },
+        { key: 'buyer_name',    label: '抬頭'     },
+        { key: 'buyer_tax_id',  label: '統一編號' },
         { key: 'total_amount',  label: '金額'     },
       ], `發票清單_${new Date().toISOString().slice(0, 10)}.csv`);
     } catch { alert('匯出失敗'); }
@@ -173,6 +175,18 @@ export default function Invoices() {
                     <span style={{ color: t.color.textMuted }}>發票日期</span>
                     <div style={{ ...S.mono, marginTop: 2 }}>{row.invoice_date?.slice(0, 10) || '-'}</div>
                   </div>
+                  {row.buyer_name && (
+                    <div>
+                      <span style={{ color: t.color.textMuted }}>抬頭</span>
+                      <div style={{ color: t.color.textPrimary, marginTop: 2 }}>{row.buyer_name}</div>
+                    </div>
+                  )}
+                  {row.buyer_tax_id && (
+                    <div>
+                      <span style={{ color: t.color.textMuted }}>統一編號</span>
+                      <div style={{ ...S.mono, marginTop: 2 }}>{row.buyer_tax_id}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -187,6 +201,8 @@ export default function Invoices() {
             { label: '客戶',    align: 'left'   },
             { label: '業務',    align: 'left'   },
             { label: '發票號碼', align: 'left'   },
+            { label: '抬頭',    align: 'left'   },
+            { label: '統一編號', align: 'left'   },
             { label: '發票日期', align: 'center' },
             { label: '金額',    align: 'right'  },
           ]} />
@@ -216,8 +232,8 @@ export default function Invoices() {
                   {row.sales_person || '-'}
                 </div>
                 {/* 發票號碼 */}
-                <div style={{ ...cell, gap: 6, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                  <span style={{ color: hasInv ? t.color.success : t.color.textDisabled, fontWeight: hasInv ? t.fontWeight.semibold : t.fontWeight.normal, ...S.mono }}>
+                <div style={{ ...cell, gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                  <span style={{ color: hasInv ? t.color.success : t.color.textDisabled, fontWeight: hasInv ? t.fontWeight.semibold : t.fontWeight.normal, ...S.mono, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {row.invoice_no || '未開立'}
                   </span>
                   {hasInv && row.invoice_type && (
@@ -225,6 +241,14 @@ export default function Invoices() {
                       {row.invoice_type}
                     </span>
                   )}
+                </div>
+                {/* 抬頭 */}
+                <div style={{ ...cell, whiteSpace: 'nowrap', textOverflow: 'ellipsis', color: row.buyer_name ? t.color.textPrimary : t.color.textDisabled }}>
+                  {row.buyer_name || '-'}
+                </div>
+                {/* 統一編號 */}
+                <div style={{ ...cell, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', color: row.buyer_tax_id ? t.color.textPrimary : t.color.textDisabled, fontSize: t.fontSize.body }}>
+                  {row.buyer_tax_id || '-'}
                 </div>
                 {/* 發票日期 */}
                 <div style={{ ...cCenter, ...S.mono, color: row.invoice_date ? t.color.textPrimary : t.color.textDisabled }}>
