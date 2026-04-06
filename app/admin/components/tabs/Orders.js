@@ -952,6 +952,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 }
                 // Shipping — with LINE notification status + item details
                 const shipTimelineEvs = timeline.filter(e => (e.event || '').match(/出貨單/));
+                const backorderEv = timeline.find(e => e.event === '欠貨');
                 if (shipTimelineEvs.length > 0) {
                   shipTimelineEvs.forEach(ev => {
                     const refNo = (ev.event || '').match(/(SH[\w-]+)/)?.[1] || '';
@@ -959,6 +960,10 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                     const shipLineSent = ev.line_sent ?? !!order.customer?.line_user_id;
                     entries.push({ dot: '#16a34a', label: '出貨', ref: refNo, detail: `已出貨${ev.detail ? `：${ev.detail}` : ''}`, time: ev.time, status: 'done', note: shipLineNote, lineSent: shipLineSent });
                   });
+                  // 欠貨節點
+                  if (backorderEv) {
+                    entries.push({ dot: '#f59e0b', label: '欠貨', detail: backorderEv.detail, status: 'current' });
+                  }
                 } else {
                   const shipDone = shipKey === 'shipped' || shipKey === 'delivered';
                   const shipStarted = shipDone || shipKey === 'partial';
@@ -973,7 +978,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 }
 
                 // Icon map for visual labels
-                const iconMap = { '訂單建立': '📋', '報價': '📝', '送審': '📤', '審核': '✅', '採購': '🛒', '📦 到貨': '📦', '庫存': '📊', '銷貨': '💰', '付款': '💳', '出貨': '🚚', '完成': '🎉' };
+                const iconMap = { '訂單建立': '📋', '報價': '📝', '送審': '📤', '審核': '✅', '採購': '🛒', '📦 到貨': '📦', '庫存': '📊', '銷貨': '💰', '付款': '💳', '出貨': '🚚', '欠貨': '⚠️', '完成': '🎉' };
                 const getIcon = (label) => iconMap[label] || (label.includes('審核') ? '✅' : label.includes('付款') ? '💳' : '•');
 
                 return (
