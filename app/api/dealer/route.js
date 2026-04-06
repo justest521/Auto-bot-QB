@@ -43,6 +43,7 @@ const ROLE_CONFIG = {
     price_label: '經銷價',
     can_see_cost: true,
     can_see_all_orders: false, // only own orders
+    can_search_customers: true, // 業務可搜尋主系統客戶
   },
   technician: {
     label: '維修技師',
@@ -653,6 +654,23 @@ export async function GET(request) {
         });
       }
 
+      case 'search_customers': {
+        // 業務專用：搜尋主系統客戶
+        if (!ROLE_CONFIG[user.role]?.can_search_customers) return jsonErr('無權限搜尋客戶', 403);
+        const q = (searchParams.get('q') || '').trim();
+        if (q.length < 1) return jsonOk({ customers: [] });
+        const eq = escapePostgrestValue(safeSearch(q));
+        const { data, error } = await supabase
+          .from('erp_customers')
+          .select('id, name, company_name, phone, address')
+          .or(`name.ilike.%${eq}%,company_name.ilike.%${eq}%,phone.ilike.%${eq}%`)
+          .not('status', 'eq', 'inactive')
+          .order('company_name', { ascending: true })
+          .limit(10);
+        if (error) return jsonErr(error.message, 500);
+        return jsonOk({ customers: data || [] });
+      }
+
       default:
         return jsonErr('Unknown action: ' + action);
     }
@@ -801,6 +819,39 @@ export async function POST(request) {
       if (itemsError) return jsonErr(itemsError.message, 500);
 
       return jsonOk({ success: true, order: { ...order, items: orderItems }, message: `訂單 ${orderNo} 建立成功` });
+    }
+
+    case 'create_customer': {
+      // 業務專用：在主系統新增客戶並同步
+      if (!ROLE_CONFIG[user.role]?.can_search_customers) return jsonErr('無權限新增客戶', 403);
+      const { name, phone, address } = body;
+      if (!name?.trim()) return jsonErr('客戶名稱必填');
+      // Check for duplicate
+      const { data: existing } = await supabase
+        .from('erp_customers')
+        .select('id, name, company_name')
+        .or(`name.eq.${name.trim()},company_name.eq.${name.trim()}`)
+        .limit(1)
+        .maybeSingle();
+      if (existing) return jsonOk({ customer: existing, created: false, message: '客戶已存在' });
+      const { data: cust, error } = await supabase
+        .from('erp_customers')
+        .insert({
+          name: name.trim(),
+          company_name: name.trim(),
+          phone: phone?.trim() || null,
+          address: address?.trim() || null,
+          status: 'active',
+          customer_stage: 'customer',
+          source: 'dealer_portal',
+          sales_person: user.display_name,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      if (error) return jsonErr(error.message, 500);
+      return jsonOk({ customer: cust, created: true });
     }
 
     case 'notify_customer_arrival': {
