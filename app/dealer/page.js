@@ -313,6 +313,7 @@ export default function DealerPortal() {
               dealerPost={dealerPost}
               cart={cart}
               setCart={setCart}
+              isWide={isWide}
             />
           </div>
         );

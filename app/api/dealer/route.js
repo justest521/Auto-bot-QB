@@ -721,7 +721,7 @@ export async function POST(request) {
   switch (action) {
     case 'place_order': {
       if (!user.can_place_order) return jsonErr('您的帳號沒有下單權限');
-      const { items, remark } = body;
+      const { items, remark, customer_name } = body;
       if (!items?.length) return jsonErr('請至少加入一項商品');
 
       // Validate items exist
@@ -735,6 +735,7 @@ export async function POST(request) {
       const roleConfig = ROLE_CONFIG[user.role] || ROLE_CONFIG.dealer;
       const hasPersonalDiscount = user.discount_rate != null && user.discount_rate > 0;
 
+      // Build order items, preserving is_preorder flag in po_ref
       const orderItems = items.map((i) => {
         const p = productMap[i.item_number];
         if (!p) return null;
@@ -749,6 +750,7 @@ export async function POST(request) {
           unit_price: price,
           cost_price_snapshot: Number(p.us_price || 0),
           line_total: price * Math.max(1, Number(i.qty || 1)),
+          ...(i.is_preorder ? { po_ref: '[PREORDER]' } : {}),
         };
       }).filter(Boolean);
 
@@ -758,6 +760,19 @@ export async function POST(request) {
       const taxAmount = Math.round(subtotal * 0.05);
       const totalAmount = subtotal + taxAmount;
       const orderNo = `DO${Date.now()}`;
+
+      // Build remark: role, dealer name, end-customer, pre-order note
+      const preorderItems = items.filter(i => i.is_preorder);
+      const preorderNote = preorderItems.length > 0
+        ? `【預定：${preorderItems.map(i => i.item_number).join('、')}】`
+        : '';
+      const customerNote = customer_name ? `銷售對象：${customer_name}` : '';
+      const remarkParts = [
+        `[${ROLE_CONFIG[user.role]?.label || user.role}] ${user.display_name}`,
+        customerNote,
+        remark,
+        preorderNote,
+      ].filter(Boolean);
 
       const { data: order, error: orderError } = await supabase
         .from('erp_orders')
@@ -772,7 +787,7 @@ export async function POST(request) {
           subtotal,
           tax_amount: taxAmount,
           total_amount: totalAmount,
-          remark: `[${ROLE_CONFIG[user.role]?.label || user.role}] ${user.display_name}${remark ? ' - ' + remark : ''}`,
+          remark: remarkParts.join(' · '),
           order_source: 'dealer_portal',
         })
         .select()
@@ -785,7 +800,7 @@ export async function POST(request) {
       const { error: itemsError } = await supabase.from('erp_order_items').insert(itemsPayload);
       if (itemsError) return jsonErr(itemsError.message, 500);
 
-      return jsonOk({ order: { ...order, items: orderItems }, message: `訂單 ${orderNo} 建立成功` });
+      return jsonOk({ success: true, order: { ...order, items: orderItems }, message: `訂單 ${orderNo} 建立成功` });
     }
 
     case 'notify_customer_arrival': {

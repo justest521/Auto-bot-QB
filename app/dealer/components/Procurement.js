@@ -4,7 +4,7 @@ import D from './DealerStyles';
 
 const fmtNT = (n) => `NT$${Number(n || 0).toLocaleString()}`;
 
-export default function Procurement({ token, user, roleConfig, dealerGet, dealerPost, cart, setCart }) {
+export default function Procurement({ token, user, roleConfig, dealerGet, dealerPost, cart, setCart, isWide }) {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [stockOnly, setStockOnly] = useState(false);
@@ -12,6 +12,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [customerName, setCustomerName] = useState('');
 
   const fetchProducts = useCallback(async (q = '', pg = 1, so = false) => {
     setLoading(true);
@@ -24,10 +25,10 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
 
   useEffect(() => { fetchProducts(search, 1, stockOnly); }, [search, stockOnly]);
 
-  const addToCart = (p) => {
+  const addToCart = (p, isPreorder = false) => {
     const exist = cart.find(c => c.item_number === p.item_number);
     if (exist) setCart(cart.map(c => c.item_number === p.item_number ? { ...c, qty: c.qty + 1 } : c));
-    else setCart([...cart, { ...p, qty: 1 }]);
+    else setCart([...cart, { ...p, qty: 1, is_preorder: isPreorder }]);
   };
   const updateQty = (inum, qty) => {
     if (qty <= 0) setCart(cart.filter(c => c.item_number !== inum));
@@ -38,9 +39,20 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
     if (cart.length === 0) return;
     setPosting(true);
     try {
-      const res = await dealerPost({ action: 'place_order', token, items: cart.map(c => ({ item_number: c.item_number, qty: c.qty })) });
-      if (res?.success) { alert('訂單提交成功！'); setCart([]); fetchProducts(search, page, stockOnly); }
-      else alert('提交失敗，請重試');
+      const res = await dealerPost({
+        action: 'place_order',
+        token,
+        customer_name: customerName.trim() || undefined,
+        items: cart.map(c => ({ item_number: c.item_number, qty: c.qty, is_preorder: c.is_preorder || false })),
+      });
+      if (res?.success || res?.order) {
+        alert('訂單提交成功！');
+        setCart([]);
+        setCustomerName('');
+        fetchProducts(search, page, stockOnly);
+      } else {
+        alert('提交失敗，請重試');
+      }
     } catch (e) { console.error(e); alert('提交出錯'); }
     finally { setPosting(false); }
   };
@@ -48,9 +60,10 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
   const cartTotal = cart.reduce((s, c) => s + (c.price || 0) * c.qty, 0);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
   const priceLabel = roleConfig?.price_label || '售價';
+  const hasPreorder = cart.some(c => c.is_preorder);
 
   return (
-    <div style={{ padding: `20px 0 ${cart.length > 0 ? 160 : 100}px` }}>
+    <div style={{ padding: `20px 0 ${cart.length > 0 && !isWide ? 160 : 40}px`, paddingRight: isWide && cart.length > 0 ? 308 : 0 }}>
       {/* ── Search row ── */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
@@ -94,6 +107,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, marginBottom: 20 }}>
             {products.map(p => {
               const inCart = cart.find(c => c.item_number === p.item_number);
+              const isOutOfStock = p.stock_qty === 0;
               return (
                 <div key={p.item_number} style={{
                   ...D.card, padding: '14px 14px 12px', display: 'flex', flexDirection: 'column',
@@ -106,6 +120,17 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                   {p.image_url ? (
                     <div style={{ margin: '-14px -14px 10px', height: 140, overflow: 'hidden', borderRadius: `${D.radius.lg} ${D.radius.lg} 0 0` }}>
                       <img src={p.image_url} alt={p.description} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { e.currentTarget.parentElement.style.display = 'none'; }} />
+                      {/* Out-of-stock overlay badge on image */}
+                      {isOutOfStock && (
+                        <div style={{
+                          position: 'absolute', top: 3, right: 0, left: 0, height: 140,
+                          background: 'rgba(0,0,0,0.35)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          borderRadius: `${D.radius.lg} ${D.radius.lg} 0 0`,
+                        }}>
+                          <span style={{ color: '#fff', fontSize: D.size.caption, fontWeight: D.weight.bold, letterSpacing: 1, background: 'rgba(0,0,0,0.5)', padding: '4px 12px', borderRadius: D.radius.full }}>缺貨</span>
+                        </div>
+                      )}
                     </div>
                   ) : null}
 
@@ -152,6 +177,9 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                   {/* Cart controls */}
                   {inCart ? (
                     <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                      {inCart.is_preorder && (
+                        <span style={{ ...D.tag('amber'), marginRight: 4, flexShrink: 0 }}>預定</span>
+                      )}
                       <button onClick={() => updateQty(p.item_number, inCart.qty - 1)}
                         style={{ width: 34, height: 34, border: `1px solid ${D.color.border}`, background: D.color.card, borderRadius: D.radius.sm, cursor: 'pointer', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         -
@@ -166,14 +194,33 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => addToCart(p)} disabled={p.stock_qty === 0}
-                      style={{
-                        ...D.btnPrimary, width: '100%', textAlign: 'center',
-                        opacity: p.stock_qty === 0 ? 0.4 : 1,
-                        cursor: p.stock_qty === 0 ? 'not-allowed' : 'pointer',
-                      }}>
-                      {p.stock_qty === 0 ? '暫無庫存' : '加入購物車'}
-                    </button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => addToCart(p, false)}
+                        disabled={isOutOfStock}
+                        style={{
+                          ...D.btnPrimary, flex: 1, textAlign: 'center',
+                          opacity: isOutOfStock ? 0.35 : 1,
+                          cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                          display: isOutOfStock ? 'none' : 'block',
+                        }}>
+                        加入購物車
+                      </button>
+                      {isOutOfStock && (
+                        <button onClick={() => addToCart(p, true)}
+                          style={{
+                            flex: 1, textAlign: 'center', cursor: 'pointer',
+                            padding: '9px 14px', borderRadius: D.radius.md, fontSize: D.size.caption,
+                            fontWeight: D.weight.bold, border: `1px solid ${D.color.warning}`,
+                            background: '#fffbeb', color: '#d97706',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                          }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+                          </svg>
+                          預定
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               );
@@ -212,26 +259,134 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
         </>
       )}
 
-      {/* ── Cart floating bar — sits ABOVE the bottom tab bar (≈68px) ── */}
-      {cart.length > 0 && (
+      {/* ── Wide: Right-side Cart Panel ── */}
+      {isWide && cart.length > 0 && (
+        <div style={{
+          position: 'fixed', right: 16, top: 57, bottom: 68, width: 288,
+          zIndex: 150, background: '#fff',
+          borderRadius: `${D.radius.xl} ${D.radius.xl} 0 0`,
+          border: `1px solid ${D.color.border}`,
+          borderBottom: 'none',
+          boxShadow: '-4px 0 32px rgba(0,0,0,0.09)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        }}>
+          {/* Panel header */}
+          <div style={{ padding: '14px 16px 10px', borderBottom: `1px solid ${D.color.borderLight}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={D.color.brand} strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.4 5h11.8" /><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                </svg>
+                <span style={{ fontSize: D.size.caption, fontWeight: D.weight.bold, color: D.color.text }}>購物車</span>
+                <span style={{ fontSize: 10, fontFamily: D.font.mono, fontWeight: D.weight.bold, color: D.color.brand, background: D.color.brandDim, padding: '1px 7px', borderRadius: D.radius.full }}>{cartCount}</span>
+              </div>
+              <button onClick={() => setCart([])} style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.color.text3, fontSize: D.size.tiny, padding: '2px 6px' }}>清空</button>
+            </div>
+            {/* 銷售對象 */}
+            <div>
+              <div style={{ fontSize: D.size.tiny, color: D.color.text3, marginBottom: 4 }}>銷售對象</div>
+              <input
+                type="text"
+                placeholder="輸入終端客戶名稱（選填）"
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
+                style={{ ...D.input, fontSize: D.size.caption, padding: '7px 10px' }}
+              />
+            </div>
+          </div>
+
+          {/* Cart items list */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
+            {cart.map(c => (
+              <div key={c.item_number} style={{
+                marginBottom: 8, padding: '9px 10px',
+                background: c.is_preorder ? '#fffbeb' : D.color.muted,
+                borderRadius: D.radius.md,
+                border: c.is_preorder ? `1px solid #fde68a` : `1px solid transparent`,
+              }}>
+                {c.is_preorder && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                    <span style={{ ...D.tag('amber'), fontSize: 9 }}>📅 預定</span>
+                  </div>
+                )}
+                <div style={{ fontSize: D.size.tiny, fontWeight: D.weight.semi, color: D.color.text, lineHeight: 1.35, marginBottom: 6 }}>
+                  <code style={{ fontSize: 10, color: D.color.text3, fontFamily: D.font.mono }}>{c.item_number}</code>
+                  <div>{c.description}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <button onClick={() => updateQty(c.item_number, c.qty - 1)}
+                    style={{ width: 26, height: 26, border: `1px solid ${D.color.border}`, background: '#fff', borderRadius: D.radius.sm, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                  <span style={{ flex: 1, textAlign: 'center', fontSize: D.size.tiny, fontFamily: D.font.mono, fontWeight: D.weight.bold }}>{c.qty}</span>
+                  <button onClick={() => updateQty(c.item_number, c.qty + 1)}
+                    style={{ width: 26, height: 26, border: `1px solid ${D.color.border}`, background: '#fff', borderRadius: D.radius.sm, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                  <span style={{ fontSize: D.size.caption, fontFamily: D.font.mono, color: D.color.brand, fontWeight: D.weight.bold, minWidth: 64, textAlign: 'right' }}>{fmtNT((c.price || 0) * c.qty)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Panel footer */}
+          <div style={{ padding: '12px 14px 14px', borderTop: `1px solid ${D.color.borderLight}` }}>
+            {/* Flow info */}
+            <div style={{
+              background: D.color.brandDim, borderRadius: D.radius.md,
+              padding: '8px 10px', marginBottom: 10, lineHeight: 1.7,
+              fontSize: 10, color: D.color.brand,
+            }}>
+              <div>① 送出訂單 → ② 主系統確認庫存</div>
+              <div>③ 安排出貨 → ④ 到貨通知</div>
+              {hasPreorder && (
+                <div style={{ marginTop: 4, color: '#d97706', fontWeight: D.weight.semi }}>
+                  ⚠️ 含預定商品 → 管理員轉採購單
+                </div>
+              )}
+            </div>
+            {/* Total */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+              <span style={{ fontSize: D.size.caption, color: D.color.text3 }}>合計（未稅）</span>
+              <span style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono }}>{fmtNT(cartTotal)}</span>
+            </div>
+            <button onClick={handlePlaceOrder} disabled={posting}
+              style={{ ...D.btnPrimary, width: '100%', padding: '12px', fontWeight: D.weight.bold, fontSize: D.size.body, opacity: posting ? 0.6 : 1 }}>
+              {posting ? '提交中...' : '✓ 送出訂單'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Mobile: Cart floating bar — sits ABOVE the bottom tab bar (≈68px) ── */}
+      {!isWide && cart.length > 0 && (
         <div style={{
           position: 'fixed', bottom: 68, left: 0, right: 0, zIndex: 150,
           background: '#fff', borderTop: `2px solid ${D.color.brand}`,
           boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
-          padding: '12px 16px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '10px 16px 12px',
           borderRadius: '12px 12px 0 0',
         }}>
-          <div>
-            <div style={{ fontSize: D.size.tiny, color: D.color.text3, fontWeight: D.weight.semi }}>購物車 · {cartCount} 件商品</div>
-            <div style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono, marginTop: 2 }}>{fmtNT(cartTotal)}</div>
+          {/* 銷售對象 input */}
+          <div style={{ marginBottom: 8 }}>
+            <input
+              type="text"
+              placeholder="銷售對象（終端客戶名稱，選填）"
+              value={customerName}
+              onChange={e => setCustomerName(e.target.value)}
+              style={{ ...D.input, fontSize: D.size.caption, padding: '6px 10px', background: D.color.muted, border: `1px solid ${D.color.borderLight}` }}
+            />
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setCart([])} style={{ ...D.btnGhost, padding: '8px 14px', fontSize: D.size.caption }}>清空</button>
-            <button onClick={handlePlaceOrder} disabled={posting}
-              style={{ ...D.btnPrimary, padding: '10px 24px', fontSize: D.size.body, fontWeight: D.weight.bold, opacity: posting ? 0.6 : 1, minWidth: 90 }}>
-              {posting ? '提交中...' : '✓ 送出訂單'}
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: D.size.tiny, color: D.color.text3, fontWeight: D.weight.semi }}>
+                購物車 · {cartCount} 件{hasPreorder ? <span style={{ color: '#d97706', marginLeft: 4 }}>含預定</span> : ''}
+              </div>
+              <div style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono, marginTop: 2 }}>{fmtNT(cartTotal)}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setCart([])} style={{ ...D.btnGhost, padding: '8px 14px', fontSize: D.size.caption }}>清空</button>
+              <button onClick={handlePlaceOrder} disabled={posting}
+                style={{ ...D.btnPrimary, padding: '10px 24px', fontSize: D.size.body, fontWeight: D.weight.bold, opacity: posting ? 0.6 : 1, minWidth: 90 }}>
+                {posting ? '提交中...' : '✓ 送出訂單'}
+              </button>
+            </div>
           </div>
         </div>
       )}
