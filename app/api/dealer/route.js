@@ -189,11 +189,21 @@ export async function GET(request) {
           }
         }
 
-        const rows = (data || []).map((o) => ({
-          ...o,
-          items: itemsMap[o.id] || [],
-          status_label: ORDER_STATUS_LABEL[o.status] || o.status,
-        }));
+        const rows = (data || []).map((o) => {
+          // 向下相容：若 customer_name 為空，嘗試從 remark 解析
+          let customerName = o.customer_name || '';
+          if (!customerName) {
+            const infoBlock = (o.remark || '').split('｜客戶資訊｜')[1] || '';
+            const m = infoBlock.match(/姓名：([^・\n]+)/);
+            if (m) customerName = m[1].trim();
+          }
+          return {
+            ...o,
+            customer_name: customerName,
+            items: itemsMap[o.id] || [],
+            status_label: ORDER_STATUS_LABEL[o.status] || o.status,
+          };
+        });
 
         return jsonOk({ orders: rows, total: count || 0, page, limit });
       }
@@ -862,6 +872,8 @@ export async function POST(request) {
 
       const updateData = { remark: newRemark, updated_at: new Date().toISOString() };
       if (payment_method) updateData.payment_method = payment_method;
+      // 同步寫入 customer_name 欄位，供搜尋使用
+      if (end_customer_name?.trim()) updateData.customer_name = end_customer_name.trim();
       // 業務可將訂單連結到主系統客戶
       if (customer_id && ROLE_CONFIG[user.role]?.can_search_customers) {
         updateData.customer_id = customer_id;

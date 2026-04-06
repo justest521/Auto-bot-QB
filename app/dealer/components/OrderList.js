@@ -180,9 +180,10 @@ export default function OrderList({ token, orders = [], loading = false, selecte
       if (filter === 'done' && o.status !== 'completed' && o.status !== 'delivered') return false;
       if (search) {
         const q = search.toLowerCase();
-        const name = (o.customer_name || '').toLowerCase();
-        const no = (o.order_no || '').toLowerCase();
-        if (!name.includes(q) && !no.includes(q)) return false;
+        const name   = (o.customer_name || '').toLowerCase();
+        const no     = (o.order_no || '').toLowerCase();
+        const remark = (o.remark || '').toLowerCase();
+        if (!name.includes(q) && !no.includes(q) && !remark.includes(q)) return false;
       }
       return true;
     });
