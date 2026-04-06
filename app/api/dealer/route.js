@@ -98,6 +98,7 @@ export async function GET(request) {
         const q = (searchParams.get('q') || '').trim();
         const category = (searchParams.get('category') || '').trim();
         const stockOnly = searchParams.get('stock_only') === '1';
+        const hasImage  = searchParams.get('has_image')  === '1';
 
         let query = supabase
           .from('quickbuy_products')
@@ -111,6 +112,9 @@ export async function GET(request) {
         }
         if (category && category !== 'all') {
           query = query.eq('category', category);
+        }
+        if (hasImage) {
+          query = query.not('image_url', 'is', null).not('image_url', 'eq', '');
         }
 
         const { data, count, error } = await query;
