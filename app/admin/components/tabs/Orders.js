@@ -1294,9 +1294,18 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   );
 }
 
+// ── Status tab groups ──
+const STATUS_GROUPS = [
+  { id: 'action_needed', label: '待處理',  statuses: ['pending', 'pending_approval'],           dot: '#ef4444' },
+  { id: 'in_progress',   label: '備貨出貨', statuses: ['confirmed', 'processing', 'purchasing'], dot: '#f59e0b' },
+  { id: 'shipped',       label: '已出貨',   statuses: ['shipped', 'completed'],                  dot: '#16a34a' },
+  { id: '',              label: '全部',     statuses: [],                                        dot: '#6b7280' },
+  { id: 'cancelled',     label: '已取消',   statuses: ['cancelled', 'rejected'],                 dot: '#d1d5db' },
+];
+
 export default function Orders({ setTab, erpFeatures = {} }) {
   const { isMobile, isTablet } = useResponsive();
-  const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { total_amount: 0, pending_count: 0 } });
+  const [data, setData] = useState({ rows: [], total: 0, page: 1, limit: 20, table_ready: true, summary: { total_amount: 0, pending_count: 0 }, tab_counts: {} });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState(50);
@@ -1305,7 +1314,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
   const [dateFrom, setDateFrom] = useState(() => getPresetDateRange('month').from);
   const [dateTo, setDateTo] = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusGroupId, setStatusGroupId] = useState('action_needed'); // default: 待處理
   const [approvalMap, setApprovalMap] = useState({});
   const [showCreate, setShowCreate] = useState(false);
   // ★ 新增：選中的訂單（進入詳情頁）
@@ -1339,20 +1348,22 @@ export default function Orders({ setTab, erpFeatures = {} }) {
   const PAY_STATUS_MAP = { unpaid: '未付款', partial: '部分付款', paid: '已付款' };
   const SHIP_STATUS_MAP = { pending: '待出貨', partial: '部分出貨', shipped: '已出貨', delivered: '已送達' };
 
-  const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
+  const load = useCallback(async (page = 1, q = search, limit = pageSize, groupId = statusGroupId) => {
     setLoading(true);
     try {
       const params = { action: 'orders', page: String(page), limit: String(limit), search: q };
       if (dateFrom) params.date_from = dateFrom;
       if (dateTo) params.date_to = dateTo;
-      if (statusFilter) params.status = statusFilter;
+      // Compute status filter from group
+      const group = STATUS_GROUPS.find(g => g.id === groupId);
+      if (group?.statuses?.length > 0) params.status = group.statuses.join(',');
       const result = await apiGet(params);
       setData(result);
       return result;
     } finally {
       setLoading(false);
     }
-  }, [search, pageSize, dateFrom, dateTo, statusFilter]);
+  }, [search, pageSize, dateFrom, dateTo, statusGroupId]);
 
   useEffect(() => { load(); }, []);
 
@@ -1398,7 +1409,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
     else { const range = getPresetDateRange(preset); setDateFrom(range.from); setDateTo(range.to); }
   };
 
-  const doSearch = () => load(1, search, pageSize);
+  const doSearch = () => load(1, search, pageSize, statusGroupId);
 
   const handleExport = async () => {
     try {
@@ -1447,6 +1458,45 @@ export default function Orders({ setTab, erpFeatures = {} }) {
           {actionMessage}
         </div>
       ) : null}
+      {/* ── Status Tab Group ── */}
+      <div style={{ display: 'flex', gap: 0, marginBottom: 10, background: t.color.bgCard, border: `1px solid ${t.color.borderLight}`, borderRadius: t.radius.lg, padding: 4, flexWrap: 'wrap' }}>
+        {STATUS_GROUPS.map(g => {
+          const isActive = statusGroupId === g.id;
+          const cnt = g.id === 'action_needed' ? data.tab_counts?.action_needed
+                    : g.id === 'in_progress'   ? data.tab_counts?.in_progress
+                    : g.id === 'shipped'        ? data.tab_counts?.shipped
+                    : g.id === 'cancelled'      ? data.tab_counts?.cancelled
+                    : data.total;
+          return (
+            <button key={g.id} onClick={() => { setStatusGroupId(g.id); load(1, search, pageSize, g.id); }}
+              style={{
+                flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: isMobile ? '7px 10px' : '8px 16px', borderRadius: t.radius.md, cursor: 'pointer',
+                border: 'none', transition: 'all 0.15s',
+                background: isActive ? '#fff' : 'transparent',
+                boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                color: isActive ? t.color.textPrimary : t.color.textMuted,
+                fontWeight: isActive ? t.fontWeight.bold : t.fontWeight.normal,
+                fontSize: isMobile ? 12 : t.fontSize.body,
+                whiteSpace: 'nowrap',
+              }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: isActive ? g.dot : '#d1d5db', flexShrink: 0, transition: 'background 0.15s' }} />
+              {g.label}
+              {cnt != null && cnt > 0 && (
+                <span style={{
+                  fontSize: 11, fontWeight: t.fontWeight.bold, fontFamily: 'monospace',
+                  padding: '1px 7px', borderRadius: 99,
+                  background: isActive ? g.dot : t.color.bgMuted,
+                  color: isActive ? '#fff' : t.color.textMuted,
+                  transition: 'all 0.15s',
+                }}>{cnt}</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Date & Search filters ── */}
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
@@ -1455,17 +1505,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
           {!isMobile && <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: t.fontSize.h3, padding: '6px 10px', ...S.mono }} />}
           {!isMobile && <span style={{ color: t.color.textMuted, fontSize: t.fontSize.h3 }}>~</span>}
           {!isMobile && <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: t.fontSize.h3, padding: '6px 10px', ...S.mono }} />}
-          {!isMobile && <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ ...S.input, width: 150, fontSize: t.fontSize.h3, padding: '6px 10px' }}>
-            <option value="">全部狀態</option>
-            <option value="draft">草稿</option>
-            <option value="pending_approval">待審核</option>
-            <option value="confirmed">已核准</option>
-            <option value="processing">出貨中</option>
-            <option value="completed">完成</option>
-            <option value="rejected">已駁回</option>
-            <option value="cancelled">已取消</option>
-          </select>}
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder={isMobile ? "搜尋..." : "搜尋訂單號..."} style={{ ...S.input, flex: 1, minWidth: isMobile ? 120 : 160, fontSize: isMobile ? 13 : 14, padding: isMobile ? '6px 8px' : '6px 10px' }} />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder={isMobile ? "搜尋..." : "搜尋訂單號、客戶..."} style={{ ...S.input, flex: 1, minWidth: isMobile ? 120 : 160, fontSize: isMobile ? 13 : 14, padding: isMobile ? '6px 8px' : '6px 10px' }} />
           <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '6px 12px' : '6px 18px', fontSize: isMobile ? 12 : 14 }}>查詢</button>
         </div>
       </div>
