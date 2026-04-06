@@ -60,6 +60,10 @@ const StockTransfer = dyn('StockTransfer');
 const StockAssembly = dyn('StockAssembly');
 const PSIReport = dyn('PSIReport');
 const ShipmentAnalysis = dyn('ShipmentAnalysis');
+const InventoryTurnover = dyn('InventoryTurnover');
+const CustomerRFM = dyn('CustomerRFM');
+const PurchaseEfficiency = dyn('PurchaseEfficiency');
+const ARAgingReport = dyn('ARAgingReport');
 const FinancialReport = dyn('FinancialReport');
 const DealerUsers = dyn('DealerUsers');
 const DealerOrders = dyn('DealerOrders');
@@ -169,6 +173,10 @@ const SECTIONS = [
   { title: '分析報表', tabs: [
     { id: 'psi_report', label: '進銷存報表', code: 'PSI' },
     { id: 'shipment_analysis', label: '出貨分析', code: 'SHIP' },
+    { id: 'inventory_turnover', label: '庫存周轉率', code: 'TURN' },
+    { id: 'customer_rfm', label: '客戶RFM', code: 'RFM' },
+    { id: 'purchase_efficiency', label: '採購效率', code: 'PEFF' },
+    { id: 'ar_aging', label: '應收帳款老化', code: 'ARAG' },
     { id: 'financial_report', label: '財務報表', code: 'FIN' },
     { id: 'sales_returns', label: '銷退貨彙總', code: 'RETN' },
     { id: 'profit_analysis', label: '利潤分析', code: 'PFT' },
@@ -255,6 +263,10 @@ const TAB_META = {
   stock_assemblies: { eyebrow: 'Assembly', title: '組合單', desc: '將原料組合成套件或成品。' },
   psi_report: { eyebrow: 'PSI Report', title: '進銷存報表', desc: '銷貨、進貨、退貨金額彙總。' },
   shipment_analysis: { eyebrow: 'Shipment', title: '出貨分析報表', desc: '按品號、客戶、月份統計出貨量與趨勢。' },
+  inventory_turnover: { eyebrow: 'Inventory Turnover', title: '庫存周轉率分析', desc: '各品號周轉率、滯銷品與庫存積壓分析。' },
+  customer_rfm: { eyebrow: 'Customer RFM', title: '客戶 RFM 分析', desc: '依 R/F/M 三維度分層客戶，精準掌握高價值與流失風險客群。' },
+  purchase_efficiency: { eyebrow: 'Purchase Efficiency', title: '採購效率分析', desc: '廠商履約率、準時率與平均交期分析。' },
+  ar_aging: { eyebrow: 'AR Aging', title: '應收帳款老化表', desc: '未收款項帳齡分布，辨識收款風險。' },
   financial_report: { eyebrow: 'Financial', title: '財務報表', desc: '應收帳款、應付帳款與淨現金流。' },
   sales_returns: { eyebrow: 'Returns', title: '銷退貨彙總', desc: '銷貨與退貨單據彙總。' },
   profit_analysis: { eyebrow: 'Profit', title: '利潤分析', desc: '銷貨利潤、成本與毛利分析。' },
@@ -324,6 +336,10 @@ const TAB_COMPONENTS = {
   stock_assemblies: StockAssembly,
   psi_report: PSIReport,
   shipment_analysis: ShipmentAnalysis,
+  inventory_turnover: InventoryTurnover,
+  customer_rfm: CustomerRFM,
+  purchase_efficiency: PurchaseEfficiency,
+  ar_aging: ARAgingReport,
   financial_report: FinancialReport,
   dealer_users: DealerUsers,
   dealer_orders: DealerOrders,

@@ -64,6 +64,10 @@ export default function ReportCenter({ setTab }) {
           <div style={{ display: 'grid', gap: 10 }}>
             <ReportShortcut code="DASH" title="儀表板" desc="綜合 KPI、趨勢、互動概況。" onClick={() => setTab?.('dashboard')} tone="blue" />
             <ReportShortcut code="SHIP" title="出貨分析報表" desc="品號出貨排行、客戶出貨排行、月別趨勢圖。" onClick={() => setTab?.('shipment_analysis')} tone="green" />
+            <ReportShortcut code="TURN" title="庫存周轉率分析" desc="品號周轉率、滯銷品清單、庫存積壓分析與庫存總值。" onClick={() => setTab?.('inventory_turnover')} tone="blue" />
+            <ReportShortcut code="RFM" title="客戶 RFM 分析" desc="依最近購買、頻率、金額分層客戶，找出VIP與流失風險。" onClick={() => setTab?.('customer_rfm')} tone="yellow" />
+            <ReportShortcut code="PEFF" title="採購效率分析" desc="廠商履約率、準時率、平均交期與月別採購趨勢。" onClick={() => setTab?.('purchase_efficiency')} tone="red" />
+            <ReportShortcut code="ARAG" title="應收帳款老化表" desc="按帳齡分層逾期應收款，辨識高風險客戶與收款缺口。" onClick={() => setTab?.('ar_aging')} tone="blue" />
             <ReportShortcut code="IMPT" title="資料匯入中心" desc="CSV / XLSX 對應匯入客戶、供應商、報價、訂單、銷貨與報表資料。" onClick={() => setTab?.('imports')} tone="green" />
             <ReportShortcut code="MSG" title="客服/AI 對話紀錄" desc="雖然不是鼎新 A1 原生模組，但可對應客服紀錄與詢價來源。" onClick={() => setTab?.('messages')} tone="yellow" />
           </div>
