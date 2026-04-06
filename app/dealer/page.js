@@ -314,6 +314,11 @@ export default function DealerPortal() {
               cart={cart}
               setCart={setCart}
               isWide={isWide}
+              onOrderPlaced={(orderId) => {
+                setActiveTab('orders');
+                loadOrders();
+                if (orderId) setTimeout(() => loadOrderDetail(orderId), 400);
+              }}
             />
           </div>
         );

@@ -112,7 +112,7 @@ function CustomerPlainInput({ value, onChange, error }) {
   );
 }
 
-export default function Procurement({ token, user, roleConfig, dealerGet, dealerPost, cart, setCart, isWide }) {
+export default function Procurement({ token, user, roleConfig, dealerGet, dealerPost, cart, setCart, isWide, onOrderPlaced }) {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [stockOnly, setStockOnly] = useState(false);
@@ -162,10 +162,10 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
         items: cart.map(c => ({ item_number: c.item_number, qty: c.qty, is_preorder: c.is_preorder || false })),
       });
       if (res?.success || res?.order) {
-        alert('訂單提交成功！');
         setCart([]);
         setCustomerName('');
-        fetchProducts(search, page, stockOnly);
+        // 跳回訂單頁並自動帶出剛建立的訂單
+        if (onOrderPlaced) onOrderPlaced(res?.order?.id);
       } else {
         alert('提交失敗，請重試');
       }
