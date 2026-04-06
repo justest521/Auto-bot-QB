@@ -264,6 +264,8 @@ export default function DealerPortal() {
                   <OrderDetail
                     order={selectedOrder}
                     token={token}
+                    user={user}
+                    dealerGet={dealerGet}
                     dealerPost={dealerPost}
                     onBack={null}
                     onRefresh={() => { loadOrders(); loadOrderDetail(selectedOrderId); }}
@@ -286,6 +288,8 @@ export default function DealerPortal() {
             <OrderDetail
               order={selectedOrder}
               token={token}
+              user={user}
+              dealerGet={dealerGet}
               dealerPost={dealerPost}
               onBack={() => { setSelectedOrder(null); setSelectedOrderId(null); }}
               onRefresh={() => { loadOrders(); loadOrderDetail(selectedOrderId); }}

@@ -667,8 +667,8 @@ export async function GET(request) {
         const eq = escapePostgrestValue(safeSearch(q));
         const { data, error } = await supabase
           .from('erp_customers')
-          .select('id, name, company_name, phone, address')
-          .or(`name.ilike.%${eq}%,company_name.ilike.%${eq}%,phone.ilike.%${eq}%`)
+          .select('id, name, company_name, phone, email, address, tax_id')
+          .or(`name.ilike.%${eq}%,company_name.ilike.%${eq}%,phone.ilike.%${eq}%,tax_id.ilike.%${eq}%`)
           .not('status', 'eq', 'inactive')
           .order('company_name', { ascending: true })
           .limit(10);
@@ -827,26 +827,33 @@ export async function POST(request) {
     }
 
     case 'update_my_order': {
-      // 經銷商補填訂單資訊（客戶姓名/電話/結帳方式）
-      const { order_id, end_customer_name, end_customer_phone, payment_method, dealer_note } = body;
+      // 補填訂單資訊（客戶姓名/電話/地址/email/結帳方式）
+      const { order_id, customer_id, end_customer_name, end_customer_phone,
+              end_customer_email, end_customer_address, payment_method, dealer_note } = body;
       if (!order_id) return jsonErr('order_id required');
 
       const { data: existing } = await supabase.from('erp_orders')
         .select('id, remark').eq('id', order_id).eq('dealer_user_id', user.id).maybeSingle();
       if (!existing) return jsonErr('訂單不存在或無權限', 404);
 
-      // Rebuild remark: keep original dealer prefix, append new customer info block
+      // Rebuild remark: keep original dealer prefix, append customer info block
       const baseRemark = (existing.remark || '').split('｜客戶資訊｜')[0].trimEnd();
       const customerParts = [];
-      if (end_customer_name?.trim()) customerParts.push(`姓名：${end_customer_name.trim()}`);
-      if (end_customer_phone?.trim()) customerParts.push(`電話：${end_customer_phone.trim()}`);
-      if (dealer_note?.trim()) customerParts.push(`備註：${dealer_note.trim()}`);
+      if (end_customer_name?.trim())    customerParts.push(`姓名：${end_customer_name.trim()}`);
+      if (end_customer_phone?.trim())   customerParts.push(`電話：${end_customer_phone.trim()}`);
+      if (end_customer_email?.trim())   customerParts.push(`Email：${end_customer_email.trim()}`);
+      if (end_customer_address?.trim()) customerParts.push(`地址：${end_customer_address.trim()}`);
+      if (dealer_note?.trim())          customerParts.push(`備註：${dealer_note.trim()}`);
       const newRemark = customerParts.length > 0
         ? `${baseRemark} ｜客戶資訊｜ ${customerParts.join('・')}`
         : baseRemark;
 
       const updateData = { remark: newRemark, updated_at: new Date().toISOString() };
       if (payment_method) updateData.payment_method = payment_method;
+      // 業務可將訂單連結到主系統客戶
+      if (customer_id && ROLE_CONFIG[user.role]?.can_search_customers) {
+        updateData.customer_id = customer_id;
+      }
 
       const { error: updErr } = await supabase.from('erp_orders').update(updateData).eq('id', order_id);
       if (updErr) return jsonErr(updErr.message, 500);
@@ -856,7 +863,7 @@ export async function POST(request) {
     case 'create_customer': {
       // 業務專用：在主系統新增客戶並同步
       if (!ROLE_CONFIG[user.role]?.can_search_customers) return jsonErr('無權限新增客戶', 403);
-      const { name, phone, address } = body;
+      const { name, phone, email, address } = body;
       if (!name?.trim()) return jsonErr('客戶名稱必填');
       // Check for duplicate
       const { data: existing } = await supabase
@@ -872,6 +879,7 @@ export async function POST(request) {
           name: name.trim(),
           company_name: name.trim(),
           phone: phone?.trim() || null,
+          email: email?.trim() || null,
           address: address?.trim() || null,
           status: 'active',
           customer_stage: 'customer',
