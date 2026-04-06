@@ -20,9 +20,9 @@ function StatCard({ label, value, tone }) {
   };
   const tc = TONE_MAP[tone] || TONE_MAP.gray;
   return (
-    <div style={{ ...S.card, padding: '14px 16px', borderTop: `3px solid ${tc.color}` }}>
-      <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 8, marginTop: 2 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: t.fontWeight.bold, color: tc.color, ...S.mono }}>{value}</div>
+    <div style={{ ...S.card, padding: '16px', textAlign: 'center', borderTop: `3px solid ${tc.color}` }}>
+      <div style={{ fontSize: 24, fontWeight: 800, color: tc.color, ...S.mono }}>{value}</div>
+      <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>{label}</div>
     </div>
   );
 }
@@ -211,11 +211,11 @@ export default function Invoices() {
             const cCenter  = { ...cell, justifyContent: 'center' };
             const cRight   = { ...cell, justifyContent: 'flex-end', borderRight: 'none' };
             const hasInv   = Boolean(row.invoice_no);
-            const rowBg    = idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted;
+            const rowBg    = idx % 2 === 0 ? t.color.bgCard : '#fafbfd';
             return (
               <div key={row.id}
-                style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: `1px solid ${t.color.borderLight}`, background: rowBg, transition: 'background 0.1s' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = t.color.infoBg}
+                style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: `1px solid ${t.color.borderLight}`, background: rowBg, transition: 'background 0.15s', cursor: 'pointer' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'}
                 onMouseLeave={(e) => e.currentTarget.style.background = rowBg}>
                 {/* 序 */}
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{idx + 1}</div>
