@@ -321,7 +321,8 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                         </div>
                       </div>
                     </div>
-                    {p.retail_price > 0 && (
+                    {/* 只有在建議售價與主價格不同時才顯示（避免重複） */}
+                    {p.retail_price > 0 && p.retail_price !== p.price && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 8px', background: D.color.muted, borderRadius: D.radius.sm }}>
                         <span style={{ fontSize: D.size.tiny, color: D.color.text3, fontWeight: D.weight.semi }}>建議售價</span>
                         <span style={{ fontSize: D.size.caption, fontWeight: D.weight.bold, color: D.color.text, fontFamily: D.font.mono }}>{fmtNT(p.retail_price)}</span>

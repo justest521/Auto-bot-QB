@@ -32,25 +32,25 @@ function jsonErr(msg, status = 400) { return Response.json({ error: msg }, { sta
 const ROLE_CONFIG = {
   dealer: {
     label: '經銷商',
-    price_field: 'tw_reseller_price',
-    price_label: '經銷價',
+    price_field: 'tw_retail_price',  // 台灣牌價（非成本）
+    price_label: '牌價',
     can_see_cost: false,
-    can_see_all_orders: false, // only own company's orders
+    can_see_all_orders: false,
   },
   sales: {
     label: '業務',
-    price_field: 'tw_reseller_price',
-    price_label: '經銷價',
+    price_field: 'tw_retail_price',  // 台灣牌價（成本另由 can_see_cost 欄位顯示）
+    price_label: '牌價',
     can_see_cost: true,
-    can_see_all_orders: false, // only own orders
-    can_search_customers: true, // 業務可搜尋主系統客戶
+    can_see_all_orders: false,
+    can_search_customers: true,
   },
   technician: {
     label: '維修技師',
     price_field: 'tw_retail_price',
-    price_label: '零售價',
+    price_label: '牌價',
     can_see_cost: false,
-    can_see_all_orders: false, // only own orders
+    can_see_all_orders: false,
   },
 };
 
@@ -100,11 +100,10 @@ export async function GET(request) {
         const category = (searchParams.get('category') || '').trim();
         const stockOnly = searchParams.get('stock_only') === '1';
 
+        // Build query — apply all filters BEFORE .range() so count & pagination are correct
         let query = supabase
           .from('quickbuy_products')
-          .select('*', { count: 'exact' })
-          .order('item_number', { ascending: true })
-          .range(offset, offset + limit - 1);
+          .select('*', { count: 'exact' });
 
         if (q) {
           const eq = escapePostgrestValue(safeSearch(q));
@@ -113,13 +112,23 @@ export async function GET(request) {
         if (category && category !== 'all') {
           query = query.eq('category', category);
         }
+        if (stockOnly) {
+          // Filter in SQL so pagination & total count are accurate
+          query = query.gt('stock_qty', 0)
+            .order('stock_qty', { ascending: false })  // 庫存多的排前面
+            .order('item_number', { ascending: true });
+        } else {
+          query = query.order('item_number', { ascending: true });
+        }
+
+        query = query.range(offset, offset + limit - 1);
 
         const { data, count, error } = await query;
         if (error) return jsonErr(error.message, 500);
 
         const roleConfig = ROLE_CONFIG[user.role] || ROLE_CONFIG.dealer;
         const hasPersonalDiscount = user.discount_rate != null && user.discount_rate > 0;
-        let rows = (data || []).map((p) => {
+        const rows = (data || []).map((p) => {
           const retailPrice = Number(p.tw_retail_price || 0);
           const basePrice = hasPersonalDiscount
             ? Math.round(retailPrice * user.discount_rate)
@@ -133,20 +142,16 @@ export async function GET(request) {
             image_url: p.image_url || null,
             price: basePrice,
             price_label: hasPersonalDiscount ? `${Math.round(user.discount_rate * 100)}折價` : roleConfig.price_label,
-            retail_price: retailPrice,  // 建議售價：所有角色皆可查看
+            retail_price: retailPrice,
             stock_qty: user.can_see_stock !== false ? Number(p.stock_qty || 0) : null,
             safety_stock: user.can_see_stock !== false ? Number(p.safety_stock || 0) : null,
           };
           if (roleConfig.can_see_cost) {
             item.us_price = Number(p.us_price || 0);
-            item.reseller_price = Number(p.tw_reseller_price || 0);
+            item.reseller_price = Number(p.tw_reseller_price || 0);  // 進貨成本（業務可見）
           }
           return item;
         });
-
-        if (stockOnly) {
-          rows = rows.filter((r) => r.stock_qty > 0);
-        }
 
         return jsonOk({ products: rows, total: count || 0, page, limit });
       }
