@@ -113,7 +113,7 @@ function OrderCard({ order, isSelected, onSelect }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: D.size.h3, fontWeight: D.weight.bold, color: D.color.text, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {order.customer_name || order.customer_company || `#${order.id}`}
+            {order.customer_name || order.linked_customer_name || order.customer_company || `#${order.id}`}
           </div>
           <div style={{ fontSize: D.size.tiny, color: D.color.text3, fontFamily: D.font.mono, marginTop: 3, letterSpacing: '0.03em' }}>
             {order.order_no || `ORD-${order.id}`}
@@ -180,10 +180,11 @@ export default function OrderList({ token, orders = [], loading = false, selecte
       if (filter === 'done' && o.status !== 'completed' && o.status !== 'delivered') return false;
       if (search) {
         const q = search.toLowerCase();
-        const name   = (o.customer_name || '').toLowerCase();
-        const no     = (o.order_no || '').toLowerCase();
-        const remark = (o.remark || '').toLowerCase();
-        if (!name.includes(q) && !no.includes(q) && !remark.includes(q)) return false;
+        const name        = (o.customer_name || '').toLowerCase();
+        const linkedName  = (o.linked_customer_name || '').toLowerCase();
+        const no          = (o.order_no || '').toLowerCase();
+        const remark      = (o.remark || '').toLowerCase();
+        if (!name.includes(q) && !linkedName.includes(q) && !no.includes(q) && !remark.includes(q)) return false;
       }
       return true;
     });

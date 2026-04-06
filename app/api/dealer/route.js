@@ -189,6 +189,19 @@ export async function GET(request) {
           }
         }
 
+        // Get linked customer names from main system
+        const customerIds = [...new Set((data || []).map(o => o.customer_id).filter(Boolean))];
+        let customerMap = {};
+        if (customerIds.length) {
+          const { data: customers } = await supabase
+            .from('erp_customers')
+            .select('id, name, company_name')
+            .in('id', customerIds);
+          for (const c of (customers || [])) {
+            customerMap[c.id] = c.company_name || c.name || '';
+          }
+        }
+
         const rows = (data || []).map((o) => {
           // 向下相容：若 customer_name 為空，嘗試從 remark 解析
           let customerName = o.customer_name || '';
@@ -197,9 +210,12 @@ export async function GET(request) {
             const m = infoBlock.match(/姓名：([^・\n]+)/);
             if (m) customerName = m[1].trim();
           }
+          // 主系統客戶名稱（供搜尋用，不覆蓋 customer_name 顯示）
+          const linked_customer_name = o.customer_id ? (customerMap[o.customer_id] || '') : '';
           return {
             ...o,
             customer_name: customerName,
+            linked_customer_name,
             items: itemsMap[o.id] || [],
             status_label: ORDER_STATUS_LABEL[o.status] || o.status,
           };
