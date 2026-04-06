@@ -75,9 +75,6 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
         const result = await apiGet({ action: 'order_items_with_stock', order_id: order.id });
         const loadedItems = result.items || [];
         setItems(loadedItems);
-        // Auto-select in-stock items that haven't been fully sold
-        const autoIds = loadedItems.filter(i => i.stock_status === 'sufficient' && !(i.sale_info && Number(i.remaining_qty || 0) <= 0)).map(i => i.id);
-        if (autoIds.length > 0) setSelectedItemIds(new Set(autoIds));
         setLinkedSales(result.linked_sales || []);
         setLinkedPOs(result.linked_pos || []);
         setTimeline(result.timeline || []);
@@ -612,7 +609,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                           ) : hasPO ? (
                             <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: '#d97706' }}>✓ 已採</span>
                           ) : (
-                            <input type="checkbox" checked={isChecked} onChange={() => {}} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
+                            <input type="checkbox" checked={isChecked} onChange={() => toggleItemSelect(item.id)} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                           )}
                         </div>
                         <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number_snapshot} — ${item.description_snapshot || ''}`}>
