@@ -111,24 +111,26 @@ function CustomerSearch({ token, dealerGet, dealerPost, onSelect }) {
 export default function OrderDetail({ order, token, user, dealerGet, dealerPost, onBack, onRefresh }) {
   if (!order) return null;
 
-  const isSalesRole = user?.role === 'sales';
+  const canSearchCustomers = user?.role === 'sales' || user?.role === 'technician';
   const pct = order.total_amount > 0 ? Math.round(((order.paid_amount || 0) / order.total_amount) * 100) : 0;
   const remaining = (order.total_amount || 0) - (order.paid_amount || 0);
 
   const ci = parseCustomerInfo(order.remark || '');
+  const lc = order.linked_customer; // customer from main system (if previously linked)
   const [form, setForm] = useState({
     customer_id: order.customer_id || '',
-    end_customer_name: ci.name || '',
-    end_customer_phone: ci.phone || '',
-    end_customer_email: ci.email || '',
-    end_customer_address: ci.address || '',
+    // Prefer remark data (user-typed), fall back to linked customer data
+    end_customer_name:    ci.name    || lc?.company_name || lc?.name    || '',
+    end_customer_phone:   ci.phone   || lc?.phone   || '',
+    end_customer_email:   ci.email   || lc?.email   || '',
+    end_customer_address: ci.address || lc?.address || '',
     payment_method: order.payment_method || '',
     dealer_note: ci.note || '',
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [linkedCustomer, setLinkedCustomer] = useState(
-    order.customer_id ? { id: order.customer_id, company_name: order.customer_name || order.customer_company || '' } : null
+    order.linked_customer || (order.customer_id ? { id: order.customer_id, company_name: '' } : null)
   );
 
   const isNewOrder = ['pending', 'draft', 'pending_review'].includes(order.status);
@@ -217,19 +219,25 @@ export default function OrderDetail({ order, token, user, dealerGet, dealerPost,
       <div style={{ ...D.card, padding: 16, marginBottom: 12 }}>
         <div style={{ ...D.sectionLabel, marginBottom: 14 }}>客戶資訊 & 結帳方式</div>
 
-        {/* Sales role: search + linked customer badge */}
-        {isSalesRole && dealerGet && (
+        {/* Sales / Technician role: search + linked customer badge */}
+        {canSearchCustomers && dealerGet && (
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: D.size.tiny, color: D.color.text3, marginBottom: 4 }}>
               搜尋主系統客戶
               {linkedCustomer?.id && <span style={{ marginLeft: 8, color: D.color.brand }}>✓ 已連結</span>}
             </div>
-            {linkedCustomer?.company_name && (
+            {linkedCustomer?.id && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: D.color.brandDim, borderRadius: D.radius.md, marginBottom: 6 }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={D.color.brand} strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span style={{ fontSize: D.size.caption, color: D.color.brand, fontWeight: D.weight.semi }}>{linkedCustomer.company_name}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: D.size.caption, color: D.color.brand, fontWeight: D.weight.semi }}>
+                    {linkedCustomer.company_name || linkedCustomer.name || '已連結客戶'}
+                  </span>
+                  {linkedCustomer.tax_id && <span style={{ marginLeft: 8, fontSize: 10, color: D.color.text3 }}>統編 {linkedCustomer.tax_id}</span>}
+                  {linkedCustomer.phone && <span style={{ marginLeft: 8, fontSize: 10, color: D.color.text3 }}>📞 {linkedCustomer.phone}</span>}
+                </div>
                 <button onClick={() => { setLinkedCustomer(null); setForm(f => ({ ...f, customer_id: '' })); }}
-                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: D.color.brand, fontSize: 14 }}>×</button>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: D.color.brand, fontSize: 14, padding: '0 4px' }}>×</button>
               </div>
             )}
             <CustomerSearch token={token} dealerGet={dealerGet} dealerPost={dealerPost} onSelect={handleSelectCustomer} />

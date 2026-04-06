@@ -51,6 +51,7 @@ const ROLE_CONFIG = {
     price_label: '牌價',
     can_see_cost: false,
     can_see_all_orders: false,
+    can_search_customers: true,
   },
 };
 
@@ -263,8 +264,19 @@ export async function GET(request) {
           .order('created_at', { ascending: false })
           .limit(1);
 
+        // Fetch linked customer from main system if customer_id exists
+        let linkedCustomer = null;
+        if (order.customer_id) {
+          const { data: cust } = await supabase
+            .from('erp_customers')
+            .select('id, name, company_name, phone, email, address, tax_id')
+            .eq('id', order.customer_id)
+            .maybeSingle();
+          linkedCustomer = cust || null;
+        }
+
         return jsonOk({
-          order: { ...order, items: items || [], shipment: (shipments || [])[0] || null },
+          order: { ...order, items: items || [], shipment: (shipments || [])[0] || null, linked_customer: linkedCustomer },
         });
       }
 
