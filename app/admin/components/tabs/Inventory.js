@@ -65,6 +65,7 @@ export default function Inventory() {
         { key: 'category', label: '分類' },
         { key: 'stock_qty', label: '庫存數量' },
         { key: 'safety_stock', label: '安全水位' },
+        { key: 'cost_price', label: '最近進貨成本' },
         { key: 'product_status', label: '狀態' },
       ], `庫存清單_${new Date().toISOString().slice(0, 10)}.csv`);
     } catch { alert('匯出失敗'); }
@@ -73,7 +74,7 @@ export default function Inventory() {
   const sorted = [...(data.items || [])].sort((a, b) => {
     if (!sortKey) return 0;
     let av = a[sortKey], bv = b[sortKey];
-    if (sortKey === 'stock_qty' || sortKey === 'safety_stock') { av = Number(av || 0); bv = Number(bv || 0); }
+    if (sortKey === 'stock_qty' || sortKey === 'safety_stock' || sortKey === 'cost_price') { av = Number(av || 0); bv = Number(bv || 0); }
     else { av = String(av || '').toLowerCase(); bv = String(bv || '').toLowerCase(); }
     if (av < bv) return sortDir === 'asc' ? -1 : 1;
     if (av > bv) return sortDir === 'asc' ? 1 : -1;
@@ -154,12 +155,13 @@ export default function Inventory() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                         <div><div style={S.label}>牌價</div><div style={{ color: t.color.textPrimary, fontSize: t.fontSize.h3, ...S.mono }}>{fmtP(it.tw_retail_price)}</div></div>
                         <div><div style={S.label}>進貨價</div><div style={{ color: t.color.warning, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(it.tw_reseller_price)}</div></div>
+                        <div><div style={S.label}>最近進貨成本</div><div style={{ color: it.cost_price > 0 ? '#0369a1' : t.color.textDisabled, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, ...S.mono }}>{it.cost_price > 0 ? fmtP(it.cost_price) : '-'}</div></div>
+                        <div><div style={S.label}>成本毛利率</div><div style={{ color: it.tw_retail_price > 0 && it.cost_price > 0 ? t.color.success : t.color.textDisabled, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{it.tw_retail_price > 0 && it.cost_price > 0 ? `${Math.round((1 - it.cost_price / it.tw_retail_price) * 100)}%` : '-'}</div></div>
                         <div><div style={S.label}>US PRICE</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3, ...S.mono }}>{it.us_price ? `$${Number(it.us_price).toFixed(2)}` : '-'}</div></div>
-                        <div><div style={S.label}>毛利率</div><div style={{ color: it.tw_retail_price > 0 && it.tw_reseller_price > 0 ? t.color.success : t.color.textDisabled, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{it.tw_retail_price > 0 && it.tw_reseller_price > 0 ? `${Math.round((1 - it.tw_reseller_price / it.tw_retail_price) * 100)}%` : '-'}</div></div>
+                        <div><div style={S.label}>分類</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.body }}>{it.category || '-'}</div></div>
                         <div><div style={S.label}>重量</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.body, ...S.mono }}>{it.weight_kg ? `${it.weight_kg} kg` : '-'}</div></div>
                         <div><div style={S.label}>產地</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.body }}>{it.origin_country || '-'}</div></div>
                         <div><div style={S.label}>替代型號</div><div style={{ color: it.replacement_model ? t.color.link : t.color.textMuted, fontSize: t.fontSize.body, ...S.mono }}>{it.replacement_model || '-'}</div></div>
-                        <div><div style={S.label}>分類</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.body }}>{it.category || '-'}</div></div>
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={(e) => { e.stopPropagation(); setEditingProduct(it); }} style={{ ...S.btnGhost, flex: 1, minHeight: 40, fontSize: t.fontSize.caption }}>編輯商品</button>
@@ -181,6 +183,7 @@ export default function Inventory() {
                 <div style={{ width: 100, textAlign: 'center' }}>分類</div>
                 <div style={{ width: 80, textAlign: 'right', cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('stock_qty')}>庫存{sortKey === 'stock_qty' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ⇅'}</div>
                 <div style={{ width: 80, textAlign: 'right', cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('safety_stock')}>安全水位{sortKey === 'safety_stock' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ⇅'}</div>
+                <div style={{ width: 100, textAlign: 'right', cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('cost_price')}>成本{sortKey === 'cost_price' ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ⇅'}</div>
                 <div style={{ width: 80, textAlign: 'center' }}>狀態</div>
                 <div style={{ width: 80, textAlign: 'center' }}>操作</div>
               </div>
@@ -225,6 +228,8 @@ export default function Inventory() {
                     <div style={{ width: 80, textAlign: 'right', fontWeight: t.fontWeight.bold, color: stockColor(it), ...S.mono, flexShrink: 0 }}>{it.stock_qty ?? 0}</div>
                     {/* Safety stock */}
                     <div style={{ width: 80, textAlign: 'right', color: t.color.textSecondary, ...S.mono, flexShrink: 0 }}>{it.safety_stock ?? 0}</div>
+                    {/* Cost price */}
+                    <div style={{ width: 100, textAlign: 'right', color: it.cost_price > 0 ? t.color.textPrimary : t.color.textDisabled, ...S.mono, flexShrink: 0 }}>{it.cost_price > 0 ? fmtP(it.cost_price) : '-'}</div>
                     {/* Status */}
                     <div style={{ width: 80, textAlign: 'center', flexShrink: 0 }}>
                       <span style={S.tag(it.product_status === 'Current' ? 'green' : it.product_status === 'Discontinued' ? 'red' : 'default')}>{STATUS_LABEL[it.product_status] || it.product_status || '-'}</span>
@@ -264,8 +269,9 @@ export default function Inventory() {
                       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isTablet ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
                         <div><div style={S.label}>牌價</div><div style={{ color: t.color.textPrimary, fontSize: t.fontSize.h3, ...S.mono }}>{fmtP(it.tw_retail_price)}</div></div>
                         <div><div style={S.label}>進貨價</div><div style={{ color: t.color.warning, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(it.tw_reseller_price)}</div></div>
+                        <div><div style={S.label}>最近進貨成本</div><div style={{ color: it.cost_price > 0 ? '#0369a1' : t.color.textDisabled, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, ...S.mono }}>{it.cost_price > 0 ? fmtP(it.cost_price) : '-'}</div></div>
+                        <div><div style={S.label}>成本毛利率</div><div style={{ color: it.tw_retail_price > 0 && it.cost_price > 0 ? t.color.success : t.color.textDisabled, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{it.tw_retail_price > 0 && it.cost_price > 0 ? `${Math.round((1 - it.cost_price / it.tw_retail_price) * 100)}%` : '-'}</div></div>
                         <div><div style={S.label}>US PRICE</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3, ...S.mono }}>{it.us_price ? `$${Number(it.us_price).toFixed(2)}` : '-'}</div></div>
-                        <div><div style={S.label}>毛利率</div><div style={{ color: it.tw_retail_price > 0 && it.tw_reseller_price > 0 ? t.color.success : t.color.textDisabled, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, ...S.mono }}>{it.tw_retail_price > 0 && it.tw_reseller_price > 0 ? `${Math.round((1 - it.tw_reseller_price / it.tw_retail_price) * 100)}%` : '-'}</div></div>
                         <div><div style={S.label}>狀態</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3 }}>{STATUS_LABEL[it.product_status] || it.product_status || '-'}</div></div>
                         <div><div style={S.label}>重量</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3, ...S.mono }}>{it.weight_kg ? `${it.weight_kg} kg` : '-'}</div></div>
                         <div><div style={S.label}>產地</div><div style={{ color: t.color.textSecondary, fontSize: t.fontSize.h3 }}>{it.origin_country || '-'}</div></div>
