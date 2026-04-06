@@ -51,7 +51,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
   const priceLabel = roleConfig?.price_label || '售價';
 
   return (
-    <div style={{ padding: '20px 0 120px' }}>
+    <div style={{ padding: `20px 0 ${cart.length > 0 ? 160 : 100}px` }}>
       {/* ── Search row ── */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
@@ -222,24 +222,25 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
         </>
       )}
 
-      {/* ── Cart floating bar ── */}
+      {/* ── Cart floating bar — sits ABOVE the bottom tab bar (≈68px) ── */}
       {cart.length > 0 && (
         <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
-          background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          borderTop: `1px solid ${D.color.border}`, boxShadow: D.shadow.float,
-          padding: '12px 16px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+          position: 'fixed', bottom: 68, left: 0, right: 0, zIndex: 150,
+          background: '#fff', borderTop: `2px solid ${D.color.brand}`,
+          boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+          padding: '12px 16px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          borderRadius: '12px 12px 0 0',
         }}>
           <div>
-            <div style={{ fontSize: D.size.caption, color: D.color.text3 }}>購物車 · {cartCount} 項</div>
+            <div style={{ fontSize: D.size.tiny, color: D.color.text3, fontWeight: D.weight.semi }}>購物車 · {cartCount} 件商品</div>
             <div style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono, marginTop: 2 }}>{fmtNT(cartTotal)}</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setCart([])} style={{ ...D.btnGhost, padding: '8px 16px' }}>清空</button>
+            <button onClick={() => setCart([])} style={{ ...D.btnGhost, padding: '8px 14px', fontSize: D.size.caption }}>清空</button>
             <button onClick={handlePlaceOrder} disabled={posting}
-              style={{ ...D.btnPrimary, padding: '8px 20px', opacity: posting ? 0.6 : 1 }}>
-              {posting ? '提交中...' : '下單'}
+              style={{ ...D.btnPrimary, padding: '10px 24px', fontSize: D.size.body, fontWeight: D.weight.bold, opacity: posting ? 0.6 : 1, minWidth: 90 }}>
+              {posting ? '提交中...' : '✓ 送出訂單'}
             </button>
           </div>
         </div>
