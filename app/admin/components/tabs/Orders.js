@@ -7,6 +7,7 @@ import { fmt, fmtP, getPresetDateRange, useResponsive, exportCsv } from '@/lib/a
 import { Loading, EmptyState, PageLead, Pager, StatCard, CsvImportButton } from '../shared/ui';
 import { useResizableColumns } from '../shared/ResizableTable';
 import { OrderCreateModal } from './OrderCreateModal';
+import { useUnsavedGuard } from '../shared/UnsavedChangesGuard';
 
 const SALES_DOCUMENT_FOCUS_KEY = 'qb_sales_document_focus';
 const PO_FOCUS_KEY = 'qb_purchase_order_focus';
@@ -53,6 +54,16 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   const [payMethod, setPayMethod] = useState('transfer');
   const [payType, setPayType] = useState('full');
   const [payProcessing, setPayProcessing] = useState(false);
+
+  // ── Unsaved changes guard ──
+  const { setDirty } = useUnsavedGuard();
+  // 有任何編輯中狀態 → dirty；離開明細頁時自動清除
+  useEffect(() => {
+    const hasEditing = !!editingItemId || showShipForm || showSaleForm || showAddItem || !!replacingItemId;
+    setDirty(hasEditing);
+  }, [editingItemId, showShipForm, showSaleForm, showAddItem, replacingItemId, setDirty]);
+  // 元件卸載時強制清除（切到列表或離開訂單 tab 時）
+  useEffect(() => () => setDirty(false), [setDirty]);
 
   // Sync parent prop updates (e.g., after onRefresh re-fetches order data)
   useEffect(() => {
