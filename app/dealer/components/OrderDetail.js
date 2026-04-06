@@ -15,6 +15,16 @@ const PAY_METHODS = [
   { id: 'monthly', label: '月結' },
 ];
 
+/* ── Form field wrapper (defined at module level to keep stable reference) ── */
+function F({ label, children, span = 1 }) {
+  return (
+    <div style={{ gridColumn: `span ${span}` }}>
+      <div style={{ fontSize: D.size.tiny, color: D.color.text3, marginBottom: 4 }}>{label}</div>
+      {children}
+    </div>
+  );
+}
+
 /* ── Parse customer info block from remark ── */
 function parseCustomerInfo(remark = '') {
   const idx = remark.indexOf('｜客戶資訊｜');
@@ -199,13 +209,6 @@ export default function OrderDetail({ order, token, user, dealerGet, dealerPost,
       ev.push({ label: `待收尾款 ${fmtNT(remaining)}`, done: false, accent: D.color.warning });
     return ev;
   }, [order]);
-
-  const F = ({ label, children, span = 1 }) => (
-    <div style={{ gridColumn: `span ${span}` }}>
-      <div style={{ fontSize: D.size.tiny, color: D.color.text3, marginBottom: 4 }}>{label}</div>
-      {children}
-    </div>
-  );
 
   return (
     <div style={{ padding: 16, paddingBottom: 60, background: D.color.bg, minHeight: '100%' }}>
