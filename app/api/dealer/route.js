@@ -826,6 +826,33 @@ export async function POST(request) {
       return jsonOk({ success: true, order: { ...order, items: orderItems }, message: `訂單 ${orderNo} 建立成功` });
     }
 
+    case 'update_my_order': {
+      // 經銷商補填訂單資訊（客戶姓名/電話/結帳方式）
+      const { order_id, end_customer_name, end_customer_phone, payment_method, dealer_note } = body;
+      if (!order_id) return jsonErr('order_id required');
+
+      const { data: existing } = await supabase.from('erp_orders')
+        .select('id, remark').eq('id', order_id).eq('dealer_user_id', user.id).maybeSingle();
+      if (!existing) return jsonErr('訂單不存在或無權限', 404);
+
+      // Rebuild remark: keep original dealer prefix, append new customer info block
+      const baseRemark = (existing.remark || '').split('｜客戶資訊｜')[0].trimEnd();
+      const customerParts = [];
+      if (end_customer_name?.trim()) customerParts.push(`姓名：${end_customer_name.trim()}`);
+      if (end_customer_phone?.trim()) customerParts.push(`電話：${end_customer_phone.trim()}`);
+      if (dealer_note?.trim()) customerParts.push(`備註：${dealer_note.trim()}`);
+      const newRemark = customerParts.length > 0
+        ? `${baseRemark} ｜客戶資訊｜ ${customerParts.join('・')}`
+        : baseRemark;
+
+      const updateData = { remark: newRemark, updated_at: new Date().toISOString() };
+      if (payment_method) updateData.payment_method = payment_method;
+
+      const { error: updErr } = await supabase.from('erp_orders').update(updateData).eq('id', order_id);
+      if (updErr) return jsonErr(updErr.message, 500);
+      return jsonOk({ success: true });
+    }
+
     case 'create_customer': {
       // 業務專用：在主系統新增客戶並同步
       if (!ROLE_CONFIG[user.role]?.can_search_customers) return jsonErr('無權限新增客戶', 403);
