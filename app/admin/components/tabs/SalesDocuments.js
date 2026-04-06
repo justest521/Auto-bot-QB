@@ -26,6 +26,11 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const [approvalData, setApprovalData] = useState(null);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [invoiceDate, setInvoiceDate] = useState('');
+  const [invoiceType, setInvoiceType] = useState('B2B');
+  const [buyerTaxId, setBuyerTaxId] = useState('');
+  const [buyerName, setBuyerName] = useState('');
+  const [carrierType, setCarrierType] = useState('');
+  const [carrierId, setCarrierId] = useState('');
   const [savingInvoice, setSavingInvoice] = useState(false);
   const [shipments, setShipments] = useState([]);
   const [origInvoice, setOrigInvoice] = useState({ number: '', date: '' });
@@ -48,6 +53,14 @@ function SaleDetailView({ sale, onBack, setTab }) {
       setInvoiceNumber(origNum);
       setInvoiceDate(origDate);
       setOrigInvoice({ number: origNum, date: origDate });
+      // Load e-invoice fields from merged erp_invoices data
+      if (result.invoice) {
+        setInvoiceType(result.invoice.invoice_type  || 'B2B');
+        setBuyerTaxId(result.invoice.buyer_tax_id   || '');
+        setBuyerName(result.invoice.buyer_name      || '');
+        setCarrierType(result.invoice.carrier_type  || '');
+        setCarrierId(result.invoice.carrier_id      || '');
+      }
       const saleApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(sale.id));
       if (saleApprovals.length > 0) {
         saleApprovals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -109,7 +122,17 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const saveInvoice = async () => {
     setSavingInvoice(true); setMsg('');
     try {
-      await apiPost({ action: 'update_sale_invoice', sale_id: sale.id, invoice_number: invoiceNumber.trim(), invoice_date: invoiceDate || undefined });
+      await apiPost({
+        action: 'update_sale_invoice',
+        sale_id: sale.id,
+        invoice_number: invoiceNumber.trim(),
+        invoice_date: invoiceDate || undefined,
+        invoice_type: invoiceType,
+        buyer_tax_id: buyerTaxId.trim() || undefined,
+        buyer_name:   buyerName.trim()  || undefined,
+        carrier_type: carrierType       || undefined,
+        carrier_id:   carrierId.trim()  || undefined,
+      });
       setMsg('發票資訊已儲存');
       setDirty(false);
       loadDetail();
@@ -246,9 +269,18 @@ function SaleDetailView({ sale, onBack, setTab }) {
               ))}
             </div>
 
-            {/* 3. 發票資訊 — 日期可選 + 號碼即時編輯 */}
+            {/* 3. 發票資訊 — 日期可選 + 號碼即時編輯 + B2B/B2C 欄位 */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>發票資訊</div>
+              {/* B2B / B2C 切換 */}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                {['B2B', 'B2C'].map(type => (
+                  <button key={type} onClick={() => setInvoiceType(type)}
+                    style={{ flex: 1, padding: '4px 8px', borderRadius: 6, border: `1px solid ${invoiceType === type ? t.color.brand : t.color.border}`, background: invoiceType === type ? t.color.brand : '#fff', color: invoiceType === type ? '#fff' : t.color.textSecondary, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, cursor: 'pointer' }}>
+                    {type === 'B2B' ? 'B2B 統編' : 'B2C 載具'}
+                  </button>
+                ))}
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap' }}>發票日期</span>
                 <input type="date" value={invoiceDate?.slice(0, 10) || ''} onChange={e => setInvoiceDate(e.target.value)}
@@ -260,6 +292,43 @@ function SaleDetailView({ sale, onBack, setTab }) {
                   onKeyDown={e => { if (e.key === 'Enter') saveInvoice(); }}
                   style={{ flex: 1, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, fontSize: t.fontSize.body, outline: 'none', ...S.mono, textAlign: 'right', maxWidth: 180 }} />
               </div>
+              {/* B2B 欄位 */}
+              {invoiceType === 'B2B' && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap' }}>買方統編</span>
+                    <input type="text" placeholder="00000000" value={buyerTaxId} onChange={e => setBuyerTaxId(e.target.value)}
+                      style={{ flex: 1, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, fontSize: t.fontSize.body, outline: 'none', ...S.mono, textAlign: 'right', maxWidth: 130 }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap' }}>買方名稱</span>
+                    <input type="text" placeholder="公司名稱" value={buyerName} onChange={e => setBuyerName(e.target.value)}
+                      style={{ flex: 1, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, fontSize: t.fontSize.body, outline: 'none', textAlign: 'right', maxWidth: 180 }} />
+                  </div>
+                </>
+              )}
+              {/* B2C 欄位 */}
+              {invoiceType === 'B2C' && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap' }}>載具類別</span>
+                    <select value={carrierType} onChange={e => setCarrierType(e.target.value)}
+                      style={{ flex: 1, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, fontSize: t.fontSize.body, outline: 'none', maxWidth: 160 }}>
+                      <option value="">無載具</option>
+                      <option value="phone">手機條碼</option>
+                      <option value="natural">自然人憑證</option>
+                      <option value="member">會員載具</option>
+                    </select>
+                  </div>
+                  {carrierType && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap' }}>載具號碼</span>
+                      <input type="text" placeholder="輸入載具號碼" value={carrierId} onChange={e => setCarrierId(e.target.value)}
+                        style={{ flex: 1, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, fontSize: t.fontSize.body, outline: 'none', ...S.mono, textAlign: 'right', maxWidth: 180 }} />
+                    </div>
+                  )}
+                </>
+              )}
               <button onClick={saveInvoice} disabled={savingInvoice}
                 style={{ ...S.btnPrimary, width: '100%', padding: '7px 14px', fontSize: t.fontSize.caption, opacity: savingInvoice ? 0.7 : 1, marginTop: 4 }}>
                 {savingInvoice ? '儲存中...' : '儲存發票資訊'}

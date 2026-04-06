@@ -75,6 +75,7 @@ export default function Invoices() {
         { key: 'sales_person',  label: '業務'     },
         { key: 'invoice_no',    label: '發票號碼' },
         { key: r => r.invoice_date?.slice(0, 10) || '', label: '發票日期' },
+        { key: 'invoice_type',  label: '發票類別' },
         { key: 'total_amount',  label: '金額'     },
       ], `發票清單_${new Date().toISOString().slice(0, 10)}.csv`);
     } catch { alert('匯出失敗'); }
@@ -150,8 +151,15 @@ export default function Invoices() {
                   </div>
                   <div>
                     <span style={{ color: t.color.textMuted }}>發票號碼</span>
-                    <div style={{ color: hasInv ? t.color.success : t.color.textDisabled, fontWeight: hasInv ? t.fontWeight.semibold : t.fontWeight.normal, ...S.mono, marginTop: 2 }}>
-                      {row.invoice_no || '未開立'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                      <span style={{ color: hasInv ? t.color.success : t.color.textDisabled, fontWeight: hasInv ? t.fontWeight.semibold : t.fontWeight.normal, ...S.mono }}>
+                        {row.invoice_no || '未開立'}
+                      </span>
+                      {hasInv && row.invoice_type && (
+                        <span style={{ padding: '1px 5px', borderRadius: 4, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: row.invoice_type === 'B2B' ? '#dbeafe' : '#fef3c7', color: row.invoice_type === 'B2B' ? '#1d4ed8' : '#92400e', border: `1px solid ${row.invoice_type === 'B2B' ? '#bfdbfe' : '#fde68a'}` }}>
+                          {row.invoice_type}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div>
@@ -205,8 +213,15 @@ export default function Invoices() {
                   {row.sales_person || '-'}
                 </div>
                 {/* 發票號碼 */}
-                <div style={{ ...cell, color: hasInv ? t.color.success : t.color.textDisabled, fontWeight: hasInv ? t.fontWeight.semibold : t.fontWeight.normal, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                  {row.invoice_no || '未開立'}
+                <div style={{ ...cell, gap: 6, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                  <span style={{ color: hasInv ? t.color.success : t.color.textDisabled, fontWeight: hasInv ? t.fontWeight.semibold : t.fontWeight.normal, ...S.mono }}>
+                    {row.invoice_no || '未開立'}
+                  </span>
+                  {hasInv && row.invoice_type && (
+                    <span style={{ padding: '1px 5px', borderRadius: 4, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: row.invoice_type === 'B2B' ? '#dbeafe' : '#fef3c7', color: row.invoice_type === 'B2B' ? '#1d4ed8' : '#92400e', border: `1px solid ${row.invoice_type === 'B2B' ? '#bfdbfe' : '#fde68a'}`, flexShrink: 0 }}>
+                      {row.invoice_type}
+                    </span>
+                  )}
                 </div>
                 {/* 發票日期 */}
                 <div style={{ ...cCenter, ...S.mono, color: row.invoice_date ? t.color.textPrimary : t.color.textDisabled }}>
