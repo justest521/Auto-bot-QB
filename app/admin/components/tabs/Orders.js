@@ -275,10 +275,10 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
     setMsg('');
     try {
       const result = await apiPost({ action: 'submit_approval', doc_type: 'order', doc_id: order.id, doc_no: order.order_no, requested_by: 'admin', amount: order.total_amount });
-      setMsg(result.message || '已送審');
+      setMsg(result.message || (result.auto_approved ? '已自動核准' : '已送審，等待審核'));
       onRefresh?.();
     } catch (error) {
-      // If auto_restored, show as success message rather than error
+      // If auto_restored, show as success and refresh
       if (error.message?.includes('已自動恢復') || error.message?.includes('不需重新送審')) {
         setMsg(error.message);
         onRefresh?.();
@@ -466,7 +466,10 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
         </div>
       </div>
 
-      {msg && <div style={{ ...cardStyle, background: msg.includes('失敗') || msg.includes('已在簽核') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') || msg.includes('已在簽核') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') || msg.includes('已在簽核') ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: t.fontSize.h3 }}>{msg}</div>}
+      {msg && (() => {
+        const isErr = msg.includes('失敗') || msg.includes('已在簽核') || msg.includes('駁回') || msg.includes('取消') || msg.includes('無法') || msg.includes('錯誤');
+        return <div style={{ ...cardStyle, background: isErr ? '#fff1f2' : '#edfdf3', borderColor: isErr ? '#fecdd3' : '#bbf7d0', color: isErr ? '#b42318' : '#15803d', marginBottom: 10, padding: '10px 16px', fontSize: t.fontSize.h3 }}>{msg}</div>;
+      })()}
 
       {loading ? <Loading /> : (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: 10, alignItems: 'start' }}>
