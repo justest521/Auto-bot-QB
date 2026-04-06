@@ -151,7 +151,7 @@ export async function GET(req) {
 
       const html = wrapHtml(`報價單 ${quote.quote_no}`, `
         <div class="header">
-          <div>${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" crossorigin="anonymous" alt="Logo" />` : ''}${cs.company_name ? `<div class="company-name">${esc(cs.company_name)}</div>` : ''}<h1>報價單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Quotation</div></div>
+          <div>${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" crossorigin="anonymous" alt="Logo" onerror="this.style.display='none'" />` : ''}${cs.company_name ? `<div class="company-name">${esc(cs.company_name)}</div>` : ''}${cs.address ? `<div style="font-size:10px;color:#617084;">${esc(cs.address)}</div>` : ''}${cs.phone ? `<div style="font-size:10px;color:#617084;">Tel: ${esc(cs.phone)}</div>` : ''}<h1>報價單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Quotation</div></div>
           <div class="meta">
             <div style="font-size:16px;font-weight:700;color:#1c2740;">${esc(quote.quote_no)}</div>
             <div>報價日期：${fmtDate(quote.quote_date)}</div>
@@ -213,7 +213,7 @@ export async function GET(req) {
 
       const html = wrapHtml(`訂單 ${order.order_no}`, `
         <div class="header">
-          <div>${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" crossorigin="anonymous" alt="Logo" />` : ''}${cs.company_name ? `<div class="company-name">${esc(cs.company_name)}</div>` : ''}<h1>訂購單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Sales Order</div></div>
+          <div>${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" crossorigin="anonymous" alt="Logo" onerror="this.style.display='none'" />` : ''}${cs.company_name ? `<div class="company-name">${esc(cs.company_name)}</div>` : ''}${cs.address ? `<div style="font-size:10px;color:#617084;">${esc(cs.address)}</div>` : ''}${cs.phone ? `<div style="font-size:10px;color:#617084;">Tel: ${esc(cs.phone)}</div>` : ''}<h1>訂購單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Sales Order</div></div>
           <div class="meta">
             <div style="font-size:16px;font-weight:700;color:#1c2740;">${esc(order.order_no)}</div>
             <div>訂單日期：${fmtDate(order.order_date)}</div>
@@ -267,20 +267,55 @@ export async function GET(req) {
       const { data: sale } = await supabase.from('qb_sales_history').select('*').eq('id', id).single();
       if (!sale) return new Response('Sale not found', { status: 404 });
 
-      let invoice = null;
       let items = [];
-      if (sale.invoice_number) {
-        const { data: inv } = await supabase.from('qb_invoices').select('*').eq('invoice_number', sale.invoice_number).maybeSingle();
-        invoice = inv;
-        if (inv?.order_id) {
-          const { data: itms } = await supabase.from('qb_order_items').select('*').eq('order_id', inv.order_id).order('id');
-          items = itms || [];
+      let customer = null;
+
+      // 1. 優先從 erp_order_items 取品項（source_id = erp_orders.id）
+      if (sale.source_id) {
+        const { data: erpItems } = await supabase.from('erp_order_items').select('*').eq('order_id', sale.source_id).order('id');
+        if (erpItems?.length) {
+          items = erpItems.map(i => ({
+            item_number: i.item_number_snapshot,
+            description: i.description_snapshot,
+            quantity: i.qty,
+            unit_price: i.unit_price,
+            subtotal: i.line_total,
+            discount_rate: i.discount_rate,
+          }));
+        }
+        // 取客戶資料
+        const { data: orderRow } = await supabase.from('erp_orders').select('customer_id').eq('id', sale.source_id).maybeSingle();
+        if (orderRow?.customer_id) {
+          const { data: cust } = await supabase.from('erp_customers').select('name,company_name,phone,email,address,tax_id').eq('id', orderRow.customer_id).maybeSingle();
+          customer = cust;
         }
       }
 
+      // 2. Fallback：透過 qb_invoices → qb_order_items
+      if (items.length === 0 && sale.invoice_number) {
+        const { data: inv } = await supabase.from('qb_invoices').select('*').eq('invoice_number', sale.invoice_number).maybeSingle();
+        if (inv?.order_id) {
+          const { data: itms } = await supabase.from('qb_order_items').select('*').eq('order_id', inv.order_id).order('id');
+          items = (itms || []).map(i => ({ item_number: i.item_number, description: i.description, quantity: i.quantity, unit_price: i.unit_price, subtotal: i.subtotal }));
+        }
+      }
+
+      // 公司資訊（header 右欄）
+      const companyBlock = `
+        ${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" crossorigin="anonymous" alt="Logo" onerror="this.style.display='none'" />` : ''}
+        ${cs.company_name ? `<div class="company-name">${esc(cs.company_name)}</div>` : ''}
+        ${cs.address ? `<div style="font-size:10px;color:#617084;">${esc(cs.address)}</div>` : ''}
+        ${cs.phone ? `<div style="font-size:10px;color:#617084;">Tel: ${esc(cs.phone)}</div>` : ''}
+        ${cs.tax_id ? `<div style="font-size:10px;color:#617084;">統編: ${esc(cs.tax_id)}</div>` : ''}
+      `;
+
       const html = wrapHtml(`銷貨單 ${sale.slip_number}`, `
         <div class="header">
-          <div>${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" crossorigin="anonymous" alt="Logo" />` : ''}${cs.company_name ? `<div class="company-name">${esc(cs.company_name)}</div>` : ''}<h1>銷貨單</h1><div style="font-size:12px;color:#617084;margin-top:4px;">Sales Invoice</div></div>
+          <div>
+            ${companyBlock}
+            <h1>銷貨單</h1>
+            <div style="font-size:12px;color:#617084;margin-top:4px;">Sales Invoice</div>
+          </div>
           <div class="meta">
             <div style="font-size:16px;font-weight:700;color:#1c2740;">${esc(sale.slip_number)}</div>
             <div>銷貨日期：${fmtDate(sale.sale_date)}</div>
@@ -288,9 +323,12 @@ export async function GET(req) {
             <div>負責業務：${esc(sale.sales_person || '-')}</div>
           </div>
         </div>
-        <div class="info-grid">
-          <div class="info-box"><div class="label">客戶名稱</div><div class="value">${esc(sale.customer_name)}</div></div>
-          ${invoice ? `<div class="info-box"><div class="label">統一編號</div><div class="value">${esc(invoice.tax_id || '-')}</div></div>` : '<div></div>'}
+        <div class="info-grid" style="grid-template-columns:1fr 1fr 1fr;">
+          <div class="info-box"><div class="label">客戶名稱</div><div class="value">${esc(customer?.company_name || customer?.name || sale.customer_name)}</div></div>
+          <div class="info-box"><div class="label">統一編號</div><div class="value">${esc(customer?.tax_id || '-')}</div></div>
+          <div class="info-box"><div class="label">聯絡電話</div><div class="value">${esc(customer?.phone || '-')}</div></div>
+          ${customer?.address ? `<div class="info-box" style="grid-column:span 2"><div class="label">地址</div><div class="value">${esc(customer.address)}</div></div>` : ''}
+          ${customer?.email ? `<div class="info-box"><div class="label">Email</div><div class="value">${esc(customer.email)}</div></div>` : ''}
         </div>
         ${items.length > 0 ? `<table>
           <thead><tr><th>#</th><th>料號</th><th>品名</th><th>數量</th><th>單價</th><th>小計</th></tr></thead>
@@ -299,13 +337,25 @@ export async function GET(req) {
             <td style="text-align:right">${it.quantity}</td><td style="text-align:right">${fmtP(it.unit_price)}</td>
             <td style="text-align:right">${fmtP(it.subtotal)}</td>
           </tr>`).join('')}</tbody>
-        </table>` : ''}
+        </table>` : '<div style="padding:16px;text-align:center;color:#9ca3af;border:1px dashed #e5e7eb;border-radius:6px;margin-bottom:10px;">（無品項資料）</div>'}
         <div class="totals">
           <div class="row"><span>小計</span><span>${fmtP(sale.subtotal)}</span></div>
           ${Number(sale.discount_amount) > 0 ? `<div class="row"><span>折扣</span><span>-${fmtP(sale.discount_amount)}</span></div>` : ''}
           ${Number(sale.shipping_fee) > 0 ? `<div class="row"><span>運費</span><span>${fmtP(sale.shipping_fee)}</span></div>` : ''}
           ${Number(sale.tax) > 0 ? `<div class="row"><span>稅額</span><span>${fmtP(sale.tax)}</span></div>` : ''}
           <div class="row total"><span>合計</span><span>${fmtP(sale.total)}</span></div>
+        </div>
+        <div class="signatures">
+          <div class="sig-block">
+            <div class="sig-label">賣方簽章</div>
+            <div class="sig-line"></div>
+            <div class="sig-hint">${esc(cs.company_name || '')} / 負責人簽名</div>
+          </div>
+          <div class="sig-block">
+            <div class="sig-label">客戶確認</div>
+            <div class="sig-line"></div>
+            <div class="sig-hint">確認同意本銷貨內容</div>
+          </div>
         </div>
       `, logoUrl, cs.company_name);
 
