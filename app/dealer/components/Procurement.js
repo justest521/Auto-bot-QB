@@ -8,22 +8,21 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [stockOnly, setStockOnly] = useState(false);
-  const [hasImageOnly, setHasImageOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState(false);
 
-  const fetchProducts = useCallback(async (q = '', pg = 1, so = false, hi = false) => {
+  const fetchProducts = useCallback(async (q = '', pg = 1, so = false) => {
     setLoading(true);
     try {
-      const res = await dealerGet({ action: 'products', token, page: pg.toString(), limit: '30', q, stock_only: so ? '1' : '0', has_image: hi ? '1' : '0' });
+      const res = await dealerGet({ action: 'products', token, page: pg.toString(), limit: '30', q, stock_only: so ? '1' : '0' });
       if (res?.products) { setProducts(res.products); setTotalPages(Math.ceil((res.total || 0) / 30) || 1); setPage(pg); }
     } catch (e) { console.error('Products fetch:', e); }
     finally { setLoading(false); }
   }, [token, dealerGet]);
 
-  useEffect(() => { fetchProducts(search, 1, stockOnly, hasImageOnly); }, [search, stockOnly, hasImageOnly]);
+  useEffect(() => { fetchProducts(search, 1, stockOnly); }, [search, stockOnly]);
 
   const addToCart = (p) => {
     const exist = cart.find(c => c.item_number === p.item_number);
@@ -40,7 +39,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
     setPosting(true);
     try {
       const res = await dealerPost({ action: 'place_order', token, items: cart.map(c => ({ item_number: c.item_number, qty: c.qty })) });
-      if (res?.success) { alert('訂單提交成功！'); setCart([]); fetchProducts(search, page, stockOnly, hasImageOnly); }
+      if (res?.success) { alert('訂單提交成功！'); setCart([]); fetchProducts(search, page, stockOnly); }
       else alert('提交失敗，請重試');
     } catch (e) { console.error(e); alert('提交出錯'); }
     finally { setPosting(false); }
@@ -70,15 +69,6 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
         }}>
           <input type="checkbox" checked={stockOnly} onChange={e => setStockOnly(e.target.checked)} style={{ cursor: 'pointer', accentColor: D.color.brand }} />
           <span style={{ fontSize: D.size.body, color: stockOnly ? D.color.brand : D.color.text2, fontWeight: D.weight.medium }}>僅有貨</span>
-        </label>
-        <label style={{
-          display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px',
-          background: hasImageOnly ? D.color.brandDim : D.color.card,
-          borderRadius: D.radius.md, border: `1px solid ${hasImageOnly ? D.color.brand : D.color.border}`,
-          cursor: 'pointer', userSelect: 'none', transition: 'all 0.15s',
-        }}>
-          <input type="checkbox" checked={hasImageOnly} onChange={e => setHasImageOnly(e.target.checked)} style={{ cursor: 'pointer', accentColor: D.color.brand }} />
-          <span style={{ fontSize: D.size.body, color: hasImageOnly ? D.color.brand : D.color.text2, fontWeight: D.weight.medium }}>僅有圖片</span>
         </label>
       </div>
 
@@ -193,7 +183,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
           {/* ── Pagination ── */}
           {totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 20 }}>
-              <button onClick={() => fetchProducts(search, Math.max(1, page - 1), stockOnly, hasImageOnly)} disabled={page === 1}
+              <button onClick={() => fetchProducts(search, Math.max(1, page - 1), stockOnly)} disabled={page === 1}
                 style={{ ...D.btnGhost, padding: '8px 14px', opacity: page === 1 ? 0.4 : 1, cursor: page === 1 ? 'default' : 'pointer' }}>
                 上一頁
               </button>
@@ -213,7 +203,7 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                   </button>
                 );
               })}
-              <button onClick={() => fetchProducts(search, Math.min(totalPages, page + 1), stockOnly, hasImageOnly)} disabled={page === totalPages}
+              <button onClick={() => fetchProducts(search, Math.min(totalPages, page + 1), stockOnly)} disabled={page === totalPages}
                 style={{ ...D.btnGhost, padding: '8px 14px', opacity: page === totalPages ? 0.4 : 1, cursor: page === totalPages ? 'default' : 'pointer' }}>
                 下一頁
               </button>
