@@ -102,6 +102,13 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                   {/* top accent */}
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: p.stock_qty > 0 ? D.color.brand : D.color.border, borderRadius: '12px 12px 0 0' }} />
 
+                  {/* Product image */}
+                  {p.image_url ? (
+                    <div style={{ margin: '-14px -14px 10px', height: 140, overflow: 'hidden', borderRadius: `${D.radius.lg} ${D.radius.lg} 0 0` }}>
+                      <img src={p.image_url} alt={p.description} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { e.currentTarget.parentElement.style.display = 'none'; }} />
+                    </div>
+                  ) : null}
+
                   {/* Item number badge */}
                   <div style={{
                     display: 'inline-flex', padding: '4px 10px', background: D.color.brandDim,
@@ -116,22 +123,30 @@ export default function Procurement({ token, user, roleConfig, dealerGet, dealer
                   </div>
 
                   {/* Price + Stock row */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: 10, borderTop: `1px solid ${D.color.borderLight}`, marginBottom: 10 }}>
-                    <div>
-                      <div style={{ fontSize: D.size.tiny, color: D.color.text3 }}>{priceLabel}</div>
-                      <div style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono, lineHeight: 1.2, marginTop: 2 }}>
-                        {fmtNT(p.price)}
+                  <div style={{ paddingTop: 10, borderTop: `1px solid ${D.color.borderLight}`, marginBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                      <div>
+                        <div style={{ fontSize: D.size.tiny, color: D.color.text3 }}>{priceLabel}</div>
+                        <div style={{ fontSize: D.size.h2, fontWeight: D.weight.black, color: D.color.brand, fontFamily: D.font.mono, lineHeight: 1.2, marginTop: 2 }}>
+                          {fmtNT(p.price)}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: D.size.tiny, color: D.color.text3 }}>庫存</div>
+                        <div style={{
+                          fontSize: D.size.h3, fontWeight: D.weight.bold, fontFamily: D.font.mono, marginTop: 2,
+                          color: p.stock_qty > 5 ? D.color.success : p.stock_qty > 0 ? D.color.warning : D.color.error,
+                        }}>
+                          {p.stock_qty != null ? p.stock_qty : '—'}
+                        </div>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: D.size.tiny, color: D.color.text3 }}>庫存</div>
-                      <div style={{
-                        fontSize: D.size.h3, fontWeight: D.weight.bold, fontFamily: D.font.mono, marginTop: 2,
-                        color: p.stock_qty > 5 ? D.color.success : p.stock_qty > 0 ? D.color.warning : D.color.error,
-                      }}>
-                        {p.stock_qty}
+                    {p.retail_price > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 8px', background: D.color.muted, borderRadius: D.radius.sm }}>
+                        <span style={{ fontSize: D.size.tiny, color: D.color.text3, fontWeight: D.weight.semi }}>建議售價</span>
+                        <span style={{ fontSize: D.size.caption, fontWeight: D.weight.bold, color: D.color.text, fontFamily: D.font.mono }}>{fmtNT(p.retail_price)}</span>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Cart controls */}

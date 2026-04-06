@@ -162,7 +162,7 @@ function Section({ title, count }) {
 }
 
 /* ── Main component ── */
-export default function OrderList({ token, orders = [], loading = false, selectedOrderId = null, onSelectOrder = () => {}, onRefresh = () => {} }) {
+export default function OrderList({ token, orders = [], loading = false, selectedOrderId = null, onSelectOrder = () => {}, onRefresh = () => {}, onNewOrder = null }) {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
@@ -212,9 +212,9 @@ export default function OrderList({ token, orders = [], loading = false, selecte
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: D.color.bg }}>
-      {/* ── Search ── */}
-      <div style={{ padding: '12px 16px 8px' }}>
-        <div style={{ position: 'relative' }}>
+      {/* ── Search + New button ── */}
+      <div style={{ padding: '12px 16px 8px', display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ flex: 1, position: 'relative' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={D.color.textDisabled} strokeWidth="2" strokeLinecap="round"
             style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }}>
             <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
@@ -225,6 +225,15 @@ export default function OrderList({ token, orders = [], loading = false, selecte
             style={{ ...D.input, paddingLeft: 36, fontSize: D.size.caption, background: D.color.muted, border: `1px solid transparent` }}
           />
         </div>
+        {onNewOrder && (
+          <button onClick={onNewOrder}
+            style={{ ...D.btnPrimary, padding: '8px 14px', fontSize: D.size.caption, whiteSpace: 'nowrap', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            新增訂單
+          </button>
+        )}
       </div>
 
       {/* ── Filter pills ── */}

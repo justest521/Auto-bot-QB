@@ -129,15 +129,16 @@ export async function GET(request) {
             description: p.description,
             category: p.category,
             origin_country: p.origin_country || null,
+            image_url: p.image_url || null,
             price: basePrice,
             price_label: hasPersonalDiscount ? `${Math.round(user.discount_rate * 100)}折價` : roleConfig.price_label,
+            retail_price: retailPrice,  // 建議售價：所有角色皆可查看
             stock_qty: user.can_see_stock !== false ? Number(p.stock_qty || 0) : null,
             safety_stock: user.can_see_stock !== false ? Number(p.safety_stock || 0) : null,
           };
           if (roleConfig.can_see_cost) {
             item.us_price = Number(p.us_price || 0);
             item.reseller_price = Number(p.tw_reseller_price || 0);
-            item.retail_price = Number(p.tw_retail_price || 0);
           }
           return item;
         });

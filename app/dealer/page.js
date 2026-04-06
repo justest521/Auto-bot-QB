@@ -256,6 +256,7 @@ export default function DealerPortal() {
                   selectedOrderId={selectedOrderId}
                   onSelectOrder={loadOrderDetail}
                   onRefresh={loadOrders}
+                  onNewOrder={() => setActiveTab('procurement')}
                 />
               </div>
               <div style={{ flex: 1, overflowY: 'auto', background: D.color.muted }}>
@@ -297,6 +298,7 @@ export default function DealerPortal() {
             selectedOrderId={selectedOrderId}
             onSelectOrder={loadOrderDetail}
             onRefresh={loadOrders}
+            onNewOrder={() => setActiveTab('procurement')}
           />
         );
 

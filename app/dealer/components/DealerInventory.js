@@ -103,7 +103,13 @@ export default function DealerInventory({ token, dealerGet }) {
           {products.map(p => {
             const si = getStockInfo(p.stock_qty);
             return (
-              <div key={p.item_number} style={{ ...D.card, padding: '14px 14px 12px' }}>
+              <div key={p.item_number} style={{ ...D.card, padding: '14px 14px 12px', overflow: 'hidden' }}>
+                {/* Product image */}
+                {p.image_url ? (
+                  <div style={{ margin: '-14px -14px 10px', height: 130, overflow: 'hidden', borderRadius: `${D.radius.lg} ${D.radius.lg} 0 0` }}>
+                    <img src={p.image_url} alt={p.description} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { e.currentTarget.parentElement.style.display = 'none'; }} />
+                  </div>
+                ) : null}
                 {/* Item number */}
                 <div style={{ fontSize: D.size.tiny, color: D.color.text3, fontFamily: D.font.mono, marginBottom: 4, letterSpacing: '0.03em' }}>
                   {p.item_number}
@@ -119,9 +125,20 @@ export default function DealerInventory({ token, dealerGet }) {
                   </div>
                 )}
                 {/* Stock row */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: `1px solid ${D.color.borderLight}` }}>
-                  <span style={D.tag(si.tone)}>{si.label}</span>
-                  <span style={{ fontSize: D.size.h3, fontWeight: D.weight.bold, color: D.color.text, fontFamily: D.font.mono }}>{p.stock_qty}</span>
+                <div style={{ paddingTop: 10, borderTop: `1px solid ${D.color.borderLight}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: p.retail_price > 0 ? 6 : 0 }}>
+                    <span style={D.tag(si.tone)}>{si.label}</span>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: D.size.tiny, color: D.color.text3 }}>庫存數量</div>
+                      <div style={{ fontSize: D.size.h3, fontWeight: D.weight.bold, color: D.color.text, fontFamily: D.font.mono }}>{p.stock_qty != null ? p.stock_qty : '—'}</div>
+                    </div>
+                  </div>
+                  {p.retail_price > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 8px', background: D.color.muted, borderRadius: D.radius.sm }}>
+                      <span style={{ fontSize: D.size.tiny, color: D.color.text3, fontWeight: D.weight.semi }}>建議售價</span>
+                      <span style={{ fontSize: D.size.caption, fontWeight: D.weight.bold, color: D.color.text, fontFamily: D.font.mono }}>NT${Number(p.retail_price || 0).toLocaleString()}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             );

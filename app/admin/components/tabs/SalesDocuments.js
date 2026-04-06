@@ -36,6 +36,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
   const [origInvoice, setOrigInvoice] = useState({ number: '', date: '' });
   const [proofUrl, setProofUrl] = useState(null);
   const [uploadingProof, setUploadingProof] = useState(false);
+  const [salePayments, setSalePayments] = useState([]);
 
   const loadDetail = useCallback(async () => {
     setLoading(true);
@@ -48,6 +49,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
       setTimeline(result.timeline || []);
       setShipments(result.shipments || []);
       setProofUrl(result.sale?.proof_url || null);
+      setSalePayments(result.payments || []);
       const origNum = result.sale?.invoice_number || sale.invoice_number || '';
       const origDate = result.sale?.invoice_date || result.invoice?.invoice_date || result.sale?.sale_date || sale.sale_date || '';
       setInvoiceNumber(origNum);
@@ -336,44 +338,63 @@ function SaleDetailView({ sale, onBack, setTab }) {
               {!invoiceNumber && !s.invoice_number && <div style={{ padding: '4px 8px', borderRadius: 6, background: t.color.warningBg, color: '#92400e', fontSize: t.fontSize.tiny, textAlign: 'center', border: `1px solid ${t.color.warningBg}`, marginTop: 6 }}>請填寫發票號碼以利入帳</div>}
             </div>
 
-            {/* 付款憑證 */}
+            {/* 付款紀錄 */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
-              <div style={labelStyle}>付款憑證</div>
-              {proofUrl ? (
-                <div style={{ marginBottom: 8 }}>
-                  <a href={proofUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', lineHeight: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-                    <img src={proofUrl} alt="付款憑證" style={{ width: '100%', maxHeight: 120, objectFit: 'cover' }} />
-                  </a>
-                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.link, textAlign: 'center', marginTop: 4 }}>點擊查看原圖</div>
-                </div>
-              ) : (
-                <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, textAlign: 'center', padding: '8px 0' }}>尚未上傳憑證</div>
-              )}
-              <input type="file" id={`sale-proof-${s.id}`} accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
-                const file = ev.target.files?.[0];
-                if (!file) return;
-                try {
-                  const compressImg = (f, maxW = 1200, q = 0.7) => new Promise((resolve, reject) => {
-                    const img = new Image();
-                    const url = URL.createObjectURL(f);
-                    img.onload = () => { URL.revokeObjectURL(url); const c = document.createElement('canvas'); let w = img.width, h = img.height; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; } c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/jpeg', q).split(',')[1]); };
-                    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
-                    img.src = url;
-                  });
-                  const base64 = await compressImg(file);
-                  setUploadingProof(true); setMsg('上傳中...');
-                  const res = await apiPost({ action: 'upload_sale_payment_proof', sale_id: s.id, proof_data: base64, proof_name: file.name.replace(/\.\w+$/, '.jpg') });
-                  setMsg(res.message || '憑證已上傳');
-                  setProofUrl(res.proof_url);
-                } catch (err) { setMsg('憑證上傳失敗: ' + (err.message || '')); }
-                finally { setUploadingProof(false); ev.target.value = ''; }
-              }} />
-              <button onClick={() => document.getElementById(`sale-proof-${s.id}`)?.click()} disabled={uploadingProof}
-                style={{ fontSize: t.fontSize.caption, color: '#6b7280', background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '4px 0', cursor: uploadingProof ? 'not-allowed' : 'pointer', fontWeight: 600, width: '100%', marginTop: proofUrl ? 6 : 0, transition: 'all 0.15s' }}
-                onMouseEnter={e => { if (!uploadingProof) { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; } }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.color = '#6b7280'; }}>
-                {uploadingProof ? '上傳中...' : proofUrl ? '📎 重新上傳' : '📎 上傳憑證'}
-              </button>
+              <div style={labelStyle}>付款紀錄</div>
+              {salePayments.length === 0 ? (
+                <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, textAlign: 'center', padding: '8px 0' }}>尚無付款紀錄</div>
+              ) : salePayments.map((pay, pi) => {
+                const compressImg = (f, maxW = 1200, q = 0.7) => new Promise((resolve, reject) => {
+                  const img = new Image();
+                  const url = URL.createObjectURL(f);
+                  img.onload = () => { URL.revokeObjectURL(url); const c = document.createElement('canvas'); let w = img.width, h = img.height; if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; } c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); resolve(c.toDataURL('image/jpeg', q).split(',')[1]); };
+                  img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
+                  img.src = url;
+                });
+                return (
+                  <div key={pay.id} style={{ marginBottom: pi < salePayments.length - 1 ? 12 : 0, paddingBottom: pi < salePayments.length - 1 ? 12 : 0, borderBottom: pi < salePayments.length - 1 ? `1px solid ${t.color.borderLight}` : 'none' }}>
+                    {/* Payment header row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{pay.payment_number}</span>
+                        {pay.verified && <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: '#f0fdf4', color: '#15803d', fontWeight: 700, border: '1px solid #bbf7d0' }}>✓核帳</span>}
+                      </div>
+                      <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>NT${pay.amount.toLocaleString()}</span>
+                    </div>
+                    <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 6 }}>{pay.type}・{pay.method}</div>
+                    {/* Proof image or upload button */}
+                    {pay.proof_url ? (
+                      <div>
+                        <a href={pay.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden', lineHeight: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: 4 }}>
+                          <img src={pay.proof_url} alt="付款憑證" style={{ width: '100%', maxHeight: 100, objectFit: 'cover' }} />
+                        </a>
+                        <div style={{ fontSize: t.fontSize.tiny, color: t.color.link, textAlign: 'center' }}>點擊查看原圖</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <input type="file" id={`sale-pay-proof-${pay.id}`} accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
+                          const file = ev.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            const base64 = await compressImg(file);
+                            setMsg('上傳中...');
+                            const res = await apiPost({ action: 'upload_payment_proof', payment_id: pay.id, proof_data: base64, proof_name: file.name.replace(/\.\w+$/, '.jpg') });
+                            setMsg(res.message || '憑證已上傳');
+                            loadDetail();
+                          } catch (err) { setMsg('憑證上傳失敗: ' + (err.message || '')); }
+                          ev.target.value = '';
+                        }} />
+                        <button onClick={() => document.getElementById(`sale-pay-proof-${pay.id}`)?.click()}
+                          style={{ fontSize: t.fontSize.caption, color: '#6b7280', background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '4px 0', cursor: 'pointer', fontWeight: 600, width: '100%', transition: 'all 0.15s' }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.color = '#6b7280'; }}>
+                          📎 上傳憑證
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* 2. 運送資訊 — 顯示出貨紀錄，或提示尚未出貨 */}
@@ -501,6 +522,11 @@ export default function SalesDocuments({ setTab }) {
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState(50);
   const [selectedSale, setSelectedSale] = useState(null);
+  const [showNewSale, setShowNewSale] = useState(false);
+  const [nsForm, setNsForm] = useState({ customer_name: '', sales_person: '', sale_date: new Date().toISOString().slice(0, 10), tax_inclusive: false, remark: '' });
+  const [nsItems, setNsItems] = useState([{ item_number: '', description: '', qty: 1, unit_price: 0 }]);
+  const [nsSaving, setNsSaving] = useState(false);
+  const [nsMsg, setNsMsg] = useState('');
   const [dateFrom, setDateFrom] = useState(() => getPresetDateRange('month').from);
   const [dateTo, setDateTo] = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
@@ -616,7 +642,7 @@ export default function SalesDocuments({ setTab }) {
   // ★ 銷貨單列表
   return (
     <div>
-      <PageLead eyebrow="SALES" title="銷貨單" description="查看實際銷貨單、發票號碼與毛利，並可點單號查看完整銷貨單內容。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', ...(isMobile ? { width: '100%' } : {}) }}><CsvImportButton datasetId="qb_sales_history" onImported={() => load(1, search, pageSize)} compact /><button onClick={handleExport} style={{ ...S.btnGhost, ...(isMobile ? { flex: 1 } : {}) }}>匯出 CSV</button></div>} />
+      <PageLead eyebrow="SALES" title="銷貨單" description="查看實際銷貨單、發票號碼與毛利，並可點單號查看完整銷貨單內容。" action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', ...(isMobile ? { width: '100%' } : {}) }}><CsvImportButton datasetId="qb_sales_history" onImported={() => load(1, search, pageSize)} compact /><button onClick={handleExport} style={{ ...S.btnGhost, ...(isMobile ? { flex: 1 } : {}) }}>匯出 CSV</button><button onClick={() => { setShowNewSale(true); setNsMsg(''); setNsItems([{ item_number: '', description: '', qty: 1, unit_price: 0 }]); setNsForm({ customer_name: '', sales_person: '', sale_date: new Date().toISOString().slice(0, 10), tax_inclusive: false, remark: '' }); }} style={{ ...S.btnPrimary, ...(isMobile ? { flex: 1 } : {}) }}>＋ 新增銷貨單</button></div>} />
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 8, flexWrap: 'wrap', alignItems: isMobile ? 'stretch' : 'center' }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
@@ -717,6 +743,134 @@ export default function SalesDocuments({ setTab }) {
         onPageChange={(nextPage) => load(nextPage, search, pageSize)}
         onLimitChange={(nextLimit) => { setPageSize(nextLimit); load(1, search, nextLimit); }}
       />
+
+      {/* ====== 新增銷貨單 Modal ====== */}
+      {showNewSale && (() => {
+        const nsSubtotal = nsItems.reduce((s, i) => s + Math.round(Number(i.qty || 1) * Number(i.unit_price || 0)), 0);
+        const nsTax = nsForm.tax_inclusive ? 0 : Math.round(nsSubtotal * 0.05);
+        const nsTotal = nsSubtotal + nsTax;
+        const updateItem = (idx, field, val) => setNsItems(prev => prev.map((it, i) => i === idx ? { ...it, [field]: val } : it));
+        const lookupProduct = async (idx, itemNo) => {
+          if (!itemNo.trim()) return;
+          try {
+            const res = await apiGet({ action: 'products', search: itemNo.trim(), limit: '1' });
+            const prod = (res.rows || res.products || [])[0];
+            if (prod) setNsItems(prev => prev.map((it, i) => i === idx ? { ...it, description: prod.description || prod.name || '', unit_price: Number(prod.tw_retail_price || prod.unit_price || 0) } : it));
+          } catch (_) {}
+        };
+        const handleSubmit = async () => {
+          if (!nsForm.customer_name.trim()) { setNsMsg('請填寫客戶名稱'); return; }
+          const validItems = nsItems.filter(i => i.description.trim() || i.item_number.trim());
+          if (validItems.length === 0) { setNsMsg('請至少填寫一項商品'); return; }
+          setNsSaving(true); setNsMsg('');
+          try {
+            const res = await apiPost({ action: 'create_direct_sale', ...nsForm, items: validItems });
+            if (res.error) { setNsMsg(res.error); return; }
+            setShowNewSale(false);
+            load(1, res.slip_number, pageSize);
+            setSearch(res.slip_number);
+          } catch (e) { setNsMsg(e.message || '建立失敗'); }
+          finally { setNsSaving(false); }
+        };
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowNewSale(false)}>
+            <div style={{ width: 'min(700px, 96vw)', maxHeight: '90vh', background: '#fff', borderRadius: 16, boxShadow: '0 24px 80px rgba(0,0,0,0.22)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div style={{ padding: '18px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary }}>手開銷貨單</div>
+                <button onClick={() => setShowNewSale(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: t.color.textDisabled, cursor: 'pointer' }}>×</button>
+              </div>
+              {/* Body */}
+              <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+                {/* Basic info */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px 16px', marginBottom: 18 }}>
+                  <div>
+                    <label style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, display: 'block', marginBottom: 4 }}>客戶名稱 *</label>
+                    <input value={nsForm.customer_name} onChange={e => setNsForm(p => ({ ...p, customer_name: e.target.value }))} placeholder="輸入客戶名稱..." style={{ ...S.input, width: '100%' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, display: 'block', marginBottom: 4 }}>業務</label>
+                    <input value={nsForm.sales_person} onChange={e => setNsForm(p => ({ ...p, sales_person: e.target.value }))} placeholder="業務人員..." style={{ ...S.input, width: '100%' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, display: 'block', marginBottom: 4 }}>銷貨日期</label>
+                    <input type="date" value={nsForm.sale_date} onChange={e => setNsForm(p => ({ ...p, sale_date: e.target.value }))} style={{ ...S.input, width: '100%', ...S.mono }} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 8 }}>
+                      <input type="checkbox" checked={nsForm.tax_inclusive} onChange={e => setNsForm(p => ({ ...p, tax_inclusive: e.target.checked }))} style={{ width: 16, height: 16, cursor: 'pointer' }} />
+                      <span style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>含稅（不另計 5% 營業稅）</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Line items */}
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, marginBottom: 8 }}>商品明細</div>
+                  {/* Header row */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '80px 1fr 50px 80px 28px' : '110px 1fr 60px 100px 28px', gap: 6, marginBottom: 4 }}>
+                    {['品號', '品名/說明', '數量', '單價', ''].map((h, i) => (
+                      <div key={i} style={{ fontSize: 10, fontWeight: 700, color: t.color.textDisabled, textAlign: i >= 2 ? 'center' : 'left' }}>{h}</div>
+                    ))}
+                  </div>
+                  {nsItems.map((item, idx) => (
+                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: isMobile ? '80px 1fr 50px 80px 28px' : '110px 1fr 60px 100px 28px', gap: 6, marginBottom: 6, alignItems: 'center' }}>
+                      <input value={item.item_number} onChange={e => updateItem(idx, 'item_number', e.target.value)}
+                        onBlur={e => lookupProduct(idx, e.target.value)}
+                        placeholder="品號" style={{ ...S.input, fontSize: 12, padding: '6px 8px', ...S.mono }} />
+                      <input value={item.description} onChange={e => updateItem(idx, 'description', e.target.value)}
+                        placeholder="品名說明..." style={{ ...S.input, fontSize: 12, padding: '6px 8px' }} />
+                      <input type="number" value={item.qty} min={1} onChange={e => updateItem(idx, 'qty', e.target.value)}
+                        style={{ ...S.input, fontSize: 12, padding: '6px 8px', textAlign: 'center' }} />
+                      <input type="number" value={item.unit_price} min={0} onChange={e => updateItem(idx, 'unit_price', e.target.value)}
+                        style={{ ...S.input, fontSize: 12, padding: '6px 8px', textAlign: 'right', ...S.mono }} />
+                      <button onClick={() => setNsItems(prev => prev.filter((_, i) => i !== idx))} disabled={nsItems.length === 1}
+                        style={{ background: 'none', border: 'none', color: nsItems.length === 1 ? t.color.textDisabled : t.color.error, fontSize: 16, cursor: nsItems.length === 1 ? 'default' : 'pointer', lineHeight: 1, padding: 0 }}>×</button>
+                    </div>
+                  ))}
+                  <button onClick={() => setNsItems(prev => [...prev, { item_number: '', description: '', qty: 1, unit_price: 0 }])}
+                    style={{ fontSize: t.fontSize.caption, color: t.color.link, background: 'none', border: `1px dashed ${t.color.link}`, borderRadius: 6, padding: '5px 14px', cursor: 'pointer', marginTop: 2 }}>
+                    ＋ 新增品項
+                  </button>
+                </div>
+
+                {/* Totals */}
+                <div style={{ background: t.color.bgMuted, borderRadius: 8, padding: '10px 14px', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.body, color: t.color.textSecondary, marginBottom: 4 }}>
+                    <span>小計</span><span style={S.mono}>NT${nsSubtotal.toLocaleString()}</span>
+                  </div>
+                  {!nsForm.tax_inclusive && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.body, color: t.color.textSecondary, marginBottom: 4 }}>
+                      <span>營業稅 5%</span><span style={S.mono}>NT${nsTax.toLocaleString()}</span>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, borderTop: `1px solid ${t.color.border}`, paddingTop: 6, marginTop: 4 }}>
+                    <span>合計</span><span style={{ ...S.mono, color: t.color.success }}>NT${nsTotal.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* Remark */}
+                <div>
+                  <label style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textMuted, display: 'block', marginBottom: 4 }}>備註</label>
+                  <textarea value={nsForm.remark} onChange={e => setNsForm(p => ({ ...p, remark: e.target.value }))} placeholder="備註（選填）..." rows={2}
+                    style={{ width: '100%', border: `1px solid ${t.color.border}`, borderRadius: 8, padding: '8px 10px', fontSize: t.fontSize.body, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }} />
+                </div>
+
+                {nsMsg && <div style={{ marginTop: 8, padding: '6px 10px', background: t.color.errorBg, borderRadius: 6, color: t.color.error, fontSize: t.fontSize.caption }}>{nsMsg}</div>}
+              </div>
+
+              {/* Footer */}
+              <div style={{ padding: '14px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 10, flexShrink: 0 }}>
+                <button onClick={() => setShowNewSale(false)} style={{ padding: '9px 20px', borderRadius: 8, border: `1px solid ${t.color.border}`, background: t.color.bgCard, fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textMuted, cursor: 'pointer' }}>取消</button>
+                <button onClick={handleSubmit} disabled={nsSaving}
+                  style={{ padding: '9px 28px', borderRadius: 8, border: 'none', background: nsSaving ? '#94a3b8' : t.color.link, color: '#fff', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: nsSaving ? 'not-allowed' : 'pointer' }}>
+                  {nsSaving ? '建立中...' : '建立銷貨單'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
