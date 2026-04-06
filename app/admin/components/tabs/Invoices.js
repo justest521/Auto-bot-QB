@@ -210,7 +210,7 @@ export default function Invoices() {
             { label: '金額',    align: 'right'  },
           ]} />
           {(data.rows || []).map((row, idx) => {
-            const cell     = { padding: '8px 10px', borderRight: `1px solid ${t.color.borderLight}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' };
+            const cell     = { padding: '8px 10px', borderRight: `1px solid ${t.color.borderLight}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: t.fontSize.body };
             const cCenter  = { ...cell, justifyContent: 'center' };
             const cRight   = { ...cell, justifyContent: 'flex-end', borderRight: 'none' };
             const hasInv   = Boolean(row.invoice_no);
