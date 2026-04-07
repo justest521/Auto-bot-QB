@@ -189,14 +189,14 @@ function SaleDetailView({ sale, onBack, setTab }) {
             {items.length > 0 ? (
               <div>
                 {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '140px 90px 50px 85px 95px minmax(0,1fr)', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 100px 120px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
                   <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>料號</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>單價</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>數量</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>庫存</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>小計</div><div style={{ padding: '8px 10px' }}>備註</div>
                 </div>
                 {/* Table rows */}
                 {items.map((item, i) => {
                   const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
                   return (
-                    <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '140px 90px 50px 85px 95px minmax(0,1fr)', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', background: t.color.bgCard, transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background=t.color.bgCard}>
+                    <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 100px 120px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', background: t.color.bgCard, transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background='#f8fafc'} onMouseLeave={e => e.currentTarget.style.background=t.color.bgCard}>
                       <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number || item.item_number_snapshot || '-'} — ${item.description || item.description_snapshot || ''}`}>{item.item_number || item.item_number_snapshot || '-'}</div>
                       <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textMuted, whiteSpace: 'nowrap' }}>{fmtP(item.unit_price)}</div>
                       <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap' }}>{item.quantity || item.qty || 0}</div>
