@@ -361,7 +361,7 @@ export default function Shipments() {
   const [selectedShipment, setSelectedShipment] = useState(null);
   const [pageSize, setPageSize] = useState(20);
 
-  const { gridTemplate, ResizableHeader } = useResizableColumns('shipments_list', [40, 160, 100, 200, 120, 100, 160]);
+  const { gridTemplate, ResizableHeader } = useResizableColumns('shipments_list', [40, 160, 140, 100, 200, 100, 100, 160]);
 
   const applyDatePreset = (preset) => {
     setDatePreset(preset);
@@ -391,8 +391,9 @@ export default function Shipments() {
       const rows = result.shipments || [];
       const columns = [
         { key: 'shipment_no', label: '出貨單號' },
+        { key: 'customer_name', label: '客戶' },
         { key: (row) => (STATUS_MAP[row.status] || row.status), label: '狀態' },
-        { key: (row) => fmtDate(row.ship_date || row.created_at), label: '出貨日期' },
+        { key: (row) => row.ship_date || (row.created_at ? row.created_at.slice(0, 10) : '-'), label: '出貨日期' },
         { key: 'carrier', label: '物流商' },
         { key: 'tracking_no', label: '物流單號' },
         { key: 'remark', label: '備註' },
@@ -460,6 +461,10 @@ export default function Shipments() {
                   <span style={{ ...S.mobileCardValue, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{s.shipment_no || '-'}</span>
                 </div>
                 <div style={S.mobileCardRow}>
+                  <span style={S.mobileCardLabel}>客戶</span>
+                  <span style={S.mobileCardValue}>{s.customer_name || '-'}</span>
+                </div>
+                <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>物流商</span>
                   <span style={S.mobileCardValue}>{s.carrier || '-'}</span>
                 </div>
@@ -469,7 +474,7 @@ export default function Shipments() {
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>出貨日期</span>
-                  <span style={{ ...S.mobileCardValue, ...S.mono }}>{fmtDate(s.ship_date || s.created_at)}</span>
+                  <span style={{ ...S.mobileCardValue, ...S.mono }}>{s.ship_date || (s.created_at ? s.created_at.slice(0, 10) : '-')}</span>
                 </div>
                 <div style={S.mobileCardRow}>
                   <span style={S.mobileCardLabel}>狀態</span>
@@ -489,6 +494,7 @@ export default function Shipments() {
             <ResizableHeader headers={[
               { label: '#', align: 'center' },
               { label: '出貨單號', align: 'center' },
+              { label: '客戶', align: 'center' },
               { label: '物流商', align: 'center' },
               { label: '追蹤編號', align: 'center' },
               { label: '出貨日期', align: 'center' },
@@ -508,9 +514,10 @@ export default function Shipments() {
                 onMouseLeave={e => e.currentTarget.style.background = t.color.bgCard}>
                 <div style={{ color: '#b0b8c4', fontWeight: t.fontWeight.medium, ...cCenter }}>{(data.page * (data.limit || pageSize)) + idx + 1}</div>
                 <div style={{ fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono, ...cCenter }}>{s.shipment_no || '-'}</div>
+                <div style={{ color: t.color.textSecondary, ...cell }}>{s.customer_name || '-'}</div>
                 <div style={{ color: t.color.textSecondary, ...cell }}>{s.carrier || '-'}</div>
                 <div style={{ color: t.color.textSecondary, ...S.mono, ...cell }}>{s.tracking_no || '-'}</div>
-                <div style={{ color: t.color.textMuted, ...S.mono, ...cCenter }}>{fmtDate(s.ship_date || s.created_at)}</div>
+                <div style={{ color: t.color.textMuted, ...S.mono, ...cCenter }}>{s.ship_date || (s.created_at ? s.created_at.slice(0, 10) : '-')}</div>
                 <div style={{ ...cCenter }}>
                   <span style={{ padding: '3px 10px', borderRadius: t.radius.pill, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[s.status] || t.color.textMuted}14`, color: STATUS_COLOR[s.status] || t.color.textMuted, border: `1px solid ${STATUS_COLOR[s.status] || t.color.textMuted}30` }}>
                     {STATUS_MAP[s.status] || s.status}
