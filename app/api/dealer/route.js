@@ -36,6 +36,7 @@ const ROLE_CONFIG = {
     price_label: '牌價',
     can_see_cost: false,
     can_see_all_orders: false,
+    can_search_customers: true,
   },
   sales: {
     label: '業務',
