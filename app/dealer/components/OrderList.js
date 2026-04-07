@@ -50,14 +50,19 @@ function HealthRing({ score, size = 44 }) {
 
 /* ── Status helpers ── */
 const STATUS_TAG = {
-  draft: { label: '草稿', tone: 'default' },
-  pending_review: { label: '待審', tone: 'blue' },
-  approved: { label: '已核准', tone: 'blue' },
-  processing: { label: '處理中', tone: 'amber' },
-  shipped: { label: '已出貨', tone: 'brand' },
-  delivered: { label: '已送達', tone: 'green' },
-  completed: { label: '已完成', tone: 'green' },
-  cancelled: { label: '已取消', tone: 'red' },
+  draft:          { label: '草稿',   tone: 'default' },
+  pending:        { label: '待處理', tone: 'amber' },
+  pending_review: { label: '待審',   tone: 'blue' },
+  confirmed:      { label: '已確認', tone: 'blue' },
+  approved:       { label: '已核准', tone: 'blue' },
+  processing:     { label: '處理中', tone: 'amber' },
+  purchasing:     { label: '採購中', tone: 'amber' },
+  partial_arrived:{ label: '部分到貨', tone: 'amber' },
+  arrived:        { label: '已到貨', tone: 'green' },
+  shipped:        { label: '已出貨', tone: 'brand' },
+  delivered:      { label: '已送達', tone: 'green' },
+  completed:      { label: '已完成', tone: 'green' },
+  cancelled:      { label: '已取消', tone: 'red' },
 };
 const PAY_TAG = {
   unpaid: { label: '待收款', tone: 'red' },
@@ -191,9 +196,9 @@ export default function OrderList({ token, orders = [], loading = false, selecte
   }, [orders, filter, search]);
 
   const grouped = useMemo(() => {
-    const pending = filtered.filter(o => ['draft', 'pending_review', 'approved'].includes(o.status));
-    const active = filtered.filter(o => ['processing', 'shipped'].includes(o.status));
-    const done = filtered.filter(o => ['delivered', 'completed', 'cancelled'].includes(o.status));
+    const pending = filtered.filter(o => ['draft', 'pending', 'pending_review', 'confirmed', 'approved'].includes(o.status));
+    const active  = filtered.filter(o => ['processing', 'purchasing', 'partial_arrived', 'arrived', 'shipped'].includes(o.status));
+    const done    = filtered.filter(o => ['delivered', 'completed', 'cancelled'].includes(o.status));
     return { pending, active, done };
   }, [filtered]);
 
