@@ -189,14 +189,14 @@ function SaleDetailView({ sale, onBack, setTab }) {
             {items.length > 0 ? (
               <div>
                 {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr)', gap: 6, padding: '8px 12px', background: t.color.bgMuted, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '140px 90px 50px 85px 95px minmax(0,1fr)', gap: 6, padding: '8px 12px', background: t.color.bgMuted, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase' }}>
                   <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div>
                 </div>
                 {/* Table rows */}
                 {items.map((item, i) => {
                   const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
                   return (
-                    <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '130px 80px 50px 80px 85px minmax(0,1fr)', gap: 6, padding: '10px 12px', borderTop: `1px solid ${t.color.borderLight}`, background: t.color.bgCard, transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background=t.color.bgMuted} onMouseLeave={e => e.currentTarget.style.background=t.color.bgCard}>
+                    <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '140px 90px 50px 85px 95px minmax(0,1fr)', gap: 6, padding: '10px 12px', borderTop: `1px solid ${t.color.borderLight}`, background: t.color.bgCard, transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background=t.color.bgMuted} onMouseLeave={e => e.currentTarget.style.background=t.color.bgCard}>
                       <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number || item.item_number_snapshot || '-'} — ${item.description || item.description_snapshot || ''}`}>{item.item_number || item.item_number_snapshot || '-'}</div>
                       <div style={{ textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textMuted }}>{fmtP(item.unit_price)}</div>
                       <div style={{ textAlign: 'center', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{item.quantity || item.qty || 0}</div>
