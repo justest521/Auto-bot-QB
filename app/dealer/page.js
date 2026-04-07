@@ -268,7 +268,7 @@ export default function DealerPortal() {
                     dealerGet={dealerGet}
                     dealerPost={dealerPost}
                     onBack={null}
-                    onRefresh={() => { loadOrders(); loadOrderDetail(selectedOrderId); }}
+                    onRefresh={() => { loadOrderDetail(selectedOrderId); setTimeout(loadOrders, 500); }}
                   />
                 ) : detailLoading ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: D.color.text3, fontSize: D.size.body }}>載入中...</div>
@@ -292,7 +292,7 @@ export default function DealerPortal() {
               dealerGet={dealerGet}
               dealerPost={dealerPost}
               onBack={() => { setSelectedOrder(null); setSelectedOrderId(null); }}
-              onRefresh={() => { loadOrders(); loadOrderDetail(selectedOrderId); }}
+              onRefresh={() => { loadOrderDetail(selectedOrderId); setTimeout(loadOrders, 500); }}
             />
           );
         }
