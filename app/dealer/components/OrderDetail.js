@@ -120,7 +120,7 @@ function CustomerSearch({ token, dealerGet, dealerPost, onSelect }) {
 
 export default function OrderDetail({ order, token, user, dealerGet, dealerPost, onBack, onRefresh }) {
   // ── All hooks must run unconditionally (no early return before hooks) ──
-  const canSearchCustomers = user?.role === 'sales' || user?.role === 'technician';
+  const canSearchCustomers = user?.role === 'sales' || user?.role === 'technician' || user?.role === 'dealer';
 
   const [form, setForm] = useState({
     customer_id: '',
