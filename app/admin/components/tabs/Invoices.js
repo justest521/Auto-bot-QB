@@ -109,7 +109,7 @@ export default function Invoices() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
             <button key={key} onClick={() => applyDatePreset(key)}
-              style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 13 : 14,
+              style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.caption : t.fontSize.body,
                 background: datePreset === key ? t.color.link : t.color.bgCard,
                 color: datePreset === key ? '#fff' : '#4b5563',
                 borderColor: datePreset === key ? t.color.link : t.color.border,

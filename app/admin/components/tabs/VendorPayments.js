@@ -180,8 +180,8 @@ export default function VendorPayments() {
 
         <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '12px 14px' : '10px 16px' }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search)} placeholder="搜尋付款單號..." style={{ ...S.input, flex: 1, fontSize: 13, padding: isMobile ? '8px 10px' : '6px 10px' }} />
-            <button onClick={() => load(1, search)} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: 13 }}>查詢</button>
+            <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search)} placeholder="搜尋付款單號..." style={{ ...S.input, flex: 1, fontSize: t.fontSize.caption, padding: isMobile ? '8px 10px' : '6px 10px' }} />
+            <button onClick={() => load(1, search)} style={{ ...S.btnPrimary, padding: isMobile ? '8px 16px' : '6px 18px', fontSize: t.fontSize.caption }}>查詢</button>
           </div>
         </div>
 
@@ -282,15 +282,15 @@ export default function VendorPayments() {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>付款金額</div>
-                  <div style={{ fontSize: 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtP(selectedPayment.amount)}</div>
+                  <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtP(selectedPayment.amount)}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>已沖帳</div>
-                  <div style={{ fontSize: 18, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtP(getAllocatedTotal())}</div>
+                  <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtP(getAllocatedTotal())}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>沖帳後餘額</div>
-                  <div style={{ fontSize: 18, fontWeight: t.fontWeight.bold, color: getPaymentRemaining() - getAllocatedTotal() > 0.01 ? t.color.warning : t.color.brand, ...S.mono }}>{fmtP(getPaymentRemaining() - getAllocatedTotal())}</div>
+                  <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: getPaymentRemaining() - getAllocatedTotal() > 0.01 ? t.color.warning : t.color.brand, ...S.mono }}>{fmtP(getPaymentRemaining() - getAllocatedTotal())}</div>
                 </div>
               </div>
             </div>
@@ -354,7 +354,7 @@ export default function VendorPayments() {
           <div style={{ ...(isMobile ? S.mobileModal : p.modalBody('md')), overflowY: 'auto', maxHeight: '85vh' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ margin: 0, fontSize: t.fontSize.h2 }}>付款單明細</h3>
-              <span onClick={() => setDetailPayment(null)} style={{ cursor: 'pointer', fontSize: 20, color: t.color.textMuted }}>x</span>
+              <span onClick={() => setDetailPayment(null)} style={{ cursor: 'pointer', fontSize: t.fontSize.h1, color: t.color.textMuted }}>x</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16, fontSize: t.fontSize.body }}>
               <div><span style={{ color: t.color.textMuted }}>單號</span><div style={{ fontWeight: t.fontWeight.bold, ...S.mono }}>{detailPayment.payment_no}</div></div>

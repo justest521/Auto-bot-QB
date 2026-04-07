@@ -394,10 +394,10 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       {/* ====== Header ====== */}
       <div style={{ ...cardStyle, padding: isMobile ? '12px 12px' : '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: isMobile ? 8 : 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10 }}>
-          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 16 : 18, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h2, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 10, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-              <span style={{ fontSize: isMobile ? 16 : 20, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{po.po_no || '-'}</span>
+              <span style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{po.po_no || '-'}</span>
               <span style={{ padding: isMobile ? '3px 8px' : '3px 10px', borderRadius: t.radius.lg, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: `${PO_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: PO_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${PO_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
                 {PO_STATUS_MAP[statusKey] || statusKey}
               </span>
@@ -585,7 +585,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
           </div>
           <div style={{ borderLeft: '2px solid #93c5fd', paddingLeft: 20, textAlign: 'right' }}>
             <span style={{ fontSize: t.fontSize.caption, color: '#2563eb', fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>採購合計</span>
-            <span style={{ ...S.mono, fontSize: 22, fontWeight: t.fontWeight.bold, color: '#1d4ed8', letterSpacing: -1 }}>{fmtP(totalAmount)}</span>
+            <span style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: '#1d4ed8', letterSpacing: -1 }}>{fmtP(totalAmount)}</span>
           </div>
         </div>
       </div>
@@ -791,7 +791,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
                     finally { setUploadingVpProof(null); ev.target.value = ''; }
                   }} />
                   <button onClick={() => document.getElementById(`vp-proof-${vp.id}`)?.click()} disabled={uploadingVpProof === vp.id}
-                    style={{ fontSize: t.fontSize.tiny, color: '#6b7280', background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '3px 0', cursor: uploadingVpProof === vp.id ? 'not-allowed' : 'pointer', fontWeight: 600, width: '100%', transition: 'all 0.15s' }}
+                    style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '3px 0', cursor: uploadingVpProof === vp.id ? 'not-allowed' : 'pointer', fontWeight: t.fontWeight.semibold, width: '100%', transition: 'all 0.15s' }}
                     onMouseEnter={e => { if (uploadingVpProof !== vp.id) { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; } }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.color = '#6b7280'; }}>
                     {uploadingVpProof === vp.id ? '上傳中...' : vp.proof_url ? '📎 重新上傳' : '📎 上傳憑證'}
@@ -1200,7 +1200,7 @@ function CreatePOModal({ onClose, onCreated }) {
                   {items.map((item, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '6px 8px' }}>
-                        <div style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: '#1f2937' }}>{item.item_number}</div>
+                        <div style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{item.item_number}</div>
                         <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{item.description}</div>
                       </td>
                       <td style={{ padding: '6px 8px', textAlign: 'right' }}>
@@ -1247,7 +1247,7 @@ function CreatePOModal({ onClose, onCreated }) {
                 </div>
                 <div style={{ borderLeft: '3px solid #2563eb', paddingLeft: 16, textAlign: 'right' }}>
                   <div style={{ fontSize: t.fontSize.tiny, color: '#2563eb', fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>採購合計（TWD）</div>
-                  <div style={{ ...S.mono, fontSize: 22, fontWeight: t.fontWeight.bold, color: '#1d4ed8', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
+                  <div style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: '#1d4ed8', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
                 </div>
               </div>
             )}
@@ -1411,7 +1411,7 @@ export default function PurchaseOrders({ setTab }) {
       <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '10px 12px' : '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 13 : 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', ...(isMobile && { flex: 1 }) }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb', ...(isMobile && { flex: 1 }) }}>{label}</button>
           ))}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
             <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
@@ -1474,7 +1474,7 @@ export default function PurchaseOrders({ setTab }) {
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, background: selectedIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s', borderBottom: idx < filteredRows.length - 1 ? '1px solid #e5e7eb' : 'none' }} onClick={() => setSelectedPO(row)} onMouseEnter={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { if (!selectedIds.has(row.id)) e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div onClick={(e) => { e.stopPropagation(); toggleSelect(row.id); }} style={cCenter}><input type="checkbox" checked={selectedIds.has(row.id)} readOnly style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
                 <div style={{ ...cCenter, color: t.color.textMuted, ...S.mono }}>{((data.page - 1) * (data.limit || 30)) + idx + 1}</div>
-                <div style={{ ...cell, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, gap: 4, whiteSpace: 'nowrap' }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: 9, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}<span style={{ fontSize: 9, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
+                <div style={{ ...cell, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, gap: 4, whiteSpace: 'nowrap' }}>{row.po_no || '-'}{row.exported_at && <span title={`已匯出 ${row.exported_at.slice(0,10)}`} style={{ fontSize: t.fontSize.tiny, background: '#dbeafe', color: '#2563eb', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>已匯出</span>}<span style={{ fontSize: t.fontSize.tiny, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
                 <div style={{ ...cCenter, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.po_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(PO_STATUS_COLOR[statusKey] || 'default')}>{PO_STATUS_MAP[statusKey] || statusKey}</span></div>
                 <div style={{ ...cell, color: t.color.textSecondary, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.remark || '-'}</div>

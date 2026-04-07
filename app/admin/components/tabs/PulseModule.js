@@ -59,8 +59,8 @@ function Modal({ open, onClose, title, children, width = 520 }) {
         ...(isMobile ? { position: 'fixed', bottom: 0, left: 0, right: 0 } : {}),
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ fontSize: 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, margin: 0 }}>{title}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, color: t.color.textMuted, cursor: 'pointer', padding: 4 }}>✕</button>
+          <h3 style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, margin: 0 }}>{title}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: t.fontSize.h1, color: t.color.textMuted, cursor: 'pointer', padding: 4 }}>✕</button>
         </div>
         {children}
       </div>
@@ -104,7 +104,7 @@ function VolumeTrendChart({ data, height = 200 }) {
                 transition: 'height 0.4s ease',
                 opacity: i === data.length - 1 ? 1 : 0.75,
               }} title={`${label}: ${d.count} 貼文`} />
-              <div style={{ fontSize: 9, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{label}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{label}</div>
             </div>
           );
         })}
@@ -182,8 +182,8 @@ function DashboardTab() {
         ].map((c, i) => (
           <div key={i} style={{ ...S.card, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: c.color }} />
-            <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 8, marginTop: 2 }}>{c.label}</div>
-            <div style={{ fontSize: isMobile ? 18 : 24, fontWeight: t.fontWeight.bold, color: c.color, ...S.mono }}>{c.value}</div>
+            <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 8, marginTop: 2 }}>{c.label}</div>
+            <div style={{ fontSize: isMobile ? t.fontSize.h2 : 24, fontWeight: t.fontWeight.bold, color: c.color, ...S.mono }}>{c.value}</div>
           </div>
         ))}
       </div>
@@ -227,7 +227,7 @@ function DashboardTab() {
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: i < d.recent_alerts.length - 1 ? `1px solid ${t.color.borderLight}` : 'none' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{alert.title}</div>
-                  <div style={{ fontSize: 11, color: t.color.textMuted, marginTop: 2 }}>{fmtDate(alert.created_at, 'YYYY-MM-DD HH:mm')}</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2 }}>{fmtDate(alert.created_at, 'YYYY-MM-DD HH:mm')}</div>
                 </div>
                 <Tag label={alert.type} color={alert.type === 'critical' ? t.color.error : alert.type === 'warning' ? t.color.warning : t.color.info} />
               </div>
@@ -338,13 +338,13 @@ function PostsTab() {
             <Field label="情緒分析">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
                 <div style={{ ...S.panelMuted, padding: 10 }}>
-                  <div style={{ fontSize: 10, color: t.color.textMuted, marginBottom: 4 }}>主要情緒</div>
-                  <div style={{ fontSize: 16, fontWeight: t.fontWeight.bold, color: SENTIMENT_MAP[selectedPost.sentiment]?.color }}>{SENTIMENT_MAP[selectedPost.sentiment]?.label}</div>
-                  <div style={{ fontSize: 11, color: t.color.textMuted, marginTop: 2 }}>信心度: {selectedPost.confidence_score}%</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 4 }}>主要情緒</div>
+                  <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: SENTIMENT_MAP[selectedPost.sentiment]?.color }}>{SENTIMENT_MAP[selectedPost.sentiment]?.label}</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2 }}>信心度: {selectedPost.confidence_score}%</div>
                 </div>
                 <div style={{ ...S.panelMuted, padding: 10 }}>
-                  <div style={{ fontSize: 10, color: t.color.textMuted, marginBottom: 4 }}>互動得分</div>
-                  <div style={{ fontSize: 16, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{selectedPost.engagement_score}</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 4 }}>互動得分</div>
+                  <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{selectedPost.engagement_score}</div>
                 </div>
               </div>
             </Field>
@@ -553,7 +553,7 @@ function AlertsTab() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 2 }}>{item.title}</div>
-                      <div style={{ fontSize: 11, color: t.color.textMuted }}>{fmtDate(item.triggered_at, 'YYYY-MM-DD HH:mm')}</div>
+                      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{fmtDate(item.triggered_at, 'YYYY-MM-DD HH:mm')}</div>
                     </div>
                     <Tag label={item.severity || 'info'} color={item.severity === 'critical' ? t.color.error : item.severity === 'warning' ? t.color.warning : t.color.info} />
                   </div>
@@ -879,7 +879,7 @@ function TenantsTab() {
                     <div style={{ height: 6, background: t.color.bgMuted, borderRadius: 3, overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${usageRate}%`, background: usageRate > 80 ? t.color.error : usageRate > 50 ? t.color.warning : t.color.brand, transition: 'width 0.4s ease' }} />
                     </div>
-                    <div style={{ fontSize: 10, color: t.color.textMuted, marginTop: 4, textAlign: 'right' }}>{usageRate}% 已使用</div>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 4, textAlign: 'right' }}>{usageRate}% 已使用</div>
                   </div>
                   <button onClick={() => { setEditingTenant(tenant); setFormData({ name: tenant.name, plan: tenant.plan, monthly_quota: tenant.monthly_quota.toString(), used_quota: tenant.used_quota.toString() }); }} style={{ ...S.btnGhost, fontSize: t.fontSize.caption, padding: '4px 8px' }}>編輯</button>
                 </div>
@@ -954,7 +954,7 @@ export default function PulseModule() {
               whiteSpace: 'nowrap',
             }}
           >
-            <span style={{ fontSize: 14 }}>{tab.icon}</span>
+            <span style={{ fontSize: t.fontSize.body }}>{tab.icon}</span>
             {tab.label}
           </button>
         ))}

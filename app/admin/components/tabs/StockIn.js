@@ -51,7 +51,7 @@ function StockInDetailView({ id, onBack }) {
     <div>
       {/* 頂部列 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-        <button onClick={onBack} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 13 }}>← 返回</button>
+        <button onClick={onBack} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.caption }}>← 返回</button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={S.eyebrow}>Stock In Detail</div>
           <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{si.stock_in_no || '進貨單明細'}</div>
@@ -60,7 +60,7 @@ function StockInDetailView({ id, onBack }) {
           {si.status === 'confirmed' ? '已入庫' : '待確認'}
         </span>
         {si.status === 'pending' && (
-          <button onClick={handleConfirm} style={{ ...S.btnPrimary, ...(isMobile ? { minHeight: 44 } : {}), padding: '8px 20px', fontSize: 13 }}>確認入庫</button>
+          <button onClick={handleConfirm} style={{ ...S.btnPrimary, ...(isMobile ? { minHeight: 44 } : {}), padding: '8px 20px', fontSize: t.fontSize.caption }}>確認入庫</button>
         )}
       </div>
 
@@ -105,7 +105,7 @@ function StockInDetailView({ id, onBack }) {
       <div style={{ ...cardStyle, padding: '16px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>
-            進貨明細 <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: 400 }}>{items.length} 項 / {totalQty} 件</span>
+            進貨明細 <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, fontWeight: t.fontWeight.normal }}>{items.length} 項 / {totalQty} 件</span>
           </div>
         </div>
         {items.length === 0 ? <EmptyState text="無明細項目" /> : (
@@ -199,7 +199,7 @@ function StockInDetailView({ id, onBack }) {
             </div>
             <div style={{ borderLeft: isMobile ? 'none' : `3px solid ${t.color.brand}`, borderTop: isMobile ? `3px solid ${t.color.brand}` : 'none', paddingLeft: isMobile ? 0 : 16, paddingTop: isMobile ? 8 : 0, textAlign: 'right' }}>
               <div style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>進貨合計</div>
-              <div style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
+              <div style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
             </div>
           </div>
         )}
@@ -416,7 +416,7 @@ export default function StockIn() {
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'right', borderRight: 'none' }}>
                         {r.status === 'pending' && (
-                          <button onClick={(e) => handleConfirm(r.id, e)} style={{ ...S.btnPrimary, padding: '5px 12px', fontSize: 12 }}>確認入庫</button>
+                          <button onClick={(e) => handleConfirm(r.id, e)} style={{ ...S.btnPrimary, padding: '5px 12px', fontSize: t.fontSize.tiny }}>確認入庫</button>
                         )}
                       </td>
                     </tr>
@@ -446,7 +446,7 @@ export default function StockIn() {
                     <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.link, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>新增進貨</div>
                     <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary }}>建立進貨單</div>
                   </div>
-                  <button onClick={() => setCreateOpen(false)} style={{ width: 32, height: 32, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: t.color.bgMuted, cursor: 'pointer', fontSize: 16, color: t.color.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                  <button onClick={() => setCreateOpen(false)} style={{ width: 32, height: 32, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: t.color.bgMuted, cursor: 'pointer', fontSize: t.fontSize.h2, color: t.color.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                 </div>
               </div>
 
@@ -490,8 +490,8 @@ export default function StockIn() {
                   <div>
                     <label style={modalLabel}>
                       進貨廠商
-                      {!form.po_id && <span style={{ color: '#ef4444', marginLeft: 4 }}>*</span>}
-                      {form.po_id && <span style={{ color: '#9ca3af', fontWeight: 400, marginLeft: 4 }}>(選填)</span>}
+                      {!form.po_id && <span style={{ color: t.color.error, marginLeft: 4 }}>*</span>}
+                      {form.po_id && <span style={{ color: t.color.textDisabled, fontWeight: t.fontWeight.normal, marginLeft: 4 }}>(選填)</span>}
                     </label>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <select value={form.vendor_id} onChange={(e) => setForm(p => ({ ...p, vendor_id: e.target.value }))}
@@ -499,11 +499,11 @@ export default function StockIn() {
                         <option value="">{form.po_id ? '不指定廠商' : '請選擇廠商...'}</option>
                         {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
                       </select>
-                      {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: t.fontWeight.bold, color: t.color.link, background: t.color.infoBg, border: `1px solid ${t.color.link}`, borderRadius: t.radius.md, cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1 }}>+</button>}
+                      {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.link, background: t.color.infoBg, border: `1px solid ${t.color.link}`, borderRadius: t.radius.md, cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1 }}>+</button>}
                     </div>
                   </div>
                   <div>
-                    <label style={modalLabel}>關聯採購單 <span style={{ color: '#9ca3af', fontWeight: 400 }}>(選填)</span></label>
+                    <label style={modalLabel}>關聯採購單 <span style={{ color: t.color.textDisabled, fontWeight: t.fontWeight.normal }}>(選填)</span></label>
                     <input value={form.po_id} onChange={(e) => setForm(p => ({ ...p, po_id: e.target.value }))} placeholder="PO 編號" style={{ ...modalInput, width: '100%' }} />
                   </div>
                 </div>
@@ -515,7 +515,7 @@ export default function StockIn() {
                 {/* Items */}
                 <div style={{ background: t.color.bg, borderRadius: t.radius.lg, border: `1px solid ${t.color.border}`, padding: '14px 16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: '#1f2937' }}>
+                    <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>
                       進貨明細
                       <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.medium, color: t.color.textMuted, marginLeft: 6 }}>{validItems.length} 項 / {formQty} 件</span>
                     </div>
@@ -619,7 +619,7 @@ export default function StockIn() {
                               : <span style={{ ...S.mono, color: '#059669' }}>{fmtP(it.line_total)}</span>
                             }
                           </div>
-                          <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: 24, height: 24, borderRadius: t.radius.md, border: 'none', background: items.length > 1 ? t.color.errorBg : 'transparent', color: items.length > 1 ? t.color.error : t.color.border, cursor: items.length > 1 ? 'pointer' : 'default', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                          <button onClick={() => items.length > 1 && setItems(p => p.filter((_, i) => i !== idx))} style={{ width: 24, height: 24, borderRadius: t.radius.md, border: 'none', background: items.length > 1 ? t.color.errorBg : 'transparent', color: items.length > 1 ? t.color.error : t.color.border, cursor: items.length > 1 ? 'pointer' : 'default', fontSize: t.fontSize.body, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                         </div>
                       )
                     ))}

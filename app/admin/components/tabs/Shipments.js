@@ -10,7 +10,7 @@ import { useResizableColumns } from '../shared/ResizableTable';
 const STATUS_MAP = { pending: '待出貨', packed: '已包裝', shipped: '已出貨', delivered: '已送達', returned: '已退回', cancelled: '已取消' };
 const STATUS_COLOR = { pending: t.color.warning, packed: t.color.purple, shipped: t.color.link, delivered: t.color.brand, returned: t.color.error, cancelled: t.color.textMuted };
 const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
-const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textDisabled, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
 
 // ========== 出貨單明細頁 ==========
 function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
@@ -65,10 +65,10 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
       {/* Header */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.color.textMuted, transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h2, color: t.color.textMuted, transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: isMobile ? 16 : 22, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{ship.shipment_no || '-'}</span>
+              <span style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{ship.shipment_no || '-'}</span>
               <span style={{ padding: '3px 10px', borderRadius: t.radius.pill, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[statusKey] || t.color.textMuted}14`, color: STATUS_COLOR[statusKey] || t.color.textMuted, border: `1px solid ${STATUS_COLOR[statusKey] || t.color.textMuted}30` }}>
                 {STATUS_MAP[statusKey] || statusKey}
               </span>
@@ -83,7 +83,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {nextActions.map(a => (
             <button key={a.status} onClick={() => updateStatus(a.status, a.notify)} disabled={!!processing}
-              style={{ ...(isMobile ? { flex: 1, minHeight: 44, minWidth: 0 } : {}), padding: isMobile ? '9px 12px' : '9px 22px', borderRadius: t.radius.lg, border: a.status === 'cancelled' || a.status === 'returned' ? `1px solid ${a.color}40` : 'none', background: a.status === 'cancelled' || a.status === 'returned' ? t.color.bgCard : `linear-gradient(135deg, ${a.color}, ${a.color}dd)`, color: a.status === 'cancelled' || a.status === 'returned' ? a.color : t.color.bgCard, fontSize: isMobile ? 12 : 14, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: processing ? 0.7 : 1, transition: 'all 0.15s', boxShadow: a.status === 'cancelled' || a.status === 'returned' ? 'none' : `0 2px 8px ${a.color}40` }}>
+              style={{ ...(isMobile ? { flex: 1, minHeight: 44, minWidth: 0 } : {}), padding: isMobile ? '9px 12px' : '9px 22px', borderRadius: t.radius.lg, border: a.status === 'cancelled' || a.status === 'returned' ? `1px solid ${a.color}40` : 'none', background: a.status === 'cancelled' || a.status === 'returned' ? t.color.bgCard : `linear-gradient(135deg, ${a.color}, ${a.color}dd)`, color: a.status === 'cancelled' || a.status === 'returned' ? a.color : t.color.bgCard, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: processing ? 0.7 : 1, transition: 'all 0.15s', boxShadow: a.status === 'cancelled' || a.status === 'returned' ? 'none' : `0 2px 8px ${a.color}40` }}>
               {processing === a.status ? '處理中...' : a.label}
             </button>
           ))}
@@ -99,7 +99,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
             <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
                 <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>出貨品項</span>
-                <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+                <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: t.color.textDisabled, marginLeft: 8 }}>{items.length} 項</span>
               </div>
               {items.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -111,7 +111,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                         <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>品名</span>
-                        <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: '#1f2937' }}>{item.description || '-'}</span>
+                        <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{item.description || '-'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                         <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>訂購數</span>
@@ -172,8 +172,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                   { label: '備註', value: ship.remark },
                 ].filter(f => f.value).map((f, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                    <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
-                    <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                    <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                   </div>
                 ))}
               </div>
@@ -183,7 +183,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
             {order && (
               <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>關聯訂單</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
+                <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {[
                     { label: '訂單日期', value: order.order_date, mono: true },
@@ -192,8 +192,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                     { label: '訂單金額', value: fmtP(order.total_amount), mono: true },
                   ].filter(f => f.value).map((f, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                      <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
-                      <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                      <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -204,7 +204,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
             {customer && (
               <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>客戶資訊</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {[
                     { label: '聯絡人', value: customer.name },
@@ -212,8 +212,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                     { label: '地址', value: customer.address },
                   ].filter(f => f.value).map((f, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                      <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
-                      <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                      <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -227,17 +227,17 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
               <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
                 <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f2f5' }}>
                   <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>出貨品項</span>
-                  <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+                  <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: t.color.textDisabled, marginLeft: 8 }}>{items.length} 項</span>
                 </div>
                 {items.length > 0 ? (
                   <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase' }}>
                       <div>料號</div><div>品名</div><div style={{ textAlign: 'center' }}>訂購數</div><div style={{ textAlign: 'center' }}>出貨數</div><div style={{ textAlign: 'right' }}>單價</div>
                     </div>
                     {items.map((item, i) => (
                       <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 75px 90px', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: t.color.bgCard, transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = t.color.bgCard}>
                         <div style={{ ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary }}>{item.item_number || '-'}</div>
-                        <div style={{ fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.h3, color: '#1f2937', lineHeight: 1.4 }}>{item.description || '-'}</div>
+                        <div style={{ fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.h3, color: t.color.textPrimary, lineHeight: 1.4 }}>{item.description || '-'}</div>
                         <div style={{ textAlign: 'center', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textMuted }}>{item.order_qty || '-'}</div>
                         <div style={{ textAlign: 'center', ...S.mono, fontSize: t.fontSize.h3, fontWeight: 800, color: '#059669' }}>{item.qty_shipped || 0}</div>
                         <div style={{ textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textMuted }}>{fmtP(item.unit_price)}</div>
@@ -291,8 +291,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                     { label: '備註', value: ship.remark },
                   ].filter(f => f.value).map((f, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                      <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
-                      <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                      <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -302,7 +302,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
               {order && (
                 <div style={{ ...cardStyle, padding: '10px 16px' }}>
                   <div style={labelStyle}>關聯訂單</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
+                  <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {[
                       { label: '訂單日期', value: order.order_date, mono: true },
@@ -311,8 +311,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                       { label: '訂單金額', value: fmtP(order.total_amount), mono: true },
                     ].filter(f => f.value).map((f, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                        <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
-                        <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                        <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                        <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                       </div>
                     ))}
                   </div>
@@ -323,7 +323,7 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
               {customer && (
                 <div style={{ ...cardStyle, padding: '10px 16px' }}>
                   <div style={labelStyle}>客戶資訊</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                  <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {[
                       { label: '聯絡人', value: customer.name },
@@ -331,8 +331,8 @@ function ShipmentDetailView({ shipment: initShip, onBack, onRefresh }) {
                       { label: '地址', value: customer.address },
                     ].filter(f => f.value).map((f, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                        <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
-                        <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                        <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                        <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                       </div>
                     ))}
                   </div>
@@ -512,7 +512,7 @@ export default function Shipments() {
                 style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, background: t.color.bgCard, cursor: 'pointer', transition: 'background 0.1s', borderBottom: idx < data.shipments.length - 1 ? '1px solid #e5e7eb' : 'none' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                 onMouseLeave={e => e.currentTarget.style.background = t.color.bgCard}>
-                <div style={{ color: '#b0b8c4', fontWeight: t.fontWeight.medium, ...cCenter }}>{(data.page * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ color: t.color.textDisabled, fontWeight: t.fontWeight.medium, ...cCenter }}>{(data.page * (data.limit || pageSize)) + idx + 1}</div>
                 <div style={{ fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono, ...cCenter }}>{s.shipment_no || '-'}</div>
                 <div style={{ color: t.color.textSecondary, ...cell }}>{s.customer_name || '-'}</div>
                 <div style={{ color: t.color.textSecondary, ...cell }}>{s.carrier || '-'}</div>

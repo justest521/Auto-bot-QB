@@ -266,7 +266,7 @@ export default function Customers() {
         <div style={{ display: 'grid', gap: 10 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-              <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{detailCustomer.display_name || '未命名客戶'}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{detailCustomer.display_name || '未命名客戶'}</div>
               <span style={S.tag('green')}>LINE</span>
               {detailCustomer.linked_customer
                 ? <span style={S.tag(stageMeta[currentStage]?.color || '')}>{stageMeta[currentStage]?.label || '詢問名單'}</span>
@@ -282,23 +282,23 @@ export default function Customers() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))', gap: 10 }}>
             <div style={S.panelMuted}>
               <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>MSG</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{fmt(detailSummary.message_count)}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{fmt(detailSummary.message_count)}</div>
             </div>
             <div style={S.panelMuted}>
               <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>QUOTE</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(detailSummary.quote_count)}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(detailSummary.quote_count)}</div>
             </div>
             <div style={S.panelMuted}>
               <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>ORDER</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(detailSummary.order_count)}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(detailSummary.order_count)}</div>
             </div>
             <div style={S.panelMuted}>
               <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>SALE</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(detailSummary.sale_count)}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(detailSummary.sale_count)}</div>
             </div>
             <div style={S.panelMuted}>
               <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 6, ...S.mono }}>REVENUE</div>
-              <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>{fmtP(detailSummary.sales_total)}</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.body : t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>{fmtP(detailSummary.sales_total)}</div>
             </div>
           </div>
 
@@ -543,7 +543,7 @@ export default function Customers() {
                             </span>
                           : <span style={S.tag('red')}>未綁定</span>}
                       </div>
-                      <div style={{ textAlign: isMobile ? 'left' : 'right', fontSize: 16, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono }}>
+                      <div style={{ textAlign: isMobile ? 'left' : 'right', fontSize: t.fontSize.h2, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono }}>
                         {fmt(customer.message_count)}
                       </div>
                     </div>

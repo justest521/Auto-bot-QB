@@ -408,7 +408,7 @@ export default function LineCRM() {
             </div>
             <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.469rem', width: isMobile ? '100%' : 'auto' }}>
               <button
-                style={{ ...S.btnGhost, ...(isMobile ? { flex: 1, minHeight: 40 } : {}), fontSize: isMobile ? 13 : 14 }}
+                style={{ ...S.btnGhost, ...(isMobile ? { flex: 1, minHeight: 40 } : {}), fontSize: isMobile ? t.fontSize.caption : t.fontSize.body }}
                 onClick={() => {
                   setBroadcastOpen(false);
                   setBroadcastMessage('');
@@ -418,7 +418,7 @@ export default function LineCRM() {
                 取消
               </button>
               <button
-                style={{ ...S.btnPrimary, ...(isMobile ? { flex: 1, minHeight: 44 } : {}), fontSize: isMobile ? 13 : 14 }}
+                style={{ ...S.btnPrimary, ...(isMobile ? { flex: 1, minHeight: 44 } : {}), fontSize: isMobile ? t.fontSize.caption : t.fontSize.body }}
                 onClick={handleBroadcast}
                 disabled={broadcastLoading || !broadcastMessage.trim()}
               >

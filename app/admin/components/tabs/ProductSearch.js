@@ -121,10 +121,10 @@ export default function ProductSearch() {
         </div>
       )}
       <div style={{ ...S.statGrid, ...(isMobile ? S.mobile.statGrid : {}), marginBottom: 10 }}>
-        <div style={S.panelMuted}><div style={S.label}>TOTAL_PRODUCTS</div><div style={{ fontSize: isMobile ? 20 : 26, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(summary.total_products)}</div></div>
-        <div style={S.panelMuted}><div style={S.label}>CURRENT</div><div style={{ fontSize: isMobile ? 20 : 26, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>{fmt(summary.current_products)}</div></div>
-        <div style={S.panelMuted}><div style={S.label}>WITH_REPLACEMENT</div><div style={{ fontSize: isMobile ? 20 : 26, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{fmt(summary.replacement_products)}</div></div>
-        <div style={S.panelMuted}><div style={S.label}>CATEGORIES</div><div style={{ fontSize: isMobile ? 20 : 26, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(summary.category_count)}</div></div>
+        <div style={S.panelMuted}><div style={S.label}>TOTAL_PRODUCTS</div><div style={{ fontSize: isMobile ? t.fontSize.h1 : 26, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(summary.total_products)}</div></div>
+        <div style={S.panelMuted}><div style={S.label}>CURRENT</div><div style={{ fontSize: isMobile ? t.fontSize.h1 : 26, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>{fmt(summary.current_products)}</div></div>
+        <div style={S.panelMuted}><div style={S.label}>WITH_REPLACEMENT</div><div style={{ fontSize: isMobile ? t.fontSize.h1 : 26, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{fmt(summary.replacement_products)}</div></div>
+        <div style={S.panelMuted}><div style={S.label}>CATEGORIES</div><div style={{ fontSize: isMobile ? t.fontSize.h1 : 26, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmt(summary.category_count)}</div></div>
       </div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜尋料號或關鍵字... (例: FDX71, wrench)" style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, ...S.mono, minHeight: isMobile ? 44 : 'auto' }} onFocus={e => e.target.style.borderColor = t.color.link} onBlur={e => e.target.style.borderColor = t.color.border} />

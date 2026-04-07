@@ -11,7 +11,7 @@ const STATUS_MAP = { active: '有效', expired: '已過期', voided: '已作廢'
 const STATUS_COLOR = { active: t.color.brand, expired: t.color.error, voided: '#9ca3af' };
 
 const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
-const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textDisabled, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
 
 function WarrantyDetailView({ warranty, onBack, onRefresh }) {
   const { isMobile } = useResponsive();
@@ -41,10 +41,10 @@ function WarrantyDetailView({ warranty, onBack, onRefresh }) {
     <div style={{ animation: 'fadeIn 0.25s ease', padding: isMobile ? '0' : '0 12px' }}>
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.color.textMuted, transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h2, color: t.color.textMuted, transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: isMobile ? 16 : 22, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{warranty.registration_number || '-'}</span>
+              <span style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{warranty.registration_number || '-'}</span>
               <span style={{ padding: '3px 10px', borderRadius: t.radius.pill, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[statusKey] || t.color.textMuted}14`, color: STATUS_COLOR[statusKey] || t.color.textMuted, border: `1px solid ${STATUS_COLOR[statusKey] || t.color.textMuted}30` }}>
                 {STATUS_MAP[statusKey] || statusKey}
               </span>
@@ -55,7 +55,7 @@ function WarrantyDetailView({ warranty, onBack, onRefresh }) {
           </div>
         </div>
         {statusKey !== 'voided' && (
-          <button onClick={handleVoid} disabled={processing} style={{ padding: '9px 22px', borderRadius: t.radius.lg, border: `1px solid ${t.color.error}40`, background: t.color.bgCard, color: t.color.error, fontSize: 14, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: processing ? 0.7 : 1, transition: 'all 0.15s' }}>
+          <button onClick={handleVoid} disabled={processing} style={{ padding: '9px 22px', borderRadius: t.radius.lg, border: `1px solid ${t.color.error}40`, background: t.color.bgCard, color: t.color.error, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: processing ? 0.7 : 1, transition: 'all 0.15s' }}>
             {processing ? '處理中...' : '作廢'}
           </button>
         )}
@@ -67,13 +67,13 @@ function WarrantyDetailView({ warranty, onBack, onRefresh }) {
         <div>
           <div style={cardStyle}>
             <div style={labelStyle}>基本資訊</div>
-            <div style={{ display: 'grid', gap: 12, fontSize: 14 }}>
-              <div><span style={{ color: '#6b7280', fontWeight: 600 }}>客戶:</span> <span style={{ color: '#111827', marginLeft: 8 }}>{warranty.customer_name || '-'}</span></div>
-              <div><span style={{ color: '#6b7280', fontWeight: 600 }}>產品名稱:</span> <span style={{ color: '#111827', marginLeft: 8 }}>{warranty.product_name || '-'}</span></div>
-              <div><span style={{ color: '#6b7280', fontWeight: 600 }}>料號:</span> <span style={{ color: '#111827', marginLeft: 8, ...S.mono }}>{warranty.item_number || '-'}</span></div>
-              <div><span style={{ color: '#6b7280', fontWeight: 600 }}>序號:</span> <span style={{ color: '#111827', marginLeft: 8, ...S.mono }}>{warranty.serial_number || '-'}</span></div>
-              <div><span style={{ color: '#6b7280', fontWeight: 600 }}>品牌:</span> <span style={{ color: '#111827', marginLeft: 8 }}>{warranty.brand || '-'}</span></div>
-              <div><span style={{ color: '#6b7280', fontWeight: 600 }}>分類:</span> <span style={{ color: '#111827', marginLeft: 8 }}>{warranty.category || '-'}</span></div>
+            <div style={{ display: 'grid', gap: 12, fontSize: t.fontSize.body }}>
+              <div><span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>客戶:</span> <span style={{ color: t.color.textPrimary, marginLeft: 8 }}>{warranty.customer_name || '-'}</span></div>
+              <div><span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>產品名稱:</span> <span style={{ color: t.color.textPrimary, marginLeft: 8 }}>{warranty.product_name || '-'}</span></div>
+              <div><span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>料號:</span> <span style={{ color: t.color.textPrimary, marginLeft: 8, ...S.mono }}>{warranty.item_number || '-'}</span></div>
+              <div><span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>序號:</span> <span style={{ color: t.color.textPrimary, marginLeft: 8, ...S.mono }}>{warranty.serial_number || '-'}</span></div>
+              <div><span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>品牌:</span> <span style={{ color: t.color.textPrimary, marginLeft: 8 }}>{warranty.brand || '-'}</span></div>
+              <div><span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>分類:</span> <span style={{ color: t.color.textPrimary, marginLeft: 8 }}>{warranty.category || '-'}</span></div>
             </div>
           </div>
         </div>
@@ -81,20 +81,20 @@ function WarrantyDetailView({ warranty, onBack, onRefresh }) {
         <div>
           <div style={cardStyle}>
             <div style={labelStyle}>保固資訊</div>
-            <div style={{ display: 'grid', gap: 12, fontSize: 14 }}>
-              <div><span style={{ color: '#6b7280', fontWeight: 600 }}>購買日期:</span> <span style={{ color: '#111827', marginLeft: 8, ...S.mono }}>{fmtDate(warranty.purchase_date) || '-'}</span></div>
-              <div><span style={{ color: '#6b7280', fontWeight: 600 }}>保固到期:</span> <span style={{ color: '#111827', marginLeft: 8, ...S.mono }}>{warranty.is_lifetime ? '終身保固' : fmtDate(warranty.warranty_end_date) || '-'}</span></div>
+            <div style={{ display: 'grid', gap: 12, fontSize: t.fontSize.body }}>
+              <div><span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>購買日期:</span> <span style={{ color: t.color.textPrimary, marginLeft: 8, ...S.mono }}>{fmtDate(warranty.purchase_date) || '-'}</span></div>
+              <div><span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>保固到期:</span> <span style={{ color: t.color.textPrimary, marginLeft: 8, ...S.mono }}>{warranty.is_lifetime ? '終身保固' : fmtDate(warranty.warranty_end_date) || '-'}</span></div>
               {warranty.is_lifetime ? (
-                <div><span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600, background: '#dbeafe', color: '#3b82f6' }}>終身保固</span></div>
+                <div><span style={{ padding: '3px 10px', borderRadius: 6, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: '#dbeafe', color: t.color.link }}>終身保固</span></div>
               ) : (
                 isExpiring ? (
-                  <div><span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600, background: '#fef9c3', color: '#854d0e' }}>剩餘 {daysRemaining} 天</span></div>
+                  <div><span style={{ padding: '3px 10px', borderRadius: 6, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: '#fef9c3', color: '#854d0e' }}>剩餘 {daysRemaining} 天</span></div>
                 ) : (
-                  <div style={{ color: '#6b7280', fontSize: 12 }}>狀態: {statusKey === 'expired' ? '已過期' : '有效'}</div>
+                  <div style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny }}>狀態: {statusKey === 'expired' ? '已過期' : '有效'}</div>
                 )
               )}
               {warranty.remark && (
-                <div><span style={{ color: '#6b7280', fontWeight: 600 }}>備註:</span> <span style={{ color: '#374151', marginLeft: 8, marginTop: 4, display: 'block' }}>{warranty.remark}</span></div>
+                <div><span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.semibold }}>備註:</span> <span style={{ color: t.color.textSecondary, marginLeft: 8, marginTop: 4, display: 'block' }}>{warranty.remark}</span></div>
               )}
             </div>
           </div>
@@ -147,11 +147,11 @@ function CreateWarrantyDialog({ open, onClose, onCreated }) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
       <div style={{ ...cardStyle, width: 640, maxWidth: '90vw', maxHeight: '85vh', borderRadius: 14, padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
         <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>新增保固登錄</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, color: '#9ca3af', cursor: 'pointer', padding: '2px 6px', lineHeight: 1 }}>✕</button>
+          <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>新增保固登錄</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: t.fontSize.h1, color: t.color.textDisabled, cursor: 'pointer', padding: '2px 6px', lineHeight: 1 }}>✕</button>
         </div>
         <div style={{ flex: 1, padding: '16px 18px', overflowY: 'auto' }}>
-          {msg && <div style={{ background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 12, padding: '10px 12px', borderRadius: 8, fontSize: 13, border: `1px solid ${msg.includes('失敗') ? '#fecdd3' : '#bbf7d0'}` }}>{msg}</div>}
+          {msg && <div style={{ background: msg.includes('失敗') ? '#fff1f2' : '#edfdf3', borderColor: msg.includes('失敗') ? '#fecdd3' : '#bbf7d0', color: msg.includes('失敗') ? '#b42318' : '#15803d', marginBottom: 12, padding: '10px 12px', borderRadius: 8, fontSize: t.fontSize.caption, border: `1px solid ${msg.includes('失敗') ? '#fecdd3' : '#bbf7d0'}` }}>{msg}</div>}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
             <div>
               <div style={labelStyle}>客戶名稱</div>
@@ -293,7 +293,7 @@ export default function WarrantyRegistrations() {
             border: expiring ? 'none' : '1px solid #e5e7eb',
             background: expiring ? '#fef9c3' : t.color.bgCard,
             color: expiring ? '#854d0e' : '#374151',
-            fontSize: 14,
+            fontSize: t.fontSize.body,
             fontWeight: t.fontWeight.bold,
             cursor: 'pointer',
             transition: 'all 0.15s',
@@ -328,22 +328,22 @@ export default function WarrantyRegistrations() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{w.registration_number}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{w.customer_name || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{w.registration_number}</div>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2 }}>{w.customer_name || '-'}</div>
                   </div>
-                  <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: `${STATUS_COLOR[statusKey]}14`, color: STATUS_COLOR[statusKey] }}>
+                  <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: `${STATUS_COLOR[statusKey]}14`, color: STATUS_COLOR[statusKey] }}>
                     {STATUS_MAP[statusKey]}
                   </span>
                 </div>
-                <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
-                  <div><span style={{ color: '#6b7280' }}>產品:</span> {w.product_name}</div>
-                  <div><span style={{ color: '#6b7280' }}>品牌:</span> {w.brand || '-'}</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textSecondary, lineHeight: 1.6 }}>
+                  <div><span style={{ color: t.color.textMuted }}>產品:</span> {w.product_name}</div>
+                  <div><span style={{ color: t.color.textMuted }}>品牌:</span> {w.brand || '-'}</div>
                   <div>
-                    <span style={{ color: '#6b7280' }}>保固:</span> {' '}
+                    <span style={{ color: t.color.textMuted }}>保固:</span> {' '}
                     {w.is_lifetime ? (
-                      <span style={{ color: '#3b82f6', fontWeight: 600 }}>終身保固</span>
+                      <span style={{ color: t.color.link, fontWeight: t.fontWeight.semibold }}>終身保固</span>
                     ) : isExpiring ? (
-                      <span style={{ color: '#854d0e', fontWeight: 600 }}>剩餘 {w.days_remaining} 天</span>
+                      <span style={{ color: '#854d0e', fontWeight: t.fontWeight.semibold }}>剩餘 {w.days_remaining} 天</span>
                     ) : (
                       <span>{fmtDate(w.warranty_end_date)}</span>
                     )}
@@ -355,18 +355,18 @@ export default function WarrantyRegistrations() {
         </div>
       ) : (
         <div style={S.tableScroll}>
-          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 13 }}>
+          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: t.fontSize.caption }}>
             <thead>
               <tr style={{ background: '#f3f4f6' }}>
-                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>登錄號</th>
-                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>客戶</th>
-                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>產品名稱</th>
-                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>料號</th>
-                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>序號</th>
-                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>品牌</th>
-                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>購買日期</th>
-                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>保固到期</th>
-                <th style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 600, color: '#374151', fontSize: 12, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>狀態</th>
+                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, fontSize: t.fontSize.tiny, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>登錄號</th>
+                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, fontSize: t.fontSize.tiny, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>客戶</th>
+                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, fontSize: t.fontSize.tiny, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>產品名稱</th>
+                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, fontSize: t.fontSize.tiny, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>料號</th>
+                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, fontSize: t.fontSize.tiny, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>序號</th>
+                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, fontSize: t.fontSize.tiny, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>品牌</th>
+                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, fontSize: t.fontSize.tiny, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>購買日期</th>
+                <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, fontSize: t.fontSize.tiny, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>保固到期</th>
+                <th style={{ padding: '8px 14px', textAlign: 'center', fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, fontSize: t.fontSize.tiny, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb' }}>狀態</th>
               </tr>
             </thead>
             <tbody>
@@ -381,18 +381,18 @@ export default function WarrantyRegistrations() {
                     onMouseEnter={e => { e.currentTarget.style.background = '#f9fbfd'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <td style={{ padding: '8px 14px', color: '#111827', ...S.mono }}>{w.registration_number}</td>
-                    <td style={{ padding: '8px 14px', color: '#111827' }}>{w.customer_name || '-'}</td>
-                    <td style={{ padding: '8px 14px', color: '#111827' }}>{w.product_name || '-'}</td>
-                    <td style={{ padding: '8px 14px', color: '#6b7280', ...S.mono }}>{w.item_number || '-'}</td>
-                    <td style={{ padding: '8px 14px', color: '#6b7280', ...S.mono }}>{w.serial_number || '-'}</td>
-                    <td style={{ padding: '8px 14px', color: '#6b7280' }}>{w.brand || '-'}</td>
-                    <td style={{ padding: '8px 14px', color: '#6b7280', ...S.mono }}>{fmtDate(w.purchase_date)}</td>
+                    <td style={{ padding: '8px 14px', color: t.color.textPrimary, ...S.mono }}>{w.registration_number}</td>
+                    <td style={{ padding: '8px 14px', color: t.color.textPrimary }}>{w.customer_name || '-'}</td>
+                    <td style={{ padding: '8px 14px', color: t.color.textPrimary }}>{w.product_name || '-'}</td>
+                    <td style={{ padding: '8px 14px', color: t.color.textMuted, ...S.mono }}>{w.item_number || '-'}</td>
+                    <td style={{ padding: '8px 14px', color: t.color.textMuted, ...S.mono }}>{w.serial_number || '-'}</td>
+                    <td style={{ padding: '8px 14px', color: t.color.textMuted }}>{w.brand || '-'}</td>
+                    <td style={{ padding: '8px 14px', color: t.color.textMuted, ...S.mono }}>{fmtDate(w.purchase_date)}</td>
                     <td style={{ padding: '8px 14px', color: w.is_lifetime ? '#3b82f6' : isExpiring ? '#854d0e' : '#6b7280' }}>
                       {w.is_lifetime ? '終身保固' : isExpiring ? `剩餘 ${w.days_remaining} 天` : fmtDate(w.warranty_end_date)}
                     </td>
                     <td style={{ padding: '8px 14px', textAlign: 'center' }}>
-                      <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: `${STATUS_COLOR[statusKey]}14`, color: STATUS_COLOR[statusKey] }}>
+                      <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: `${STATUS_COLOR[statusKey]}14`, color: STATUS_COLOR[statusKey] }}>
                         {STATUS_MAP[statusKey]}
                       </span>
                     </td>

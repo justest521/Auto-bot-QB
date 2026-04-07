@@ -117,7 +117,7 @@ export default function LineChat() {
             <input
               value={searchQ} onChange={e => setSearchQ(e.target.value)}
               placeholder="搜尋用戶名稱..."
-              style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: 13, padding: isMobile ? '8px 12px' : '8px 12px', minHeight: isMobile ? 40 : 'auto' }}
+              style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: t.fontSize.caption, padding: isMobile ? '8px 12px' : '8px 12px', minHeight: isMobile ? 40 : 'auto' }}
             />
           </div>
 
@@ -138,7 +138,7 @@ export default function LineChat() {
                     onMouseEnter={e => { if (!isActive && !isMobile) e.currentTarget.style.background = t.color.bgMuted; }}
                     onMouseLeave={e => { if (!isActive && !isMobile) e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <div style={{ width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: '50%', background: LINE_GREEN, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 15 : 17, fontWeight: 700, flexShrink: 0 }}>
+                    <div style={{ width: isMobile ? 36 : 42, height: isMobile ? 36 : 42, borderRadius: '50%', background: LINE_GREEN, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h2, fontWeight: t.fontWeight.bold, flexShrink: 0 }}>
                       {(conv.display_name || '?')[0]}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -150,7 +150,7 @@ export default function LineChat() {
                         {conv.last_message?.substring(0, 40) || '...'}
                       </div>
                     </div>
-                    <div style={{ background: LINE_GREEN, color: '#fff', borderRadius: 10, padding: '2px 8px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                    <div style={{ background: LINE_GREEN, color: '#fff', borderRadius: 10, padding: '2px 8px', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, flexShrink: 0 }}>
                       {conv.message_count}
                     </div>
                   </div>
@@ -174,9 +174,9 @@ export default function LineChat() {
               {/* Chat Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: isMobile ? '8px 12px' : '10px 16px', borderBottom: `1px solid ${t.color.border}`, background: t.color.bgCard, flexShrink: 0, minHeight: isMobile ? 56 : 'auto' }}>
                 {isMobile && (
-                  <button onClick={() => setSelected(null)} style={{ ...S.btnGhost, padding: '6px 10px', fontSize: 13, minHeight: 36 }}>← 返回</button>
+                  <button onClick={() => setSelected(null)} style={{ ...S.btnGhost, padding: '6px 10px', fontSize: t.fontSize.caption, minHeight: 36 }}>← 返回</button>
                 )}
-                <div style={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36, borderRadius: '50%', background: LINE_GREEN, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 13 : 15, fontWeight: 700, flexShrink: 0 }}>
+                <div style={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36, borderRadius: '50%', background: LINE_GREEN, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? t.fontSize.caption : t.fontSize.h2, fontWeight: t.fontWeight.bold, flexShrink: 0 }}>
                   {(selected.display_name || '?')[0]}
                 </div>
                 <div>

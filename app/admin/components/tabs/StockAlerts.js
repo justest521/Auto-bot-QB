@@ -18,7 +18,7 @@ function StatCard({ code, label, value, tone }) {
   const toneStyle = TONE_MAP[tone] || TONE_MAP.gray;
   return (
     <div style={{ ...S.card, padding: isMobile ? '12px' : '16px', textAlign: 'center', borderTop: `3px solid ${toneStyle.color}` }}>
-      <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: t.fontWeight.bold, color: toneStyle.color, ...S.mono }}>{value}</div>
+      <div style={{ fontSize: isMobile ? t.fontSize.h1 : 24, fontWeight: t.fontWeight.bold, color: toneStyle.color, ...S.mono }}>{value}</div>
       <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>{label}</div>
     </div>
   );
@@ -45,25 +45,25 @@ export default function StockAlerts() {
       </div>
       {loading ? <Loading /> : alerts.length === 0 ? <EmptyState text="所有商品庫存正常" /> : (
         <div style={{ ...S.card, padding: 0, overflowX: 'auto', border: '1px solid #d1d5db', marginBottom: 10 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 12 : 13 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>
           <thead><tr style={{ background: '#f3f4f6' }}>
-            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'left', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: isMobile ? 11 : 13 }}>狀態</th>
-            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'left', color: t.color.textMuted, fontWeight: 600, fontSize: isMobile ? 11 : 13 }}>料號</th>
-            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'left', color: t.color.textMuted, fontWeight: 600, fontSize: isMobile ? 11 : 13 }}>品名</th>
-            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', color: t.color.textMuted, fontWeight: 600, fontSize: isMobile ? 11 : 13 }}>現有庫存</th>
-            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', color: t.color.textMuted, fontWeight: 600, fontSize: isMobile ? 11 : 13 }}>安全庫存</th>
-            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', color: t.color.textMuted, fontWeight: 600, fontSize: isMobile ? 11 : 13 }}>缺口</th>
+            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'left', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>狀態</th>
+            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'left', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>料號</th>
+            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'left', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>品名</th>
+            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>現有庫存</th>
+            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>安全庫存</th>
+            <th style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', color: t.color.textMuted, fontWeight: t.fontWeight.semibold, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>缺口</th>
           </tr></thead>
           <tbody>{alerts.map((a, i) => {
             const u = URGENCY[a.urgency] || URGENCY.medium;
             return (
               <tr key={i} style={{ borderTop: '1px solid #f0f0f0', background: u.bg }}>
-                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', fontSize: isMobile ? 11 : 13 }}><span style={{ ...S.tag(''), background: u.color, color: t.color.bgCard, fontSize: isMobile ? 9 : 10 }}>{u.label}</span></td>
-                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', fontWeight: 600, color: t.color.link, ...S.mono, fontSize: isMobile ? 11 : 13 }}>{a.item_number}</td>
-                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', fontSize: isMobile ? 11 : 13 }}>{isMobile ? (a.description || '-').slice(0, 6) : (a.description || '-')}</td>
-                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', fontWeight: t.fontWeight.bold, color: a.stock_qty <= 0 ? t.color.error : t.color.warning, ...S.mono, fontSize: isMobile ? 11 : 13 }}>{a.stock_qty}</td>
-                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', ...S.mono, fontSize: isMobile ? 11 : 13 }}>{a.safety_stock}</td>
-                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', fontWeight: 700, color: t.color.error, ...S.mono, fontSize: isMobile ? 11 : 13 }}>-{a.deficit}</td>
+                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}><span style={{ ...S.tag(''), background: u.color, color: t.color.bgCard, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny }}>{u.label}</span></td>
+                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', fontWeight: t.fontWeight.semibold, color: t.color.link, ...S.mono, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>{a.item_number}</td>
+                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>{isMobile ? (a.description || '-').slice(0, 6) : (a.description || '-')}</td>
+                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', fontWeight: t.fontWeight.bold, color: a.stock_qty <= 0 ? t.color.error : t.color.warning, ...S.mono, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>{a.stock_qty}</td>
+                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', ...S.mono, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>{a.safety_stock}</td>
+                <td style={{ padding: isMobile ? '8px 6px' : '10px 12px', textAlign: 'right', fontWeight: t.fontWeight.bold, color: t.color.error, ...S.mono, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>-{a.deficit}</td>
               </tr>
             );
           })}</tbody>

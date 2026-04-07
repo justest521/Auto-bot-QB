@@ -22,14 +22,14 @@ const STATUS_MAP = {
   active: { label: '在職', color: t.color.brand },
   resigned: { label: '離職', color: t.color.error },
   on_leave: { label: '留停', color: t.color.warning },
-  terminated: { label: '解僱', color: '#6b7280' },
+  terminated: { label: '解僱', color: t.color.textMuted },
 };
 
 const LEAVE_STATUS = {
   pending: { label: '待審核', color: t.color.warning },
   approved: { label: '已核准', color: t.color.brand },
   rejected: { label: '已駁回', color: t.color.error },
-  cancelled: { label: '已取消', color: '#9ca3af' },
+  cancelled: { label: '已取消', color: t.color.textDisabled },
 };
 
 const PAYROLL_STATUS = {
@@ -43,8 +43,8 @@ const ATT_STATUS = {
   late: { label: '遲到', color: t.color.warning },
   absent: { label: '缺勤', color: t.color.error },
   early_leave: { label: '早退', color: '#f59e0b' },
-  day_off: { label: '休假', color: '#9ca3af' },
-  holiday: { label: '國定假日', color: '#6b7280' },
+  day_off: { label: '休假', color: t.color.textDisabled },
+  holiday: { label: '國定假日', color: t.color.textMuted },
   leave: { label: '請假', color: t.color.link },
 };
 
@@ -80,8 +80,8 @@ function Modal({ open, onClose, title, children, width = 520 }) {
         ...(isMobile ? { position: 'fixed', bottom: 0, left: 0, right: 0 } : {}),
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ fontSize: 18, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, margin: 0 }}>{title}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, color: t.color.textMuted, cursor: 'pointer', padding: 4 }}>✕</button>
+          <h3 style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, margin: 0 }}>{title}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: t.fontSize.h1, color: t.color.textMuted, cursor: 'pointer', padding: 4 }}>✕</button>
         </div>
         {children}
       </div>
@@ -128,13 +128,13 @@ function HRDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
         <div style={{ ...S.card }}>
           <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 1, marginBottom: 14 }}>DEPARTMENT BREAKDOWN</div>
-          {depts.length === 0 ? <div style={{ color: t.color.textDisabled, fontSize: 13 }}>尚無部門資料</div> : depts.map((d, i) => {
+          {depts.length === 0 ? <div style={{ color: t.color.textDisabled, fontSize: t.fontSize.caption }}>尚無部門資料</div> : depts.map((d, i) => {
             const max = depts[0]?.count || 1;
             return (
               <div key={i} style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                  <span style={{ fontSize: 12, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold }}>{d.name}</span>
-                  <span style={{ fontSize: 12, color: t.color.textMuted, ...S.mono }}>{d.count} 人</span>
+                  <span style={{ fontSize: t.fontSize.tiny, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold }}>{d.name}</span>
+                  <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>{d.count} 人</span>
                 </div>
                 <div style={{ height: 6, background: t.color.borderLight, borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${(d.count / max) * 100}%`, background: t.color.brand, borderRadius: 3 }} />
@@ -148,15 +148,15 @@ function HRDashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 28, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{s.today_present || 0}</div>
-              <div style={{ fontSize: 11, color: t.color.textMuted }}>出勤</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>出勤</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 28, fontWeight: t.fontWeight.bold, color: t.color.warning, ...S.mono }}>{s.today_late || 0}</div>
-              <div style={{ fontSize: 11, color: t.color.textMuted }}>遲到</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>遲到</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 28, fontWeight: t.fontWeight.bold, color: t.color.error, ...S.mono }}>{s.today_absent || 0}</div>
-              <div style={{ fontSize: 11, color: t.color.textMuted }}>缺勤</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>缺勤</div>
             </div>
           </div>
         </div>
@@ -277,7 +277,7 @@ function EmployeeManagement() {
                   <div style={{ ...S.mono, color: t.color.textSecondary }}>{emp.phone || '-'}</div>
                   <div style={{ ...S.mono, color: t.color.textSecondary }}>{emp.hire_date || '-'}</div>
                   <div><Tag {...(STATUS_MAP[emp.status] || { label: emp.status, color: '#999' })} /></div>
-                  <div><button onClick={() => openEdit(emp)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: 11 }}>編輯</button></div>
+                  <div><button onClick={() => openEdit(emp)} style={{ ...S.btnGhost, padding: '4px 10px', fontSize: t.fontSize.tiny }}>編輯</button></div>
                 </div>
               ))}
             </>
@@ -335,7 +335,7 @@ function EmployeeManagement() {
         {editingEmployee && form.status === 'resigned' && (
           <Field label="離職日期"><input type="date" value={form.resignation_date || ''} onChange={(e) => setForm({ ...form, resignation_date: e.target.value })} style={S.input} /></Field>
         )}
-        {msg && <div style={{ color: t.color.error, fontSize: 12, marginBottom: 10 }}>{msg}</div>}
+        {msg && <div style={{ color: t.color.error, fontSize: t.fontSize.tiny, marginBottom: 10 }}>{msg}</div>}
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
           <button onClick={handleSave} disabled={saving} style={{ ...S.btnPrimary, flex: 1, opacity: saving ? 0.7 : 1 }}>{saving ? '儲存中...' : '儲存'}</button>
           <button onClick={() => setShowForm(false)} style={{ ...S.btnGhost, flex: 1 }}>取消</button>
@@ -422,7 +422,7 @@ function AttendanceManagement() {
         <div style={{ display: 'flex', gap: 4 }}>
           {[['summary', '月報'], ['detail', '明細']].map(([v, l]) => (
             <button key={v} onClick={() => { setView(v); if (v === 'summary') loadSummary(month); else loadDetail(month); }} style={{
-              ...S.btnGhost, padding: '6px 14px', fontSize: 12,
+              ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.tiny,
               background: view === v ? t.color.infoBg : 'transparent',
               borderColor: view === v ? '#93c5fd' : t.color.border,
               color: view === v ? t.color.link : t.color.textMuted,
@@ -443,14 +443,14 @@ function AttendanceManagement() {
                 <div key={s.id} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 50px 50px 50px 50px 60px' : '1fr 80px 80px 80px 80px 80px 80px', gap: 8, padding: '12px 18px', borderBottom: `1px solid ${t.color.borderLight}`, alignItems: 'center', fontSize: t.fontSize.body }}>
                   <div>
                     <div style={{ fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{s.full_name}</div>
-                    <div style={{ fontSize: 11, color: t.color.textMuted }}>{s.employee_no} · {s.department || '-'}</div>
+                    <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{s.employee_no} · {s.department || '-'}</div>
                   </div>
-                  <div style={{ textAlign: 'center', color: t.color.brand, fontWeight: 600, ...S.mono }}>{s.present}</div>
-                  <div style={{ textAlign: 'center', color: s.late > 0 ? t.color.warning : t.color.textDisabled, fontWeight: 600, ...S.mono }}>{s.late}</div>
-                  <div style={{ textAlign: 'center', color: s.absent > 0 ? t.color.error : t.color.textDisabled, fontWeight: 600, ...S.mono }}>{s.absent}</div>
+                  <div style={{ textAlign: 'center', color: t.color.brand, fontWeight: t.fontWeight.semibold, ...S.mono }}>{s.present}</div>
+                  <div style={{ textAlign: 'center', color: s.late > 0 ? t.color.warning : t.color.textDisabled, fontWeight: t.fontWeight.semibold, ...S.mono }}>{s.late}</div>
+                  <div style={{ textAlign: 'center', color: s.absent > 0 ? t.color.error : t.color.textDisabled, fontWeight: t.fontWeight.semibold, ...S.mono }}>{s.absent}</div>
                   <div style={{ textAlign: 'center', color: t.color.link, ...S.mono }}>{s.leave}</div>
                   {!isMobile && <div style={{ textAlign: 'center', ...S.mono }}>{s.overtime_hours}</div>}
-                  <div style={{ textAlign: 'center', fontWeight: 600, ...S.mono }}>{s.total_days}</div>
+                  <div style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono }}>{s.total_days}</div>
                 </div>
               ))}
             </>
@@ -461,8 +461,8 @@ function AttendanceManagement() {
           {(records.records || []).length === 0 ? <div style={{ padding: 20 }}><EmptyState text="無出勤明細" /></div> : (records.records || []).map(r => (
             <div key={r.id} style={{ padding: '12px 18px', borderBottom: `1px solid ${t.color.borderLight}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{r.employee?.full_name || '-'} <span style={{ color: t.color.textMuted, fontWeight: 400, fontSize: 11 }}>{r.date}</span></div>
-                <div style={{ fontSize: 11, color: t.color.textMuted, marginTop: 2, ...S.mono }}>
+                <div style={{ fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{r.employee?.full_name || '-'} <span style={{ color: t.color.textMuted, fontWeight: t.fontWeight.normal, fontSize: t.fontSize.tiny }}>{r.date}</span></div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2, ...S.mono }}>
                   {r.clock_in ? new Date(r.clock_in).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : '--:--'} → {r.clock_out ? new Date(r.clock_out).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                   {r.overtime_hours > 0 && <span style={{ color: t.color.warning }}> +{r.overtime_hours}h</span>}
                 </div>
@@ -492,7 +492,7 @@ function AttendanceManagement() {
         </Field>
         <Field label="加班時數"><input type="number" value={form.overtime_hours || 0} onChange={(e) => setForm({ ...form, overtime_hours: e.target.value })} style={S.input} /></Field>
         <Field label="備註"><input value={form.note || ''} onChange={(e) => setForm({ ...form, note: e.target.value })} style={S.input} /></Field>
-        {msg && <div style={{ color: t.color.error, fontSize: 12, marginBottom: 10 }}>{msg}</div>}
+        {msg && <div style={{ color: t.color.error, fontSize: t.fontSize.tiny, marginBottom: 10 }}>{msg}</div>}
         <button onClick={handleSaveAttendance} disabled={saving} style={{ ...S.btnPrimary, width: '100%', marginTop: 8, opacity: saving ? 0.7 : 1 }}>{saving ? '儲存中...' : '儲存'}</button>
       </Modal>
     </div>
@@ -560,7 +560,7 @@ function LeaveManagement() {
         <div style={{ display: 'flex', gap: 4 }}>
           {[['', '全部'], ['pending', '待審'], ['approved', '已核'], ['rejected', '駁回']].map(([v, l]) => (
             <button key={v} onClick={() => { setStatusFilter(v); load(v); }} style={{
-              ...S.btnGhost, padding: '6px 14px', fontSize: 12,
+              ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.tiny,
               background: statusFilter === v ? t.color.infoBg : 'transparent',
               borderColor: statusFilter === v ? '#93c5fd' : t.color.border,
               color: statusFilter === v ? t.color.link : t.color.textMuted,
@@ -577,20 +577,20 @@ function LeaveManagement() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                 <div>
                   <span style={{ fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{r.employee?.full_name || '-'}</span>
-                  <span style={{ fontSize: 11, color: t.color.textMuted, marginLeft: 8 }}>{r.employee?.employee_no} · {r.employee?.department || '-'}</span>
+                  <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginLeft: 8 }}>{r.employee?.employee_no} · {r.employee?.department || '-'}</span>
                 </div>
                 <Tag {...(LEAVE_STATUS[r.status] || { label: r.status, color: '#999' })} />
               </div>
-              <div style={{ fontSize: 12, color: t.color.textSecondary, marginBottom: 4 }}>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textSecondary, marginBottom: 4 }}>
                 <Tag label={r.leave_type?.label || '假別'} color={t.color.link} />
                 <span style={{ marginLeft: 8, ...S.mono }}>{r.start_date} → {r.end_date}</span>
                 <span style={{ marginLeft: 8, color: t.color.textMuted }}>{r.days} 天</span>
               </div>
-              {r.reason && <div style={{ fontSize: 11, color: t.color.textMuted }}>{r.reason}</div>}
+              {r.reason && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{r.reason}</div>}
               {r.status === 'pending' && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                  <button onClick={() => handleAction(r.id, 'approved')} style={{ ...S.btnPrimary, padding: '4px 14px', fontSize: 11 }}>核准</button>
-                  <button onClick={() => handleAction(r.id, 'rejected')} style={{ ...S.btnGhost, padding: '4px 14px', fontSize: 11, color: t.color.error, borderColor: t.color.error }}>駁回</button>
+                  <button onClick={() => handleAction(r.id, 'approved')} style={{ ...S.btnPrimary, padding: '4px 14px', fontSize: t.fontSize.tiny }}>核准</button>
+                  <button onClick={() => handleAction(r.id, 'rejected')} style={{ ...S.btnGhost, padding: '4px 14px', fontSize: t.fontSize.tiny, color: t.color.error, borderColor: t.color.error }}>駁回</button>
                 </div>
               )}
             </div>
@@ -617,7 +617,7 @@ function LeaveManagement() {
           <Field label="天數"><input type="number" value={form.days || 1} onChange={(e) => setForm({ ...form, days: e.target.value })} style={S.input} /></Field>
         </div>
         <Field label="事由"><input value={form.reason || ''} onChange={(e) => setForm({ ...form, reason: e.target.value })} style={S.input} /></Field>
-        {msg && <div style={{ color: t.color.error, fontSize: 12, marginBottom: 10 }}>{msg}</div>}
+        {msg && <div style={{ color: t.color.error, fontSize: t.fontSize.tiny, marginBottom: 10 }}>{msg}</div>}
         <button onClick={handleSubmit} disabled={saving} style={{ ...S.btnPrimary, width: '100%', marginTop: 8, opacity: saving ? 0.7 : 1 }}>{saving ? '送出中...' : '送出申請'}</button>
       </Modal>
     </div>
@@ -677,7 +677,7 @@ function PayrollManagement() {
         <button onClick={() => handleBatchStatus('paid')} style={{ ...S.btnGhost, whiteSpace: 'nowrap', color: t.color.brand, borderColor: t.color.brand }}>全部發放</button>
       </div>
 
-      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? t.color.errorBg : t.color.successBg, borderColor: msg.includes('失敗') ? '#fecaca' : '#a7f3d0', color: msg.includes('失敗') ? t.color.error : t.color.brand, fontSize: 13, marginBottom: 14 }}>{msg}</div>}
+      {msg && <div style={{ ...S.card, background: msg.includes('失敗') ? t.color.errorBg : t.color.successBg, borderColor: msg.includes('失敗') ? '#fecaca' : '#a7f3d0', color: msg.includes('失敗') ? t.color.error : t.color.brand, fontSize: t.fontSize.caption, marginBottom: 14 }}>{msg}</div>}
 
       {/* Totals */}
       {data.payroll.length > 0 && (
@@ -706,7 +706,7 @@ function PayrollManagement() {
             <div key={p.id} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 90px 90px 80px' : '1fr 100px 100px 100px 100px 100px 100px 80px', gap: 8, padding: '12px 18px', borderBottom: `1px solid ${t.color.borderLight}`, alignItems: 'center', fontSize: t.fontSize.body, minWidth: isMobile ? 400 : 'auto' }}>
               <div>
                 <div style={{ fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{p.employee?.full_name || '-'}</div>
-                <div style={{ fontSize: 11, color: t.color.textMuted }}>{p.employee?.employee_no}</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{p.employee?.employee_no}</div>
               </div>
               <div style={{ textAlign: 'right', ...S.mono }}>{fmtP(p.base_salary)}</div>
               {!isMobile && <div style={{ textAlign: 'right', ...S.mono }}>{fmtP(p.overtime_pay)}</div>}
@@ -746,7 +746,7 @@ export default function HRModule() {
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               padding: isMobile ? '8px 12px' : '10px 18px',
-              fontSize: isMobile ? 12 : 13,
+              fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption,
               fontWeight: subTab === tab.id ? t.fontWeight.bold : t.fontWeight.medium,
               color: subTab === tab.id ? t.color.brand : t.color.textMuted,
               borderBottom: `2px solid ${subTab === tab.id ? t.color.brand : 'transparent'}`,

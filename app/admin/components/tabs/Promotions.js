@@ -43,7 +43,7 @@ export default function Promotions() {
           </div>
           <div style={{ marginBottom: 18 }}>
             <label style={S.label}>活動商品（每行格式：型號 → 價格（備註））</label>
-            <textarea value={form.items} onChange={e => setForm({ ...form, items: e.target.value })} placeholder={`ATECH3FR250B → 28000\nTPGDL2000 → 8500（買一送充氣嘴組）`} rows={5} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), resize: 'vertical', ...S.mono, fontSize: 12, lineHeight: 1.6, minHeight: isMobile ? 44 : 'auto' }} />
+            <textarea value={form.items} onChange={e => setForm({ ...form, items: e.target.value })} placeholder={`ATECH3FR250B → 28000\nTPGDL2000 → 8500（買一送充氣嘴組）`} rows={5} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), resize: 'vertical', ...S.mono, fontSize: t.fontSize.tiny, lineHeight: 1.6, minHeight: isMobile ? 44 : 'auto' }} />
           </div>
           <button onClick={submit} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), minHeight: isMobile ? 44 : 'auto' }}>建立活動</button>
         </div>

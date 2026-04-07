@@ -49,7 +49,7 @@ function ForecastChart({ data, forecasted, barKey, label, color, forecastColor, 
           return (
             <div key={`a-${i}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ width: '70%', height: Math.max(h, 2), background: color, borderRadius: '3px 3px 0 0', transition: 'height 0.4s ease', opacity: 0.8 }} title={`${d.month}: ${fmtP(d[barKey])}`} />
-              <div style={{ fontSize: 8, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{d.month?.slice(5) || ''}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{d.month?.slice(5) || ''}</div>
             </div>
           );
         })}
@@ -62,7 +62,7 @@ function ForecastChart({ data, forecasted, barKey, label, color, forecastColor, 
                 background: `repeating-linear-gradient(135deg, ${forecastColor}, ${forecastColor} 3px, transparent 3px, transparent 6px)`,
                 borderRadius: '3px 3px 0 0', transition: 'height 0.4s ease', border: `1px dashed ${forecastColor}`, borderBottom: 'none',
               }} title={`${f.month} (預測): ${fmtP(f.value)}`} />
-              <div style={{ fontSize: 8, color: forecastColor, fontWeight: 700, marginTop: 4, ...S.mono }}>{f.month?.slice(5) || ''}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: forecastColor, fontWeight: t.fontWeight.bold, marginTop: 4, ...S.mono }}>{f.month?.slice(5) || ''}</div>
             </div>
           );
         })}
@@ -70,11 +70,11 @@ function ForecastChart({ data, forecasted, barKey, label, color, forecastColor, 
       <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <div style={{ width: 10, height: 10, borderRadius: 2, background: color }} />
-          <span style={{ fontSize: 10, color: t.color.textMuted }}>實際</span>
+          <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>實際</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <div style={{ width: 10, height: 10, borderRadius: 2, border: `2px dashed ${forecastColor}`, background: 'transparent' }} />
-          <span style={{ fontSize: 10, color: t.color.textMuted }}>AI 預測</span>
+          <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>AI 預測</span>
         </div>
       </div>
     </div>
@@ -93,11 +93,11 @@ function InsightCard({ icon, title, value, description, tone }) {
   return (
     <div style={{ ...S.card, background: c.bg, borderColor: c.border }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <span style={{ fontSize: 16 }}>{icon}</span>
+        <span style={{ fontSize: t.fontSize.h2 }}>{icon}</span>
         <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: c.text, letterSpacing: 0.8 }}>{title}</span>
       </div>
-      <div style={{ fontSize: 20, fontWeight: t.fontWeight.bold, color: c.text, ...S.mono, marginBottom: 4 }}>{value}</div>
-      <div style={{ fontSize: 11, color: t.color.textSecondary, lineHeight: 1.5 }}>{description}</div>
+      <div style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: c.text, ...S.mono, marginBottom: 4 }}>{value}</div>
+      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textSecondary, lineHeight: 1.5 }}>{description}</div>
     </div>
   );
 }
@@ -189,19 +189,19 @@ export default function AIForecast() {
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
           {salesFc.map((f, i) => (
             <div key={i} style={{ background: t.color.bgMuted, borderRadius: t.radius.lg, padding: '14px 16px' }}>
-              <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: t.color.brand, letterSpacing: 0.8, marginBottom: 8 }}>{f.month}</div>
+              <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.brand, letterSpacing: 0.8, marginBottom: 8 }}>{f.month}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                 <div>
-                  <div style={{ fontSize: 9, color: t.color.textMuted, marginBottom: 2 }}>銷貨</div>
-                  <div style={{ fontSize: 13, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtK(f.value)}</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>銷貨</div>
+                  <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtK(f.value)}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 9, color: t.color.textMuted, marginBottom: 2 }}>進貨</div>
-                  <div style={{ fontSize: 13, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{fmtK(purchFc[i]?.value)}</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>進貨</div>
+                  <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{fmtK(purchFc[i]?.value)}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 9, color: t.color.textMuted, marginBottom: 2 }}>毛利</div>
-                  <div style={{ fontSize: 13, fontWeight: t.fontWeight.bold, color: '#f59e0b', ...S.mono }}>{fmtK(profitFc[i]?.value)}</div>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>毛利</div>
+                  <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#f59e0b', ...S.mono }}>{fmtK(profitFc[i]?.value)}</div>
                 </div>
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function AIForecast() {
       </div>
 
       {/* ── Method Note ── */}
-      <div style={{ fontSize: 10, color: t.color.textDisabled, marginTop: 14, textAlign: 'center', lineHeight: 1.6 }}>
+      <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 14, textAlign: 'center', lineHeight: 1.6 }}>
         預測模型：3 期移動平均 + 趨勢調整 · 資料來源：近 12 個月進銷存記錄
       </div>
     </div>

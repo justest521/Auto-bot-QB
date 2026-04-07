@@ -455,7 +455,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
     }
   };
 
-  const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+  const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textDisabled, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
   const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
   // isConverted = all items fully sold AND shipped (not just shipping status)
   const allItemsSold = items.length > 0 && items.every(i => Number(i.sold_qty || 0) >= Number(i.qty || 0));
@@ -479,14 +479,14 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
       {/* ====== Header ====== */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h2, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{order.order_no || '-'}</span>
               <span style={{ padding: '3px 10px', borderRadius: t.radius.lg, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: `${ORDER_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: ORDER_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${ORDER_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
                 {ORDER_STATUS_MAP[statusKey] || statusKey}
               </span>
-              <span style={{ fontSize: 9, background: order.tax_inclusive ? '#dcfce7' : '#fef3c7', color: order.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3 }}>{order.tax_inclusive ? '含稅' : '未稅'}</span>
+              <span style={{ fontSize: t.fontSize.tiny, background: order.tax_inclusive ? '#dcfce7' : '#fef3c7', color: order.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3 }}>{order.tax_inclusive ? '含稅' : '未稅'}</span>
             </div>
             <div style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>
               {order.order_date || '-'}
@@ -552,7 +552,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                       <span style={{ width: 7, height: 7, borderRadius: '50%', background: isActive ? g.dot : '#d1d5db', flexShrink: 0 }} />
                       {g.label}
                       {cnt > 0 && (
-                        <span style={{ fontSize: 11, fontWeight: t.fontWeight.bold, padding: '1px 6px', borderRadius: 99, background: isActive ? g.dot : t.color.bgCard, color: isActive ? '#fff' : t.color.textMuted, border: `1px solid ${isActive ? g.dot : t.color.borderLight}` }}>{cnt}</span>
+                        <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, padding: '1px 6px', borderRadius: 99, background: isActive ? g.dot : t.color.bgCard, color: isActive ? '#fff' : t.color.textMuted, border: `1px solid ${isActive ? g.dot : t.color.borderLight}` }}>{cnt}</span>
                       )}
                     </button>
                   );
@@ -570,12 +570,12 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
             <div style={{ ...cardStyle, padding: 0, overflow: isMobile ? 'hidden' : 'visible', marginBottom: 10, opacity: isLocked ? 0.5 : 1, pointerEvents: isLocked ? 'none' : 'auto' }}>
               <div style={{ padding: '10px 16px', borderBottom: '1px solid #f0f2f5' }}>
                 <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>商品明細</span>
-                <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+                <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.medium, color: t.color.textDisabled, marginLeft: 8 }}>{items.length} 項</span>
               </div>
               {/* ── Fulfillment summary bar ── */}
               {items.length > 0 && (() => {
                 const stats = [
-                  { label: '訂購', value: fulfillStats.totalOrdered,   unit: '隻', color: '#374151',  bg: '#f9fafb' },
+                  { label: '訂購', value: fulfillStats.totalOrdered,   unit: '隻', color: t.color.textSecondary,  bg: '#f9fafb' },
                   { label: '已出貨', value: fulfillStats.totalSold,    unit: '隻', color: '#15803d',  bg: '#f0fdf4' },
                   { label: '待出貨', value: fulfillStats.totalRemaining, unit: '隻', color: fulfillStats.totalRemaining > 0 ? '#b45309' : '#9ca3af', bg: fulfillStats.totalRemaining > 0 ? '#fffbeb' : '#f9fafb' },
                   ...(fulfillStats.noStockItems > 0 ? [{ label: '缺貨待採', value: fulfillStats.noStockItems, unit: '項', color: '#b91c1c', bg: '#fff1f2' }] : []),
@@ -585,8 +585,8 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                   <div style={{ display: 'flex', borderBottom: '1px solid #f0f2f5', flexWrap: 'wrap' }}>
                     {stats.map((s, i) => (
                       <div key={i} style={{ flex: '1 1 70px', padding: '7px 10px', textAlign: 'center', background: s.bg, borderRight: i < stats.length - 1 ? '1px solid #f0f2f5' : 'none' }}>
-                        <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 500, marginBottom: 2, letterSpacing: 0.3 }}>{s.label}</div>
-                        <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: s.color, fontFamily: 'var(--font-mono)' }}>{s.value} <span style={{ fontSize: 10, fontWeight: 500 }}>{s.unit}</span></div>
+                        <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.medium, marginBottom: 2, letterSpacing: 0.3 }}>{s.label}</div>
+                        <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: s.color, fontFamily: 'var(--font-mono)' }}>{s.value} <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.medium }}>{s.unit}</span></div>
                       </div>
                     ))}
                   </div>
@@ -596,9 +596,9 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 <div>
                   {isMobile ? null : (
                   /* Table header (desktop only) */
-                  <div style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 80px 90px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 80px 90px 85px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     <div></div><div>料號</div><div style={{ textAlign: 'right' }}>單價</div>
-                    <div style={{ textAlign: 'center', lineHeight: 1.2 }}>數量<br/><span style={{ fontSize: 9, fontWeight: 400, letterSpacing: 0, textTransform: 'none' }}>訂 / 已出 / 待出</span></div>
+                    <div style={{ textAlign: 'center', lineHeight: 1.2 }}>數量<br/><span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.normal, letterSpacing: 0, textTransform: 'none' }}>訂 / 已出 / 待出</span></div>
                     <div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
                   </div>
                   )}
@@ -673,7 +673,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                                 {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
                               </span>
                               {item.po_info && (
-                                <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 99, fontWeight: 600,
+                                <span style={{ marginLeft: 6, fontSize: t.fontSize.tiny, padding: '1px 5px', borderRadius: 99, fontWeight: t.fontWeight.semibold,
                                   ...(['received','completed'].includes(item.po_info.status)
                                     ? { background: '#dbeafe', color: '#1d4ed8' }
                                     : { background: '#fef3c7', color: '#92400e' }) }}>
@@ -720,9 +720,9 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                       <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px 130px 80px 80px 90px 85px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: t.fontSize.body, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ textAlign: 'center' }}>
                           {fullySold ? (
-                            <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: '#16a34a' }}>✓ 已銷</span>
+                            <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#16a34a' }}>✓ 已銷</span>
                           ) : hasPO ? (
-                            <span style={{ fontSize: 9, fontWeight: t.fontWeight.bold, color: '#d97706' }}>✓ 已採</span>
+                            <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#d97706' }}>✓ 已採</span>
                           ) : (
                             <input type="checkbox" checked={isChecked} onChange={() => toggleItemSelect(item.id)} style={{ cursor: 'pointer', width: 18, height: 18, accentColor: '#3b82f6' }} />
                           )}
@@ -745,10 +745,10 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                             <div>
                               <div style={{ fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.h3 }}>{item.qty}</div>
                               {Number(item.sold_qty) > 0 && (
-                                <div style={{ fontSize: 10, color: '#15803d', ...S.mono, lineHeight: 1.3 }}>↑{item.sold_qty} 已出</div>
+                                <div style={{ fontSize: t.fontSize.tiny, color: '#15803d', ...S.mono, lineHeight: 1.3 }}>↑{item.sold_qty} 已出</div>
                               )}
                               {Number(item.remaining_qty) > 0 && (
-                                <div style={{ fontSize: 10, color: '#b45309', ...S.mono, lineHeight: 1.3 }}>↓{item.remaining_qty} 待</div>
+                                <div style={{ fontSize: t.fontSize.tiny, color: '#b45309', ...S.mono, lineHeight: 1.3 }}>↓{item.remaining_qty} 待</div>
                               )}
                             </div>
                           )}
@@ -762,7 +762,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                             </span>
                           </div>
                           {item.po_info && (
-                            <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 99, fontWeight: 600, whiteSpace: 'nowrap',
+                            <span style={{ fontSize: t.fontSize.tiny, padding: '1px 5px', borderRadius: 99, fontWeight: t.fontWeight.semibold, whiteSpace: 'nowrap',
                               ...(['received','completed'].includes(item.po_info.status)
                                 ? { background: '#dbeafe', color: '#1d4ed8' }
                                 : { background: '#fef3c7', color: '#92400e' }) }}>
@@ -1133,14 +1133,14 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                           {/* Vertical line */}
                           {!isLast && <div style={{ position: 'absolute', left: -14, top: 18, width: 2, bottom: 0, background: lineBg }} />}
                           {/* Dot with icon */}
-                          <div style={{ position: 'absolute', left: -22, top: 0, width: 18, height: 18, borderRadius: '50%', background: isDone ? `${e.dot}18` : isCurrent ? `${e.dot}20` : '#f3f4f6', border: `2px solid ${isDone || isCurrent ? e.dot : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>
-                            {isDone ? <span style={{ color: e.dot, fontSize: 9, lineHeight: 1 }}>✓</span> : isCurrent ? <span style={{ width: 5, height: 5, borderRadius: '50%', background: e.dot, display: 'block' }} /> : <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d1d5db', display: 'block' }} />}
+                          <div style={{ position: 'absolute', left: -22, top: 0, width: 18, height: 18, borderRadius: '50%', background: isDone ? `${e.dot}18` : isCurrent ? `${e.dot}20` : '#f3f4f6', border: `2px solid ${isDone || isCurrent ? e.dot : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.tiny }}>
+                            {isDone ? <span style={{ color: e.dot, fontSize: t.fontSize.tiny, lineHeight: 1 }}>✓</span> : isCurrent ? <span style={{ width: 5, height: 5, borderRadius: '50%', background: e.dot, display: 'block' }} /> : <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d1d5db', display: 'block' }} />}
                           </div>
                           {/* Content */}
                           <div style={{ paddingLeft: 2 }}>
                             {/* Main row: label + ref + detail */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', lineHeight: 1.4 }}>
-                              <span style={{ fontSize: 12, fontWeight: 700, color: labelColor, whiteSpace: 'nowrap' }}>{e.label}</span>
+                              <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: labelColor, whiteSpace: 'nowrap' }}>{e.label}</span>
                               {e.ref && (() => {
                                 const clickHandler = e.refType === 'sale' ? () => { window.localStorage.setItem(SALES_DOCUMENT_FOCUS_KEY, e.ref); setTab?.('sales_documents'); }
                                   : e.refType === 'po' ? () => { window.localStorage.setItem(PO_FOCUS_KEY, e.ref); setTab?.('purchase_orders'); }
@@ -1148,15 +1148,15 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                                   : e.refType === 'payment' ? () => { setTab?.('收款管理'); }
                                   : e.refType === 'shipment' ? () => { window.localStorage.setItem('qb_shipment_focus', e.ref); setTab?.('shipments'); }
                                   : null;
-                                return <span style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none', background: '#eff6ff', padding: '0 5px', borderRadius: 3 }} onClick={clickHandler}>{e.ref}</span>;
+                                return <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#2563eb', ...S.mono, cursor: clickHandler ? 'pointer' : 'default', textDecoration: clickHandler ? 'underline' : 'none', background: '#eff6ff', padding: '0 5px', borderRadius: 3 }} onClick={clickHandler}>{e.ref}</span>;
                               })()}
-                              {e.detail && <span style={{ fontSize: 11, fontWeight: 600, color: e.detailColor || (isDone ? '#6b7280' : isCurrent ? '#1d4ed8' : isRej ? '#dc2626' : '#9ca3af'), background: (isCurrent || e.status === 'warning') ? `${e.dot}12` : 'transparent', padding: (isCurrent || e.status === 'warning') ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
+                              {e.detail && <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: e.detailColor || (isDone ? '#6b7280' : isCurrent ? '#1d4ed8' : isRej ? '#dc2626' : '#9ca3af'), background: (isCurrent || e.status === 'warning') ? `${e.dot}12` : 'transparent', padding: (isCurrent || e.status === 'warning') ? '1px 6px' : 0, borderRadius: 4 }}>{e.detail}</span>}
                             </div>
                             {/* Badges */}
                             {e.badges && e.badges.length > 0 && (
                               <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginTop: 2 }}>
                                 {e.badges.map((b, bi) => (
-                                  <span key={bi} style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: e.label === '銷貨' ? '#dbeafe' : '#f3e8ff', color: e.label === '銷貨' ? '#1d4ed8' : '#7c3aed', fontWeight: 600 }}>{b.item} {b.text}</span>
+                                  <span key={bi} style={{ fontSize: t.fontSize.tiny, padding: '1px 5px', borderRadius: 3, background: e.label === '銷貨' ? '#dbeafe' : '#f3e8ff', color: e.label === '銷貨' ? '#1d4ed8' : '#7c3aed', fontWeight: t.fontWeight.semibold }}>{b.item} {b.text}</span>
                                 ))}
                               </div>
                             )}
@@ -1166,7 +1166,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                                 <a href={e.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden', lineHeight: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
                                   <img src={e.proof_url} alt="憑證" style={{ width: 90, height: 60, objectFit: 'cover' }} />
                                 </a>
-                                <span style={{ fontSize: 10, color: '#3b82f6', cursor: 'pointer' }}>查看</span>
+                                <span style={{ fontSize: t.fontSize.tiny, color: t.color.link, cursor: 'pointer' }}>查看</span>
                               </div>
                             ) : e.payment_id ? (
                               <div style={{ marginTop: 3 }}>
@@ -1189,13 +1189,13 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                                   } catch (err) { setMsg('憑證上傳失敗: ' + (err.message || '')); }
                                   ev.target.value = '';
                                 }} />
-                                <button onClick={() => document.getElementById(`proof-${e.payment_id}`)?.click()} style={{ fontSize: 10, color: '#6b7280', background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s' }} onMouseEnter={ev => { ev.currentTarget.style.borderColor = '#3b82f6'; ev.currentTarget.style.color = '#3b82f6'; }} onMouseLeave={ev => { ev.currentTarget.style.borderColor = '#d1d5db'; ev.currentTarget.style.color = '#6b7280'; }}>📎 上傳憑證</button>
+                                <button onClick={() => document.getElementById(`proof-${e.payment_id}`)?.click()} style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', fontWeight: t.fontWeight.semibold, transition: 'all 0.15s' }} onMouseEnter={ev => { ev.currentTarget.style.borderColor = '#3b82f6'; ev.currentTarget.style.color = '#3b82f6'; }} onMouseLeave={ev => { ev.currentTarget.style.borderColor = '#d1d5db'; ev.currentTarget.style.color = '#6b7280'; }}>📎 上傳憑證</button>
                               </div>
                             ) : null}
                             {/* Note (LINE notification) */}
-                            {e.note && <div style={{ fontSize: 10, fontWeight: 600, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '1px 6px', borderRadius: 3, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
+                            {e.note && <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, marginTop: 2, color: e.lineSent ? '#16a34a' : '#d97706', background: e.lineSent ? '#f0fdf4' : '#fffbeb', padding: '1px 6px', borderRadius: 3, display: 'inline-block', border: `1px solid ${e.lineSent ? '#bbf7d0' : '#fde68a'}` }}>{e.note}</div>}
                             {/* Timestamp */}
-                            {e.time && <div style={{ fontSize: 10, color: '#c4c9d2', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
+                            {e.time && <div style={{ fontSize: t.fontSize.tiny, color: '#c4c9d2', marginTop: 1, ...S.mono }}>{fmtTime(e.time)}</div>}
                           </div>
                         </div>
                       );
@@ -1334,7 +1334,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 {items.map((item) => (
                   <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderTop: '1px solid #f3f5f7', background: (shipItemQty[item.id] || 0) > 0 ? '#fefce8' : '#fff' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
+                      <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
                       <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, ...S.mono, marginTop: 1 }}>{item.item_number_snapshot} · 訂購 {item.qty}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -1398,7 +1398,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 {items.filter(i => saleItemQty.hasOwnProperty(i.id)).map((item) => (
                   <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: Number(saleItemQty[item.id] || 0) > 0 ? '#f0fdf4' : '#fff' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
+                      <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description_snapshot || '-'}</div>
                       <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, ...S.mono, marginTop: 2 }}>{item.item_number_snapshot} · 訂購 {item.qty}{Number(item.sold_qty || 0) > 0 ? ` · 已銷 ${item.sold_qty}` : ''} · 剩餘 {item.remaining_qty != null ? item.remaining_qty : item.qty} · 庫存 {item.stock_qty}</div>
                     </div>
                     {(() => { const maxQty = item.remaining_qty != null ? Number(item.remaining_qty) : Number(item.qty); return (
@@ -1597,13 +1597,13 @@ export default function Orders({ setTab, erpFeatures = {} }) {
       <div style={{ ...S.card, marginBottom: 10, padding: '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '4px 10px' : '6px 14px', fontSize: isMobile ? 12 : 14, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '4px 10px' : '6px 14px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.body, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
           ))}
           {!isMobile && <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: t.fontSize.h3, padding: '6px 10px', ...S.mono }} />}
           {!isMobile && <span style={{ color: t.color.textMuted, fontSize: t.fontSize.h3 }}>~</span>}
           {!isMobile && <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: 150, fontSize: t.fontSize.h3, padding: '6px 10px', ...S.mono }} />}
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder={isMobile ? "搜尋..." : "搜尋訂單號、客戶..."} style={{ ...S.input, flex: 1, minWidth: isMobile ? 120 : 160, fontSize: isMobile ? 13 : 14, padding: isMobile ? '6px 8px' : '6px 10px' }} />
-          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '6px 12px' : '6px 18px', fontSize: isMobile ? 12 : 14 }}>查詢</button>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder={isMobile ? "搜尋..." : "搜尋訂單號、客戶..."} style={{ ...S.input, flex: 1, minWidth: isMobile ? 120 : 160, fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, padding: isMobile ? '6px 8px' : '6px 10px' }} />
+          <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '6px 12px' : '6px 18px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.body }}>查詢</button>
         </div>
       </div>
       {!data.table_ready && <div style={{ ...S.card, background: '#fff8eb', borderColor: '#f7d699', color: '#8a5b00' }}>尚未建立 erp_orders 資料表。</div>}
@@ -1699,7 +1699,7 @@ export default function Orders({ setTab, erpFeatures = {} }) {
               <div key={row.id} onClick={() => setSelectedOrder(row)} style={{ display: 'grid', gridTemplateColumns: orderGridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', alignItems: 'center', background: batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={(e) => { if (!batchIds.has(row.id)) e.currentTarget.style.background = '#f0f7ff'; }} onMouseLeave={(e) => { e.currentTarget.style.background = batchIds.has(row.id) ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'; }}>
                 <div style={cCenter}><input type="checkbox" checked={batchIds.has(row.id)} onChange={(e) => toggleBatch(row.id, e)} style={{ cursor: 'pointer', width: 16, height: 16, accentColor: '#3b82f6' }} /></div>
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', gap: 4 }}>{row.order_no || '-'}<span style={{ fontSize: 9, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', gap: 4 }}>{row.order_no || '-'}<span style={{ fontSize: t.fontSize.tiny, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: t.radius.sm, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
                 <div style={cell}>
                   <span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                 </div>

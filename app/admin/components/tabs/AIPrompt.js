@@ -56,7 +56,7 @@ export default function AIPrompt() {
             value={prompt}
             onChange={e => setPrompt(e.target.value)}
             rows={20}
-            style={{ ...S.input, resize: 'vertical', ...S.mono, fontSize: 12, lineHeight: 1.8 }}
+            style={{ ...S.input, resize: 'vertical', ...S.mono, fontSize: t.fontSize.tiny, lineHeight: 1.8 }}
             placeholder="輸入 AI 的 system prompt..."
           />
         </div>

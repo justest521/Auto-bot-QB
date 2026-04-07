@@ -53,7 +53,7 @@ export default function CRMLeads() {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: isMobile ? 6 : 8, marginBottom: 20 }}>
         {STAGES.map(s => (
           <div key={s.id} onClick={() => { setStageFilter(stageFilter === s.id ? '' : s.id); load(stageFilter === s.id ? '' : s.id); }} style={{ ...S.card, cursor: 'pointer', textAlign: 'center', padding: isMobile ? '12px 6px' : '14px 8px', borderLeft: `3px solid ${s.color}`, background: stageFilter === s.id ? `${s.color}10` : t.color.bgCard }}>
-            <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: s.color, ...S.mono }}>{pipeline[s.id] || 0}</div>
+            <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: 800, color: s.color, ...S.mono }}>{pipeline[s.id] || 0}</div>
             <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, color: t.color.textSecondary, marginTop: 2 }}>{s.label}</div>
           </div>
         ))}

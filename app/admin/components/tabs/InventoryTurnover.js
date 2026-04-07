@@ -308,7 +308,7 @@ export default function InventoryTurnover() {
               <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 6, marginTop: 2 }}>
                 活躍品號
               </div>
-              <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>
+              <div style={{ fontSize: isMobile ? t.fontSize.h1 : 24, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>
                 {fmtN(summary.active_count)}
               </div>
               <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>
@@ -322,7 +322,7 @@ export default function InventoryTurnover() {
               <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 6, marginTop: 2 }}>
                 庫存總值
               </div>
-              <div style={{ fontSize: isMobile ? 16 : 20, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>
+              <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>
                 {fmtP(summary.total_stock_value)}
               </div>
               <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>
@@ -336,7 +336,7 @@ export default function InventoryTurnover() {
               <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#92400e', letterSpacing: 0.8, marginBottom: 6, marginTop: 2 }}>
                 滯銷品
               </div>
-              <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: t.fontWeight.bold, color: '#92400e', ...S.mono }}>
+              <div style={{ fontSize: isMobile ? t.fontSize.h1 : 24, fontWeight: t.fontWeight.bold, color: '#92400e', ...S.mono }}>
                 {fmtN(summary.slow_moving_count)}
               </div>
               <div style={{ fontSize: t.fontSize.caption, color: '#b45309', marginTop: 4 }}>
@@ -350,7 +350,7 @@ export default function InventoryTurnover() {
               <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#9a3412', letterSpacing: 0.8, marginBottom: 6, marginTop: 2 }}>
                 庫存積壓
               </div>
-              <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: t.fontWeight.bold, color: '#ea580c', ...S.mono }}>
+              <div style={{ fontSize: isMobile ? t.fontSize.h1 : 24, fontWeight: t.fontWeight.bold, color: '#ea580c', ...S.mono }}>
                 {fmtN(summary.over_stock_count)}
               </div>
               <div style={{ fontSize: t.fontSize.caption, color: '#c2410c', marginTop: 4 }}>

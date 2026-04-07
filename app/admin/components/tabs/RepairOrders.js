@@ -25,13 +25,13 @@ const STATUS_COLOR = {
 const PRIORITY_MAP = {
   urgent: { label: '急件', color: t.color.error },
   normal: { label: '一般', color: t.color.link },
-  low: { label: '低', color: '#9ca3af' }
+  low: { label: '低', color: t.color.textDisabled }
 };
 
 const BRANDS = ['Snap-on', 'Bahco', 'Blue Point', 'Bosch', 'OTC Tools', 'Muc-Off'];
 
 const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
-const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textDisabled, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
 
 // ========== 維修單詳細頁 ==========
 function RepairDetailView({ repair: initRepair, onBack, onRefresh }) {
@@ -100,17 +100,17 @@ function RepairDetailView({ repair: initRepair, onBack, onRefresh }) {
   if (statusKey === 'pending') nextActions.push({ status: 'in_progress', label: '開始維修', color: t.color.link });
   if (statusKey === 'in_progress') nextActions.push({ status: 'completed', label: '完成維修', color: t.color.brand });
   if (statusKey === 'completed') nextActions.push({ status: 'notified', label: '通知取件', color: '#a855f7' });
-  if (statusKey === 'notified') nextActions.push({ status: 'picked_up', label: '確認取件', color: '#6b7280' });
+  if (statusKey === 'notified') nextActions.push({ status: 'picked_up', label: '確認取件', color: t.color.textMuted });
 
   return (
     <div style={{ animation: 'fadeIn 0.25s ease', padding: isMobile ? '0' : '0 12px' }}>
       {/* Header */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.color.textMuted, transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h2, color: t.color.textMuted, transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: isMobile ? 16 : 22, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{detail.repair_no || '-'}</span>
+              <span style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{detail.repair_no || '-'}</span>
               <span style={{ padding: '3px 10px', borderRadius: t.radius.pill, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[statusKey]}14`, color: STATUS_COLOR[statusKey], border: `1px solid ${STATUS_COLOR[statusKey]}30` }}>
                 {STATUS_MAP[statusKey]}
               </span>
@@ -130,7 +130,7 @@ function RepairDetailView({ repair: initRepair, onBack, onRefresh }) {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {nextActions.map(a => (
             <button key={a.status} onClick={() => updateStatus(a.status)} disabled={!!processing}
-              style={{ ...(isMobile ? { flex: 1, minHeight: 44, minWidth: 0 } : {}), padding: isMobile ? '9px 12px' : '9px 22px', borderRadius: t.radius.lg, border: 'none', background: `linear-gradient(135deg, ${a.color}, ${a.color}dd)`, color: t.color.bgCard, fontSize: isMobile ? 12 : 14, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: processing ? 0.7 : 1, transition: 'all 0.15s', boxShadow: `0 2px 8px ${a.color}40` }}>
+              style={{ ...(isMobile ? { flex: 1, minHeight: 44, minWidth: 0 } : {}), padding: isMobile ? '9px 12px' : '9px 22px', borderRadius: t.radius.lg, border: 'none', background: `linear-gradient(135deg, ${a.color}, ${a.color}dd)`, color: t.color.bgCard, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: processing ? 0.7 : 1, transition: 'all 0.15s', boxShadow: `0 2px 8px ${a.color}40` }}>
               {processing === a.status ? '處理中...' : a.label}
             </button>
           ))}
@@ -644,10 +644,10 @@ export default function RepairOrders() {
           {['pending', 'in_progress', 'completed', 'notified', 'picked_up'].map((status, idx) => (
             <div key={status} style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 12 }}>
               <button onClick={() => handleStatusFilter(status)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer', border: statusFilter === status ? `2px solid ${STATUS_COLOR[status]}` : '1px solid #e5e7eb', background: statusFilter === status ? `${STATUS_COLOR[status]}0a` : t.color.bgCard, borderRadius: t.radius.pill, padding: '8px 12px', transition: 'all 0.15s' }}>
-                <span style={{ fontSize: isMobile ? 10 : 12, fontWeight: t.fontWeight.bold, color: STATUS_COLOR[status] }}>{STATUS_MAP[status]}</span>
-                <span style={{ fontSize: isMobile ? 12 : 16, fontWeight: 800, color: STATUS_COLOR[status], ...S.mono }}>{statusCounts[status]}</span>
+                <span style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: STATUS_COLOR[status] }}>{STATUS_MAP[status]}</span>
+                <span style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.h2, fontWeight: 800, color: STATUS_COLOR[status], ...S.mono }}>{statusCounts[status]}</span>
               </button>
-              {idx < 4 && <span style={{ fontSize: isMobile ? 14 : 18, color: '#d1d5db' }}>→</span>}
+              {idx < 4 && <span style={{ fontSize: isMobile ? t.fontSize.body : t.fontSize.h2, color: '#d1d5db' }}>→</span>}
             </div>
           ))}
         </div>
@@ -677,10 +677,10 @@ export default function RepairOrders() {
             <div key={repair.id} onClick={() => setDetailView(repair)} style={{ ...cardStyle, padding: '12px 16px', cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; }} onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)'; }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: t.color.textPrimary, ...S.mono }}>{repair.repair_no}</span>
-                  <span style={{ padding: '2px 8px', borderRadius: t.radius.pill, fontSize: 11, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[repair.status]}14`, color: STATUS_COLOR[repair.status], border: `1px solid ${STATUS_COLOR[repair.status]}30` }}>{STATUS_MAP[repair.status]}</span>
+                  <span style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary, ...S.mono }}>{repair.repair_no}</span>
+                  <span style={{ padding: '2px 8px', borderRadius: t.radius.pill, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[repair.status]}14`, color: STATUS_COLOR[repair.status], border: `1px solid ${STATUS_COLOR[repair.status]}30` }}>{STATUS_MAP[repair.status]}</span>
                 </div>
-                {repair.priority && <span style={{ padding: '2px 8px', borderRadius: t.radius.pill, fontSize: 11, fontWeight: t.fontWeight.bold, background: `${PRIORITY_MAP[repair.priority].color}14`, color: PRIORITY_MAP[repair.priority].color, border: `1px solid ${PRIORITY_MAP[repair.priority].color}30` }}>{PRIORITY_MAP[repair.priority].label}</span>}
+                {repair.priority && <span style={{ padding: '2px 8px', borderRadius: t.radius.pill, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: `${PRIORITY_MAP[repair.priority].color}14`, color: PRIORITY_MAP[repair.priority].color, border: `1px solid ${PRIORITY_MAP[repair.priority].color}30` }}>{PRIORITY_MAP[repair.priority].label}</span>}
               </div>
               <div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, marginBottom: 4 }}>{repair.customer_name || '未指定'}</div>
               <div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, marginBottom: 4 }}>{repair.product_name}</div>

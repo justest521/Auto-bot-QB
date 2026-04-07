@@ -69,7 +69,7 @@ const RingProgress = ({ pct, size = 32, stroke = 3.5 }) => {
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={t.color.border} strokeWidth={stroke} />
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
       </svg>
-      <span style={{ position: 'absolute', fontSize: 9, fontWeight: t.fontWeight.bold, color, ...S.mono }}>{pct}%</span>
+      <span style={{ position: 'absolute', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color, ...S.mono }}>{pct}%</span>
     </div>
   );
 };
@@ -82,7 +82,7 @@ const StatCard = ({ label, value, sub, color, active, onClick }) => (
     transition: 'all 0.2s', display: 'flex', flexDirection: 'column', gap: 2,
   }}>
     <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.medium }}>{label}</div>
-    <div style={{ fontSize: 22, fontWeight: t.fontWeight.bold, color, ...S.mono, lineHeight: 1.2 }}>{value}</div>
+    <div style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color, ...S.mono, lineHeight: 1.2 }}>{value}</div>
     {sub && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, ...S.mono }}>{sub}</div>}
   </div>
 );
@@ -150,7 +150,7 @@ export default function ProcurementCenter({ setTab }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>到貨進度</span>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-            <span style={{ fontSize: 22, fontWeight: t.fontWeight.bold, ...S.mono, color: pctColor, lineHeight: 1 }}>{overallPct}%</span>
+            <span style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, ...S.mono, color: pctColor, lineHeight: 1 }}>{overallPct}%</span>
             <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, ...S.mono }}>{fmt(sm.total_received)}/{fmt(sm.total_ordered)}</span>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function ProcurementCenter({ setTab }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}>
         <div style={{ position: 'relative', flex: 1, maxWidth: isMobile ? '100%' : 320 }}>
           <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load(1, search, statusF)} placeholder="搜尋料號或品名..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: '100%', fontSize: t.fontSize.caption, padding: '8px 12px 8px 34px', borderRadius: t.radius.md }} />
-          <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: t.color.textDisabled, pointerEvents: 'none' }}>&#x2315;</span>
+          <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', fontSize: t.fontSize.body, color: t.color.textDisabled, pointerEvents: 'none' }}>&#x2315;</span>
         </div>
         <button onClick={() => load(1, search, statusF)} style={{ ...S.btnPrimary, padding: '8px 20px', fontSize: t.fontSize.caption, borderRadius: t.radius.md, minHeight: isMobile ? 42 : 'auto' }}>查詢</button>
         {search && <button onClick={() => { setSearch(''); load(1, '', statusF); }} style={{ ...S.btnGhost, padding: '8px 16px', fontSize: t.fontSize.caption, borderRadius: t.radius.md, color: t.color.textMuted }}>清除</button>}
@@ -190,7 +190,7 @@ export default function ProcurementCenter({ setTab }) {
                 style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: col.center ? 'flex-end' : 'flex-start', gap: 3, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: sortKey === col.key ? t.color.link : t.color.textMuted, transition: 'color 0.15s', whiteSpace: 'nowrap', padding: '10px 10px', borderRight: ci < SORT_COLS.length - 1 ? `1px solid ${t.color.border}` : 'none' }}
               >
                 {col.label}
-                <span style={{ fontSize: 8, opacity: sortKey === col.key ? 1 : 0.3 }}>
+                <span style={{ fontSize: t.fontSize.tiny, opacity: sortKey === col.key ? 1 : 0.3 }}>
                   {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
                 </span>
               </div>
@@ -293,7 +293,7 @@ export default function ProcurementCenter({ setTab }) {
                                 onMouseEnter={e => { e.currentTarget.style.borderColor = t.color.purple; e.currentTarget.style.boxShadow = '0 2px 8px rgba(124,58,237,0.12)'; }}
                                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#e9d5ff'; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.03)'; }}
                               >
-                                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', background: '#ede9fe', color: t.color.purple, fontSize: 10, fontWeight: t.fontWeight.bold }}>#{i + 1}</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', background: '#ede9fe', color: t.color.purple, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold }}>#{i + 1}</span>
                                 <span style={{ fontWeight: t.fontWeight.bold, color: t.color.purple, ...S.mono, fontSize: t.fontSize.tiny }}>{wo.order_no || '-'}</span>
                                 <span style={{ color: t.color.textSecondary, fontSize: t.fontSize.caption }}>{wo.customer_name}</span>
                                 <span style={{ padding: '1px 6px', borderRadius: t.radius.sm, background: t.color.warningBg, color: '#b45309', fontWeight: t.fontWeight.bold, ...S.mono, fontSize: t.fontSize.tiny }}>x{wo.qty_needed}</span>

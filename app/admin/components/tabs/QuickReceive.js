@@ -455,10 +455,10 @@ export default function QuickReceive({ setTab }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div>
             <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>上傳檔案</div>
-            <div style={{ fontSize: 12, color: t.color.textMuted, marginTop: 2 }}>支援 CSV、Excel、PDF、圖片 — 系統自動偵測格式並解析</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2 }}>支援 CSV、Excel、PDF、圖片 — 系統自動偵測格式並解析</div>
           </div>
           {uploadedFileName && !loading && (
-            <div style={{ fontSize: 12, color: t.color.textMuted, background: '#f3f4f6', padding: '4px 10px', borderRadius: t.radius.sm }}>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, background: '#f3f4f6', padding: '4px 10px', borderRadius: t.radius.sm }}>
               已上傳：{uploadedFileName}
             </div>
           )}
@@ -480,10 +480,10 @@ export default function QuickReceive({ setTab }) {
           }}
         >
           <div style={{ fontSize: 40, marginBottom: 8, lineHeight: 1 }}>{dragging ? '\uD83D\uDCE5' : '\uD83D\uDCC1'}</div>
-          <div style={{ fontSize: t.fontSize.h3, fontWeight: 600, color: dragging ? '#2563eb' : t.color.textSecondary, marginBottom: 6 }}>
+          <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: dragging ? '#2563eb' : t.color.textSecondary, marginBottom: 6 }}>
             {dragging ? '放開以上傳檔案' : '拖曳檔案到這裡'}
           </div>
-          <div style={{ fontSize: 12, color: t.color.textDisabled, marginBottom: 10 }}>或點擊選擇檔案</div>
+          <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginBottom: 10 }}>或點擊選擇檔案</div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
             {[
               { label: 'CSV', color: t.color.brand, bg: '#f0fdf4' },
@@ -491,7 +491,7 @@ export default function QuickReceive({ setTab }) {
               { label: 'PDF', color: t.color.error, bg: '#fef2f2' },
               { label: '圖片', color: '#7c3aed', bg: '#f5f3ff' },
             ].map(ft => (
-              <span key={ft.label} style={{ fontSize: t.fontSize.tiny, fontWeight: 600, color: ft.color, background: ft.bg, padding: '2px 10px', borderRadius: 10 }}>{ft.label}</span>
+              <span key={ft.label} style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: ft.color, background: ft.bg, padding: '2px 10px', borderRadius: 10 }}>{ft.label}</span>
             ))}
           </div>
         </div>
@@ -500,8 +500,8 @@ export default function QuickReceive({ setTab }) {
 
       {/* ── 文字輸入區 ── */}
       <div style={{ ...cardStyle, marginBottom: 16, padding: '20px 24px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: t.color.textPrimary, marginBottom: 4 }}>手動輸入料號</div>
-        <div style={{ fontSize: 12, color: t.color.textMuted, marginBottom: 10 }}>
+        <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 4 }}>手動輸入料號</div>
+        <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 10 }}>
           每行一個品項，格式：<code style={{ background: '#f3f4f6', padding: '1px 6px', borderRadius: t.radius.sm }}>料號 x數量</code>
         </div>
         <textarea
@@ -509,7 +509,7 @@ export default function QuickReceive({ setTab }) {
           onChange={e => setTextInput(e.target.value)}
           placeholder={'AB1234 x5\nBP-5678 x10\nKRADD26T x1'}
           rows={5}
-          style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , resize: 'vertical', fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: 13, lineHeight: 1.8, marginBottom: 10  }}
+          style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , resize: 'vertical', fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: t.fontSize.caption, lineHeight: 1.8, marginBottom: 10  }}
         />
         <button onClick={handleTextParse} disabled={!textInput.trim() || loading} style={{ ...S.btnPrimary, padding: '8px 20px' }}>
           {loading ? '解析中...' : '解析並比對'}
@@ -531,29 +531,29 @@ export default function QuickReceive({ setTab }) {
           { key: 'cost', label: '成本', align: 'right' },
         ];
         const mapped = getMappedItems();
-        const selectStyle = { padding: '3px 6px', fontSize: 11, border: '1px solid #c7d2fe', borderRadius: 4, background: t.color.bgCard, color: '#1e40af', fontWeight: 600, cursor: 'pointer', outline: 'none' };
+        const selectStyle = { padding: '3px 6px', fontSize: t.fontSize.tiny, border: '1px solid #c7d2fe', borderRadius: 4, background: t.color.bgCard, color: '#1e40af', fontWeight: t.fontWeight.semibold, cursor: 'pointer', outline: 'none' };
 
         return (
           <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px', border: '2px solid #3b82f6', background: '#f8faff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#1e40af' }}>
+                <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: '#1e40af' }}>
                   解析預覽
-                  <span style={{ fontSize: 11, fontWeight: t.fontWeight.medium, color: t.color.textMuted, marginLeft: 8 }}>
+                  <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.medium, color: t.color.textMuted, marginLeft: 8 }}>
                     來源：{FILE_TYPE_LABELS[preview.source] || preview.source}
                   </span>
-                  <span style={{ fontSize: 11, color: t.color.textDisabled, marginLeft: 6 }}>共 {preview.items.length} 項</span>
+                  <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginLeft: 6 }}>共 {preview.items.length} 項</span>
                 </div>
-                <div style={{ fontSize: 12, color: t.color.textMuted, marginTop: 4 }}>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 4 }}>
                   偵測到欄位：{preview.detectedCols.map(c => (
-                    <span key={c} style={{ display: 'inline-block', fontSize: 11, fontWeight: 600, color: '#2563eb', background: '#dbeafe', padding: '1px 8px', borderRadius: 10, marginRight: 4 }}>{c}</span>
+                    <span key={c} style={{ display: 'inline-block', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: '#2563eb', background: '#dbeafe', padding: '1px 8px', borderRadius: 10, marginRight: 4 }}>{c}</span>
                   ))}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={() => setPreview(null)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: 12, color: t.color.textMuted }}>取消</button>
+                <button onClick={() => setPreview(null)} style={{ ...S.btnGhost, padding: '6px 14px', fontSize: t.fontSize.tiny, color: t.color.textMuted }}>取消</button>
                 <button onClick={confirmPreview} disabled={previewChecked.size === 0} style={{
-                  ...S.btnPrimary, padding: '6px 18px', fontSize: 13, fontWeight: 700,
+                  ...S.btnPrimary, padding: '6px 18px', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold,
                   background: previewChecked.size > 0 ? '#2563eb' : '#94a3b8',
                 }}>
                   確認匯入 ({previewChecked.size} 項)
@@ -563,10 +563,10 @@ export default function QuickReceive({ setTab }) {
 
             {/* 欄位對應 */}
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 12px', background: '#eef2ff', borderRadius: t.radius.md, marginBottom: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#4338ca' }}>欄位對應</span>
+              <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#4338ca' }}>欄位對應</span>
               {TARGET_COLS.map(tc => (
                 <div key={tc.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 11, color: t.color.textMuted }}>{tc.label}{tc.required ? '*' : ''}：</span>
+                  <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{tc.label}{tc.required ? '*' : ''}：</span>
                   <select value={colMap[tc.key]} onChange={e => setColMap(prev => ({ ...prev, [tc.key]: e.target.value }))} style={selectStyle}>
                     {FIELD_OPTIONS.map(fo => (
                       <option key={fo.value} value={fo.value}>{fo.label}</option>
@@ -609,13 +609,13 @@ export default function QuickReceive({ setTab }) {
                         <td style={{ ...tdStyle, textAlign: 'center' }}>
                           <input type="checkbox" checked={checked} readOnly style={{ width: 14, height: 14, accentColor: t.color.link, cursor: 'pointer' }} />
                         </td>
-                        <td style={{ ...tdStyle, textAlign: 'center', color: t.color.textDisabled, fontSize: 11 }}>{idx + 1}</td>
+                        <td style={{ ...tdStyle, textAlign: 'center', color: t.color.textDisabled, fontSize: t.fontSize.tiny }}>{idx + 1}</td>
                         <td style={tdStyle}>
-                          <span style={{ ...S.mono, fontWeight: 700, color: item.part_no ? '#1e40af' : t.color.error, fontSize: 13 }}>{item.part_no || '(空)'}</span>
+                          <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: item.part_no ? '#1e40af' : t.color.error, fontSize: t.fontSize.caption }}>{item.part_no || '(空)'}</span>
                         </td>
-                        <td style={{ ...tdStyle, color: '#4b5563', fontSize: 12 }}>{item.name || <span style={{ color: '#d1d5db' }}>—</span>}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: 600, fontSize: 13 }}>{item.qty}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, color: item.cost > 0 ? t.color.textSecondary : '#d1d5db', fontSize: 12 }}>{item.cost > 0 ? fmtP(item.cost) : '—'}</td>
+                        <td style={{ ...tdStyle, color: '#4b5563', fontSize: t.fontSize.tiny }}>{item.name || <span style={{ color: '#d1d5db' }}>—</span>}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.caption }}>{item.qty}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, color: item.cost > 0 ? t.color.textSecondary : '#d1d5db', fontSize: t.fontSize.tiny }}>{item.cost > 0 ? fmtP(item.cost) : '—'}</td>
                       </tr>
                     );
                   })}
@@ -630,7 +630,7 @@ export default function QuickReceive({ setTab }) {
       {(loading || matching) && (
         <div style={{ ...cardStyle, padding: 30, textAlign: 'center', marginBottom: 16 }}>
           <Loading />
-          <div style={{ fontSize: 13, color: t.color.textMuted, marginTop: 8 }}>{matching ? '正在比對產品與訂單...' : '解析中...'}</div>
+          <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 8 }}>{matching ? '正在比對產品與訂單...' : '解析中...'}</div>
         </div>
       )}
 
@@ -638,21 +638,21 @@ export default function QuickReceive({ setTab }) {
       {items.length > 0 && !loading && !matching && (
         <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: t.color.textPrimary }}>
-              進貨明細 <span style={{ fontSize: 12, color: t.color.textMuted, fontWeight: 400 }}>{checkedCount} / {items.length} 項 / {totalQty} 件</span>
+            <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>
+              進貨明細 <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.normal }}>{checkedCount} / {items.length} 項 / {totalQty} 件</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {(() => { const memCount = items.filter(i => i.from_memory).length; return memCount > 0 ? (
-                <span style={{ fontSize: 12, color: '#8b5cf6', fontWeight: 600, background: '#f5f3ff', padding: '3px 10px', borderRadius: 6 }}>
+                <span style={{ fontSize: t.fontSize.tiny, color: '#8b5cf6', fontWeight: t.fontWeight.semibold, background: '#f5f3ff', padding: '3px 10px', borderRadius: 6 }}>
                   {memCount} 筆記憶帶入
                 </span>
               ) : null; })()}
               {totalWaiting > 0 && (
-                <span style={{ fontSize: 12, color: t.color.warning, fontWeight: 600, background: t.color.warningBg, padding: '3px 10px', borderRadius: 6 }}>
+                <span style={{ fontSize: t.fontSize.tiny, color: t.color.warning, fontWeight: t.fontWeight.semibold, background: t.color.warningBg, padding: '3px 10px', borderRadius: 6 }}>
                   {totalWaiting} 筆等待訂單
                 </span>
               )}
-              <button onClick={addManualItem} style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', background: t.color.infoBg, border: '1px solid #bfdbfe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>+ 手動新增</button>
+              <button onClick={addManualItem} style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: '#2563eb', background: t.color.infoBg, border: '1px solid #bfdbfe', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>+ 手動新增</button>
             </div>
           </div>
           <div style={{ overflowX: 'auto' }}>
@@ -679,44 +679,44 @@ export default function QuickReceive({ setTab }) {
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
                       <input type="checkbox" checked={checkedItems.has(idx)} onChange={() => toggleCheck(idx)} style={{ width: 15, height: 15, accentColor: t.color.link, cursor: 'pointer' }} />
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', color: t.color.textDisabled, fontSize: 12 }}>{idx + 1}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center', color: t.color.textDisabled, fontSize: t.fontSize.tiny }}>{idx + 1}</td>
                     <td style={tdStyle}>
-                      <span style={{ ...S.mono, fontWeight: 700, color: item.matched ? '#2563eb' : t.color.textSecondary }}>{item.part_no}</span>
+                      <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: item.matched ? '#2563eb' : t.color.textSecondary }}>{item.part_no}</span>
                       {!item.matched && <span style={{ fontSize: t.fontSize.tiny, color: t.color.warning, marginLeft: 6, background: t.color.warningBg, padding: '1px 6px', borderRadius: 4 }}>新品</span>}
                     </td>
                     <td style={tdStyle}>
-                      <input value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , padding: '3px 6px', fontSize: 12  }} />
+                      <input value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , padding: '3px 6px', fontSize: t.fontSize.tiny  }} />
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <input type="number" value={item.qty || ''} min={1} onChange={e => updateItem(idx, 'qty', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'qty', 1); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , width: 60, textAlign: 'right', padding: '3px 6px', fontSize: 13  }} />
+                      <input type="number" value={item.qty || ''} min={1} onChange={e => updateItem(idx, 'qty', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'qty', 1); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , width: 60, textAlign: 'right', padding: '3px 6px', fontSize: t.fontSize.caption  }} />
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
-                        {item.from_memory && <span title={item.memory_source || '記憶'} style={{ fontSize: 10, color: '#8b5cf6', background: '#f5f3ff', padding: '1px 5px', borderRadius: 3, cursor: 'help', whiteSpace: 'nowrap' }}>記憶</span>}
-                        <input type="number" value={item.cost || ''} min={0} onChange={e => updateItem(idx, 'cost', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'cost', 0); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , width: 90, textAlign: 'right', padding: '3px 6px', fontSize: 13  }} />
+                        {item.from_memory && <span title={item.memory_source || '記憶'} style={{ fontSize: t.fontSize.tiny, color: '#8b5cf6', background: '#f5f3ff', padding: '1px 5px', borderRadius: 3, cursor: 'help', whiteSpace: 'nowrap' }}>記憶</span>}
+                        <input type="number" value={item.cost || ''} min={0} onChange={e => updateItem(idx, 'cost', e.target.value === '' ? '' : Number(e.target.value))} onBlur={e => { if (!e.target.value) updateItem(idx, 'cost', 0); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , width: 90, textAlign: 'right', padding: '3px 6px', fontSize: t.fontSize.caption  }} />
                       </div>
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
                       {(Number(item.cost) || 0) === 0
-                        ? <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 700, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
-                        : <span style={{ ...S.mono, fontWeight: 700, color: t.color.success }}>{fmtP((Number(item.qty) || 0) * (Number(item.cost) || 0))}</span>
+                        ? <span style={{ fontSize: t.fontSize.tiny, color: '#a855f7', fontWeight: t.fontWeight.bold, background: '#faf5ff', padding: '2px 8px', borderRadius: 4 }}>贈品</span>
+                        : <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.success }}>{fmtP((Number(item.qty) || 0) * (Number(item.cost) || 0))}</span>
                       }
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <input type="number" value={item.safety_stock ?? ''} min={0} placeholder="自動" onChange={e => updateItem(idx, 'safety_stock', e.target.value === '' ? null : Number(e.target.value))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: 65, textAlign: 'right', padding: '3px 6px', fontSize: 12, color: t.color.textMuted }} />
+                      <input type="number" value={item.safety_stock ?? ''} min={0} placeholder="自動" onChange={e => updateItem(idx, 'safety_stock', e.target.value === '' ? null : Number(e.target.value))} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: 65, textAlign: 'right', padding: '3px 6px', fontSize: t.fontSize.tiny, color: t.color.textMuted }} />
                     </td>
                     <td style={tdStyle}>
                       {item.waiting_orders?.length > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {item.waiting_orders.map((o, oi) => (
-                            <div key={oi} style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <span style={{ color: t.color.warning, fontWeight: 700 }}>{o.order_no}</span>
+                            <div key={oi} style={{ fontSize: t.fontSize.tiny, display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ color: t.color.warning, fontWeight: t.fontWeight.bold }}>{o.order_no}</span>
                               <span style={{ color: t.color.textMuted }}>{o.customer_name}</span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <span style={{ fontSize: 11, color: '#d1d5db' }}>—</span>
+                        <span style={{ fontSize: t.fontSize.tiny, color: '#d1d5db' }}>—</span>
                       )}
                     </td>
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
@@ -730,25 +730,25 @@ export default function QuickReceive({ setTab }) {
 
           {/* 合計列 */}
           <div style={{ padding: '12px 8px 4px', borderTop: '2px solid #bfdbfe', marginTop: 4, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: t.color.textSecondary, userSelect: 'none' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: t.fontSize.caption, color: t.color.textSecondary, userSelect: 'none' }}>
               <input type="checkbox" checked={taxExtra} onChange={e => setTaxExtra(e.target.checked)}
                 style={{ width: 16, height: 16, accentColor: t.color.link, cursor: 'pointer' }} />
               稅額外加 5%
             </label>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 13, color: t.color.textMuted }}>
-                小計 <span style={{ ...S.mono, fontWeight: 700, color: t.color.textPrimary }}>{fmtP(subtotal)}</span>
-                <span style={{ fontSize: 11, color: t.color.textDisabled, marginLeft: 4 }}>({checkedCount} 項 / {totalQty} 件)</span>
+              <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>
+                小計 <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{fmtP(subtotal)}</span>
+                <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginLeft: 4 }}>({checkedCount} 項 / {totalQty} 件)</span>
               </div>
               {taxExtra && (
-                <div style={{ fontSize: 12, color: t.color.textMuted, marginTop: 2 }}>
-                  稅金 5% <span style={{ ...S.mono, fontWeight: 600, color: t.color.textSecondary }}>{fmtP(taxAmount)}</span>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2 }}>
+                  稅金 5% <span style={{ ...S.mono, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary }}>{fmtP(taxAmount)}</span>
                 </div>
               )}
             </div>
             <div style={{ borderLeft: '3px solid #16a34a', paddingLeft: 16, textAlign: 'right' }}>
-              <div style={{ fontSize: 11, color: t.color.brand, fontWeight: 600, marginBottom: 2 }}>進貨合計{taxExtra ? '（含稅）' : ''}</div>
-              <div style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalCost)}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>進貨合計{taxExtra ? '（含稅）' : ''}</div>
+              <div style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalCost)}</div>
             </div>
           </div>
         </div>
@@ -761,8 +761,8 @@ export default function QuickReceive({ setTab }) {
           {newVendorMode && (
             <div style={{ background: '#f0f9ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '14px 16px', marginBottom: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af' }}>新增廠商</div>
-                <button type="button" onClick={resetNewVendor} style={{ fontSize: 12, color: t.color.textMuted, background: 'none', border: 'none', cursor: 'pointer' }}>✕ 取消</button>
+                <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#1e40af' }}>新增廠商</div>
+                <button type="button" onClick={resetNewVendor} style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, background: 'none', border: 'none', cursor: 'pointer' }}>✕ 取消</button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
                 {[
@@ -776,38 +776,38 @@ export default function QuickReceive({ setTab }) {
                   { key: 'remark', label: '備註', ph: '選填' },
                 ].map(f => (
                   <div key={f.key}>
-                    <label style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginBottom: 2, display: 'block' }}>{f.label}</label>
-                    <input value={newVendorForm[f.key]} onChange={e => setNewVendorForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.ph} autoFocus={f.autoFocus} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: 12, padding: '6px 8px', width: '100%'  }} />
+                    <label style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: '#4b5563', marginBottom: 2, display: 'block' }}>{f.label}</label>
+                    <input value={newVendorForm[f.key]} onChange={e => setNewVendorForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.ph} autoFocus={f.autoFocus} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: t.fontSize.tiny, padding: '6px 8px', width: '100%'  }} />
                   </div>
                 ))}
               </div>
               <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
                 <button type="button" onClick={createVendorInline} disabled={creatingVendor || !newVendorForm.vendor_name.trim()}
-                  style={{ padding: '8px 20px', fontSize: 13, fontWeight: 700, color: t.color.bgCard, background: creatingVendor || !newVendorForm.vendor_name.trim() ? '#d1d5db' : t.color.brand, border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer' }}>
+                  style={{ padding: '8px 20px', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.bgCard, background: creatingVendor || !newVendorForm.vendor_name.trim() ? '#d1d5db' : t.color.brand, border: 'none', borderRadius: 8, cursor: creatingVendor ? 'wait' : 'pointer' }}>
                   {creatingVendor ? '建立中...' : '建立廠商'}
                 </button>
-                <button type="button" onClick={resetNewVendor} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: t.color.textMuted, background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
+                <button type="button" onClick={resetNewVendor} style={{ padding: '8px 16px', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textMuted, background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>取消</button>
               </div>
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 180 }}>
-              <label style={{ ...S.label, marginBottom: 4 }}>廠商（必填）<span style={{ color: '#ef4444', marginLeft: 2 }}>*</span></label>
+              <label style={{ ...S.label, marginBottom: 4 }}>廠商（必填）<span style={{ color: t.color.error, marginLeft: 2 }}>*</span></label>
               <div style={{ display: 'flex', gap: 6 }}>
-                <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: 13, flex: 1, borderColor: !selectedVendor ? '#fca5a5' : undefined  }}>
+                <select value={selectedVendor} onChange={e => setSelectedVendor(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: t.fontSize.caption, flex: 1, borderColor: !selectedVendor ? '#fca5a5' : undefined  }}>
                   <option value="">請選擇廠商</option>
                   {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
                 </select>
-                {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: 16, fontWeight: 700, color: '#2563eb', background: t.color.infoBg, border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', lineHeight: 1 }}>+</button>}
+                {!newVendorMode && <button type="button" onClick={() => setNewVendorMode(true)} title="新增廠商" style={{ padding: '6px 10px', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: '#2563eb', background: t.color.infoBg, border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', lineHeight: 1 }}>+</button>}
               </div>
             </div>
             <div style={{ flex: 2, minWidth: 200 }}>
               <label style={{ ...S.label, marginBottom: 4 }}>備註（選填）</label>
-              <input value={note} onChange={e => setNote(e.target.value)} placeholder="進貨備註..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: 13  }} />
+              <input value={note} onChange={e => setNote(e.target.value)} placeholder="進貨備註..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}) , fontSize: t.fontSize.caption  }} />
             </div>
             <div style={{ flexShrink: 0, display: 'flex', alignItems: 'flex-end', paddingTop: 18 }}>
               <button onClick={handleStockIn} disabled={submitting || checkedCount === 0 || !selectedVendor} style={{
-                ...S.btnPrimary, padding: '12px 32px', fontSize: 15, fontWeight: 700,
+                ...S.btnPrimary, padding: '12px 32px', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold,
                 background: submitting ? '#94a3b8' : (checkedCount === 0 || !selectedVendor) ? '#d1d5db' : t.color.brand,
                 boxShadow: submitting || checkedCount === 0 || !selectedVendor ? 'none' : '0 2px 8px rgba(22,163,74,0.3)',
               }}>

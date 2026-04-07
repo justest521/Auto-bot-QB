@@ -177,7 +177,7 @@ export default function Flowchart({ setTab }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
         <div>
           <div style={S.eyebrow}>SYSTEM FLOWCHART</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: t.color.textPrimary }}>系統流程圖</div>
+          <div style={{ fontSize: t.fontSize.h1, fontWeight: 800, color: t.color.textPrimary }}>系統流程圖</div>
         </div>
         <div style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>點擊節點跳轉對應功能</div>
       </div>
@@ -297,7 +297,7 @@ export default function Flowchart({ setTab }) {
                   zIndex: hi ? 10 : 1,
                 }}
               >
-                <div style={{ fontSize: 22, lineHeight: 1 }}>{node.icon}</div>
+                <div style={{ fontSize: t.fontSize.h1, lineHeight: 1 }}>{node.icon}</div>
                 <div style={{ fontSize: t.fontSize.h3, fontWeight: 800, color: node.color, marginTop: 2 }}>{node.label}</div>
                 <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontWeight: t.fontWeight.medium }}>{node.sub}</div>
                 {count > 0 && (

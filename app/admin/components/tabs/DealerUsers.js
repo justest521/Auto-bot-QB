@@ -133,8 +133,8 @@ export default function DealerUsers() {
                     <div style={{ padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: t.fontSize.body, color: t.color.textSecondary, textAlign: 'center' }}>{u.phone || '-'}</div>
                     <div style={{ padding: '8px 10px', borderRight: `1px solid ${t.color.border}`, display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}><span style={S.tag(u.status === 'active' ? 'green' : '')}>{u.status === 'active' ? '啟用' : '停用'}</span></div>
                     <div style={{ padding: '8px 10px', borderRight: 'none', display: 'flex', gap: 4, justifyContent: 'center', alignItems: 'center', minWidth: 0, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => toggleStatus(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11, minHeight: 32 }}>{u.status === 'active' ? '停用' : '啟用'}</button>
-                      <button onClick={() => resetPw(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: 11, minHeight: 32 }}>重設密碼</button>
+                      <button onClick={() => toggleStatus(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: t.fontSize.tiny, minHeight: 32 }}>{u.status === 'active' ? '停用' : '啟用'}</button>
+                      <button onClick={() => resetPw(u)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: t.fontSize.tiny, minHeight: 32 }}>重設密碼</button>
                     </div>
                   </>
                 ) : (
@@ -148,8 +148,8 @@ export default function DealerUsers() {
                       <span style={S.tag(u.status === 'active' ? 'green' : '')}>{u.status === 'active' ? '啟用' : '停用'}</span>
                     </div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <button onClick={() => toggleStatus(u)} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 12, minHeight: 40, flex: 1 }}>{u.status === 'active' ? '停用' : '啟用'}</button>
-                      <button onClick={() => resetPw(u)} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: 12, minHeight: 40, flex: 1 }}>重設密碼</button>
+                      <button onClick={() => toggleStatus(u)} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: t.fontSize.tiny, minHeight: 40, flex: 1 }}>{u.status === 'active' ? '停用' : '啟用'}</button>
+                      <button onClick={() => resetPw(u)} style={{ ...S.btnGhost, padding: '6px 12px', fontSize: t.fontSize.tiny, minHeight: 40, flex: 1 }}>重設密碼</button>
                     </div>
                   </>
                 )}
@@ -166,20 +166,20 @@ export default function DealerUsers() {
                     <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 6 }}>角色與價格</div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', gap: 10, flexWrap: 'wrap', minHeight: isMobile ? 40 : 'auto' }}>
                       <span style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary }}>角色</span>
-                      <select value={u.role} onChange={(e) => changeRole(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: isMobile ? '6px 8px' : '4px 8px', fontSize: 12, minHeight: isMobile ? 36 : 'auto' }}>
+                      <select value={u.role} onChange={(e) => changeRole(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: isMobile ? '6px 8px' : '4px 8px', fontSize: t.fontSize.tiny, minHeight: isMobile ? 36 : 'auto' }}>
                         <option value="dealer">經銷商</option><option value="sales">業務</option><option value="technician">維修技師</option>
                       </select>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', gap: 10, flexWrap: 'wrap', minHeight: isMobile ? 40 : 'auto' }}>
                       <span style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary }}>價格等級</span>
-                      <select value={u.price_level || 'reseller'} onChange={(e) => changePriceLevel(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: isMobile ? '6px 8px' : '4px 8px', fontSize: 12, minHeight: isMobile ? 36 : 'auto' }}>
+                      <select value={u.price_level || 'reseller'} onChange={(e) => changePriceLevel(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: isMobile ? '6px 8px' : '4px 8px', fontSize: t.fontSize.tiny, minHeight: isMobile ? 36 : 'auto' }}>
                         <option value="cost">成本價</option><option value="reseller">經銷價</option><option value="retail">零售價</option>
                       </select>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', gap: 10, flexWrap: 'wrap', minHeight: isMobile ? 40 : 'auto' }}>
                       <span style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary }}>個人折扣</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <select value={u.discount_rate != null ? String(u.discount_rate) : ''} onChange={(e) => changeDiscountRate(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: isMobile ? '6px 8px' : '4px 8px', fontSize: 12, minHeight: isMobile ? 36 : 'auto' }}>
+                        <select value={u.discount_rate != null ? String(u.discount_rate) : ''} onChange={(e) => changeDiscountRate(u, e.target.value)} style={{ ...S.input, width: 'auto', padding: isMobile ? '6px 8px' : '4px 8px', fontSize: t.fontSize.tiny, minHeight: isMobile ? 36 : 'auto' }}>
                           <option value="">不設定（用預設價格）</option>
                           <option value="0.95">95折</option>
                           <option value="0.9">9折</option>
@@ -192,7 +192,7 @@ export default function DealerUsers() {
                           <option value="0.55">55折</option>
                           <option value="0.5">5折</option>
                         </select>
-                        {u.discount_rate != null && <span style={{ fontSize: 11, color: t.color.brand, fontWeight: t.fontWeight.bold }}>零售價×{Math.round(u.discount_rate * 100)}%</span>}
+                        {u.discount_rate != null && <span style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.bold }}>零售價×{Math.round(u.discount_rate * 100)}%</span>}
                       </div>
                     </div>
                   </div>

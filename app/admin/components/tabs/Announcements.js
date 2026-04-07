@@ -91,8 +91,8 @@ export default function Announcements() {
               </div>
               <span style={S.tag(ann.is_active ? 'green' : '')}>{ann.is_active ? '啟用' : '停用'}</span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
-                <button onClick={() => toggleActive(ann)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '4px 10px', fontSize: 11, minHeight: isMobile ? 40 : 'auto', flex: isMobile ? 1 : 'auto' }}>{ann.is_active ? '停用' : '啟用'}</button>
-                <button onClick={() => deleteAnn(ann)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '4px 10px', fontSize: 11, color: '#ef4444', borderColor: '#fecdd3', minHeight: isMobile ? 40 : 'auto', flex: isMobile ? 1 : 'auto' }}>刪除</button>
+                <button onClick={() => toggleActive(ann)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '4px 10px', fontSize: t.fontSize.tiny, minHeight: isMobile ? 40 : 'auto', flex: isMobile ? 1 : 'auto' }}>{ann.is_active ? '停用' : '啟用'}</button>
+                <button onClick={() => deleteAnn(ann)} style={{ ...S.btnGhost, padding: isMobile ? '6px 12px' : '4px 10px', fontSize: t.fontSize.tiny, color: t.color.error, borderColor: '#fecdd3', minHeight: isMobile ? 40 : 'auto', flex: isMobile ? 1 : 'auto' }}>刪除</button>
               </div>
             </div>
           ))}

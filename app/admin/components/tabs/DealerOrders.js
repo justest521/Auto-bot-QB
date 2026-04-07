@@ -110,7 +110,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
   const d = o.dealer || order.dealer || {};
   const items = detail?.items || [];
 
-  const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+  const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textDisabled, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
   const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: `1px solid ${t.color.borderLight}` };
 
   const sufficientCount = items.filter(i => i.stock_status === 'sufficient').length;
@@ -122,10 +122,10 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
     <div style={{ animation: 'fadeIn 0.25s ease', padding: isMobile ? '0 8px' : '0 12px' }}>
       <div style={{ ...cardStyle, padding: isMobile ? '8px 12px' : '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, minHeight: isMobile ? 44 : 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <button onClick={onBack} style={{ width: isMobile ? 32 : 34, height: isMobile ? 32 : 34, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = t.color.bgMuted; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: isMobile ? 32 : 34, height: isMobile ? 32 : 34, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h2, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = t.color.bgMuted; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{order.order_no || '-'}</span>
+              <span style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{order.order_no || '-'}</span>
               <span style={{ padding: '3px 10px', borderRadius: t.radius.pill, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[o.status] || t.color.textMuted}14`, color: STATUS_COLOR[o.status] || t.color.textMuted, border: `1px solid ${STATUS_COLOR[o.status] || t.color.textMuted}30` }}>
                 {STATUS_MAP[o.status] || o.status}
               </span>
@@ -144,13 +144,13 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
           <div>
             {items.length > 0 && (
               <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center', ...cardStyle, padding: isMobile ? '8px 12px' : '10px 16px', overflowX: 'auto' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>庫存核對</div>
-                <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#dcfce7', color: '#15803d', whiteSpace: 'nowrap' }}>充足 {sufficientCount}</span>
+                <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>庫存核對</div>
+                <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: '#dcfce7', color: '#15803d', whiteSpace: 'nowrap' }}>充足 {sufficientCount}</span>
                 {partialCount > 0 && (
-                  <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#fef9c3', color: '#854d0e', whiteSpace: 'nowrap' }}>不足 {partialCount}</span>
+                  <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: '#fef9c3', color: '#854d0e', whiteSpace: 'nowrap' }}>不足 {partialCount}</span>
                 )}
                 {noStockCount > 0 && (
-                  <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: '#fee2e2', color: '#b91c1c', whiteSpace: 'nowrap' }}>無庫存 {noStockCount}</span>
+                  <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: '#fee2e2', color: '#b91c1c', whiteSpace: 'nowrap' }}>無庫存 {noStockCount}</span>
                 )}
               </div>
             )}
@@ -158,11 +158,11 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
             <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
               <div style={{ padding: isMobile ? '8px 12px' : '10px 16px', borderBottom: `1px solid ${t.color.borderLight}` }}>
                 <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>訂單明細</span>
-                <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+                <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: t.color.textDisabled, marginLeft: 8 }}>{items.length} 項</span>
               </div>
               {items.length > 0 ? (
                 <div style={{ overflowX: isMobile ? 'auto' : 'visible' }}>
-                  {!isMobile && <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 10, padding: '8px 16px', background: t.color.bgMuted, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  {!isMobile && <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 80px 80px 70px 80px 80px 70px', gap: 10, padding: '8px 16px', background: t.color.bgMuted, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     <div>料號</div><div>品名</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'center' }}>狀態</div><div style={{ textAlign: 'right' }}>小計</div><div>操作</div>
                   </div>}
                   {items.map((item) => {
@@ -273,7 +273,7 @@ function DealerOrderDetailView({ order, onBack, onRefresh }) {
                   { label: '信箱', value: d.email, mono: true },
                 ].filter(f => f.value).map((f, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: `1px solid ${t.color.borderLight}`, flexWrap: 'wrap', minHeight: isMobile ? 40 : 'auto', alignItems: 'center' }}>
-                    <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
                     <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                   </div>
                 ))}

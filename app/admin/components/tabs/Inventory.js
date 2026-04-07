@@ -213,7 +213,7 @@ export default function Inventory() {
                           <img src={it.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.parentElement.style.display = 'none'; }} />
                         </div>
                       ) : (
-                        <div style={{ width: 32, height: 32, borderRadius: 4, background: t.color.bgMuted, border: `1px dashed ${t.color.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.color.textDisabled, fontSize: 10 }}>--</div>
+                        <div style={{ width: 32, height: 32, borderRadius: 4, background: t.color.bgMuted, border: `1px dashed ${t.color.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.color.textDisabled, fontSize: t.fontSize.tiny }}>--</div>
                       )}
                     </div>
                     {/* Item number */}
@@ -260,7 +260,7 @@ export default function Inventory() {
                           </div>
                         ) : (
                           <div style={{ width: 100, height: 100, borderRadius: 8, border: `2px dashed ${t.color.border}`, background: t.color.bgCard, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: t.color.textDisabled, fontSize: t.fontSize.tiny }}>
-                            <span style={{ fontSize: 20, marginBottom: 2, opacity: 0.4 }}>&#9633;</span>
+                            <span style={{ fontSize: t.fontSize.h1, marginBottom: 2, opacity: 0.4 }}>&#9633;</span>
                             尚無圖片
                           </div>
                         )}

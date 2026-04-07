@@ -14,7 +14,7 @@ const SEGMENT_CONFIG = {
   '一般活躍': { color: '#0891b2', bg: '#ecfeff', label: '一般活躍' },
   '流失風險': { color: '#d97706', bg: '#fffbeb', label: '流失風險' },
   '沉睡客戶': { color: '#dc2626', bg: '#fef2f2', label: '沉睡客戶' },
-  '低頻客戶': { color: '#9ca3af', bg: '#f9fafb', label: '低頻客戶' },
+  '低頻客戶': { color: t.color.textDisabled, bg: '#f9fafb', label: '低頻客戶' },
 };
 
 function segmentColor(segment) {
@@ -69,7 +69,7 @@ function ScoreDots({ score, color, max = 5 }) {
 
 /* ─── Horizontal bar for segment distribution ─── */
 function SegmentBar({ segment, count, totalAmount, maxCount }) {
-  const cfg = SEGMENT_CONFIG[segment] || { color: '#9ca3af', bg: '#f9fafb' };
+  const cfg = SEGMENT_CONFIG[segment] || { color: t.color.textDisabled, bg: '#f9fafb' };
   const pct = maxCount > 0 ? Math.max((count / maxCount) * 100, 1) : 0;
   return (
     <div style={{ marginBottom: 10 }}>
@@ -358,7 +358,7 @@ export default function CustomerRFM() {
                 <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#7c3aed', letterSpacing: 0.8, marginBottom: 6, marginTop: 2 }}>
                   VIP 客戶 ★
                 </div>
-                <div style={{ fontSize: isMobile ? 20 : 28, fontWeight: t.fontWeight.bold, color: '#7c3aed', ...S.mono }}>
+                <div style={{ fontSize: isMobile ? t.fontSize.h1 : 28, fontWeight: t.fontWeight.bold, color: '#7c3aed', ...S.mono }}>
                   {summary.vip_count ?? 0}
                 </div>
                 <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>位 VIP</div>
@@ -370,7 +370,7 @@ export default function CustomerRFM() {
                 <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#2563eb', letterSpacing: 0.8, marginBottom: 6, marginTop: 2 }}>
                   高價值
                 </div>
-                <div style={{ fontSize: isMobile ? 20 : 28, fontWeight: t.fontWeight.bold, color: '#2563eb', ...S.mono }}>
+                <div style={{ fontSize: isMobile ? t.fontSize.h1 : 28, fontWeight: t.fontWeight.bold, color: '#2563eb', ...S.mono }}>
                   {summary.high_value_count ?? 0}
                 </div>
                 <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>位客戶</div>
@@ -382,7 +382,7 @@ export default function CustomerRFM() {
                 <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#92400e', letterSpacing: 0.8, marginBottom: 6, marginTop: 2 }}>
                   流失風險
                 </div>
-                <div style={{ fontSize: isMobile ? 20 : 28, fontWeight: t.fontWeight.bold, color: '#b45309', ...S.mono }}>
+                <div style={{ fontSize: isMobile ? t.fontSize.h1 : 28, fontWeight: t.fontWeight.bold, color: '#b45309', ...S.mono }}>
                   {summary.at_risk_count ?? 0}
                 </div>
                 <div style={{ fontSize: t.fontSize.caption, color: '#b45309', marginTop: 4 }}>位待挽回</div>
@@ -394,7 +394,7 @@ export default function CustomerRFM() {
                 <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#991b1b', letterSpacing: 0.8, marginBottom: 6, marginTop: 2 }}>
                   沉睡客戶
                 </div>
-                <div style={{ fontSize: isMobile ? 20 : 28, fontWeight: t.fontWeight.bold, color: '#dc2626', ...S.mono }}>
+                <div style={{ fontSize: isMobile ? t.fontSize.h1 : 28, fontWeight: t.fontWeight.bold, color: '#dc2626', ...S.mono }}>
                   {summary.dormant_count ?? 0}
                 </div>
                 <div style={{ fontSize: t.fontSize.caption, color: '#b91c1c', marginTop: 4 }}>位流失中</div>

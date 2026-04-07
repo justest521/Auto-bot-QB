@@ -19,13 +19,13 @@ function HBar({ label, sub, value, maxVal, color, rank }) {
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
         <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: rank <= 3 ? '#1d4ed8' : t.color.textPrimary, marginRight: 6 }}>
+          <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: rank <= 3 ? '#1d4ed8' : t.color.textPrimary, marginRight: 6 }}>
             {rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : `${rank}.`}
           </span>
-          <span style={{ fontSize: 11, fontWeight: 600, color: t.color.textPrimary, ...S.mono, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-          {sub && <span style={{ fontSize: 10, color: t.color.textMuted, marginLeft: 6 }}>{sub}</span>}
+          <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, ...S.mono, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+          {sub && <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginLeft: 6 }}>{sub}</span>}
         </div>
-        <span style={{ fontSize: 11, fontWeight: 700, color: t.color.textPrimary, ...S.mono, marginLeft: 8, flexShrink: 0 }}>{fmt(value)} 件</span>
+        <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono, marginLeft: 8, flexShrink: 0 }}>{fmt(value)} 件</span>
       </div>
       <div style={{ height: 6, background: t.color.borderLight, borderRadius: 3, overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 3, transition: 'width 0.5s ease' }} />
@@ -36,7 +36,7 @@ function HBar({ label, sub, value, maxVal, color, rank }) {
 
 /* ─── Month Bar Chart ─── */
 function MonthChart({ data }) {
-  if (!data || !data.length) return <div style={{ fontSize: 12, color: t.color.textMuted, textAlign: 'center', padding: '20px 0' }}>暫無資料</div>;
+  if (!data || !data.length) return <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, textAlign: 'center', padding: '20px 0' }}>暫無資料</div>;
   const maxQty = Math.max(...data.map(d => d.total_qty || 0), 1);
   const H = 120;
   return (
@@ -46,10 +46,10 @@ function MonthChart({ data }) {
         const isLatest = i === data.length - 1;
         return (
           <div key={d.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: isLatest ? '#2563eb' : t.color.textMuted, marginBottom: 3, ...S.mono }}>{fmt(d.total_qty)}</div>
+            <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: isLatest ? '#2563eb' : t.color.textMuted, marginBottom: 3, ...S.mono }}>{fmt(d.total_qty)}</div>
             <div style={{ width: '80%', height: Math.max(barH, 3), background: isLatest ? '#2563eb' : '#93c5fd', borderRadius: '3px 3px 0 0', transition: 'height 0.5s ease' }}
                  title={`${d.month}: ${d.total_qty}件 / ${d.shipment_count}次出貨`} />
-            <div style={{ fontSize: 8, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{d.month.slice(5)}</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{d.month.slice(5)}</div>
           </div>
         );
       })}
@@ -123,7 +123,7 @@ export default function ShipmentAnalysis() {
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {PRESETS.map(pr => (
             <button key={pr.days} onClick={() => applyPreset(pr.days)}
-              style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, border: '1px solid', fontWeight: 600, cursor: 'pointer',
+              style={{ fontSize: t.fontSize.tiny, padding: '4px 10px', borderRadius: 6, border: '1px solid', fontWeight: t.fontWeight.semibold, cursor: 'pointer',
                 background: activePreset === pr.days ? '#2563eb' : '#f8fafc',
                 color: activePreset === pr.days ? '#fff' : t.color.textSecondary,
                 borderColor: activePreset === pr.days ? '#2563eb' : t.color.border }}>
@@ -134,16 +134,16 @@ export default function ShipmentAnalysis() {
         {/* Date inputs */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setActivePreset(null); }}
-            style={{ fontSize: 12, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, outline: 'none' }} />
-          <span style={{ fontSize: 12, color: t.color.textMuted }}>至</span>
+            style={{ fontSize: t.fontSize.tiny, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, outline: 'none' }} />
+          <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>至</span>
           <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setActivePreset(null); }}
-            style={{ fontSize: 12, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, outline: 'none' }} />
+            style={{ fontSize: t.fontSize.tiny, padding: '4px 8px', border: `1px solid ${t.color.border}`, borderRadius: 6, outline: 'none' }} />
         </div>
         {/* Item filter */}
         <input placeholder="篩選品號…" value={itemFilter} onChange={e => setItemFilter(e.target.value)}
-          style={{ fontSize: 12, padding: '4px 10px', border: `1px solid ${t.color.border}`, borderRadius: 6, outline: 'none', width: 140 }} />
+          style={{ fontSize: t.fontSize.tiny, padding: '4px 10px', border: `1px solid ${t.color.border}`, borderRadius: 6, outline: 'none', width: 140 }} />
         {/* Export */}
-        <button onClick={doExport} style={{ fontSize: 11, padding: '4px 12px', borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#f8fafc', color: t.color.textSecondary, cursor: 'pointer', fontWeight: 600, marginLeft: 'auto' }}>
+        <button onClick={doExport} style={{ fontSize: t.fontSize.tiny, padding: '4px 12px', borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#f8fafc', color: t.color.textSecondary, cursor: 'pointer', fontWeight: t.fontWeight.semibold, marginLeft: 'auto' }}>
           ↓ 匯出 CSV
         </button>
       </div>
@@ -161,7 +161,7 @@ export default function ShipmentAnalysis() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14, marginBottom: 14 }}>
             {/* By Item */}
             <div style={S.card}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: t.color.textPrimary, marginBottom: 14 }}>品號出貨排行 TOP {Math.min(byItem.length, 15)}</div>
+              <div style={{ fontSize: t.fontSize.caption, fontWeight: 800, color: t.color.textPrimary, marginBottom: 14 }}>品號出貨排行 TOP {Math.min(byItem.length, 15)}</div>
               {byItem.length === 0 ? <EmptyState title="無資料" desc="此區間無出貨記錄" /> : (
                 byItem.slice(0, 15).map((r, i) => (
                   <HBar key={r.item_number} rank={i+1} label={r.item_number} sub={r.description ? r.description.slice(0, 24) : undefined}
@@ -173,7 +173,7 @@ export default function ShipmentAnalysis() {
 
             {/* By Customer */}
             <div style={S.card}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: t.color.textPrimary, marginBottom: 14 }}>客戶出貨排行 TOP {Math.min(byCust.length, 10)}</div>
+              <div style={{ fontSize: t.fontSize.caption, fontWeight: 800, color: t.color.textPrimary, marginBottom: 14 }}>客戶出貨排行 TOP {Math.min(byCust.length, 10)}</div>
               {byCust.length === 0 ? <EmptyState title="無資料" desc="此區間無出貨記錄" /> : (
                 byCust.slice(0, 10).map((r, i) => (
                   <HBar key={r.customer_name} rank={i+1} label={r.customer_name}
@@ -187,38 +187,38 @@ export default function ShipmentAnalysis() {
 
           {/* Monthly trend */}
           <div style={{ ...S.card, marginBottom: 14 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: t.color.textPrimary, marginBottom: 14 }}>月別出貨趨勢</div>
+            <div style={{ fontSize: t.fontSize.caption, fontWeight: 800, color: t.color.textPrimary, marginBottom: 14 }}>月別出貨趨勢</div>
             <MonthChart data={byMonth} />
           </div>
 
           {/* Detail table toggle */}
           <div style={S.card}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showDetail ? 14 : 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: t.color.textPrimary }}>出貨明細 ({fmt(recent.length)} 筆)</div>
+              <div style={{ fontSize: t.fontSize.caption, fontWeight: 800, color: t.color.textPrimary }}>出貨明細 ({fmt(recent.length)} 筆)</div>
               <button onClick={() => setShowDetail(v => !v)}
-                style={{ fontSize: 11, padding: '4px 12px', borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#f8fafc', color: t.color.textSecondary, cursor: 'pointer', fontWeight: 600 }}>
+                style={{ fontSize: t.fontSize.tiny, padding: '4px 12px', borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#f8fafc', color: t.color.textSecondary, cursor: 'pointer', fontWeight: t.fontWeight.semibold }}>
                 {showDetail ? '收起' : '展開明細'}
               </button>
             </div>
             {showDetail && (
               recent.length === 0 ? <EmptyState title="無出貨明細" desc="此區間無記錄" /> : (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.tiny }}>
                     <thead>
                       <tr style={{ background: '#f8fafc' }}>
                         {['出貨單號','日期','客戶','品號','出貨數量'].map(h => (
-                          <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 700, color: t.color.textMuted, borderBottom: `1px solid ${t.color.borderLight}`, whiteSpace: 'nowrap' }}>{h}</th>
+                          <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontWeight: t.fontWeight.bold, color: t.color.textMuted, borderBottom: `1px solid ${t.color.borderLight}`, whiteSpace: 'nowrap' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {recent.map((r, i) => (
                         <tr key={i} style={{ borderBottom: `1px solid ${t.color.borderLight}` }}>
-                          <td style={{ padding: '7px 10px', ...S.mono, color: '#2563eb', fontWeight: 600 }}>{r.shipment_no}</td>
+                          <td style={{ padding: '7px 10px', ...S.mono, color: '#2563eb', fontWeight: t.fontWeight.semibold }}>{r.shipment_no}</td>
                           <td style={{ padding: '7px 10px', ...S.mono, color: t.color.textSecondary }}>{r.created_at?.slice(0,10)}</td>
                           <td style={{ padding: '7px 10px', color: t.color.textPrimary, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.customer_name}</td>
-                          <td style={{ padding: '7px 10px', ...S.mono, fontWeight: 600, color: t.color.textPrimary }}>{r.item_number}</td>
-                          <td style={{ padding: '7px 10px', ...S.mono, textAlign: 'right', fontWeight: 700, color: '#059669' }}>{r.qty_shipped}</td>
+                          <td style={{ padding: '7px 10px', ...S.mono, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{r.item_number}</td>
+                          <td style={{ padding: '7px 10px', ...S.mono, textAlign: 'right', fontWeight: t.fontWeight.bold, color: '#059669' }}>{r.qty_shipped}</td>
                         </tr>
                       ))}
                     </tbody>

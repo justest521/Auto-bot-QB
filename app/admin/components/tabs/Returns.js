@@ -10,7 +10,7 @@ import { useResizableColumns } from '../shared/ResizableTable';
 const STATUS_MAP = { pending: '待審核', approved: '已核准', rejected: '已拒絕', refunded: '已退款' };
 const STATUS_COLOR = { pending: t.color.warning, approved: t.color.brand, rejected: t.color.error, refunded: t.color.link };
 const cardStyle = { ...S.card, borderRadius: t.radius.lg, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5' };
-const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+const labelStyle = { fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textDisabled, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
 
 // ========== 退貨單明細頁 ==========
 function ReturnDetailView({ ret: initRet, onBack, onRefresh }) {
@@ -67,10 +67,10 @@ function ReturnDetailView({ ret: initRet, onBack, onRefresh }) {
       {/* Header */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: t.radius.md, border: '1px solid #e5e7eb', background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h2, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = t.color.bgCard; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 22, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{ret.return_no || '-'}</span>
+              <span style={{ fontSize: t.fontSize.h1, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{ret.return_no || '-'}</span>
               <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: `${STATUS_COLOR[statusKey] || t.color.textMuted}14`, color: STATUS_COLOR[statusKey] || t.color.textMuted, border: `1px solid ${STATUS_COLOR[statusKey] || t.color.textMuted}30` }}>
                 {STATUS_MAP[statusKey] || statusKey}
               </span>
@@ -101,17 +101,17 @@ function ReturnDetailView({ ret: initRet, onBack, onRefresh }) {
             <div style={{ ...cardStyle, padding: 0, overflow: 'hidden', marginBottom: 10 }}>
               <div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f2f5' }}>
                 <span style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textDisabled }}>退貨品項</span>
-                <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: '#b0b8c4', marginLeft: 8 }}>{items.length} 項</span>
+                <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.medium, color: t.color.textDisabled, marginLeft: 8 }}>{items.length} 項</span>
               </div>
               {items.length > 0 ? (
                 <div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 90px 100px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: '#b0b8c4', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 90px 100px', gap: 8, padding: '8px 16px', background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase' }}>
                     <div>料號</div><div>品名</div><div style={{ textAlign: 'center' }}>退貨數</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'right' }}>小計</div>
                   </div>
                   {items.map((item, i) => (
                     <div key={item.id || i} style={{ display: 'grid', gridTemplateColumns: '100px minmax(0,1fr) 75px 90px 100px', gap: 8, padding: '10px 16px', borderTop: '1px solid #f3f5f7', background: t.color.bgCard, transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = t.color.bgCard}>
                       <div style={{ ...S.mono, fontSize: t.fontSize.h3, color: t.color.textSecondary }}>{item.item_number || '-'}</div>
-                      <div style={{ fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.h3, color: '#1f2937', lineHeight: 1.4 }}>{item.description || '-'}</div>
+                      <div style={{ fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.h3, color: t.color.textPrimary, lineHeight: 1.4 }}>{item.description || '-'}</div>
                       <div style={{ textAlign: 'center', ...S.mono, fontSize: t.fontSize.h3, fontWeight: 800, color: t.color.error }}>{item.qty_returned || 0}</div>
                       <div style={{ textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, color: t.color.textMuted }}>{fmtP(item.unit_price)}</div>
                       <div style={{ textAlign: 'right', ...S.mono, fontWeight: 800, color: t.color.error, fontSize: t.fontSize.h2 }}>{fmtP(item.line_total || (item.unit_price * (item.qty_returned || 0)))}</div>
@@ -179,8 +179,8 @@ function ReturnDetailView({ ret: initRet, onBack, onRefresh }) {
                   { label: '備註', value: ret.remark },
                 ].filter(f => f.value).map((f, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                    <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
-                    <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                    <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                   </div>
                 ))}
               </div>
@@ -190,15 +190,15 @@ function ReturnDetailView({ ret: initRet, onBack, onRefresh }) {
             {order && (
               <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>關聯訂單</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
+                <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, ...S.mono }}>{order.order_no || '-'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {[
                     { label: '訂單日期', value: order.order_date, mono: true },
                     { label: '訂單金額', value: fmtP(order.total_amount), mono: true },
                   ].filter(f => f.value).map((f, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                      <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
-                      <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                      <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -209,15 +209,15 @@ function ReturnDetailView({ ret: initRet, onBack, onRefresh }) {
             {customer && (
               <div style={{ ...cardStyle, padding: '10px 16px' }}>
                 <div style={labelStyle}>客戶資訊</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
+                <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary, marginBottom: 10, lineHeight: 1.3 }}>{customer.company_name || customer.name || '未命名客戶'}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {[
                     { label: '聯絡人', value: customer.name },
                     { label: '電話', value: customer.phone, mono: true },
                   ].filter(f => f.value).map((f, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '1px solid #f5f6f8' }}>
-                      <span style={{ fontSize: t.fontSize.caption, color: '#b0b8c4', flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
-                      <span style={{ fontSize: t.fontSize.h3, color: '#1f2937', textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
+                      <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, flexShrink: 0, fontWeight: t.fontWeight.medium }}>{f.label}</span>
+                      <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, textAlign: 'right', fontWeight: t.fontWeight.medium, ...(f.mono ? S.mono : {}), wordBreak: 'break-all' }}>{f.value}</span>
                     </div>
                   ))}
                 </div>
@@ -327,24 +327,24 @@ export default function Returns() {
         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 8, flexWrap: 'wrap', alignItems: isMobile ? 'stretch' : 'center' }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
             {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? t.color.bgCard : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border }}>{label}</button>
+              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? t.color.bgCard : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border }}>{label}</button>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
-            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
             <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body, flexShrink: 0 }}>~</span>
-            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
-            <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }}>
+            <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }}>
               <option value="">全部狀態</option>
               <option value="pending">待審核</option>
               <option value="approved">已核准</option>
               <option value="rejected">已拒絕</option>
               <option value="refunded">已退款</option>
             </select>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }} />
-            <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, padding: isMobile ? '10px 16px' : '6px 18px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, flexShrink: 0 }}>查詢</button>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }} />
+            <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, padding: isMobile ? '10px 16px' : '6px 18px', fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, minHeight: isMobile ? 44 : undefined, flexShrink: 0 }}>查詢</button>
           </div>
         </div>
       </div>
@@ -398,7 +398,7 @@ export default function Returns() {
               style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 0, padding: 0, borderBottom: '1px solid #f3f5f7', background: t.color.bgCard, cursor: 'pointer', transition: 'background 0.1s' }}
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = t.color.bgCard}>
-              <div style={{ fontSize: t.fontSize.body, color: '#b0b8c4', fontWeight: t.fontWeight.medium, padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{(data.page * (data.limit || 30)) + idx + 1}</div>
+              <div style={{ fontSize: t.fontSize.body, color: t.color.textDisabled, fontWeight: t.fontWeight.medium, padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center' }}>{(data.page * (data.limit || 30)) + idx + 1}</div>
               <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'center', ...S.mono }}>{r.return_no || '-'}</div>
               <div style={{ fontSize: t.fontSize.body, color: t.color.textSecondary, padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>{r.reason || '-'}</div>
               <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.error, padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', textAlign: 'right', ...S.mono }}>{fmtP(r.refund_amount)}</div>
@@ -426,7 +426,7 @@ export default function Returns() {
           <div style={{ ...S.mobileModalHeader }}>
             <div>
               <div style={S.eyebrow}>Sales Return</div>
-              <h3 style={{ margin: '4px 0 0', fontSize: 18, fontWeight: t.fontWeight.bold }}>建立退貨單</h3>
+              <h3 style={{ margin: '4px 0 0', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold }}>建立退貨單</h3>
             </div>
             <button onClick={() => setCreateOpen(false)} style={{ ...S.btnGhost, padding: '8px 12px' }}>關閉</button>
           </div>

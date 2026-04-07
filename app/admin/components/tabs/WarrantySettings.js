@@ -171,7 +171,7 @@ export default function WarrantySettings() {
             borderRadius: 8,
             background: msg.includes('失敗') ? '#fef2f2' : '#f0fdf4',
             color: msg.includes('失敗') ? t.color.error : t.color.brand,
-            fontSize: 13,
+            fontSize: t.fontSize.caption,
             fontWeight: t.fontWeight.semibold,
             marginBottom: 12,
           }}
@@ -362,7 +362,7 @@ export default function WarrantySettings() {
                 <span style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: '#fff' }}>{brand}</span>
                 <span style={{ fontSize: t.fontSize.body, color: 'rgba(255,255,255,0.8)' }}>({brandPolicies.length})</span>
               </div>
-              <span style={{ fontSize: 18, color: '#fff', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+              <span style={{ fontSize: t.fontSize.h2, color: '#fff', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
                 ▼
               </span>
             </button>
@@ -464,7 +464,7 @@ export default function WarrantySettings() {
                             onClick={() => deletePol(policy.id)}
                             style={{
                               ...S.btnGhost,
-                              color: '#ef4444',
+                              color: t.color.error,
                               borderColor: '#fecdd3',
                               padding: isMobile ? '6px 10px' : '4px 12px',
                               fontSize: t.fontSize.tiny,

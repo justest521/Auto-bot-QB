@@ -148,7 +148,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
     no_stock: { label: '無庫存', color: '#dc2626', bg: '#fee2e2', border: '#fecaca' },
   };
 
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: '#b0b8c4', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
+  const labelStyle = { fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: t.color.textDisabled, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 };
   const cardStyle = { ...S.card, borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '1px solid #eaeff5', marginBottom: 0 };
 
   return (
@@ -156,23 +156,23 @@ function SaleDetailView({ sale, onBack, setTab }) {
       {/* ====== Header ====== */}
       <div style={{ ...cardStyle, padding: '12px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#6b7280', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
+          <button onClick={guardedBack} style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h2, color: t.color.textMuted, transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; }} onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}>&larr;</button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 20, fontWeight: 800, color: '#111827', ...S.mono, letterSpacing: -0.5 }}>{sale.slip_number || '-'}</span>
-              <span style={{ padding: '3px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce714', color: '#16a34a', border: '1px solid #16a34a30' }}>
+              <span style={{ fontSize: t.fontSize.h1, fontWeight: 800, color: t.color.textPrimary, ...S.mono, letterSpacing: -0.5 }}>{sale.slip_number || '-'}</span>
+              <span style={{ padding: '3px 10px', borderRadius: 10, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: '#dcfce714', color: '#16a34a', border: '1px solid #16a34a30' }}>
                 銷貨單
               </span>
-              <span style={{ fontSize: 9, background: s.tax_inclusive ? '#dcfce7' : '#fef3c7', color: s.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3 }}>{s.tax_inclusive ? '含稅' : '未稅'}</span>
+              <span style={{ fontSize: t.fontSize.tiny, background: s.tax_inclusive ? '#dcfce7' : '#fef3c7', color: s.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3 }}>{s.tax_inclusive ? '含稅' : '未稅'}</span>
             </div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, ...S.mono }}>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>
               {s.sale_date || sale.sale_date || '-'}
               {s.invoice_number && <span style={{ color: '#d1d5db' }}> &middot; </span>}
               {s.invoice_number && <span>發票 {s.invoice_number}</span>}
             </div>
           </div>
         </div>
-        {approvalData?.status === 'approved' && <span style={{ padding: '6px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d' }}>{approvalData?.approved_by === 'system' ? '自動核准' : '已核准'}</span>}
+        {approvalData?.status === 'approved' && <span style={{ padding: '6px 14px', borderRadius: 10, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: '#dcfce7', color: '#15803d' }}>{approvalData?.approved_by === 'system' ? '自動核准' : '已核准'}</span>}
       </div>
 
       {msg && <div style={{ ...cardStyle, background: t.color.errorBg, borderColor: '#fecdd3', color: t.color.error, marginBottom: 10, padding: '10px 16px', fontSize: t.fontSize.h3 }}>{msg}</div>}
@@ -222,7 +222,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                     </div>
                     <div style={{ borderLeft: `2px solid ${t.color.successBg}`, paddingLeft: 20, textAlign: 'right' }}>
                       <span style={{ fontSize: t.fontSize.caption, color: t.color.brand, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>合計</span>
-                      <span style={{ ...S.mono, fontSize: 22, fontWeight: 900, color: t.color.success, letterSpacing: -1 }}>{fmtP(s.total || 0)}</span>
+                      <span style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: 900, color: t.color.success, letterSpacing: -1 }}>{fmtP(s.total || 0)}</span>
                     </div>
                   </div>
                 </div>
@@ -239,7 +239,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
               </span>
             )}
             {allFullyShipped ? (
-              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>✓ 已全部出貨完畢</span>
+              <span style={{ padding: '8px 18px', borderRadius: 10, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>✓ 已全部出貨完畢</span>
             ) : (
               <button onClick={() => setShowShipForm(true)} disabled={shipping} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: `linear-gradient(135deg, ${t.color.warning}, #d97706)`, color: '#fff', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: 'pointer', opacity: shipping ? 0.7 : 1, boxShadow: `0 2px 8px ${t.color.warning}40` }}>{shipping ? '出貨中...' : '建立出貨'}</button>
             )}
@@ -357,7 +357,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{pay.payment_number}</span>
-                        {pay.verified && <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: '#f0fdf4', color: '#15803d', fontWeight: 700, border: '1px solid #bbf7d0' }}>✓核帳</span>}
+                        {pay.verified && <span style={{ fontSize: t.fontSize.tiny, padding: '1px 5px', borderRadius: 3, background: '#f0fdf4', color: '#15803d', fontWeight: t.fontWeight.bold, border: '1px solid #bbf7d0' }}>✓核帳</span>}
                       </div>
                       <span style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.success, ...S.mono }}>NT${pay.amount.toLocaleString()}</span>
                     </div>
@@ -385,7 +385,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                           ev.target.value = '';
                         }} />
                         <button onClick={() => document.getElementById(`sale-pay-proof-${pay.id}`)?.click()}
-                          style={{ fontSize: t.fontSize.caption, color: '#6b7280', background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '4px 0', cursor: 'pointer', fontWeight: 600, width: '100%', transition: 'all 0.15s' }}
+                          style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 4, padding: '4px 0', cursor: 'pointer', fontWeight: t.fontWeight.semibold, width: '100%', transition: 'all 0.15s' }}
                           onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; }}
                           onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.color = '#6b7280'; }}>
                           📎 上傳憑證
@@ -417,7 +417,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
                   {sh.remark && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2 }}>{sh.remark}</div>}
                 </div>
               )) : (
-                <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '8px 0' }}>尚未建立出貨</div>
+                <div style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, textAlign: 'center', padding: '8px 0' }}>尚未建立出貨</div>
               )}
             </div>
 
@@ -455,7 +455,7 @@ function SaleDetailView({ sale, onBack, setTab }) {
             {/* Header */}
             <div style={{ padding: '18px 24px', borderBottom: `1px solid ${t.color.borderLight}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary }}>建立出貨單</div>
-              <button onClick={() => setShowShipForm(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: t.color.textDisabled, cursor: 'pointer', lineHeight: 1 }}>×</button>
+              <button onClick={() => setShowShipForm(false)} style={{ background: 'none', border: 'none', fontSize: t.fontSize.h1, color: t.color.textDisabled, cursor: 'pointer', lineHeight: 1 }}>×</button>
             </div>
             {/* Form */}
             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -647,17 +647,17 @@ export default function SalesDocuments({ setTab }) {
         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 8, flexWrap: 'wrap', alignItems: isMobile ? 'stretch' : 'center' }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
             {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 14 : 14, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
+              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.body : t.fontSize.body, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? '#3b82f6' : '#fff', color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? '#3b82f6' : '#e5e7eb' }}>{label}</button>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
-            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 14, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
-            <span style={{ color: '#6b7280', fontSize: 14, flexShrink: 0 }}>~</span>
-            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 14, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? t.fontSize.body : t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+            <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body, flexShrink: 0 }}>~</span>
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? t.fontSize.body : t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1, ...(isMobile ? { width: '100%' } : {}) }}>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋銷貨單號、客戶、業務或發票..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? 14 : 14, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }} />
-            <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '10px 16px' : '6px 18px', fontSize: isMobile ? 14 : 14, minHeight: isMobile ? 44 : undefined, flexShrink: 0 }}>查詢</button>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} placeholder="搜尋銷貨單號、客戶、業務或發票..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? t.fontSize.body : t.fontSize.body, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }} />
+            <button onClick={doSearch} style={{ ...S.btnPrimary, padding: isMobile ? '10px 16px' : '6px 18px', fontSize: isMobile ? t.fontSize.body : t.fontSize.body, minHeight: isMobile ? 44 : undefined, flexShrink: 0 }}>查詢</button>
           </div>
         </div>
       </div>
@@ -672,7 +672,7 @@ export default function SalesDocuments({ setTab }) {
           <div key={row.id} style={{ ...S.mobileCard, marginBottom: 10, cursor: 'pointer' }} onClick={() => setSelectedSale(row)}>
             <div style={{ ...S.mobileCardRow }}>
               <span style={S.mobileCardLabel}>銷貨單號</span>
-              <span style={{ ...S.mobileCardValue, color: '#3b82f6' }}>{row.slip_number || '-'}</span>
+              <span style={{ ...S.mobileCardValue, color: t.color.link }}>{row.slip_number || '-'}</span>
             </div>
             <div style={{ ...S.mobileCardRow }}>
               <span style={S.mobileCardLabel}>客戶</span>
@@ -684,10 +684,10 @@ export default function SalesDocuments({ setTab }) {
             </div>
             <div style={{ ...S.mobileCardRow }}>
               <span style={S.mobileCardLabel}>總額</span>
-              <span style={{ ...S.mobileCardValue, color: '#10b981', fontWeight: 700 }}>{fmtP(row.total)}</span>
+              <span style={{ ...S.mobileCardValue, color: '#10b981', fontWeight: t.fontWeight.bold }}>{fmtP(row.total)}</span>
             </div>
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => handleSalesReturn(row)} style={{ ...S.btnGhost, flex: 1, minHeight: 44, fontSize: 14 }}>退回</button>
+              <button onClick={() => handleSalesReturn(row)} style={{ ...S.btnGhost, flex: 1, minHeight: 44, fontSize: t.fontSize.body }}>退回</button>
             </div>
           </div>
         ))
@@ -710,20 +710,20 @@ export default function SalesDocuments({ setTab }) {
             ]}
           />
           {data.rows.map((row, idx) => {
-            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: 13 };
+            const cell = { padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden', fontSize: t.fontSize.caption };
             const cCenter = { ...cell, justifyContent: 'center' };
             const cRight = { ...cell, justifyContent: 'flex-end' };
             const cellLast = { ...cell, borderRight: 'none' };
             return (
               <div key={row.id} style={{ display: 'grid', gridTemplateColumns: gridTemplate, borderBottom: idx < data.rows.length - 1 ? '1px solid #e5e7eb' : 'none', background: idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }} onClick={() => setSelectedSale(row)} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f7ff'} onMouseLeave={(e) => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#fafbfd'}>
-                <div style={{ ...cCenter, color: '#6b7280', ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                <div style={{ ...cCenter, color: '#3b82f6', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap', gap: 4 }}>{row.slip_number || '-'}<span style={{ fontSize: 9, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: 600, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
-                <div style={{ ...cell, fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
-                <div style={{ ...cCenter, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.sale_date || '-'}</div>
-                {!isTablet && <div style={{ ...cCenter, color: '#374151' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
-                {!isTablet && <div style={{ ...cRight, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total)}</div>}
+                <div style={{ ...cCenter, color: t.color.textMuted, ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
+                <div style={{ ...cCenter, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', gap: 4 }}>{row.slip_number || '-'}<span style={{ fontSize: t.fontSize.tiny, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '未稅'}</span></div>
+                <div style={{ ...cell, fontSize: t.fontSize.caption, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
+                <div style={{ ...cCenter, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.sale_date || '-'}</div>
+                {!isTablet && <div style={{ ...cCenter, color: t.color.textSecondary }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
+                {!isTablet && <div style={{ ...cRight, color: '#10b981', fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total)}</div>}
                 {!isTablet && <div style={{ ...cellLast, justifyContent: 'flex-end', gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => handleSalesReturn(row)} title="銷貨退回" style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, whiteSpace: 'nowrap' }}>退回</button>
+                  <button onClick={() => handleSalesReturn(row)} title="銷貨退回" style={{ ...S.btnGhost, padding: '3px 8px', fontSize: t.fontSize.tiny, whiteSpace: 'nowrap' }}>退回</button>
                 </div>}
               </div>
             );
@@ -772,7 +772,7 @@ export default function SalesDocuments({ setTab }) {
               {/* Header */}
               <div style={{ padding: '18px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <div style={{ fontSize: t.fontSize.h2, fontWeight: 800, color: t.color.textPrimary }}>手開銷貨單</div>
-                <button onClick={() => setShowNewSale(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: t.color.textDisabled, cursor: 'pointer' }}>×</button>
+                <button onClick={() => setShowNewSale(false)} style={{ background: 'none', border: 'none', fontSize: t.fontSize.h1, color: t.color.textDisabled, cursor: 'pointer' }}>×</button>
               </div>
               {/* Body */}
               <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
@@ -804,22 +804,22 @@ export default function SalesDocuments({ setTab }) {
                   {/* Header row */}
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '80px 1fr 50px 80px 28px' : '110px 1fr 60px 100px 28px', gap: 6, marginBottom: 4 }}>
                     {['品號', '品名/說明', '數量', '單價', ''].map((h, i) => (
-                      <div key={i} style={{ fontSize: 10, fontWeight: 700, color: t.color.textDisabled, textAlign: i >= 2 ? 'center' : 'left' }}>{h}</div>
+                      <div key={i} style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, textAlign: i >= 2 ? 'center' : 'left' }}>{h}</div>
                     ))}
                   </div>
                   {nsItems.map((item, idx) => (
                     <div key={idx} style={{ display: 'grid', gridTemplateColumns: isMobile ? '80px 1fr 50px 80px 28px' : '110px 1fr 60px 100px 28px', gap: 6, marginBottom: 6, alignItems: 'center' }}>
                       <input value={item.item_number} onChange={e => updateItem(idx, 'item_number', e.target.value)}
                         onBlur={e => lookupProduct(idx, e.target.value)}
-                        placeholder="品號" style={{ ...S.input, fontSize: 12, padding: '6px 8px', ...S.mono }} />
+                        placeholder="品號" style={{ ...S.input, fontSize: t.fontSize.tiny, padding: '6px 8px', ...S.mono }} />
                       <input value={item.description} onChange={e => updateItem(idx, 'description', e.target.value)}
-                        placeholder="品名說明..." style={{ ...S.input, fontSize: 12, padding: '6px 8px' }} />
+                        placeholder="品名說明..." style={{ ...S.input, fontSize: t.fontSize.tiny, padding: '6px 8px' }} />
                       <input type="number" value={item.qty} min={1} onChange={e => updateItem(idx, 'qty', e.target.value)}
-                        style={{ ...S.input, fontSize: 12, padding: '6px 8px', textAlign: 'center' }} />
+                        style={{ ...S.input, fontSize: t.fontSize.tiny, padding: '6px 8px', textAlign: 'center' }} />
                       <input type="number" value={item.unit_price} min={0} onChange={e => updateItem(idx, 'unit_price', e.target.value)}
-                        style={{ ...S.input, fontSize: 12, padding: '6px 8px', textAlign: 'right', ...S.mono }} />
+                        style={{ ...S.input, fontSize: t.fontSize.tiny, padding: '6px 8px', textAlign: 'right', ...S.mono }} />
                       <button onClick={() => setNsItems(prev => prev.filter((_, i) => i !== idx))} disabled={nsItems.length === 1}
-                        style={{ background: 'none', border: 'none', color: nsItems.length === 1 ? t.color.textDisabled : t.color.error, fontSize: 16, cursor: nsItems.length === 1 ? 'default' : 'pointer', lineHeight: 1, padding: 0 }}>×</button>
+                        style={{ background: 'none', border: 'none', color: nsItems.length === 1 ? t.color.textDisabled : t.color.error, fontSize: t.fontSize.h2, cursor: nsItems.length === 1 ? 'default' : 'pointer', lineHeight: 1, padding: 0 }}>×</button>
                     </div>
                   ))}
                   <button onClick={() => setNsItems(prev => [...prev, { item_number: '', description: '', qty: 1, unit_price: 0 }])}

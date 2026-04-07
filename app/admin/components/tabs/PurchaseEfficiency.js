@@ -51,7 +51,7 @@ function RateBar({ value, color }) {
 /* ── Monthly Bar Chart ── */
 function MonthlyChart({ data, height = 160 }) {
   if (!data || !data.length) {
-    return <div style={{ fontSize: 12, color: t.color.textMuted, textAlign: 'center', padding: '20px 0' }}>暫無資料</div>;
+    return <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, textAlign: 'center', padding: '20px 0' }}>暫無資料</div>;
   }
   const slice = data.slice(-12);
   const maxAmt = Math.max(...slice.map(d => d.total_amount || 0), 1);
@@ -61,11 +61,11 @@ function MonthlyChart({ data, height = 160 }) {
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <div style={{ width: 8, height: 8, borderRadius: 2, background: t.color.brand }} />
-          <span style={{ fontSize: 10, color: t.color.textMuted }}>採購金額</span>
+          <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>採購金額</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <div style={{ width: 8, height: 8, borderRadius: 2, background: t.color.link }} />
-          <span style={{ fontSize: 10, color: t.color.textMuted }}>採購單數</span>
+          <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>採購單數</span>
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: height + 20, padding: '0 2px' }}>
@@ -85,7 +85,7 @@ function MonthlyChart({ data, height = 160 }) {
                   title={`${d.month}: ${d.po_count} 筆`}
                 />
               </div>
-              <div style={{ fontSize: 9, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{d.month?.slice(5) || ''}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{d.month?.slice(5) || ''}</div>
             </div>
           );
         })}
@@ -99,8 +99,8 @@ function KpiCard({ label, value, color, isMobile }) {
   return (
     <div style={{ ...S.card, position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: color }} />
-      <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 8, marginTop: 2 }}>{label}</div>
-      <div style={{ fontSize: isMobile ? 16 : 20, fontWeight: t.fontWeight.bold, color, ...S.mono }}>{value}</div>
+      <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 8, marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: t.fontWeight.bold, color, ...S.mono }}>{value}</div>
     </div>
   );
 }
@@ -164,7 +164,7 @@ export default function PurchaseEfficiency() {
               key={pr.days}
               onClick={() => applyPreset(pr.days)}
               style={{
-                fontSize: 11, padding: '4px 10px', borderRadius: 6, border: '1px solid',
+                fontSize: t.fontSize.tiny, padding: '4px 10px', borderRadius: 6, border: '1px solid',
                 fontWeight: t.fontWeight.semibold, cursor: 'pointer',
                 background: '#f8fafc', color: t.color.textSecondary, borderColor: t.color.border,
               }}
@@ -224,21 +224,21 @@ export default function PurchaseEfficiency() {
 
           {/* ── Vendor Performance Table ── */}
           <div style={{ ...S.card, marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 14 }}>
+            <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 14 }}>
               廠商績效表 ({byVendor.length} 家)
             </div>
             {byVendor.length === 0 ? (
-              <div style={{ fontSize: 12, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無資料</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無資料</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.tiny }}>
                   <thead>
                     <tr style={{ background: t.color.bgMuted }}>
                       {['廠商名稱', '採購單數', '採購金額', '履約率', '準時率', '平均交期'].map(h => (
                         <th key={h} style={{
                           padding: '8px 12px', textAlign: 'left', fontWeight: t.fontWeight.bold,
                           color: t.color.textMuted, borderBottom: `1px solid ${t.color.border}`,
-                          whiteSpace: 'nowrap', fontSize: 11, letterSpacing: 0.5,
+                          whiteSpace: 'nowrap', fontSize: t.fontSize.tiny, letterSpacing: 0.5,
                         }}>{h}</th>
                       ))}
                     </tr>
@@ -262,7 +262,7 @@ export default function PurchaseEfficiency() {
                           {row.on_time_eligible ? (
                             <RateBar value={row.on_time_rate} color={rateColor(row.on_time_rate)} />
                           ) : (
-                            <span style={{ fontSize: 11, color: t.color.textDisabled }}>-</span>
+                            <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>-</span>
                           )}
                         </td>
                         <td style={{ padding: '10px 12px', ...S.mono, color: leadColor(row.avg_lead_days), fontWeight: t.fontWeight.semibold }}>
@@ -278,7 +278,7 @@ export default function PurchaseEfficiency() {
 
           {/* ── Monthly Trend ── */}
           <div style={{ ...S.card, marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 14 }}>
+            <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 14 }}>
               月別採購趨勢
             </div>
             <MonthlyChart data={byMonth} height={isMobile ? 120 : 160} />
@@ -287,29 +287,29 @@ export default function PurchaseEfficiency() {
           {/* ── Recent POs (Collapsible) ── */}
           <div style={{ ...S.card }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showPOs ? 14 : 0 }}>
-              <div style={{ fontSize: 13, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>
+              <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>
                 近期採購單 ({recentPos.length} 筆)
               </div>
               <button
                 onClick={() => setShowPOs(v => !v)}
-                style={{ fontSize: 11, padding: '4px 12px', borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#f8fafc', color: t.color.textSecondary, cursor: 'pointer', fontWeight: t.fontWeight.semibold }}
+                style={{ fontSize: t.fontSize.tiny, padding: '4px 12px', borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#f8fafc', color: t.color.textSecondary, cursor: 'pointer', fontWeight: t.fontWeight.semibold }}
               >
                 {showPOs ? '收起' : '展開明細'}
               </button>
             </div>
             {showPOs && (
               recentPos.length === 0 ? (
-                <div style={{ fontSize: 12, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無資料</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無資料</div>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.tiny }}>
                     <thead>
                       <tr style={{ background: t.color.bgMuted }}>
                         {['採購單號', '廠商', '下單日', '預計到貨', '實際到貨', '交期(天)', '準時', '金額'].map(h => (
                           <th key={h} style={{
                             padding: '8px 10px', textAlign: 'left', fontWeight: t.fontWeight.bold,
                             color: t.color.textMuted, borderBottom: `1px solid ${t.color.border}`,
-                            whiteSpace: 'nowrap', fontSize: 11,
+                            whiteSpace: 'nowrap', fontSize: t.fontSize.tiny,
                           }}>{h}</th>
                         ))}
                       </tr>
@@ -338,7 +338,7 @@ export default function PurchaseEfficiency() {
                             <td style={{ padding: '7px 10px', ...S.mono, fontWeight: t.fontWeight.bold, color: leadColor(po.lead_days), textAlign: 'right' }}>
                               {po.lead_days == null ? '-' : po.lead_days}
                             </td>
-                            <td style={{ padding: '7px 10px', fontWeight: t.fontWeight.bold, color: onTimeColor, textAlign: 'center', fontSize: 14 }}>
+                            <td style={{ padding: '7px 10px', fontWeight: t.fontWeight.bold, color: onTimeColor, textAlign: 'center', fontSize: t.fontSize.body }}>
                               {onTimeDisplay}
                             </td>
                             <td style={{ padding: '7px 10px', ...S.mono, textAlign: 'right', color: t.color.textPrimary }}>

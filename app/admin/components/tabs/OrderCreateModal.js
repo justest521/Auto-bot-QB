@@ -274,7 +274,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                               <div style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{displayName}</div>
                               {orderCount > 0 && (
-                                <span style={{ fontSize: 11, color: '#6b7280', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 99, padding: '1px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 99, padding: '1px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                                   {orderCount} 次採購
                                 </span>
                               )}
@@ -297,7 +297,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                     <div style={{ fontSize: t.fontSize.h2, color: t.color.textPrimary, fontWeight: t.fontWeight.bold, marginTop: 6 }}>{selectedCustomer.company_name || selectedCustomer.name || '未命名客戶'}</div>
                     <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4 }}>{selectedCustomer.customer_code || '-'} · {selectedCustomer.phone || '-'}</div>
                   </div>
-                  <button onClick={() => setSelectedCustomer(null)} style={{ width: 28, height: 28, flexShrink: 0, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: t.color.textDisabled, transition: 'all 0.15s' }} title="更換客戶">&times;</button>
+                  <button onClick={() => setSelectedCustomer(null)} style={{ width: 28, height: 28, flexShrink: 0, borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: t.color.bgCard, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.h2, color: t.color.textDisabled, transition: 'all 0.15s' }} title="更換客戶">&times;</button>
                 </div>
               ) : showNewCustomer ? (
                 <div style={{ ...S.panelMuted, display: 'grid', gap: 8 }}>
@@ -386,7 +386,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                         <input type="number" min="1" value={item.qty} onChange={(e) => updateItem(index, 'qty', Number(e.target.value || 1))} style={{ ...S.input, width: 52, textAlign: 'center', ...S.mono, padding: '4px 6px', fontSize: t.fontSize.body, flexShrink: 0 }} />
                         <input type="number" min="0" value={item.unit_price} onChange={(e) => updateItem(index, 'unit_price', Number(e.target.value || 0))} style={{ ...S.input, width: 82, textAlign: 'right', ...S.mono, padding: '4px 6px', fontSize: t.fontSize.body, flexShrink: 0 }} />
                         <div style={{ fontSize: t.fontSize.body, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', flexShrink: 0, minWidth: 72, textAlign: 'right' }}>{fmtP(Number(item.qty || 0) * Number(item.unit_price || 0))}</div>
-                        <button onClick={() => removeItem(index)} style={{ background: 'none', border: 'none', color: '#d1d5db', cursor: 'pointer', fontSize: 16, padding: '0 3px', lineHeight: 1, flexShrink: 0 }}>&times;</button>
+                        <button onClick={() => removeItem(index)} style={{ background: 'none', border: 'none', color: '#d1d5db', cursor: 'pointer', fontSize: t.fontSize.h2, padding: '0 3px', lineHeight: 1, flexShrink: 0 }}>&times;</button>
                       </div>
                     ))}
                   </div>

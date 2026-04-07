@@ -14,7 +14,7 @@ function StatCard({ code, label, value, tone }) {
     yellow: { bg: '#fef3c7', color: '#d97706' },
     blue: { bg: '#dbeafe', color: '#2563eb' },
     green: { bg: '#dcfce7', color: '#16a34a' },
-    gray: { bg: '#f3f4f6', color: '#6b7280' },
+    gray: { bg: '#f3f4f6', color: t.color.textMuted },
   };
   const toneStyle = TONE_MAP[tone] || TONE_MAP.gray;
   return (
@@ -32,7 +32,7 @@ const PAYMENT_METHOD_MAP = {
 const STATUS_MAP = {
   pending: { label: '待確認', color: '#f59e0b' },
   confirmed: { label: '已確認', color: '#16a34a' },
-  cancelled: { label: '已取消', color: '#6b7280' },
+  cancelled: { label: '已取消', color: t.color.textMuted },
 };
 
 const DEFAULT_COLUMN_WIDTHS = [50, 120, 150, 110, 100, 110, 90, 120, 80];
@@ -202,7 +202,7 @@ export default function PaymentRecords() {
                     <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{rec.receipt_no || '-'}</div>
                     <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginTop: 4 }}>{rec.customer_name || '-'}</div>
                   </div>
-                  <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: 10, padding: '3px 8px', borderRadius: 4 }}>{st.label}</span>
+                  <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: t.fontSize.tiny, padding: '3px 8px', borderRadius: 4 }}>{st.label}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 10, paddingBottom: 10, borderBottom: `1px solid ${t.color.border}` }}>
                   <div><span style={{ color: t.color.textMuted }}>金額</span><div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtP(rec.total_amount)}</div></div>
@@ -324,7 +324,7 @@ export default function PaymentRecords() {
             </div>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
-              <button onClick={() => setCreateDialog(false)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>
+              <button onClick={() => setCreateDialog(false)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: t.color.textMuted, border: '1px solid #e5e7eb' } : S.btnGhost) }}>取消</button>
               <button onClick={handleCreateSubmit} style={{ ...(isMobile ? S.mobile.btnPrimary : S.btnPrimary) }}>新增</button>
             </div>
           </div>
@@ -337,27 +337,27 @@ export default function PaymentRecords() {
           <div style={{ ...p.modalBody('md'), width: isMobile ? '90vw' : 500 }}>
             <h3 style={{ margin: '0 0 16px', fontSize: t.fontSize.h2 }}>收款詳情</h3>
 
-            <div style={{ fontSize: 13, color: '#374151', marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ fontSize: t.fontSize.caption, color: t.color.textSecondary, marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #e5e7eb' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div><span style={{ color: '#6b7280', fontSize: 12 }}>收款單號</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827', ...S.mono }}>{detailDialog.receipt_no || '-'}</div></div>
-                <div><span style={{ color: '#6b7280', fontSize: 12 }}>狀態</span><div style={{ fontSize: 14, fontWeight: 700 }}><span style={{ background: STATUS_MAP[detailDialog.status]?.color || '#6b7280', color: '#fff', padding: '2px 8px', borderRadius: 3, fontSize: 11 }}>{STATUS_MAP[detailDialog.status]?.label || '-'}</span></div></div>
-                <div><span style={{ color: '#6b7280', fontSize: 12 }}>客戶</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{detailDialog.customer_name || '-'}</div></div>
-                <div><span style={{ color: '#6b7280', fontSize: 12 }}>收款日期</span><div style={{ fontSize: 14, color: '#111827', ...S.mono }}>{detailDialog.receipt_date?.slice(0, 10) || '-'}</div></div>
-                <div><span style={{ color: '#6b7280', fontSize: 12 }}>金額</span><div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', ...S.mono }}>{fmtP(detailDialog.total_amount)}</div></div>
-                <div><span style={{ color: '#6b7280', fontSize: 12 }}>付款方式</span><div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{PAYMENT_METHOD_MAP[detailDialog.payment_method] || detailDialog.payment_method}</div></div>
-                {detailDialog.reference_no && <div><span style={{ color: '#6b7280', fontSize: 12 }}>參考號</span><div style={{ fontSize: 12, color: '#111827', ...S.mono }}>{detailDialog.reference_no}</div></div>}
-                {detailDialog.bank_name && <div><span style={{ color: '#6b7280', fontSize: 12 }}>銀行</span><div style={{ fontSize: 12, color: '#111827' }}>{detailDialog.bank_name}</div></div>}
+                <div><span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny }}>收款單號</span><div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{detailDialog.receipt_no || '-'}</div></div>
+                <div><span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny }}>狀態</span><div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold }}><span style={{ background: STATUS_MAP[detailDialog.status]?.color || '#6b7280', color: '#fff', padding: '2px 8px', borderRadius: 3, fontSize: t.fontSize.tiny }}>{STATUS_MAP[detailDialog.status]?.label || '-'}</span></div></div>
+                <div><span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny }}>客戶</span><div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{detailDialog.customer_name || '-'}</div></div>
+                <div><span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny }}>收款日期</span><div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, ...S.mono }}>{detailDialog.receipt_date?.slice(0, 10) || '-'}</div></div>
+                <div><span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny }}>金額</span><div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: '#16a34a', ...S.mono }}>{fmtP(detailDialog.total_amount)}</div></div>
+                <div><span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny }}>付款方式</span><div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{PAYMENT_METHOD_MAP[detailDialog.payment_method] || detailDialog.payment_method}</div></div>
+                {detailDialog.reference_no && <div><span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny }}>參考號</span><div style={{ fontSize: t.fontSize.tiny, color: t.color.textPrimary, ...S.mono }}>{detailDialog.reference_no}</div></div>}
+                {detailDialog.bank_name && <div><span style={{ color: t.color.textMuted, fontSize: t.fontSize.tiny }}>銀行</span><div style={{ fontSize: t.fontSize.tiny, color: t.color.textPrimary }}>{detailDialog.bank_name}</div></div>}
               </div>
             </div>
 
             {detailDialog.allocations && detailDialog.allocations.length > 0 && (
               <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #e5e7eb' }}>
-                <h4 style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 600 }}>應收帳款配置</h4>
+                <h4 style={{ margin: '0 0 10px', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold }}>應收帳款配置</h4>
                 {(detailDialog.allocations || []).map((alloc, idx) => (
-                  <div key={idx} style={{ fontSize: 12, color: '#374151', marginBottom: 8, padding: 8, background: '#f9fafb', borderRadius: 4 }}>
+                  <div key={idx} style={{ fontSize: t.fontSize.tiny, color: t.color.textSecondary, marginBottom: 8, padding: 8, background: '#f9fafb', borderRadius: 4 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span>{alloc.invoice_no || '-'}</span>
-                      <span style={{ fontWeight: 700, ...S.mono }}>{fmtP(alloc.allocated_amount)}</span>
+                      <span style={{ fontWeight: t.fontWeight.bold, ...S.mono }}>{fmtP(alloc.allocated_amount)}</span>
                     </div>
                   </div>
                 ))}
@@ -365,20 +365,20 @@ export default function PaymentRecords() {
             )}
 
             {detailDialog.unallocated_amount > 0 && (
-              <div style={{ marginBottom: 16, padding: 10, background: '#fef3c7', borderRadius: 4, fontSize: 13, fontWeight: 600, color: '#d97706' }}>
+              <div style={{ marginBottom: 16, padding: 10, background: '#fef3c7', borderRadius: 4, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#d97706' }}>
                 未配置金額：{fmtP(detailDialog.unallocated_amount)}
               </div>
             )}
 
             {detailDialog.remark && (
               <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #e5e7eb' }}>
-                <h4 style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 600 }}>備註</h4>
-                <div style={{ fontSize: 12, color: '#374151', whiteSpace: 'pre-wrap' }}>{detailDialog.remark}</div>
+                <h4 style={{ margin: '0 0 8px', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold }}>備註</h4>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textSecondary, whiteSpace: 'pre-wrap' }}>{detailDialog.remark}</div>
               </div>
             )}
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
-              <button onClick={() => setDetailDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb' } : S.btnGhost) }}>關閉</button>
+              <button onClick={() => setDetailDialog(null)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#f3f4f6', color: t.color.textMuted, border: '1px solid #e5e7eb' } : S.btnGhost) }}>關閉</button>
               {detailDialog.status === 'pending' && (
                 <>
                   <button onClick={() => handleCancel(detailDialog.id)} style={{ ...(isMobile ? { ...S.mobile.btnPrimary, background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' } : S.btnGhost) }}>取消</button>

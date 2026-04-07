@@ -62,9 +62,9 @@ function AgingBar({ summary }) {
             <div key={b.key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <div style={{ width: 10, height: 10, borderRadius: 2, background: b.color, flexShrink: 0 }} />
               <div>
-                <div style={{ fontSize: 10, color: t.color.textMuted }}>{b.label}</div>
-                <div style={{ fontSize: 11, fontWeight: t.fontWeight.bold, color: b.color, ...S.mono }}>
-                  {fmtP(amount)} <span style={{ color: t.color.textDisabled, fontWeight: 400 }}>({pct}%)</span>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{b.label}</div>
+                <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: b.color, ...S.mono }}>
+                  {fmtP(amount)} <span style={{ color: t.color.textDisabled, fontWeight: t.fontWeight.normal }}>({pct}%)</span>
                 </div>
               </div>
             </div>
@@ -125,7 +125,7 @@ export default function ARAgingReport() {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
         <button
           onClick={load}
-          style={{ fontSize: 11, padding: '5px 14px', borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#f8fafc', color: t.color.textSecondary, cursor: 'pointer', fontWeight: t.fontWeight.semibold }}
+          style={{ fontSize: t.fontSize.tiny, padding: '5px 14px', borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#f8fafc', color: t.color.textSecondary, cursor: 'pointer', fontWeight: t.fontWeight.semibold }}
         >
           ↻ 重新載入
         </button>
@@ -137,9 +137,9 @@ export default function ARAgingReport() {
           <div style={{ ...S.card, marginBottom: 16, background: t.color.infoBg, borderColor: '#b8d4f5' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 16 }}>
               <div>
-                <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: t.color.link, letterSpacing: 0.8, marginBottom: 6 }}>
+                <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.link, letterSpacing: 0.8, marginBottom: 6 }}>
                   應收帳款總額
-                  <span style={{ marginLeft: 8, fontSize: 9, color: t.color.textMuted, fontWeight: 400 }}>
+                  <span style={{ marginLeft: 8, fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.normal }}>
                     ERP {summary.erp_count || 0} 筆 / QB {summary.qb_count || 0} 筆
                   </span>
                 </div>
@@ -148,11 +148,11 @@ export default function ARAgingReport() {
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: '#dc2626', letterSpacing: 0.8, marginBottom: 4 }}>逾期金額</div>
-                <div style={{ fontSize: isMobile ? 20 : 26, fontWeight: t.fontWeight.bold, color: '#dc2626', ...S.mono }}>
+                <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#dc2626', letterSpacing: 0.8, marginBottom: 4 }}>逾期金額</div>
+                <div style={{ fontSize: isMobile ? t.fontSize.h1 : 26, fontWeight: t.fontWeight.bold, color: '#dc2626', ...S.mono }}>
                   {fmtP(overdueAmt)}
                 </div>
-                <div style={{ fontSize: 11, color: '#dc2626', marginTop: 2 }}>逾期率 {overduePct}%</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: '#dc2626', marginTop: 2 }}>逾期率 {overduePct}%</div>
               </div>
             </div>
             {/* Stacked bar */}
@@ -167,10 +167,10 @@ export default function ARAgingReport() {
               return (
                 <div key={b.key} style={{ ...S.card, position: 'relative', overflow: 'hidden', background: b.bg, borderColor: b.color + '44' }}>
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: b.color }} />
-                  <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: b.color, letterSpacing: 0.5, marginBottom: 6, marginTop: 2 }}>
+                  <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: b.color, letterSpacing: 0.5, marginBottom: 6, marginTop: 2 }}>
                     {b.label}
                   </div>
-                  <div style={{ fontSize: isMobile ? 14 : 18, fontWeight: t.fontWeight.bold, color: b.color, ...S.mono }}>
+                  <div style={{ fontSize: isMobile ? t.fontSize.body : t.fontSize.h2, fontWeight: t.fontWeight.bold, color: b.color, ...S.mono }}>
                     {fmtP(amount)}
                   </div>
                 </div>
@@ -180,21 +180,21 @@ export default function ARAgingReport() {
 
           {/* ── Customer Aging Table ── */}
           <div style={{ ...S.card, marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 14 }}>
+            <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 14 }}>
               客戶帳齡明細 ({byCustomer.length} 位客戶)
             </div>
             {byCustomer.length === 0 ? (
-              <div style={{ fontSize: 12, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無資料</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無資料</div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.tiny }}>
                   <thead>
                     <tr style={{ background: t.color.bgMuted }}>
                       {['客戶名稱', '應收總額', '未到期', '1-30天', '31-60天', '61-90天', '91-120天', '120天+', '發票數'].map(h => (
                         <th key={h} style={{
                           padding: '8px 10px', textAlign: h === '客戶名稱' ? 'left' : 'right',
                           fontWeight: t.fontWeight.bold, color: t.color.textMuted,
-                          borderBottom: `1px solid ${t.color.border}`, whiteSpace: 'nowrap', fontSize: 11,
+                          borderBottom: `1px solid ${t.color.border}`, whiteSpace: 'nowrap', fontSize: t.fontSize.tiny,
                         }}>{h}</th>
                       ))}
                     </tr>
@@ -249,7 +249,7 @@ export default function ARAgingReport() {
                   key={tab.key}
                   onClick={() => setSourceTab(tab.key)}
                   style={{
-                    fontSize: 12, padding: '7px 16px', fontWeight: t.fontWeight.semibold, cursor: 'pointer',
+                    fontSize: t.fontSize.tiny, padding: '7px 16px', fontWeight: t.fontWeight.semibold, cursor: 'pointer',
                     border: 'none', borderBottom: sourceTab === tab.key ? `2px solid ${t.color.brand}` : '2px solid transparent',
                     background: 'transparent', color: sourceTab === tab.key ? t.color.brand : t.color.textMuted,
                     marginBottom: -1, outline: 'none',
@@ -263,17 +263,17 @@ export default function ARAgingReport() {
             {/* ERP Invoices Table */}
             {sourceTab === 'erp' && (
               erpInvoices.length === 0 ? (
-                <div style={{ fontSize: 12, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無 ERP 發票資料</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無 ERP 發票資料</div>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.tiny }}>
                     <thead>
                       <tr style={{ background: t.color.bgMuted }}>
                         {['發票號碼', '客戶', '發票日', '到期日', '餘額', '帳齡', '收款狀態'].map(h => (
                           <th key={h} style={{
                             padding: '8px 10px', textAlign: h === '餘額' ? 'right' : 'left',
                             fontWeight: t.fontWeight.bold, color: t.color.textMuted,
-                            borderBottom: `1px solid ${t.color.border}`, whiteSpace: 'nowrap', fontSize: 11,
+                            borderBottom: `1px solid ${t.color.border}`, whiteSpace: 'nowrap', fontSize: t.fontSize.tiny,
                           }}>{h}</th>
                         ))}
                       </tr>
@@ -303,13 +303,13 @@ export default function ARAgingReport() {
                                 <span style={{
                                   display: 'inline-block', padding: '2px 8px', borderRadius: 99,
                                   background: (BUCKETS.find(b => b.key === inv.bucket)?.bg) || t.color.bgMuted,
-                                  color: bColor, fontSize: 10, fontWeight: t.fontWeight.bold,
+                                  color: bColor, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold,
                                 }}>
                                   {BUCKETS.find(b => b.key === inv.bucket)?.label || inv.bucket}
                                 </span>
                               ) : '-'}
                             </td>
-                            <td style={{ padding: '7px 10px', color: t.color.textSecondary, fontSize: 11 }}>
+                            <td style={{ padding: '7px 10px', color: t.color.textSecondary, fontSize: t.fontSize.tiny }}>
                               {inv.payment_status || '-'}
                             </td>
                           </tr>
@@ -324,17 +324,17 @@ export default function ARAgingReport() {
             {/* QB Sales Table */}
             {sourceTab === 'qb' && (
               qbSales.length === 0 ? (
-                <div style={{ fontSize: 12, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無 QB 銷貨資料</div>
+                <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, textAlign: 'center', padding: '16px 0' }}>暫無 QB 銷貨資料</div>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: t.fontSize.tiny }}>
                     <thead>
                       <tr style={{ background: t.color.bgMuted }}>
                         {['銷貨編號', '客戶', '銷貨日', '金額', '帳齡', '收款狀態'].map(h => (
                           <th key={h} style={{
                             padding: '8px 10px', textAlign: h === '金額' ? 'right' : 'left',
                             fontWeight: t.fontWeight.bold, color: t.color.textMuted,
-                            borderBottom: `1px solid ${t.color.border}`, whiteSpace: 'nowrap', fontSize: 11,
+                            borderBottom: `1px solid ${t.color.border}`, whiteSpace: 'nowrap', fontSize: t.fontSize.tiny,
                           }}>{h}</th>
                         ))}
                       </tr>
@@ -361,13 +361,13 @@ export default function ARAgingReport() {
                                 <span style={{
                                   display: 'inline-block', padding: '2px 8px', borderRadius: 99,
                                   background: (BUCKETS.find(b => b.key === sale.bucket)?.bg) || t.color.bgMuted,
-                                  color: bColor, fontSize: 10, fontWeight: t.fontWeight.bold,
+                                  color: bColor, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold,
                                 }}>
                                   {BUCKETS.find(b => b.key === sale.bucket)?.label || sale.bucket}
                                 </span>
                               ) : '-'}
                             </td>
-                            <td style={{ padding: '7px 10px', color: t.color.textSecondary, fontSize: 11 }}>
+                            <td style={{ padding: '7px 10px', color: t.color.textSecondary, fontSize: t.fontSize.tiny }}>
                               {sale.payment_status || '-'}
                             </td>
                           </tr>

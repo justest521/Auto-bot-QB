@@ -78,7 +78,7 @@ export default function PartsExchange() {
                   marginTop: 4,
                 }}
               />
-              <span style={{ fontSize: isMobile ? 12 : 13, color: t.color.textSecondary, flex: 1 }}>
+              <span style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, color: t.color.textSecondary, flex: 1 }}>
                 {f}
               </span>
               <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, fontStyle: 'italic', whiteSpace: 'nowrap', marginLeft: 8 }}>

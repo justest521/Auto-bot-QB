@@ -218,7 +218,7 @@ export default function AccountsReceivable() {
       <div style={{ ...S.card, marginBottom: 10, padding: isMobile ? '10px 12px' : '10px 16px' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
           {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 13 : 14, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? t.color.bgCard : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border, ...(isMobile && { flex: 1 }) }}>{label}</button>
+            <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? t.color.bgCard : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border, ...(isMobile && { flex: 1 }) }}>{label}</button>
           ))}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
             <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, width: isMobile ? '100%' : 150, fontSize: t.fontSize.h3, padding: isMobile ? '8px 10px' : '6px 10px', minHeight: isMobile ? 40 : 'auto', ...S.mono }} />
@@ -295,7 +295,7 @@ export default function AccountsReceivable() {
                   <div key={ci} onClick={c.key ? () => toggleSort(c.key) : undefined}
                     style={{ padding: '8px 10px', borderRight: ci < arCols.length - 1 ? '1px solid #d1d5db' : 'none', display: 'flex', alignItems: 'center', justifyContent: c.align === 'right' ? 'flex-end' : c.align === 'center' ? 'center' : 'flex-start', fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: sortKey === c.key ? '#1d4ed8' : t.color.textSecondary, cursor: c.key ? 'pointer' : 'default', userSelect: 'none', whiteSpace: 'nowrap', gap: 2 }}>
                     {c.label}
-                    {c.key && <span style={{ fontSize: 9, opacity: sortKey === c.key ? 1 : 0.3 }}>{sortKey === c.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}</span>}
+                    {c.key && <span style={{ fontSize: t.fontSize.tiny, opacity: sortKey === c.key ? 1 : 0.3 }}>{sortKey === c.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}</span>}
                   </div>
                 ))}
               </div>
@@ -468,11 +468,11 @@ export default function AccountsReceivable() {
                         <a href={alloc.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 4, overflow: 'hidden', lineHeight: 0 }}>
                           <img src={alloc.proof_url} alt="憑證" style={{ width: 80, height: 54, objectFit: 'cover' }} />
                         </a>
-                        <div style={{ fontSize: 9, color: t.color.link, marginTop: 2 }}>點擊查看憑證</div>
+                        <div style={{ fontSize: t.fontSize.tiny, color: t.color.link, marginTop: 2 }}>點擊查看憑證</div>
                       </div>
                     ) : alloc.receipt_id && (
                       <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid #e5e7eb' }}>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', border: '1px dashed #d1d5db', borderRadius: 4, cursor: 'pointer', fontSize: 10, color: t.color.link, background: '#f9fafb' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', border: '1px dashed #d1d5db', borderRadius: 4, cursor: 'pointer', fontSize: t.fontSize.tiny, color: t.color.link, background: '#f9fafb' }}>
                           📎 上傳憑證
                           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
                             const f = ev.target.files?.[0]; if (!f) return;
@@ -509,7 +509,7 @@ export default function AccountsReceivable() {
                           <img src={alloc.proof_url} alt="憑證" style={{ width: 48, height: 32, objectFit: 'cover' }} />
                         </a>
                       ) : alloc.receipt_id ? (
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', border: '1px dashed #d1d5db', borderRadius: 4, cursor: 'pointer', fontSize: 10, color: t.color.link, background: '#f9fafb' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', border: '1px dashed #d1d5db', borderRadius: 4, cursor: 'pointer', fontSize: t.fontSize.tiny, color: t.color.link, background: '#f9fafb' }}>
                           📎 上傳
                           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (ev) => {
                             const f = ev.target.files?.[0]; if (!f) return;
@@ -591,7 +591,7 @@ export default function AccountsReceivable() {
               {payProofPreview ? (
                 <div style={{ position: 'relative', display: 'inline-block', marginTop: 4 }}>
                   <img src={payProofPreview} alt="憑證預覽" style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 6, border: '1px solid #d1d5db' }} />
-                  <button onClick={() => { setPayProofFile(null); setPayProofPreview(null); }} style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#ef4444', color: '#fff', border: 'none', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
+                  <button onClick={() => { setPayProofFile(null); setPayProofPreview(null); }} style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#ef4444', color: '#fff', border: 'none', fontSize: t.fontSize.tiny, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
                 </div>
               ) : (
                 <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', marginTop: 4, border: '1px dashed #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: t.fontSize.caption, color: t.color.link, background: '#f9fafb' }}>

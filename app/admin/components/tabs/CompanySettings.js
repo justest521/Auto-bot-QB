@@ -96,33 +96,33 @@ export default function CompanySettings({ apiGet, apiPost, erpFeatures = {}, set
       <h2 style={{ fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, marginBottom: 4 }}>公司設定</h2>
       <p style={{ fontSize: t.fontSize.body, color: t.color.textMuted, marginBottom: 20 }}>設定公司資訊與 Logo，將顯示在所有列印文件上</p>
 
-      {msg && <div style={{ padding: '8px 14px', borderRadius: 8, background: msg.includes('失敗') ? '#fef2f2' : '#f0fdf4', color: msg.includes('失敗') ? t.color.error : t.color.brand, fontSize: 13, fontWeight: t.fontWeight.semibold, marginBottom: 12 }}>{msg}</div>}
+      {msg && <div style={{ padding: '8px 14px', borderRadius: 8, background: msg.includes('失敗') ? '#fef2f2' : '#f0fdf4', color: msg.includes('失敗') ? t.color.error : t.color.brand, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, marginBottom: 12 }}>{msg}</div>}
 
       {/* Logo */}
       <div style={{ ...defaultStyles.card }}>
-        <div style={{ fontSize: t.fontSize.h3, fontWeight: 700, color: t.color.textSecondary, marginBottom: 12 }}>公司 Logo</div>
+        <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textSecondary, marginBottom: 12 }}>公司 Logo</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 16 : 20, flexDirection: isMobile ? 'column' : 'row' }}>
           <div style={{ width: 120, height: 120, borderRadius: 12, border: '2px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: t.color.bgMuted, flexShrink: 0 }}>
             {settings.logo_url ? (
               <img src={settings.logo_url} alt="Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
             ) : (
-              <span style={{ fontSize: 12, color: t.color.textDisabled, textAlign: 'center' }}>尚未上傳</span>
+              <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, textAlign: 'center' }}>尚未上傳</span>
             )}
           </div>
           <div style={{ width: isMobile ? '100%' : 'auto' }}>
             <input type="file" ref={fileRef} accept="image/*" onChange={uploadLogo} style={{ display: 'none' }} />
-            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '12px 16px' : '8px 20px', borderRadius: 8, border: 'none', background: uploading ? '#94a3b8' : '#2563eb', color: t.color.bgCard, fontSize: 13, fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer', marginBottom: 8 }}>
+            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '12px 16px' : '8px 20px', borderRadius: 8, border: 'none', background: uploading ? '#94a3b8' : '#2563eb', color: t.color.bgCard, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, cursor: uploading ? 'not-allowed' : 'pointer', marginBottom: 8 }}>
               {uploading ? '上傳中...' : settings.logo_url ? '更換 Logo' : '上傳 Logo'}
             </button>
             <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>建議尺寸 300×100px，PNG/JPG，最大 2MB</div>
-            <div style={{ fontSize: 11, color: t.color.textDisabled }}>Logo 將顯示在報價單、訂單、銷貨單的列印文件上</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>Logo 將顯示在報價單、訂單、銷貨單的列印文件上</div>
           </div>
         </div>
       </div>
 
       {/* Company Info */}
       <div style={{ ...defaultStyles.card }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: t.color.textSecondary, marginBottom: 12 }}>公司資訊</div>
+        <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textSecondary, marginBottom: 12 }}>公司資訊</div>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 12 : 12 }}>
           <div>
             <label style={defaultStyles.label}>公司名稱（中文）</label>
@@ -154,7 +154,7 @@ export default function CompanySettings({ apiGet, apiPost, erpFeatures = {}, set
           </div>
         </div>
         <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={save} disabled={saving} style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '12px 16px' : '10px 28px', borderRadius: 8, border: 'none', background: saving ? '#94a3b8' : t.color.brand, color: t.color.bgCard, fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
+          <button onClick={save} disabled={saving} style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '12px 16px' : '10px 28px', borderRadius: 8, border: 'none', background: saving ? '#94a3b8' : t.color.brand, color: t.color.bgCard, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, cursor: saving ? 'not-allowed' : 'pointer' }}>
             {saving ? '儲存中...' : '儲存設定'}
           </button>
         </div>
@@ -162,7 +162,7 @@ export default function CompanySettings({ apiGet, apiPost, erpFeatures = {}, set
 
       {/* ERP Features */}
       <div style={{ ...defaultStyles.card }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: t.color.textSecondary, marginBottom: 4 }}>ERP 功能開關</div>
+        <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textSecondary, marginBottom: 4 }}>ERP 功能開關</div>
         <div style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled, marginBottom: 16 }}>依照公司需求開啟或關閉 ERP 模組功能</div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: t.color.bgMuted, borderRadius: t.radius.md }}>

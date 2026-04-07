@@ -22,12 +22,12 @@ function BarChart({ data, barKey, label, color, secondKey, secondColor, height =
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
-            <span style={{ fontSize: 10, color: t.color.textMuted }}>{barKey === 'sales' ? '銷貨' : barKey}</span>
+            <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{barKey === 'sales' ? '銷貨' : barKey}</span>
           </div>
           {secondKey && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={{ width: 8, height: 8, borderRadius: 2, background: secondColor || '#94a3b8' }} />
-              <span style={{ fontSize: 10, color: t.color.textMuted }}>{secondKey === 'purchases' ? '進貨' : secondKey === 'profit' ? '毛利' : secondKey}</span>
+              <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{secondKey === 'purchases' ? '進貨' : secondKey === 'profit' ? '毛利' : secondKey}</span>
             </div>
           )}
         </div>
@@ -42,7 +42,7 @@ function BarChart({ data, barKey, label, color, secondKey, secondColor, height =
                 <div style={{ width: secondKey ? '45%' : '70%', height: Math.max(h1, 2), background: color, borderRadius: '3px 3px 0 0', transition: 'height 0.4s ease', opacity: i === data.length - 1 ? 1 : 0.75 }} title={`${d.month}: ${fmtP(d[barKey])}`} />
                 {secondKey && <div style={{ width: '45%', height: Math.max(h2, 2), background: secondColor || '#94a3b8', borderRadius: '3px 3px 0 0', transition: 'height 0.4s ease', opacity: i === data.length - 1 ? 1 : 0.65 }} title={`${d.month}: ${fmtP(d[secondKey])}`} />}
               </div>
-              <div style={{ fontSize: 9, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{d.month?.slice(5) || ''}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{d.month?.slice(5) || ''}</div>
             </div>
           );
         })}
@@ -60,14 +60,14 @@ function TopProducts({ items }) {
       <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 1, marginBottom: 12 }}>TOP PRODUCTS (12MO)</div>
       {items.slice(0, 8).map((item, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < items.length - 1 ? `1px solid ${t.color.borderLight}` : 'none' }}>
-          <span style={{ width: 20, height: 20, borderRadius: 6, background: i < 3 ? t.color.brand : t.color.bgMuted, color: i < 3 ? '#fff' : t.color.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+          <span style={{ width: 20, height: 20, borderRadius: 6, background: i < 3 ? t.color.brand : t.color.bgMuted, color: i < 3 ? '#fff' : t.color.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, flexShrink: 0 }}>{i + 1}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.desc || item.item}</div>
-            <div style={{ fontSize: 10, color: t.color.textMuted, ...S.mono, marginTop: 1 }}>{item.item}</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono, marginTop: 1 }}>{item.item}</div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
             <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{fmtK(item.amount)}</div>
-            <div style={{ fontSize: 10, color: item.profit > 0 ? t.color.brand : t.color.error, ...S.mono }}>{fmtK(item.profit)}</div>
+            <div style={{ fontSize: t.fontSize.tiny, color: item.profit > 0 ? t.color.brand : t.color.error, ...S.mono }}>{fmtK(item.profit)}</div>
           </div>
         </div>
       ))}
@@ -127,9 +127,9 @@ export default function PSIReport() {
             ].map((c, i) => (
               <div key={i} style={{ ...S.card, position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: c.color }} />
-                <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 8, marginTop: 2 }}>{c.label}</div>
-                <div style={{ fontSize: isMobile ? 16 : 20, fontWeight: t.fontWeight.bold, color: c.color, ...S.mono }}>{fmtP(c.value)}</div>
-                {c.sub && <div style={{ fontSize: 11, color: t.color.textSecondary, marginTop: 6 }}>{c.sub}</div>}
+                <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 8, marginTop: 2 }}>{c.label}</div>
+                <div style={{ fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h1, fontWeight: t.fontWeight.bold, color: c.color, ...S.mono }}>{fmtP(c.value)}</div>
+                {c.sub && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textSecondary, marginTop: 6 }}>{c.sub}</div>}
               </div>
             ))}
           </div>
@@ -137,16 +137,16 @@ export default function PSIReport() {
           {/* ── Net Summary Strip ── */}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
             <div style={{ ...S.card, background: t.color.infoBg, borderColor: '#b8d4f5' }}>
-              <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: t.color.link, letterSpacing: 0.8, marginBottom: 6 }}>淨銷貨</div>
-              <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{fmtP(netSales)}</div>
+              <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.link, letterSpacing: 0.8, marginBottom: 6 }}>淨銷貨</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h1 : 24, fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono }}>{fmtP(netSales)}</div>
             </div>
             <div style={{ ...S.card, background: t.color.successBg, borderColor: '#b8e4d5' }}>
-              <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: t.color.brand, letterSpacing: 0.8, marginBottom: 6 }}>毛利</div>
-              <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtP(d.sales_profit)}</div>
+              <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.brand, letterSpacing: 0.8, marginBottom: 6 }}>毛利</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h1 : 24, fontWeight: t.fontWeight.bold, color: t.color.brand, ...S.mono }}>{fmtP(d.sales_profit)}</div>
             </div>
             <div style={{ ...S.card }}>
-              <div style={{ fontSize: 10, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 6 }}>毛利率</div>
-              <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: t.fontWeight.bold, color: Number(marginPct) >= 20 ? t.color.brand : t.color.warning, ...S.mono }}>{marginPct}%</div>
+              <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textMuted, letterSpacing: 0.8, marginBottom: 6 }}>毛利率</div>
+              <div style={{ fontSize: isMobile ? t.fontSize.h1 : 24, fontWeight: t.fontWeight.bold, color: Number(marginPct) >= 20 ? t.color.brand : t.color.warning, ...S.mono }}>{marginPct}%</div>
             </div>
           </div>
 

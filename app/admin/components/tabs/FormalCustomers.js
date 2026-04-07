@@ -334,7 +334,7 @@ export default function FormalCustomers() {
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: t.fontSize.h3, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customer.company_name || customer.name || '未命名客戶'}</span>
-                    {dup && <span style={{ background: dup.groupColor, color: '#fff', borderRadius: t.radius.sm, padding: '1px 5px', fontSize: 9, fontWeight: t.fontWeight.bold, flexShrink: 0 }}>重複 {(dup.matchTypes || []).map(mt => mt === 'name' ? '名稱' : mt === 'phone' ? '電話' : '統編').join('+')}</span>}
+                    {dup && <span style={{ background: dup.groupColor, color: '#fff', borderRadius: t.radius.sm, padding: '1px 5px', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, flexShrink: 0 }}>重複 {(dup.matchTypes || []).map(mt => mt === 'name' ? '名稱' : mt === 'phone' ? '電話' : '統編').join('+')}</span>}
                   </div>
                   <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginTop: 2, ...S.mono }}>{customer.customer_code || ''}</div>
                 </div>
@@ -515,9 +515,9 @@ export default function FormalCustomers() {
                   </div>
                   <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>{detailCustomer.customer_code || '-'}</span>
-                    <span style={{ ...S.tag(stageMeta[detailCustomer.customer_stage]?.color || ''), fontSize: 9, padding: '1px 6px' }}>{stageMeta[detailCustomer.customer_stage]?.label || '詢問名單'}</span>
-                    {detailCustomer.line_user_id ? <span style={{ ...S.tag('line'), fontSize: 9, padding: '1px 6px' }}>LINE</span> : <span style={{ ...S.tag(''), fontSize: 9, padding: '1px 6px' }}>ERP</span>}
-                    {detail?.line_profile ? <span style={{ ...S.tag('green'), fontSize: 9, padding: '1px 6px' }}>{detail.line_profile.display_name || 'LINE'}</span> : null}
+                    <span style={{ ...S.tag(stageMeta[detailCustomer.customer_stage]?.color || ''), fontSize: t.fontSize.tiny, padding: '1px 6px' }}>{stageMeta[detailCustomer.customer_stage]?.label || '詢問名單'}</span>
+                    {detailCustomer.line_user_id ? <span style={{ ...S.tag('line'), fontSize: t.fontSize.tiny, padding: '1px 6px' }}>LINE</span> : <span style={{ ...S.tag(''), fontSize: t.fontSize.tiny, padding: '1px 6px' }}>ERP</span>}
+                    {detail?.line_profile ? <span style={{ ...S.tag('green'), fontSize: t.fontSize.tiny, padding: '1px 6px' }}>{detail.line_profile.display_name || 'LINE'}</span> : null}
                   </div>
                   {editing ? (() => {
                     const sIn = { ...S.input, padding: '6px 10px', fontSize: t.fontSize.caption, borderRadius: t.radius.md, ...sIn_mobile };
@@ -594,7 +594,7 @@ export default function FormalCustomers() {
                       <div key={s.label} style={{ padding: '6px 8px', borderRadius: t.radius.md, border: `1px solid ${t.color.border}`, background: '#fafafa', textAlign: 'center' }}>
                         <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted }}>{s.label}</div>
                         <div style={{ fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary, ...S.mono }}>{s.val}</div>
-                        <div style={{ fontSize: 9, color: t.color.textDisabled, ...S.mono }}>{s.sub}</div>
+                        <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, ...S.mono }}>{s.sub}</div>
                       </div>
                     ))}
                   </div>

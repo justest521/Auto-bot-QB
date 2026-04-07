@@ -83,22 +83,22 @@ export default function Payments() {
         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 8 : 8, flexWrap: 'wrap', alignItems: isMobile ? 'stretch' : 'center' }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
             {[['month', '本月'], ['quarter', '本季'], ['year', '本年'], ['all', '全部']].map(([key, label]) => (
-              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border }}>{label}</button>
+              <button key={key} onClick={() => applyDatePreset(key)} style={{ ...S.btnGhost, padding: isMobile ? '8px 12px' : '6px 14px', fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, minHeight: isMobile ? 44 : undefined, background: datePreset === key ? t.color.link : t.color.bgCard, color: datePreset === key ? '#fff' : '#4b5563', borderColor: datePreset === key ? t.color.link : t.color.border }}>{label}</button>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
-            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
-            <span style={{ color: t.color.textMuted, fontSize: 13, flexShrink: 0 }}>~</span>
-            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
+            <span style={{ color: t.color.textMuted, fontSize: t.fontSize.caption, flexShrink: 0 }}>~</span>
+            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined, ...S.mono }} />
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', ...(isMobile ? { width: '100%' } : {}) }}>
-            <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }}>
+            <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 150, fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }}>
               <option value="">全部狀態</option>
               <option value="pending">待確認</option>
               <option value="confirmed">已確認</option>
             </select>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? 14 : 13, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }} />
-            <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, padding: isMobile ? '10px 16px' : '6px 18px', fontSize: isMobile ? 14 : 13, minHeight: isMobile ? 44 : undefined, flexShrink: 0 }}>查詢</button>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, flex: 1, minWidth: isMobile ? 0 : 160, fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, padding: isMobile ? '10px 12px' : '6px 10px', minHeight: isMobile ? 44 : undefined }} />
+            <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, padding: isMobile ? '10px 16px' : '6px 18px', fontSize: isMobile ? t.fontSize.body : t.fontSize.caption, minHeight: isMobile ? 44 : undefined, flexShrink: 0 }}>查詢</button>
           </div>
         </div>
       </div>
@@ -124,16 +124,16 @@ export default function Payments() {
             <div style={{ ...S.mobileCardRow }}>
               <span style={S.mobileCardLabel}>狀態</span>
               <div>
-                {p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '8px 16px', fontSize: 14, minHeight: 44 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}
+                {p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '8px 16px', fontSize: t.fontSize.body, minHeight: 44 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}
               </div>
             </div>
             <div style={{ ...S.mobileCardRow }}>
               <span style={S.mobileCardLabel}>核帳</span>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <button onClick={() => handleVerify(p.id, p.verified)} style={{ padding: '6px 14px', borderRadius: 6, border: `1px solid ${p.verified ? '#a7f3d0' : '#e5e7eb'}`, background: p.verified ? '#ecfdf5' : '#f9fafb', color: p.verified ? '#059669' : '#9ca3af', fontSize: 13, fontWeight: 700, cursor: 'pointer', minHeight: 36 }}>
+                <button onClick={() => handleVerify(p.id, p.verified)} style={{ padding: '6px 14px', borderRadius: 6, border: `1px solid ${p.verified ? '#a7f3d0' : '#e5e7eb'}`, background: p.verified ? '#ecfdf5' : '#f9fafb', color: p.verified ? '#059669' : '#9ca3af', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, cursor: 'pointer', minHeight: 36 }}>
                   {p.verified ? '✓ 已核帳' : '未核帳'}
                 </button>
-                {p.proof_url && <a href={p.proof_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: t.color.link }}>查看憑證</a>}
+                {p.proof_url && <a href={p.proof_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: t.fontSize.caption, color: t.color.link }}>查看憑證</a>}
               </div>
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function Payments() {
                   {p.verified ? '✓ 已核帳' : '未核帳'}
                 </button>
               </div>
-              <div>{p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: 12 }}>確認</button> : <span style={S.tag('green')}>已確認</span>}</div>
+              <div>{p.status === 'pending' ? <button onClick={() => handleConfirm(p.id)} style={{ ...S.btnPrimary, padding: '6px 14px', fontSize: t.fontSize.tiny }}>確認</button> : <span style={S.tag('green')}>已確認</span>}</div>
             </div>
           </div>
         ))

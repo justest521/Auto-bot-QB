@@ -149,8 +149,8 @@ export default function Dashboard() {
               <div key={title} style={{ ...S.panelMuted, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                 <div style={{ width: 10, height: 10, borderRadius: 999, background: color, marginTop: 5, flexShrink: 0 }} />
                 <div>
-                  <div style={{ fontSize: 14, color: '#111827', fontWeight: 700 }}>{title}</div>
-                  <div style={{ marginTop: 4, fontSize: 12, color: '#6b7280', lineHeight: 1.7 }}>{desc}</div>
+                  <div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.bold }}>{title}</div>
+                  <div style={{ marginTop: 4, fontSize: t.fontSize.tiny, color: t.color.textMuted, lineHeight: 1.7 }}>{desc}</div>
                 </div>
               </div>
             ))}

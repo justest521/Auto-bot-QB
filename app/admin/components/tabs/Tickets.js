@@ -18,7 +18,7 @@ function StatCard({ code, label, value, tone, isMobile }) {
   const toneVal = TONE_MAP[tone] || TONE_MAP.gray;
   return (
     <div style={{ ...S.card, padding: isMobile ? '12px 12px' : '16px', textAlign: 'center', borderTop: `3px solid ${toneVal.color}` }}>
-      <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 800, color: toneVal.color, ...S.mono }}>{value}</div>
+      <div style={{ fontSize: isMobile ? t.fontSize.h1 : 24, fontWeight: 800, color: toneVal.color, ...S.mono }}>{value}</div>
       <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, color: t.color.textMuted, marginTop: 4 }}>{label}</div>
     </div>
   );
@@ -149,30 +149,30 @@ export default function Tickets() {
         <div style={{ ...S.card, padding: isMobile ? '10px 12px' : '10px 16px', marginBottom: 10, borderLeft: `3px solid ${STATUS_MAP[detail.status]?.color || t.color.info}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: 10, flexWrap: isMobile ? 'wrap' : 'nowrap', gap: 8 }}>
             <div style={{ flex: 1 }}>
-              <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{detail.title}</span>
-              <span style={{ marginLeft: 6, ...S.tag(''), background: STATUS_MAP[detail.status]?.color || t.color.info, color: '#fff', fontSize: isMobile ? 9 : 10 }}>{STATUS_MAP[detail.status]?.label || detail.status}</span>
-              <span style={{ marginLeft: 6, ...S.tag(''), background: PRIORITY_MAP[detail.priority]?.color || t.color.info, color: '#fff', fontSize: isMobile ? 9 : 10 }}>{PRIORITY_MAP[detail.priority]?.label || detail.priority}</span>
+              <span style={{ fontSize: isMobile ? t.fontSize.body : t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{detail.title}</span>
+              <span style={{ marginLeft: 6, ...S.tag(''), background: STATUS_MAP[detail.status]?.color || t.color.info, color: '#fff', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny }}>{STATUS_MAP[detail.status]?.label || detail.status}</span>
+              <span style={{ marginLeft: 6, ...S.tag(''), background: PRIORITY_MAP[detail.priority]?.color || t.color.info, color: '#fff', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny }}>{PRIORITY_MAP[detail.priority]?.label || detail.priority}</span>
             </div>
-            <button onClick={() => setDetail(null)} style={{ ...S.btnGhost, padding: isMobile ? '4px 8px' : '3px 10px', fontSize: isMobile ? 10 : 11, minHeight: isMobile ? 44 : undefined }}>關閉</button>
+            <button onClick={() => setDetail(null)} style={{ ...S.btnGhost, padding: isMobile ? '4px 8px' : '3px 10px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, minHeight: isMobile ? 44 : undefined }}>關閉</button>
           </div>
-          {detail.description && <div style={{ fontSize: isMobile ? 12 : 13, color: t.color.textSecondary, marginBottom: 10, padding: isMobile ? '8px 10px' : '10px', background: t.color.bgMuted, borderRadius: t.radius.md }}>{detail.description}</div>}
-          <div style={{ fontSize: isMobile ? 10 : 11, color: t.color.textDisabled, marginBottom: 12 }}>來源：{detail.source || '-'} · 建立：{detail.created_at?.slice(0, 16)} · {detail.customer_name ? `客戶：${detail.customer_name}` : ''}</div>
+          {detail.description && <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, color: t.color.textSecondary, marginBottom: 10, padding: isMobile ? '8px 10px' : '10px', background: t.color.bgMuted, borderRadius: t.radius.md }}>{detail.description}</div>}
+          <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, color: t.color.textDisabled, marginBottom: 12 }}>來源：{detail.source || '-'} · 建立：{detail.created_at?.slice(0, 16)} · {detail.customer_name ? `客戶：${detail.customer_name}` : ''}</div>
 
           {/* Status actions */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-            {detail.status !== 'resolved' && <button onClick={() => updateStatus(detail.id, 'resolved')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: t.color.brand, color: t.color.brand, minHeight: isMobile ? 44 : undefined }}>標記已解決</button>}
-            {detail.status !== 'closed' && detail.status === 'resolved' && <button onClick={() => updateStatus(detail.id, 'closed')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: t.color.textMuted, color: t.color.textMuted, minHeight: isMobile ? 44 : undefined }}>關閉工單</button>}
-            {detail.status === 'open' && <button onClick={() => updateStatus(detail.id, 'in_progress')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? 10 : 11, borderColor: t.color.warning, color: t.color.warning, minHeight: isMobile ? 44 : undefined }}>開始處理</button>}
+            {detail.status !== 'resolved' && <button onClick={() => updateStatus(detail.id, 'resolved')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, borderColor: t.color.brand, color: t.color.brand, minHeight: isMobile ? 44 : undefined }}>標記已解決</button>}
+            {detail.status !== 'closed' && detail.status === 'resolved' && <button onClick={() => updateStatus(detail.id, 'closed')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, borderColor: t.color.textMuted, color: t.color.textMuted, minHeight: isMobile ? 44 : undefined }}>關閉工單</button>}
+            {detail.status === 'open' && <button onClick={() => updateStatus(detail.id, 'in_progress')} style={{ ...S.btnGhost, padding: isMobile ? '6px 10px' : '4px 12px', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, borderColor: t.color.warning, color: t.color.warning, minHeight: isMobile ? 44 : undefined }}>開始處理</button>}
           </div>
 
           {/* Replies */}
           <div style={{ borderTop: `1px solid ${t.color.border}`, paddingTop: 10 }}>
-            <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 10 }}>回覆記錄 ({replies.length})</div>
+            <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 10 }}>回覆記錄 ({replies.length})</div>
             {replies.map((r, i) => (
-              <div key={i} style={{ marginBottom: 8, padding: isMobile ? '8px 10px' : '10px 12px', background: r.sender_type === 'admin' ? t.color.successBg : t.color.bgMuted, borderRadius: t.radius.md, fontSize: isMobile ? 12 : 13 }}>
+              <div key={i} style={{ marginBottom: 8, padding: isMobile ? '8px 10px' : '10px 12px', background: r.sender_type === 'admin' ? t.color.successBg : t.color.bgMuted, borderRadius: t.radius.md, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.caption }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, flexWrap: 'wrap', gap: 4 }}>
                   <span style={{ fontWeight: t.fontWeight.semibold, color: r.sender_type === 'admin' ? t.color.info : t.color.textSecondary }}>{r.sender_name || r.sender_type}</span>
-                  <span style={{ fontSize: isMobile ? 9 : 10, color: t.color.textDisabled }}>{r.created_at?.slice(0, 16)}</span>
+                  <span style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, color: t.color.textDisabled }}>{r.created_at?.slice(0, 16)}</span>
                 </div>
                 <div style={{ color: t.color.textSecondary }}>{r.content}</div>
               </div>
@@ -192,13 +192,13 @@ export default function Tickets() {
         return (
           <div key={tk.id} style={{ ...S.card, padding: isMobile ? '10px 12px' : '10px 16px', marginBottom: 10, cursor: 'pointer', borderLeft: `3px solid ${st.color}` }} onClick={() => openDetail(tk)}>
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12, flexWrap: 'wrap' }}>
-              <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: isMobile ? 10 : 11 }}>{st.label}</span>
-              <span style={{ ...S.tag(''), background: pr.color, color: '#fff', fontSize: isMobile ? 9 : 10 }}>{pr.label}</span>
+              <span style={{ ...S.tag(''), background: st.color, color: '#fff', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny }}>{st.label}</span>
+              <span style={{ ...S.tag(''), background: pr.color, color: '#fff', fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny }}>{pr.label}</span>
               <div style={{ flex: 1, minWidth: isMobile ? 120 : 160 }}>
-                <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{tk.title}</div>
-                <div style={{ fontSize: isMobile ? 10 : 11, color: t.color.textSecondary }}>{tk.customer_name || tk.source || '-'} · {tk.created_at?.slice(0, 10)}</div>
+                <div style={{ fontSize: isMobile ? t.fontSize.caption : t.fontSize.body, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary }}>{tk.title}</div>
+                <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, color: t.color.textSecondary }}>{tk.customer_name || tk.source || '-'} · {tk.created_at?.slice(0, 10)}</div>
               </div>
-              {tk.reply_count > 0 && <span style={{ ...S.tag(''), fontSize: isMobile ? 9 : 10 }}>{tk.reply_count} 回覆</span>}
+              {tk.reply_count > 0 && <span style={{ ...S.tag(''), fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny }}>{tk.reply_count} 回覆</span>}
             </div>
           </div>
         );
@@ -207,7 +207,7 @@ export default function Tickets() {
       {createOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ ...S.card, ...(isMobile ? S.mobileModal : {}), width: isMobile ? undefined : 480, maxWidth: '90vw' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: isMobile ? 15 : 16 }}>新增工單</h3>
+            <h3 style={{ margin: '0 0 16px', fontSize: isMobile ? t.fontSize.h2 : t.fontSize.h2 }}>新增工單</h3>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
               <div style={{ gridColumn: '1 / -1' }}><label style={S.label}>標題 *</label><input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} style={{ ...(isMobile ? S.mobile.input : S.input) }} /></div>
               <div><label style={S.label}>優先度</label><select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))} style={{ ...(isMobile ? S.mobile.input : S.input) }}><option value="low">低</option><option value="medium">中</option><option value="high">高</option><option value="urgent">緊急</option></select></div>

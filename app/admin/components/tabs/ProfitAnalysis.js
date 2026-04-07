@@ -35,8 +35,8 @@ function TopCustomerBars({ rows }) {
         return (
           <div key={i} style={{ marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-              <span style={{ fontSize: 11, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>{c.name}</span>
-              <span style={{ fontSize: 11, color: t.color.textMuted, ...S.mono }}>{fmtK(c.amount)} · {marginPct}%</span>
+              <span style={{ fontSize: t.fontSize.tiny, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>{c.name}</span>
+              <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, ...S.mono }}>{fmtK(c.amount)} · {marginPct}%</span>
             </div>
             <div style={{ height: 6, background: t.color.borderLight, borderRadius: 3, overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${pct}%`, background: i < 3 ? t.color.brand : t.color.link, borderRadius: 3, transition: 'width 0.4s ease' }} />
@@ -75,9 +75,9 @@ function MarginDistribution({ rows }) {
           const h = (b.count / maxCount) * 60;
           return (
             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: b.color, marginBottom: 3, ...S.mono }}>{b.count}</div>
+              <div style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: b.color, marginBottom: 3, ...S.mono }}>{b.count}</div>
               <div style={{ width: '80%', height: Math.max(h, 3), background: b.color, borderRadius: '3px 3px 0 0', opacity: 0.8 }} />
-              <div style={{ fontSize: 8, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{b.label}</div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{b.label}</div>
             </div>
           );
         })}
