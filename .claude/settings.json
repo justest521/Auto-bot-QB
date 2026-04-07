@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=\"${CLAUDE_TOOL_INPUT_FILE_PATH:-${CLAUDE_TOOL_INPUT_PATH:-}}\"; case \"$FILE\" in *actions-get.js|*actions-post.js) /usr/local/bin/node /Users/tungyiwu/Desktop/AI/QB-ERP/scripts/audit.js \"$FILE\" 2>&1 | grep -E 'ERROR|WARN|✖' | head -20 ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}
