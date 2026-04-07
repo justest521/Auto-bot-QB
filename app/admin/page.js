@@ -792,33 +792,39 @@ function AdminPageInner() {
   return (
     <div style={S.page}>
       <style>{`
-        html,body{background:#fdfdfe!important;margin:0;padding:0}
-        body > div:first-child{min-height:100vh;background:#fdfdfe}
+        html,body{background:#f7f8fa!important;margin:0;padding:0}
+        body > div:first-child{min-height:100vh;background:#f7f8fa}
         *{box-sizing:border-box}
       `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       <style>{`
         .qb-sb-item{transition:all 0.2s ease}
-        .qb-sb-item:hover{background:rgba(22,163,74,0.06)!important;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(22,163,74,0.08), inset 0 1px 0 rgba(255,255,255,0.7);border-color:rgba(22,163,74,0.1)!important}
+        .qb-sb-item:hover{background:#f0f3f7!important}
         .qb-sb-star{opacity:0;transition:opacity 0.15s}
         .qb-sb-item:hover .qb-sb-star{opacity:1}
         .qb-sb-star.is-fav{opacity:1;color:#f59e0b!important}
         .qb-sb-section-hdr{transition:all 0.2s ease}
-        .qb-sb-section-hdr:hover{background:rgba(22,163,74,0.04);backdrop-filter:blur(8px);box-shadow:0 1px 8px rgba(22,163,74,0.06), inset 0 1px 0 rgba(255,255,255,0.6)}
+        .qb-sb-section-hdr:hover{background:#f0f3f7!important}
         .qb-sb-search:focus{border-color:#16a34a!important;box-shadow:0 0 0 3px rgba(22,163,74,0.1)!important}
-        .qb-sb::-webkit-scrollbar{width:3px}
-        .qb-sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+        .qb-sb::-webkit-scrollbar{width:4px}
+        .qb-sb::-webkit-scrollbar-thumb{background:#c8cdd5;border-radius:4px}
+        .qb-sb::-webkit-scrollbar-thumb:hover{background:#a0a8b4}
         .qb-sb::-webkit-scrollbar-track{background:transparent}
-        .qb-sb-section-hdr:hover{background:#f3f4f6!important}
-        .qb-sb-item:hover{background:#f3f4f6!important}
-        input:focus,select:focus,textarea:focus{border-color:#16a34a!important;box-shadow:0 0 0 3px rgba(22,163,74,0.08)!important}
-        .qb-card-hover:hover{background:#E8F2EE!important;border-color:#E8F2EE!important;box-shadow:0 4px 16px rgba(22,163,74,0.12), 6px 6px 16px rgba(0,0,0,0.04)!important;transform:translateY(-1px)}
+        input:focus,select:focus,textarea:focus{border-color:#16a34a!important;box-shadow:0 0 0 3px rgba(22,163,74,0.10), 0 1px 2px rgba(0,0,0,0.04)!important}
+        input::placeholder,textarea::placeholder{color:#b0b7c3;font-weight:400}
         .qb-card-hover{transition:all 0.25s ease;cursor:pointer}
+        .qb-card-hover:hover{background:#f4f8f6!important;border-color:#d4e9dc!important;box-shadow:0 4px 16px rgba(22,163,74,0.10), 0 2px 6px rgba(0,0,0,0.05)!important}
         .qb-content>div>div[style*="border-radius"]{transition:all 0.25s ease}
-        .qb-content>div>div[style*="border-radius"]:hover{background:#E8F2EE!important;border-color:#E8F2EE!important;box-shadow:0 4px 16px rgba(22,163,74,0.12)!important;transform:translateY(-1px)}
+        .qb-content>div>div[style*="border-radius"]:hover{background:#f4f8f6!important;border-color:#d4e9dc!important;box-shadow:0 4px 16px rgba(22,163,74,0.10)!important}
         .qb-content table tr{transition:background 0.2s ease}
-        .qb-content table tbody tr:hover{background:#E8F2EE!important}
+        .qb-content table thead th{text-transform:uppercase;letter-spacing:0.5px}
+        .qb-content table tbody tr:nth-child(even){background:#fafbfd}
+        .qb-content table tbody tr:hover{background:#f0f4f2!important}
+        .qb-btn-primary:hover{filter:brightness(1.08);box-shadow:0 2px 6px rgba(22,163,74,0.25)!important}
+        .qb-btn-primary:active{filter:brightness(0.95);transform:translateY(0.5px)}
+        .qb-btn-ghost:hover{border-color:#c8cdd5!important;background:#f7f8fa!important}
+        .qb-btn-ghost:active{background:#eef0f4!important}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         @keyframes badgeGlow{0%,100%{box-shadow:0 0 4px rgba(239,68,68,0.3)}50%{box-shadow:0 0 12px rgba(239,68,68,0.6)}}
         @media(max-width:820px){

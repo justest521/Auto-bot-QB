@@ -767,11 +767,11 @@ export function StatCard({ code, label, value, sub, accent, tone = 'blue' }) {
   };
   const t = toneColors[tone] || toneColors.blue;
   return (
-    <div className="qb-card-hover" style={{ minWidth: 140, padding: '16px 18px 14px', position: 'relative', overflow: 'hidden', borderRadius: 14, background: '#ffffff', border: '1px solid #F2F2F2', boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)', cursor: 'pointer' }}>
-      <div style={{ position: 'absolute', top: 12, right: 14, width: 32, height: 32, borderRadius: 8, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: t.accent, fontWeight: 700, ...S.mono }}>{code}</div>
-      <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6, fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 700, color: accent || '#111827', ...S.mono, letterSpacing: -0.5 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>{sub}</div>}
+    <div className="qb-card-hover" style={{ minWidth: 140, padding: '16px 18px 14px', position: 'relative', overflow: 'hidden', borderRadius: S.t.radius.lg, background: '#ffffff', border: `1px solid ${S.t.color.border}`, boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.04)', cursor: 'pointer' }}>
+      <div style={{ position: 'absolute', top: 12, right: 14, width: 30, height: 30, borderRadius: 6, background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: t.accent, fontWeight: 700, ...S.mono }}>{code}</div>
+      <div style={{ fontSize: S.t.fontSize.caption, color: '#6b7280', marginBottom: 8, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: accent || '#111827', ...S.mono, letterSpacing: -1 }}>{value}</div>
+      {sub && <div style={{ fontSize: S.t.fontSize.tiny, color: '#8b93a0', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>{sub}</div>}
     </div>
   );
 }
