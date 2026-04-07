@@ -531,7 +531,7 @@ export default function SalesDocuments({ setTab }) {
   const [dateTo, setDateTo] = useState(() => getPresetDateRange('month').to);
   const [datePreset, setDatePreset] = useState('month');
 
-  const { gridTemplate, ResizableHeader } = useResizableColumns('sales_list_v2', isTablet ? [50, 160, 250, 100] : [50, 150, 220, 100, 80, 100, 110, 140]);
+  const { gridTemplate, ResizableHeader } = useResizableColumns('sales_list_v2', isTablet ? [50, 160, 250, 100] : [50, 150, 220, 100, 80, 110, 140]);
 
   const load = useCallback(async (page = 1, q = search, limit = pageSize) => {
     setLoading(true);
@@ -683,10 +683,6 @@ export default function SalesDocuments({ setTab }) {
               <span style={S.mobileCardValue}>{row.sale_date || '-'}</span>
             </div>
             <div style={{ ...S.mobileCardRow }}>
-              <span style={S.mobileCardLabel}>未稅</span>
-              <span style={S.mobileCardValue}>{fmtP(row.subtotal)}</span>
-            </div>
-            <div style={{ ...S.mobileCardRow }}>
               <span style={S.mobileCardLabel}>總額</span>
               <span style={{ ...S.mobileCardValue, color: '#10b981', fontWeight: 700 }}>{fmtP(row.total)}</span>
             </div>
@@ -709,7 +705,6 @@ export default function SalesDocuments({ setTab }) {
               { label: '客戶', align: 'center' },
               { label: '日期', align: 'center' },
               { label: '業務', align: 'center' },
-              { label: '未稅', align: 'center' },
               { label: '總額', align: 'center' },
               { label: '操作', align: 'center' },
             ]}
@@ -726,7 +721,6 @@ export default function SalesDocuments({ setTab }) {
                 <div style={{ ...cell, fontSize: 13, color: '#111827', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer_name || '未命名客戶'}</div>
                 <div style={{ ...cCenter, color: '#374151', ...S.mono, whiteSpace: 'nowrap' }}>{row.sale_date || '-'}</div>
                 {!isTablet && <div style={{ ...cCenter, color: '#374151' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
-                {!isTablet && <div style={{ ...cRight, color: '#111827', ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.subtotal)}</div>}
                 {!isTablet && <div style={{ ...cRight, color: '#10b981', fontWeight: 700, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total)}</div>}
                 {!isTablet && <div style={{ ...cellLast, justifyContent: 'flex-end', gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                   <button onClick={() => handleSalesReturn(row)} title="銷貨退回" style={{ ...S.btnGhost, padding: '3px 8px', fontSize: 11, whiteSpace: 'nowrap' }}>退回</button>
