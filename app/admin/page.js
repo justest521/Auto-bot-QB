@@ -536,6 +536,58 @@ function AdminPageInner() {
     return () => clearInterval(interval);
   }, [isAuthed, tab]);
 
+  // ── 通知鈴鐺 ──
+  const notifRef = useRef(null);
+  const [notifications, setNotifications]         = useState([]);
+  const [notifUnread, setNotifUnread]             = useState(0);
+  const [notifOpen, setNotifOpen]                 = useState(false);
+  const [cronRunning, setCronRunning]             = useState(false);
+
+  const fetchNotifications = () => {
+    if (!isAuthed) return;
+    apiGet({ action: 'notifications', limit: '20' })
+      .then(res => {
+        setNotifications(res.rows || []);
+        setNotifUnread(res.unread_count || 0);
+      }).catch(() => {});
+  };
+
+  useEffect(() => {
+    if (!isAuthed) return;
+    fetchNotifications();
+    const iv = setInterval(fetchNotifications, 120000); // 每 2 分鐘刷新
+    return () => clearInterval(iv);
+  }, [isAuthed]);
+
+  const markAllRead = async () => {
+    await apiPost({ action: 'mark_notifications_read' });
+    setNotifUnread(0);
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+  };
+
+  const runCronTask = async (task) => {
+    setCronRunning(true);
+    try {
+      await apiPost({ action: 'run_cron_task', task });
+      setTimeout(fetchNotifications, 1500);
+    } catch (e) {
+      alert('執行失敗：' + e.message);
+    } finally {
+      setCronRunning(false);
+    }
+  };
+
+  const SEVERITY_COLOR = { info: '#2563eb', warning: '#d97706', error: '#dc2626' };
+  const SEVERITY_LABEL = { low_stock: '📦 低庫存', daily_report: '📊 銷售報表', invoice_reminder: '🧾 未開發票', overdue_reminder: '⚠️ 逾期帳款' };
+
+  // click outside 關閉通知
+  useEffect(() => {
+    if (!notifOpen) return;
+    const handler = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [notifOpen]);
+
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [newPw, setNewPw] = useState('');
   const [newPwConfirm, setNewPwConfirm] = useState('');
@@ -991,7 +1043,66 @@ function AdminPageInner() {
                 {!isMobile && TAB_META[tab]?.desc && <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{TAB_META[tab].desc}</div>}
               </div>
             </div>
-            <div id={HEADER_ACTION_PORTAL_ID} style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }} />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+              {/* 通知鈴鐺 */}
+              <div ref={notifRef} style={{ position: 'relative' }}>
+                <button
+                  onClick={() => { setNotifOpen(o => !o); if (!notifOpen && notifUnread > 0) markAllRead(); }}
+                  title="系統通知"
+                  style={{ background: 'none', border: `1px solid ${t.color.border}`, borderRadius: t.radius.md, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16, position: 'relative', color: t.color.textSecondary }}>
+                  🔔
+                  {notifUnread > 0 && (
+                    <span style={{ position: 'absolute', top: -3, right: -3, background: t.color.error, color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: '50%', minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>
+                      {notifUnread > 9 ? '9+' : notifUnread}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div style={{ position: 'absolute', top: 40, right: 0, width: 340, background: t.color.bgCard, border: `1px solid ${t.color.border}`, borderRadius: t.radius.lg, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 9999, overflow: 'hidden' }}>
+                    {/* 頭部 */}
+                    <div style={{ padding: '10px 14px', borderBottom: `1px solid ${t.color.borderLight}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontWeight: t.fontWeight.bold, fontSize: t.fontSize.h3, color: t.color.textPrimary }}>系統通知</span>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <button onClick={() => runCronTask('all')} disabled={cronRunning} title="立即執行所有任務" style={{ background: cronRunning ? t.color.bgMuted : t.color.brandLight, color: t.color.brand, border: 'none', borderRadius: t.radius.sm, padding: '3px 8px', fontSize: t.fontSize.tiny, cursor: cronRunning ? 'default' : 'pointer', fontWeight: t.fontWeight.semibold }}>
+                          {cronRunning ? '執行中...' : '▶ 立即執行'}
+                        </button>
+                        <button onClick={markAllRead} style={{ background: 'none', border: 'none', fontSize: t.fontSize.tiny, color: t.color.textMuted, cursor: 'pointer' }}>全部已讀</button>
+                      </div>
+                    </div>
+                    {/* 通知清單 */}
+                    <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: '24px 0', textAlign: 'center', color: t.color.textMuted, fontSize: t.fontSize.body }}>暫無通知</div>
+                      ) : notifications.map(n => (
+                        <div key={n.id} style={{ padding: '10px 14px', borderBottom: `1px solid ${t.color.borderLight}`, background: n.is_read ? 'transparent' : t.color.infoBg, transition: 'background 0.2s' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                            <span style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: SEVERITY_COLOR[n.severity] || t.color.textPrimary }}>
+                              {SEVERITY_LABEL[n.type] || n.type}
+                            </span>
+                            {!n.is_read && <span style={{ width: 6, height: 6, borderRadius: '50%', background: t.color.link, display: 'inline-block' }} />}
+                            <span style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginLeft: 'auto' }}>
+                              {new Date(n.created_at).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: t.color.textPrimary, marginBottom: 2 }}>{n.title}</div>
+                          {n.body && <div style={{ fontSize: t.fontSize.tiny, color: t.color.textSecondary, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{n.body.slice(0, 120)}{n.body.length > 120 ? '...' : ''}</div>}
+                        </div>
+                      ))}
+                    </div>
+                    {/* 手動觸發各任務 */}
+                    <div style={{ padding: '8px 14px', borderTop: `1px solid ${t.color.borderLight}`, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {[['low_stock','📦 低庫存'],['daily_report','📊 銷售'],['invoice_reminder','🧾 發票'],['overdue_reminder','⚠️ 帳款']].map(([tk, lb]) => (
+                        <button key={tk} onClick={() => runCronTask(tk)} disabled={cronRunning}
+                          style={{ background: t.color.bgMuted, border: `1px solid ${t.color.border}`, borderRadius: t.radius.sm, padding: '3px 8px', fontSize: t.fontSize.tiny, cursor: cronRunning ? 'default' : 'pointer', color: t.color.textSecondary }}>
+                          {lb}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div id={HEADER_ACTION_PORTAL_ID} style={{ display: 'flex', gap: 8, alignItems: 'center' }} />
+            </div>
           </div>
 
           <div className="qb-content" style={{ ...S.content, padding: isMobile ? '14px 12px 90px' : isTablet ? '22px 18px 34px' : S.content.padding }}>

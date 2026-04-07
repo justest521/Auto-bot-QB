@@ -1,0 +1,8 @@
+{
+  "crons": [
+    { "path": "/api/cron?task=daily_report",     "schedule": "0 0 * * *" },
+    { "path": "/api/cron?task=low_stock",        "schedule": "0 1 * * *" },
+    { "path": "/api/cron?task=invoice_reminder", "schedule": "0 1 * * 1" },
+    { "path": "/api/cron?task=overdue_reminder", "schedule": "0 1 * * 1" }
+  ]
+}
