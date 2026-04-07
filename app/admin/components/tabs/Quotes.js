@@ -858,7 +858,7 @@ export default function Quotes({ setTab }) {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 8 }}>
                     <div>
                       <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>客戶</div>
-                      <div style={{ fontSize: t.fontSize.caption, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定'}</div>
+                      <div style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定'}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>日期</div>
@@ -920,16 +920,16 @@ export default function Quotes({ setTab }) {
                   <div style={cCenter} onClick={(e) => e.stopPropagation()}>
                     <input type="checkbox" checked={isChecked} onChange={() => { setCheckedIds(prev => { const next = new Set(prev); if (next.has(row.id)) next.delete(row.id); else next.add(row.id); return next; }); }} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }} />
                   </div>
-                  <div style={{ ...cCenter, fontSize: t.fontSize.caption, color: t.color.textMuted, ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                  <div style={{ ...cCenter, fontSize: t.fontSize.caption, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', gap: 4 }}>{row.quote_no || '-'}<span style={{ fontSize: t.fontSize.tiny, background: row.tax_inclusive ? '#f3f4f6' : '#fef3c7', color: row.tax_inclusive ? '#6b7280' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '免稅' : '外加5%'}</span></div>
+                  <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
+                  <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', gap: 4 }}>{row.quote_no || '-'}<span style={{ fontSize: t.fontSize.tiny, background: row.tax_inclusive ? '#f3f4f6' : '#fef3c7', color: row.tax_inclusive ? '#6b7280' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '免稅' : '外加5%'}</span></div>
                   <div style={cell}>
-                    <span style={{ fontSize: t.fontSize.caption, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
+                    <span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                   </div>
-                  {!isTablet && <div style={{ ...cCenter, fontSize: t.fontSize.caption, color: t.color.textSecondary, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
-                  <div style={{ ...cCenter, fontSize: t.fontSize.caption, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.quote_date || '-'}</div>
+                  {!isTablet && <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
+                  <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.quote_date || '-'}</div>
                   <div style={cCenter}><span style={S.tag(QUOTE_STATUS_TONE[statusKey] || '')}>{QUOTE_STATUS_MAP[statusKey] || statusKey}</span></div>
-                  {!isTablet && <div style={{ ...cRight, fontSize: t.fontSize.caption, color: '#10b981', fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.tax_inclusive ? row.total_amount : (row.subtotal || row.total_amount))}</div>}
-                  {!isTablet && <div style={{ ...cell, fontSize: t.fontSize.caption, color: t.color.textSecondary }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</span></div>}
+                  {!isTablet && <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.tax_inclusive ? row.total_amount : (row.subtotal || row.total_amount))}</div>}
+                  {!isTablet && <div style={{ ...cell, fontSize: t.fontSize.body, color: t.color.textSecondary }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</span></div>}
                   <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => duplicateQuote(row)} title="複製報價單" style={{ ...S.btnGhost, padding: '4px 6px', fontSize: t.fontSize.tiny, whiteSpace: 'nowrap' }}>複製</button>
                     <button onClick={() => openPdf('quote', row.id)} style={{ ...S.btnGhost, padding: '4px 6px', fontSize: t.fontSize.tiny, whiteSpace: 'nowrap' }}>PDF</button>

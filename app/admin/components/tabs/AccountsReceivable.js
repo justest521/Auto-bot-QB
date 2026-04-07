@@ -336,7 +336,7 @@ export default function AccountsReceivable() {
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{((page - 1) * pageSize) + idx + 1}</div>
                 <div style={{ ...cell, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{ar.invoice_no || '-'}</div>
                 <div style={cell}><span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ar.customer_name || '-'}</span></div>
-                <div style={{ ...cCenter, fontSize: t.fontSize.caption, color: t.color.textSecondary }}>{ar.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary }}>{ar.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{ar.invoice_date?.slice(0, 10) || '-'}</div>
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{ar.due_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(ar.payment_status === 'paid' ? 'green' : ar.payment_status === 'partial' ? 'yellow' : ar.payment_status === 'overdue' ? 'red' : 'gray')}>{st.label}</span></div>

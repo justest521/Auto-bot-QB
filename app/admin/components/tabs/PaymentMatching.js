@@ -229,13 +229,13 @@ export default function PaymentMatching() {
                       <div key={receipt.id} onClick={() => handleReceiptClick(receipt)} style={{ display: 'grid', gridTemplateColumns: receiptGridTemplate, borderBottom: '1px solid #e5e7eb', background: selectedReceipt?.id === receipt.id ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd', cursor: 'pointer', transition: 'background 0.15s' }}
                         onMouseEnter={e => e.currentTarget.style.background = '#f0f7ff'}
                         onMouseLeave={e => e.currentTarget.style.background = selectedReceipt?.id === receipt.id ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafbfd'}>
-                        <div style={{ ...cCenter, fontSize: t.fontSize.caption, color: t.color.textMuted, ...S.mono }}>{idx + 1}</div>
-                        <div style={{ ...cell, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#2563eb', ...S.mono }}>{receipt.receipt_no || '-'}</div>
-                        <div style={cell}><span style={{ fontSize: t.fontSize.caption, color: t.color.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receipt.customer_name || '-'}</span></div>
-                        <div style={{ ...cCenter, fontSize: t.fontSize.caption, color: t.color.textSecondary, ...S.mono }}>{receipt.receipt_date?.slice(0, 10) || '-'}</div>
-                        <div style={{ ...cRight, fontSize: t.fontSize.caption, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, ...S.mono }}>{fmtP(receipt.total_amount)}</div>
-                        <div style={{ ...cRight, fontSize: t.fontSize.caption, color: '#16a34a', fontWeight: t.fontWeight.semibold, ...S.mono }}>{fmtP(receipt.allocated_amount)}</div>
-                        <div style={{ ...cellLast, ...cRight, fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: Number(receipt.remaining_amount) > 0 ? '#dc2626' : '#6b7280', ...S.mono }}>{fmtP(receipt.remaining_amount)}</div>
+                        <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{idx + 1}</div>
+                        <div style={{ ...cell, fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: '#2563eb', ...S.mono }}>{receipt.receipt_no || '-'}</div>
+                        <div style={cell}><span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receipt.customer_name || '-'}</span></div>
+                        <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono }}>{receipt.receipt_date?.slice(0, 10) || '-'}</div>
+                        <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, ...S.mono }}>{fmtP(receipt.total_amount)}</div>
+                        <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.success, fontWeight: t.fontWeight.semibold, ...S.mono }}>{fmtP(receipt.allocated_amount)}</div>
+                        <div style={{ ...cellLast, ...cRight, fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: Number(receipt.remaining_amount) > 0 ? '#dc2626' : t.color.textMuted, ...S.mono }}>{fmtP(receipt.remaining_amount)}</div>
                       </div>
                     );
                   })}
