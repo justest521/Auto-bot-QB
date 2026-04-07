@@ -447,8 +447,8 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
           ) : (
             // Desktop table layout
             <div>
-              <div style={{ display: 'grid', gridTemplateColumns: '140px 90px 50px 85px 95px minmax(0,1fr) 70px', gap: 6, padding: '8px 12px', background: '#f8f9fb', fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                <div>料號</div><div style={{ textAlign: 'right' }}>單價</div><div style={{ textAlign: 'center' }}>數量</div><div style={{ textAlign: 'center' }}>庫存</div><div style={{ textAlign: 'right' }}>小計</div><div>備註</div><div></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '140px 90px 50px 85px 95px minmax(0,1fr) 70px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
+                <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>料號</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>單價</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>數量</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>庫存</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>小計</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>備註</div><div style={{ padding: '8px 10px' }}></div>
               </div>
               {items.map((item) => {
                 const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
@@ -457,35 +457,35 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                 const rowBg = isEditing ? '#fffbeb' : '#fff';
                 return (
                   <div key={item.id || item.item_number_snapshot}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '140px 90px 50px 85px 95px minmax(0,1fr) 70px', gap: 6, padding: '10px 12px', borderTop: '1px solid #f3f5f7', alignItems: 'center', fontSize: t.fontSize.caption, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
-                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.body }} title={`${item.item_number_snapshot || '-'} — ${item.description_snapshot || ''}`}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '140px 90px 50px 85px 95px minmax(0,1fr) 70px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', fontSize: t.fontSize.body, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
+                    <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number_snapshot || '-'} — ${item.description_snapshot || ''}`}>
                       {item.item_number_snapshot || '-'}
                     </div>
-                    <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ color: t.color.textMuted, textAlign: 'right', ...S.mono, fontSize: t.fontSize.body, cursor: isEditable && !isEditing ? 'pointer' : 'default', padding: '2px 4px', borderRadius: 4 }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
+                    <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: t.color.textMuted, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, cursor: isEditable && !isEditing ? 'pointer' : 'default', whiteSpace: 'nowrap' }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
                       {isEditing ? (
                         <input type="number" value={editValues.unit_price} onChange={e => setEditValues({ ...editValues, unit_price: parseFloat(e.target.value) || 0 })} style={inputStyle} onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
                       ) : fmtP(item.unit_price)}
                     </div>
-                    <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.body, cursor: isEditable && !isEditing ? 'pointer' : 'default', padding: '2px 4px', borderRadius: 4 }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
+                    <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center', fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3, cursor: isEditable && !isEditing ? 'pointer' : 'default', whiteSpace: 'nowrap' }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
                       {isEditing ? (
                         <input type="number" value={editValues.qty} onChange={e => setEditValues({ ...editValues, qty: parseInt(e.target.value) || 0 })} style={inputStyle} onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} />
                       ) : item.qty || 0}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                      <span style={{ fontWeight: t.fontWeight.bold, color: badge.color, ...S.mono, fontSize: t.fontSize.tiny }}>{item.stock_qty ?? '—'}</span>
+                    <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, whiteSpace: 'nowrap' }}>
+                      <span style={{ fontWeight: t.fontWeight.bold, color: badge.color, ...S.mono, fontSize: t.fontSize.caption }}>{item.stock_qty ?? '—'}</span>
                       {item.stock_status && <span style={{ padding: '1px 5px', borderRadius: 8, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, whiteSpace: 'nowrap' }}>
-                        {badge.label}{item.stock_status === 'partial' ? `(差${item.shortage})` : ''}
+                        {badge.label}
                       </span>}
                     </div>
-                    <div style={{ color: '#059669', fontWeight: 800, textAlign: 'right', ...S.mono, fontSize: t.fontSize.body }}>{fmtP(item.line_total)}</div>
-                    <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, cursor: isEditable && !isEditing ? 'pointer' : 'default', padding: '2px 4px', borderRadius: 4, lineHeight: 1.4 }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
+                    <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: '#059669', fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(item.line_total)}</div>
+                    <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', fontSize: t.fontSize.h3, color: t.color.textMuted, cursor: isEditable && !isEditing ? 'pointer' : 'default', overflow: 'hidden' }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
                       {isEditing ? (
                         <input type="text" value={editValues.item_note} onChange={e => setEditValues({ ...editValues, item_note: e.target.value })} style={{ ...inputStyle, textAlign: 'left' }} onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} placeholder="備註" />
                       ) : (
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{item.item_note || '—'}</span>
                       )}
                     </div>
-                    <div style={{ display: 'flex', gap: 5, justifyContent: 'center', alignItems: 'center' }}>
+                    <div style={{ padding: '8px 10px', display: 'flex', gap: 5, justifyContent: 'center', alignItems: 'center' }}>
                       {isEditing ? (
                         <>
                           <button onClick={saveEditItem} style={{ width: 18, height: 18, borderRadius: 4, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</button>
