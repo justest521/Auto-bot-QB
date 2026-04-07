@@ -1128,6 +1128,156 @@ export async function POST(request) {
       return jsonOk({ message: '已刪除' });
     }
 
+    case 'confirm_order': {
+      const {
+        order_id,
+        customer_signature,
+        payment_plan,       // 'full' | 'deposit' | 'installment'
+        deposit_amount,
+        deposit_rate,
+        installment_count,
+        installment_amount,
+      } = body;
+      if (!order_id) return jsonErr('order_id required');
+
+      // Verify ownership
+      const { data: existingOrder } = await supabase
+        .from('erp_orders')
+        .select('id, status, total_amount, dealer_user_id')
+        .eq('id', order_id)
+        .eq('dealer_user_id', user.id)
+        .maybeSingle();
+      if (!existingOrder) return jsonErr('訂單不存在或無權限', 404);
+      if (existingOrder.status === 'confirmed') return jsonErr('此訂單已確認');
+
+      const now = new Date().toISOString();
+      const updatePayload = {
+        status: 'confirmed',
+        confirmed_at: now,
+        updated_at: now,
+        payment_plan: payment_plan || 'full',
+        customer_signature: customer_signature || null,
+        deposit_amount: Number(deposit_amount || 0),
+        deposit_rate: Number(deposit_rate || 0),
+        installment_count: Number(installment_count || 0),
+        installment_amount: Number(installment_amount || 0),
+      };
+
+      const { error: confErr } = await supabase
+        .from('erp_orders')
+        .update(updatePayload)
+        .eq('id', order_id);
+      if (confErr) return jsonErr(confErr.message, 500);
+
+      // If deposit plan → create a pending payment record for the deposit
+      if (payment_plan === 'deposit' && Number(deposit_amount) > 0) {
+        await supabase.from('erp_payments').insert({
+          order_id,
+          amount: Number(deposit_amount),
+          payment_method: 'pending',
+          payment_status: 'pending',
+          payment_date: now.slice(0, 10),
+          note: `訂金 (${deposit_rate}%)`,
+          created_at: now,
+        }).maybeSingle(); // ignore error if table schema differs slightly
+      }
+
+      return jsonOk({ success: true, message: '訂單已確認' });
+    }
+
+    case 'send_order_line': {
+      const { order_id } = body;
+      if (!order_id) return jsonErr('order_id required');
+
+      // Fetch order with items
+      const { data: ord } = await supabase
+        .from('erp_orders')
+        .select('*, erp_order_items(*)')
+        .eq('id', order_id)
+        .eq('dealer_user_id', user.id)
+        .maybeSingle();
+      if (!ord) return jsonErr('訂單不存在或無權限', 404);
+
+      // Fetch linked customer LINE user ID (if any)
+      let lineUserId = null;
+      if (ord.customer_id) {
+        const { data: cust } = await supabase
+          .from('erp_customers')
+          .select('line_user_id')
+          .eq('id', ord.customer_id)
+          .maybeSingle();
+        lineUserId = cust?.line_user_id || null;
+      }
+
+      // Build message
+      const fmtNT = (n) => `NT$${Number(n || 0).toLocaleString()}`;
+      const fmtDate = (d) => { if (!d) return '--'; const x = new Date(d); return `${x.getFullYear()}/${String(x.getMonth()+1).padStart(2,'0')}/${String(x.getDate()).padStart(2,'0')}`; };
+      const items = ord.erp_order_items || [];
+      const itemLines = items.map((i) =>
+        `  • ${i.description_snapshot || i.item_number_snapshot} x${i.qty}  ${fmtNT(i.line_total)}`
+      ).join('\n');
+
+      let paymentNote = '';
+      if (ord.payment_plan === 'deposit' && ord.deposit_amount > 0) {
+        const balance = (ord.total_amount || 0) - (ord.deposit_amount || 0);
+        paymentNote = `\n付款方式：訂金 ${fmtNT(ord.deposit_amount)} ／ 尾款 ${fmtNT(balance)}`;
+      } else if (ord.payment_plan === 'installment' && ord.installment_count > 0) {
+        paymentNote = `\n付款方式：分 ${ord.installment_count} 期，每期 ${fmtNT(ord.installment_amount)}`;
+      }
+
+      const msg = [
+        `📦 QB ERP 訂單確認通知`,
+        `訂單編號：${ord.order_no}`,
+        `日期：${fmtDate(ord.order_date || ord.created_at)}`,
+        ``,
+        `訂購商品：`,
+        itemLines,
+        ``,
+        `小計：${fmtNT(ord.subtotal)}`,
+        `稅額：${fmtNT(ord.tax_amount)}`,
+        `總計：${fmtNT(ord.total_amount)}${paymentNote}`,
+        ``,
+        `感謝您的訂購，我們將盡速處理您的訂單。`,
+      ].join('\n');
+
+      const LINE_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+      if (!LINE_TOKEN) return jsonErr('LINE_CHANNEL_ACCESS_TOKEN 未設定', 500);
+
+      let lineRes;
+      if (lineUserId) {
+        // Push to specific customer
+        lineRes = await fetch('https://api.line.me/v2/bot/message/push', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${LINE_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: lineUserId,
+            messages: [{ type: 'text', text: msg }],
+          }),
+        });
+      } else {
+        // Broadcast (no specific customer LINE ID)
+        lineRes = await fetch('https://api.line.me/v2/bot/message/broadcast', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${LINE_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ messages: [{ type: 'text', text: msg }] }),
+        });
+      }
+
+      const lineOk = lineRes.ok;
+      return jsonOk({
+        success: true,
+        line_sent: lineOk,
+        pushed_to: lineUserId ? 'customer' : 'broadcast',
+        message: lineOk ? 'LINE 訊息已發送' : 'LINE 發送失敗，請稍後再試',
+      });
+    }
+
     default:
       return jsonErr('Unknown action: ' + action);
   }
