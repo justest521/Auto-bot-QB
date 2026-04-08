@@ -596,7 +596,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                 <div>
                   {isMobile ? null : (
                   /* Table header (desktop only) */
-                  <div style={{ display: 'grid', gridTemplateColumns: '32px minmax(100px,1fr) 95px 80px 100px 100px 120px 70px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '36px minmax(100px,1fr) 95px 80px 100px 100px 120px 70px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
                     <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}></div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>料號</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>單價</div>
                     <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>數量</div>
                     <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>庫存</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>小計</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>備註</div><div style={{ padding: '8px 10px' }}></div>
@@ -717,7 +717,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
 
                     return (
                       <div key={item.id}>
-                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '32px minmax(100px,1fr) 95px 80px 100px 100px 120px 70px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', fontSize: t.fontSize.body, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
+                      <div onClick={() => !isEditing && toggleItemSelect(item.id)} style={{ display: 'grid', gridTemplateColumns: '36px minmax(100px,1fr) 95px 80px 100px 100px 120px 70px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', fontSize: t.fontSize.body, cursor: isEditing ? 'default' : 'pointer', background: rowBg, opacity: hasPO && !isEditing ? 0.7 : 1, transition: 'background 0.1s' }} onMouseEnter={e => !isChecked && !isEditing && (e.currentTarget.style.background= hasPO ? '#fafafa' : '#f8fafc')} onMouseLeave={e => !isChecked && !isEditing && (e.currentTarget.style.background= isEditing ? '#fffbeb' : isChecked ? '#f0f7ff' : hasPO ? '#fafafa' : '#fff')}>
                         <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 40 }}>
                           {fullySold ? (
                             <span style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, color: '#16a34a' }}>✓ 已銷</span>
