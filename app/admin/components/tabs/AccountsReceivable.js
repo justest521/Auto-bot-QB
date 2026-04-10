@@ -106,12 +106,13 @@ export default function AccountsReceivable({ currentUser }) {
     if (!confirm(`確定${action}此筆收款？`)) return;
     try {
       await apiPost({ action: 'verify_payment', payment_id: paymentId, verified: !currentVerified });
-      // Reload detail to reflect change
+      // Reload detail + list to reflect change
       if (detailDialog) {
         const res = await apiGet({ action: 'invoice_allocations', invoice_id: detailDialog });
         setDetailData(res);
       }
       setMsg(`已${action}`);
+      load();
     } catch (e) { setMsg(e.message || `${action}失敗`); }
   };
 
@@ -361,15 +362,11 @@ export default function AccountsReceivable({ currentUser }) {
                     <button onClick={(e) => openPayDialog(ar, e)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: t.fontSize.tiny, color: t.color.link, borderColor: '#bfdbfe', whiteSpace: 'nowrap' }}>沖帳</button>
                   ) : <span style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.semibold }}>已沖</span>}
                 </div>
-                <div style={{ ...cell, borderRight: 'none', justifyContent: 'center' }} onClick={e => e.stopPropagation()}>
+                <div style={{ ...cell, borderRight: 'none', justifyContent: 'center' }}>
                   {ar.verified_status?.all_verified
-                    ? canVerify
-                      ? <button onClick={() => verifyOrderPayments(ar.order_id, true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.tiny, padding: 0, whiteSpace: 'nowrap' }}>✓ 已核帳</button>
-                      : <span style={{ color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.tiny }}>✓ 已核帳</span>
+                    ? <span style={{ color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.tiny }}>✓ 已核帳</span>
                     : ar.verified_status?.payment_count > 0
-                      ? canVerify
-                        ? <button onClick={() => verifyOrderPayments(ar.order_id, false)} style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: '#fff', background: '#2563eb', border: 'none', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>核帳</button>
-                        : <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>待核帳</span>
+                      ? <span style={{ fontSize: t.fontSize.tiny, color: '#d97706', fontWeight: t.fontWeight.semibold }}>待核帳</span>
                       : <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>—</span>
                   }
                 </div>
