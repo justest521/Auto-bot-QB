@@ -43,6 +43,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   const [timeline, setTimeline] = useState([]);
   const [showSaleForm, setShowSaleForm] = useState(false);
   const [saleItemQty, setSaleItemQty] = useState({});
+  const [saleShippingFee, setSaleShippingFee] = useState(0);
   const [editingItemId, setEditingItemId] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [showAddItem, setShowAddItem] = useState(false);
@@ -349,6 +350,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
     const qty = {};
     availableItems.forEach(i => { qty[i.id] = i.remaining_qty != null ? Number(i.remaining_qty) : (Number(i.qty) || 1); });
     setSaleItemQty(qty);
+    setSaleShippingFee(Number(order.shipping_fee || 0));
     setShowSaleForm(true);
   };
 
@@ -358,7 +360,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
     setProcessingAction('sale');
     setMsg('');
     try {
-      const result = await apiPost({ action: 'instock_to_sale', order_id: order.id, items: saleItems });
+      const result = await apiPost({ action: 'instock_to_sale', order_id: order.id, items: saleItems, shipping_fee: saleShippingFee });
       setMsg(`已建立銷貨單 ${result.sale?.slip_number || ''} (${result.processed_count} 項)，已自動核准`);
       setSelectedItemIds(new Set());
       setShowSaleForm(false);
@@ -1415,9 +1417,15 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
               </div>
             </div>
 
+            <div style={{ ...cardStyle, marginBottom: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary, whiteSpace: 'nowrap' }}>本次運費</span>
+              <input type="number" value={saleShippingFee} onChange={(e) => setSaleShippingFee(Math.max(0, Number(e.target.value) || 0))} style={{ ...S.input, width: 120, ...S.mono, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: '6px 10px', textAlign: 'right' }} min="0" />
+              <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>預設為訂單運費 {fmtP(order.shipping_fee)}，可改為 0 或其他金額</span>
+            </div>
+
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontSize: t.fontSize.h3, color: t.color.textSecondary }}>
-                合計：<strong style={{ color: '#059669', ...S.mono }}>{Object.entries(saleItemQty).reduce((s, [id, q]) => { const it = items.find(i => i.id === id); return s + (it ? Number(it.unit_price || 0) * Number(q || 0) : 0); }, 0).toLocaleString('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 })}</strong>
+                合計：<strong style={{ color: '#059669', ...S.mono }}>{(Object.entries(saleItemQty).reduce((s, [id, q]) => { const it = items.find(i => i.id === id); return s + (it ? Number(it.unit_price || 0) * Number(q || 0) : 0); }, 0) + saleShippingFee).toLocaleString('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 })}</strong>
               </div>
               <button onClick={confirmSaleConversion} disabled={processingAction === 'sale'} style={{ ...S.btnPrimary, padding: '12px 28px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, background: 'linear-gradient(135deg, #16a34a, #15803d)', opacity: processingAction === 'sale' ? 0.7 : 1 }}>
                 {processingAction === 'sale' ? '處理中...' : `確認轉銷貨 (${Object.values(saleItemQty).filter(q => Number(q) > 0).length} 項)`}
