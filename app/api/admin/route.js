@@ -324,7 +324,7 @@ export async function POST(request) {
 
   // ── Existing actions ──
   // 注入認證使用者資訊供 actions-post 使用（如 process_approval）
-  body.__auth_user = { id: auth.user.id, username: auth.user.username, display_name: auth.user.display_name };
+  body.__auth_user = { id: auth.user.id, username: auth.user.username, display_name: auth.user.display_name, role: auth.role.code };
   try {
     const result = await handlePostAction(action, body);
     if (result) return result;

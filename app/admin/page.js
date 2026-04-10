@@ -1112,7 +1112,7 @@ function AdminPageInner() {
           </div>
 
           <div className="qb-content" style={{ ...S.content, padding: isMobile ? '14px 12px 90px' : isTablet ? '22px 18px 34px' : S.content.padding }}>
-            {hasTab(tab) ? <ActiveTab setTab={setTab} apiGet={apiGet} apiPost={apiPost} erpFeatures={erpFeatures} setErpFeatures={setErpFeatures} /> : (
+            {hasTab(tab) ? <ActiveTab setTab={setTab} apiGet={apiGet} apiPost={apiPost} erpFeatures={erpFeatures} setErpFeatures={setErpFeatures} currentUser={currentUser} /> : (
               <div style={{ ...S.card, padding: 40, textAlign: 'center', maxWidth: 480, margin: '60px auto' }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>{'\uD83D\uDD12'}</div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 8 }}>權限不足</div>

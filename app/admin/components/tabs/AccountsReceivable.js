@@ -27,7 +27,8 @@ function StatCard({ code, label, value, tone }) {
 
 const AR_DEFAULT_WIDTHS = [40, 155, 120, 70, 100, 100, 75, 110, 100, 110, 65, 65];
 
-export default function AccountsReceivable() {
+export default function AccountsReceivable({ currentUser }) {
+  const canVerify = currentUser?.role === 'admin' || currentUser?.role === 'accountant';
   const { isMobile, isTablet } = useResponsive();
   const { gridTemplate: arGridTemplate, ResizableHeader: ARHeader } = useResizableColumns('ar_list', AR_DEFAULT_WIDTHS);
   const [data, setData] = useState({ rows: [], total: 0, summary: {} });
@@ -401,8 +402,12 @@ export default function AccountsReceivable() {
                       </div>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
                         {dep.verified
-                          ? <button onClick={() => verifyPayment(dep.id, true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.tiny, padding: 0 }}>✓ 已核帳</button>
-                          : <button onClick={() => verifyPayment(dep.id, false)} style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: '#fff', background: '#2563eb', border: 'none', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }}>核帳</button>
+                          ? canVerify
+                            ? <button onClick={() => verifyPayment(dep.id, true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.tiny, padding: 0 }}>✓ 已核帳</button>
+                            : <span style={{ color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.tiny }}>✓ 已核帳</span>
+                          : canVerify
+                            ? <button onClick={() => verifyPayment(dep.id, false)} style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: '#fff', background: '#2563eb', border: 'none', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }}>核帳</button>
+                            : <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>待核帳</span>
                         }
                         {dep.proof_url && <a href={dep.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 4, overflow: 'hidden', lineHeight: 0 }}><img src={dep.proof_url} alt="憑證" style={{ width: 60, height: 40, objectFit: 'cover' }} /></a>}
                       </div>
@@ -428,8 +433,12 @@ export default function AccountsReceivable() {
                           <td style={{ padding: '8px 12px', textAlign: 'center' }}>{dep.proof_url ? <a href={dep.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', border: '1px solid #d1d5db', borderRadius: 4, overflow: 'hidden', lineHeight: 0 }}><img src={dep.proof_url} alt="憑證" style={{ width: 48, height: 32, objectFit: 'cover' }} /></a> : <span style={{ color: '#d1d5db' }}>-</span>}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                             {dep.verified
-                              ? <button onClick={() => verifyPayment(dep.id, true)} title={dep.verified_by ? `${dep.verified_by} 核帳` : '點擊取消核帳'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.caption, padding: '2px 6px', borderRadius: 4 }}>✓ 已核帳</button>
-                              : <button onClick={() => verifyPayment(dep.id, false)} style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#fff', background: '#2563eb', border: 'none', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>核帳</button>
+                              ? canVerify
+                                ? <button onClick={() => verifyPayment(dep.id, true)} title={dep.verified_by ? `${dep.verified_by} 核帳` : '點擊取消核帳'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.caption, padding: '2px 6px', borderRadius: 4 }}>✓ 已核帳</button>
+                                : <span style={{ color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.caption }}>{dep.verified_by ? `✓ ${dep.verified_by}` : '✓ 已核帳'}</span>
+                              : canVerify
+                                ? <button onClick={() => verifyPayment(dep.id, false)} style={{ fontSize: t.fontSize.caption, fontWeight: t.fontWeight.semibold, color: '#fff', background: '#2563eb', border: 'none', borderRadius: 4, padding: '3px 10px', cursor: 'pointer' }}>核帳</button>
+                                : <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>待核帳</span>
                             }
                           </td>
                         </tr>
