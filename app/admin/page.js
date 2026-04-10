@@ -796,7 +796,7 @@ function AdminPageInner() {
         body > div:first-child{min-height:100vh;background:#f7f8fa}
         *{box-sizing:border-box}
       `}</style>
-      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      {/* Font now loaded via next/font in layout.js — self-hosted, preloaded */}
 
       <style>{`
         .qb-sb-item{transition:all 0.2s ease}
