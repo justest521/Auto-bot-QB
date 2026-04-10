@@ -369,6 +369,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 
   const [convertingStockIn, setConvertingStockIn] = useState(false);
   const handleConvertToStockIn = async () => {
+    if (convertingStockIn) return; // 防連點
     if (!confirm(`確定將採購單 ${po.po_no} 轉為進貨單？`)) return;
     setConvertingStockIn(true); setMsg('');
     try {
