@@ -7,7 +7,8 @@ import bcrypt from 'bcryptjs';
 import { publicLimiter, authLimiter } from '@/lib/security/rate-limit';
 import { safeSearch, escapePostgrestValue } from '@/lib/security/sanitize';
 
-const DEALER_TOKEN_SECRET = process.env.DEALER_SECRET || process.env.DEALER_SALT || 'qb-dealer-token-secret';
+const DEALER_TOKEN_SECRET = process.env.DEALER_SECRET || process.env.DEALER_SALT;
+if (!DEALER_TOKEN_SECRET) console.warn('[SECURITY] DEALER_SECRET / DEALER_SALT 環境變數未設定，經銷商 token 功能將無法運作');
 
 /** Hash password with bcrypt (for new passwords / password changes) */
 async function hashPasswordBcrypt(password) {
