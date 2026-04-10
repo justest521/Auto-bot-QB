@@ -25,7 +25,7 @@ function StatCard({ code, label, value, tone }) {
   );
 }
 
-const AR_DEFAULT_WIDTHS = [40, 155, 120, 70, 100, 100, 75, 110, 100, 110, 65, 65];
+const AR_DEFAULT_WIDTHS = [40, 155, 120, 70, 100, 100, 75, 110, 100, 110, 65, 65, 70];
 
 export default function AccountsReceivable({ currentUser }) {
   const canVerify = currentUser?.role === 'admin' || currentUser?.role === 'accountant';
@@ -89,6 +89,16 @@ export default function AccountsReceivable({ currentUser }) {
       setDetailData(res);
       setDetailDialog(invoiceId);
     } catch (e) { setMsg('無法載入沖帳記錄'); }
+  };
+
+  const verifyOrderPayments = async (orderId, currentVerified) => {
+    const action = currentVerified ? '取消核帳' : '核帳';
+    if (!confirm(`確定${action}此訂單所有收款？`)) return;
+    try {
+      await apiPost({ action: 'verify_order_payments', order_id: orderId, verified: !currentVerified });
+      setMsg(`已${action}`);
+      load();
+    } catch (e) { setMsg(e.message || `${action}失敗`); }
   };
 
   const verifyPayment = async (paymentId, currentVerified) => {
@@ -289,6 +299,7 @@ export default function AccountsReceivable({ currentUser }) {
               { key: '_balance', label: '未沖餘額', align: 'right' },
               { key: '_overdue', label: '逾期天數', align: 'center' },
               { key: null, label: '操作', align: 'center' },
+              { key: null, label: '核帳', align: 'center' },
             ];
             return (
               <div style={{ display: 'grid', gridTemplateColumns: arGridTemplate, borderBottom: '2px solid #d1d5db', background: '#f3f4f6' }}>
@@ -345,10 +356,22 @@ export default function AccountsReceivable({ currentUser }) {
                 <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.brand, ...S.mono }}>{fmtP(paidDisplay)}</div>
                 <div style={{ ...cRight, fontSize: t.fontSize.body, fontWeight: t.fontWeight.bold, color: balance > 0 ? t.color.error : t.color.brand, ...S.mono }}>{fmtP(balance)}</div>
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: daysOverdue > 0 ? t.color.error : t.color.textMuted, fontWeight: daysOverdue > 0 ? 600 : 400 }}>{daysOverdue > 0 ? daysOverdue : '-'}</div>
-                <div style={{ ...cellLast, gap: 4 }} onClick={e => e.stopPropagation()}>
+                <div style={{ ...cell, justifyContent: 'center', gap: 4 }} onClick={e => e.stopPropagation()}>
                   {ar.payment_status !== 'paid' && ar.payment_status !== 'cancelled' ? (
                     <button onClick={(e) => openPayDialog(ar, e)} style={{ ...S.btnGhost, padding: '3px 8px', fontSize: t.fontSize.tiny, color: t.color.link, borderColor: '#bfdbfe', whiteSpace: 'nowrap' }}>沖帳</button>
                   ) : <span style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.semibold }}>已沖</span>}
+                </div>
+                <div style={{ ...cell, borderRight: 'none', justifyContent: 'center' }} onClick={e => e.stopPropagation()}>
+                  {ar.verified_status?.all_verified
+                    ? canVerify
+                      ? <button onClick={() => verifyOrderPayments(ar.order_id, true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.tiny, padding: 0, whiteSpace: 'nowrap' }}>✓ 已核帳</button>
+                      : <span style={{ color: '#059669', fontWeight: t.fontWeight.bold, fontSize: t.fontSize.tiny }}>✓ 已核帳</span>
+                    : ar.verified_status?.payment_count > 0
+                      ? canVerify
+                        ? <button onClick={() => verifyOrderPayments(ar.order_id, false)} style={{ fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.semibold, color: '#fff', background: '#2563eb', border: 'none', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>核帳</button>
+                        : <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>待核帳</span>
+                      : <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>—</span>
+                  }
                 </div>
               </div>
             );
