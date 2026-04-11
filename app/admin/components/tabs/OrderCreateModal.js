@@ -187,9 +187,10 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
   };
 
   const subtotal = form.items.reduce((sum, item) => sum + (Number(item.qty || 0) * Number(item.unit_price || 0)), 0);
-  const taxableBase = Math.max(0, subtotal - Number(form.discount_amount || 0) + Number(form.shipping_fee || 0));
+  const taxableBase = Math.max(0, subtotal - Number(form.discount_amount || 0));
+  const shipping = Number(form.shipping_fee || 0);
   const taxAmount = form.tax_excluded ? Math.round(taxableBase * 0.05) : 0;
-  const totalAmount = taxableBase + taxAmount;
+  const totalAmount = taxableBase + taxAmount + shipping;
 
   const submit = async () => {
     if (!tableReady) {

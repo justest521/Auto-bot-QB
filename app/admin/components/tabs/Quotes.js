@@ -604,9 +604,9 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                   const noTaxTotal = isTaxInc ? Math.round(rawSubtotal / 1.05) : rawSubtotal;
                   const discount = Number(q.discount_amount || 0);
                   const shipping = Number(q.shipping_fee || 0);
-                  const taxableBase = Math.max(0, noTaxTotal - discount + shipping);
+                  const taxableBase = Math.max(0, noTaxTotal - discount);
                   const taxTotal = Math.round(taxableBase * 0.05);
-                  const grandTotal = taxableBase + taxTotal;
+                  const grandTotal = taxableBase + taxTotal + shipping;
                   return (<>
                     <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
                       <span style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>未稅小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(noTaxTotal)}</strong></span>
