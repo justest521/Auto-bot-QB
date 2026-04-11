@@ -158,7 +158,8 @@ export default function Approvals() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {filtered.map(a => {
               const st = STATUS_MAP[a.status] || STATUS_MAP.pending;
-              const customerName = a.customer?.company_name || a.customer?.name || a.vendor?.company_name || a.vendor?.name || '';
+              const customerName = a.customer?.company_name || a.customer?.name || '';
+              const vendorName = a.vendor?.company_name || a.vendor?.name || '';
               const isExpanded = expandedId === a.id;
               const items = a.items || [];
               return (
@@ -175,7 +176,8 @@ export default function Approvals() {
                         <span style={{ ...S.mono, fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, color: t.color.textMuted }}>{a.doc_no || a.doc_id}</span>
                       </div>
                       <div style={{ fontSize: isMobile ? t.fontSize.tiny : t.fontSize.tiny, color: t.color.textDisabled, marginTop: 2, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        {customerName && <span style={{ color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{customerName}</span>}
+                        {customerName && <span style={{ color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>客戶：{customerName}</span>}
+                        {vendorName && <span style={{ color: '#8b5cf6', fontWeight: t.fontWeight.semibold }}>廠商：{vendorName}</span>}
                         <span>申請人：{a.requested_by || '-'}</span>
                         <span>{a.created_at?.slice(0, 10)}</span>
                       </div>
