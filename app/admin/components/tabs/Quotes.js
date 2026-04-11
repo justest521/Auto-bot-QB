@@ -649,20 +649,13 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
             ))}
           </div>
 
-          {/* 3. 負責業務 */}
+          {/* 3. 負責業務（下拉選單） */}
           <div style={{ ...cardStyle, marginBottom: 0, padding: '10px 16px' }}>
             <div style={labelStyle}>負責業務</div>
-            {editingSales ? (
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <select value={q.sales_person || ''} onChange={(e) => updateSalesPerson(e.target.value)} style={{ ...S.input, fontSize: t.fontSize.body, flex: 1 }}>
-                  <option value="">-- 未指定 --</option>
-                  {(salesUsers || []).map(u => <option key={u.id} value={u.display_name}>{u.display_name}</option>)}
-                </select>
-                <button onClick={() => setEditingSales(false)} style={{ ...S.btnGhost, padding: '4px 8px', fontSize: t.fontSize.tiny }}>完成</button>
-              </div>
-            ) : (
-              <span onClick={() => isEditable && setEditingSales(true)} style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, color: isEditable ? '#3b82f6' : q.sales_person ? '#111827' : '#9ca3af', cursor: isEditable ? 'pointer' : 'default' }}>{q.sales_person || '未指派'}</span>
-            )}
+            <select value={q.sales_person || ''} onChange={(e) => updateSalesPerson(e.target.value)} style={{ ...S.input, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, padding: '4px 8px', width: '100%', cursor: 'pointer' }}>
+              <option value="">-- 選擇業務 --</option>
+              {(salesUsers || []).map(u => <option key={u.id} value={u.display_name || u.username}>{u.display_name || u.username}</option>)}
+            </select>
           </div>
 
           {/* 4. 進度 timeline */}

@@ -406,7 +406,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
                   <label style={{ ...S.label, marginBottom: 6 }}>負責業務</label>
                   <select value={form.sales_person} onChange={(e) => setForm((current) => ({ ...current, sales_person: e.target.value }))} style={{ ...S.input, ...S.mobile.input }}>
                     <option value="">-- 選擇業務 --</option>
-                    {staffList.map(s => <option key={s.id || s.name} value={s.name}>{s.name}</option>)}
+                    {staffList.map(s => <option key={s.id || s.username} value={s.display_name || s.name || s.username}>{s.display_name || s.name || s.username}</option>)}
                   </select>
                 </div>
                 <div><label style={{ ...S.label, marginBottom: 6 }}>備註</label><textarea value={form.remark} onChange={(e) => setForm((current) => ({ ...current, remark: e.target.value }))} rows={4} style={{ ...S.input, ...S.mobile.input, resize: 'vertical' }} /></div>
