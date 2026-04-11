@@ -20,7 +20,7 @@ const STOCK_BADGE = {
 };
 
 // ========== 訂單詳情頁 ==========
-const ORDER_DETAIL_WIDTHS = [36, 200, 95, 80, 100, 100, 120, 80];
+const ORDER_DETAIL_WIDTHS = [36, 200, 95, 80, 100, 110, 80, 110, 100, 80];
 function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatures = {} }) {
   const { isMobile, isTablet } = useResponsive();
   const { gridTemplate: detailGrid, ResizableHeader: DetailHeader } = useResizableColumns('order_detail_items', ORDER_DETAIL_WIDTHS);
@@ -606,7 +606,9 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                     { label: '單價', align: 'right' },
                     { label: '數量', align: 'center' },
                     { label: '庫存', align: 'center' },
-                    { label: '小計', align: 'right' },
+                    { label: '未稅金額', align: 'right' },
+                    { label: '稅金', align: 'right' },
+                    { label: '含稅金額', align: 'right' },
                     { label: '備註' },
                     { label: '' },
                   ]} />
@@ -773,7 +775,18 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                             </span>
                           )}
                         </div>
-                        <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: '#059669', fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(item.line_total || item.unit_price * item.qty)}</div>
+                        {(() => {
+                          const total = Number(item.line_total || item.unit_price * item.qty || 0);
+                          const isTaxInc = order.tax_inclusive;
+                          const noTax = isTaxInc ? Math.round(total / 1.05) : total;
+                          const tax = isTaxInc ? total - noTax : Math.round(total * 0.05);
+                          const incTax = isTaxInc ? total : total + tax;
+                          return (<>
+                            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: t.color.textSecondary, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(noTax)}</div>
+                            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: t.color.textMuted, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(tax)}</div>
+                            <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: '#059669', fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(incTax)}</div>
+                          </>);
+                        })()}
                         <div onClick={(e) => !cannotEdit && !isEditing && startEditItem(item, e)} style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', fontSize: t.fontSize.h3, color: t.color.textMuted, cursor: cannotEdit || isEditing ? 'default' : 'pointer', overflow: 'hidden' }} onMouseEnter={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = '#f3f4f6')} onMouseLeave={(e) => !cannotEdit && !isEditing && (e.currentTarget.style.background = 'transparent')}>
                           {isEditing ? (
                             <input type="text" value={editValues.item_note} onChange={(e) => setEditValues({ ...editValues, item_note: e.target.value })} style={{ ...inputStyle, textAlign: 'left' }} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} placeholder="備註" />
@@ -893,18 +906,28 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                           </div>
                         </>
                       ) : (
-                        <>
-                          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
-                            <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(order.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0))}</strong></span>
-                            {order.discount_amount > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.error }}>折扣 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, fontWeight: t.fontWeight.semibold }}>-{fmtP(order.discount_amount)}</strong></span>}
-                            {order.shipping_fee > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>運費 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(order.shipping_fee)}</strong></span>}
-                            {order.tax_amount > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>稅金 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(order.tax_amount)}</strong></span>}
-                          </div>
-                          <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 20, textAlign: 'right' }}>
-                            <span style={{ fontSize: t.fontSize.caption, color: t.color.brand, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>合計</span>
-                            <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(order.total_amount || 0)}</span>
-                          </div>
-                        </>
+                        {(() => {
+                          const rawSubtotal = Number(order.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0));
+                          const isTaxInc = order.tax_inclusive;
+                          const noTaxTotal = isTaxInc ? Math.round(rawSubtotal / 1.05) : rawSubtotal;
+                          const discount = Number(order.discount_amount || 0);
+                          const shipping = Number(order.shipping_fee || 0);
+                          const taxableBase = Math.max(0, noTaxTotal - discount);
+                          const taxTotal = Math.round(taxableBase * 0.05);
+                          const grandTotal = taxableBase + taxTotal + shipping;
+                          return (<>
+                            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
+                              <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>未稅小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(noTaxTotal)}</strong></span>
+                              {discount > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.error }}>折扣 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, fontWeight: t.fontWeight.semibold }}>-{fmtP(discount)}</strong></span>}
+                              {shipping > 0 && <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>運費 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(shipping)}</strong></span>}
+                              <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>稅金 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(taxTotal)}</strong></span>
+                            </div>
+                            <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 20, textAlign: 'right' }}>
+                              <span style={{ fontSize: t.fontSize.caption, color: t.color.brand, fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>含稅合計</span>
+                              <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(grandTotal)}</span>
+                            </div>
+                          </>);
+                        })()}
                       )}
                     </div>
                   </div>
