@@ -998,10 +998,28 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
               ))}
             </div>
 
-            {/* 2.5 Sales person */}
+            {/* 2.5 Sales person (editable) */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>負責業務</div>
-              <span style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, color: order.sales_person ? '#111827' : '#9ca3af' }}>{order.sales_person || '未指派'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input
+                  type="text"
+                  defaultValue={order.sales_person || ''}
+                  placeholder="輸入業務名稱..."
+                  onBlur={async (e) => {
+                    const val = e.target.value.trim();
+                    if (val !== (order.sales_person || '')) {
+                      try {
+                        await apiPost({ action: 'update_order_sales_person', order_id: order.id, sales_person: val });
+                        setMsg('業務已更新');
+                        refreshOrderData();
+                      } catch (err) { setMsg(err.message || '更新失敗'); }
+                    }
+                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                  style={{ ...S.input, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, padding: '4px 8px', width: '100%' }}
+                />
+              </div>
             </div>
 
             {/* 3. Combined Order Record — progress + sales + POs + timeline */}
