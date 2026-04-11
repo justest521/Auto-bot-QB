@@ -25,7 +25,7 @@ function StatCard({ code, label, value, tone }) {
   );
 }
 
-const AR_DEFAULT_WIDTHS = [40, 155, 120, 70, 100, 100, 75, 110, 100, 110, 65, 65, 70];
+const AR_DEFAULT_WIDTHS = [40, 155, 120, 70, 90, 90, 100, 75, 100, 90, 100, 65, 65, 70];
 
 export default function AccountsReceivable({ currentUser }) {
   const canVerify = currentUser?.role === 'admin' || currentUser?.role === 'accountant';
@@ -292,7 +292,8 @@ export default function AccountsReceivable({ currentUser }) {
               { key: 'invoice_no', label: '應收單號', align: 'left' },
               { key: 'customer_name', label: '客戶', align: 'left' },
               { key: 'sales_person', label: '業務', align: 'center' },
-              { key: 'invoice_date', label: '開單日', align: 'center' },
+              { key: 'sale_date', label: '銷貨日期', align: 'center' },
+              { key: 'invoice_date', label: '發票日期', align: 'center' },
               { key: 'due_date', label: '到期日', align: 'center' },
               { key: 'payment_status', label: '狀態', align: 'center' },
               { key: 'total_amount', label: '應收金額', align: 'right' },
@@ -350,6 +351,7 @@ export default function AccountsReceivable({ currentUser }) {
                 <div style={{ ...cell, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{ar.invoice_no || '-'}</div>
                 <div style={cell}><span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ar.customer_name || '-'}</span></div>
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary }}>{ar.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>
+                <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{ar.sale_date?.slice(0, 10) || '-'}</div>
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{ar.invoice_date?.slice(0, 10) || '-'}</div>
                 <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{ar.due_date?.slice(0, 10) || '-'}</div>
                 <div style={cCenter}><span style={S.tag(ar.payment_status === 'paid' ? 'green' : ar.payment_status === 'partial' ? 'yellow' : ar.payment_status === 'overdue' ? 'red' : 'gray')}>{st.label}</span></div>
