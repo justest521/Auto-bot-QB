@@ -787,7 +787,7 @@ export default function Quotes({ setTab }) {
         { key: 'status', label: '狀態' },
         { key: 'quote_date', label: '報價日期' },
         { key: 'valid_until', label: '有效期限' },
-        { key: 'total_amount', label: '總金額' },
+        { key: 'total_amount', label: '含稅金額' },
         { key: 'remark', label: '備註' },
       ];
       exportCsv(result.rows || [], columns, `報價單_${new Date().toISOString().slice(0, 10)}.csv`);
@@ -882,7 +882,7 @@ export default function Quotes({ setTab }) {
 
                   <div>
                     <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>{row.tax_inclusive ? '含稅小計' : '含稅合計'}</div>
-                    <div style={{ fontSize: t.fontSize.h2, color: '#059669', fontWeight: 800, ...S.mono }}>{fmtP(row.tax_inclusive ? row.total_amount : (row.subtotal || row.total_amount))}</div>
+                    <div style={{ fontSize: t.fontSize.h2, color: '#059669', fontWeight: 800, ...S.mono }}>{fmtP(row.total_amount || 0)}</div>
                   </div>
 
                   {row.remark && (
@@ -918,7 +918,7 @@ export default function Quotes({ setTab }) {
               { label: '業務', align: 'center' },
               { label: '日期', align: 'center' },
               { label: '狀態', align: 'center' },
-              { label: '總金額', align: 'center' },
+              { label: '含稅金額', align: 'center' },
               { label: '備註', align: 'center' },
               { label: '操作', align: 'center' },
             ]} />
@@ -942,7 +942,7 @@ export default function Quotes({ setTab }) {
                   {!isTablet && <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{row.sales_person || <span style={{ color: '#d1d5db' }}>—</span>}</div>}
                   <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textSecondary, ...S.mono, whiteSpace: 'nowrap' }}>{row.quote_date || '-'}</div>
                   <div style={cCenter}><span style={S.tag(QUOTE_STATUS_TONE[statusKey] || '')}>{QUOTE_STATUS_MAP[statusKey] || statusKey}</span></div>
-                  {!isTablet && <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.tax_inclusive ? row.total_amount : (row.subtotal || row.total_amount))}</div>}
+                  {!isTablet && <div style={{ ...cRight, fontSize: t.fontSize.body, color: t.color.success, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap' }}>{fmtP(row.total_amount || 0)}</div>}
                   {!isTablet && <div style={{ ...cell, fontSize: t.fontSize.body, color: t.color.textSecondary }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.remark || '-'}</span></div>}
                   <div style={{ ...cellLast, gap: 4, flexWrap: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => duplicateQuote(row)} title="複製報價單" style={{ ...S.btnGhost, padding: '4px 6px', fontSize: t.fontSize.tiny, whiteSpace: 'nowrap' }}>複製</button>
