@@ -255,7 +255,7 @@ export default function StockIn() {
 
   const load = useCallback(async (page = 1, q = search, st = statusF, df = dateFrom, dt = dateTo, vf = vendorF) => {
     setLoading(true);
-    try { setData(await apiGet({ action: 'stock_ins', page: String(page), search: q, status: st, date_from: df, date_to: dt, vendor_id: vf || undefined })); setCheckedIds(new Set()); } finally { setLoading(false); }
+    try { const params = { action: 'stock_ins', page: String(page), search: q, status: st, date_from: df, date_to: dt }; if (vf) params.vendor_id = vf; setData(await apiGet(params)); setCheckedIds(new Set()); } finally { setLoading(false); }
   }, [search, statusF, dateFrom, dateTo, vendorF]);
   useEffect(() => { load(); }, []);
 
@@ -285,7 +285,8 @@ export default function StockIn() {
         // Export selected rows only
         rows = data.rows.filter(r => checkedIds.has(r.id));
       } else {
-        const result = await apiGet({ action: 'stock_ins', page: '1', search, status: statusF, date_from: dateFrom, date_to: dateTo, vendor_id: vendorF || undefined, limit: '9999', export: 'true' });
+        const exportParams = { action: 'stock_ins', page: '1', search, status: statusF, date_from: dateFrom, date_to: dateTo, limit: '9999', export: 'true' }; if (vendorF) exportParams.vendor_id = vendorF;
+        const result = await apiGet(exportParams);
         rows = result.rows || [];
       }
       const columns = [
