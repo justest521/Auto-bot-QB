@@ -447,8 +447,8 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
           ) : (
             // Desktop table layout
             <div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 100px 120px 70px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
-                <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>料號</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>單價</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>數量</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>庫存</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>小計</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>備註</div><div style={{ padding: '8px 10px' }}></div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 90px 70px 90px 100px 70px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
+                <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>料號</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>單價</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>數量</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>庫存</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>未稅金額</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>稅金</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>含稅金額</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>備註</div><div style={{ padding: '8px 10px' }}></div>
               </div>
               {items.map((item) => {
                 const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
@@ -457,7 +457,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                 const rowBg = isEditing ? '#fffbeb' : '#fff';
                 return (
                   <div key={item.id || item.item_number_snapshot}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 100px 120px 70px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', fontSize: t.fontSize.body, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 90px 70px 90px 100px 70px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', fontSize: t.fontSize.body, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
                     <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number_snapshot || '-'} — ${item.description_snapshot || ''}`}>
                       {item.item_number_snapshot || '-'}
                     </div>
@@ -477,7 +477,18 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                         {badge.label}
                       </span>}
                     </div>
-                    <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: '#059669', fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(item.line_total)}</div>
+                    {(() => {
+                      const total = Number(item.line_total || 0);
+                      const isTaxInc = q.tax_inclusive;
+                      const noTax = isTaxInc ? Math.round(total / 1.05) : total;
+                      const tax = isTaxInc ? total - noTax : Math.round(total * 0.05);
+                      const incTax = isTaxInc ? total : total + tax;
+                      return (<>
+                        <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: t.color.textSecondary, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(noTax)}</div>
+                        <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: t.color.textMuted, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(tax)}</div>
+                        <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: '#059669', fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(incTax)}</div>
+                      </>);
+                    })()}
                     <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', fontSize: t.fontSize.h3, color: t.color.textMuted, cursor: isEditable && !isEditing ? 'pointer' : 'default', overflow: 'hidden' }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
                       {isEditing ? (
                         <input type="text" value={editValues.item_note} onChange={e => setEditValues({ ...editValues, item_note: e.target.value })} style={{ ...inputStyle, textAlign: 'left' }} onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} placeholder="備註" />
@@ -587,18 +598,28 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                   </div>
                 </>
               ) : (
-                <>
-                  <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(q.subtotal || items.reduce((s, i) => s + (i.line_total || 0), 0))}</strong></span>
-                    {Number(q.discount_amount) > 0 && <span style={{ fontSize: t.fontSize.body, color: t.color.error }}>折扣 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, fontWeight: t.fontWeight.semibold }}>-{fmtP(q.discount_amount)}</strong></span>}
-                    {Number(q.shipping_fee) > 0 && <span style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>運費 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(q.shipping_fee)}</strong></span>}
-                    {Number(q.tax_amount) > 0 && <span style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>稅額 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(q.tax_amount)}</strong></span>}
-                  </div>
-                  <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 20, textAlign: 'right' }}>
-                    <span style={{ fontSize: t.fontSize.tiny, color: '#16a34a', fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>合計</span>
-                    <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(q.total_amount || 0)}</span>
-                  </div>
-                </>
+                {(() => {
+                  const rawSubtotal = Number(q.subtotal || items.reduce((s, i) => s + (i.line_total || 0), 0));
+                  const isTaxInc = q.tax_inclusive;
+                  const noTaxTotal = isTaxInc ? Math.round(rawSubtotal / 1.05) : rawSubtotal;
+                  const discount = Number(q.discount_amount || 0);
+                  const shipping = Number(q.shipping_fee || 0);
+                  const taxableBase = Math.max(0, noTaxTotal - discount + shipping);
+                  const taxTotal = Math.round(taxableBase * 0.05);
+                  const grandTotal = taxableBase + taxTotal;
+                  return (<>
+                    <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
+                      <span style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>未稅小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(noTaxTotal)}</strong></span>
+                      {discount > 0 && <span style={{ fontSize: t.fontSize.body, color: t.color.error }}>折扣 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, fontWeight: t.fontWeight.semibold }}>-{fmtP(discount)}</strong></span>}
+                      {shipping > 0 && <span style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>運費 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(shipping)}</strong></span>}
+                      <span style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>稅金 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(taxTotal)}</strong></span>
+                    </div>
+                    <div style={{ borderLeft: '2px solid #a7f3d0', paddingLeft: 20, textAlign: 'right' }}>
+                      <span style={{ fontSize: t.fontSize.tiny, color: '#16a34a', fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>含稅合計</span>
+                      <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(grandTotal)}</span>
+                    </div>
+                  </>);
+                })()}
               )}
             </div>
           </div>
