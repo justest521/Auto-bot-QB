@@ -52,7 +52,7 @@ export function OrderCreateModal({ open, onClose, onCreated, tableReady = true }
   });
 
   useEffect(() => {
-    apiGet({ action: 'staff_list' }).then(res => setStaffList(res.staff || [])).catch(() => {});
+    apiGet({ action: 'list_admin_users' }).then(res => setStaffList(res.users || [])).catch(() => {});
   }, []);
 
   useEffect(() => {
