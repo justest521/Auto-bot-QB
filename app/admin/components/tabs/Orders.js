@@ -906,7 +906,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                           </div>
                         </>
                       ) : (
-                        {(() => {
+                        (() => {
                           const rawSubtotal = Number(order.subtotal || items.reduce((s, i) => s + (i.line_total || i.unit_price * i.qty || 0), 0));
                           const isTaxInc = order.tax_inclusive;
                           const noTaxTotal = isTaxInc ? Math.round(rawSubtotal / 1.05) : rawSubtotal;
@@ -927,7 +927,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
                               <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(grandTotal)}</span>
                             </div>
                           </>);
-                        })()}
+                        })()
                       )}
                     </div>
                   </div>
