@@ -353,9 +353,15 @@ export default function StockIn() {
                   <span style={S.mobileCardValue}>{r.vendor_name || '-'}</span>
                 </div>
                 <div style={S.mobileCardRow}>
-                  <span style={S.mobileCardLabel}>金額</span>
-                  <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: t.fontWeight.bold }}>
+                  <span style={S.mobileCardLabel}>未稅金額</span>
+                  <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: t.fontWeight.semibold, color: t.color.textSecondary }}>
                     {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: t.color.border }}>-</span>}
+                  </span>
+                </div>
+                <div style={S.mobileCardRow}>
+                  <span style={S.mobileCardLabel}>含稅金額</span>
+                  <span style={{ ...S.mobileCardValue, ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.success }}>
+                    {r.total_amount ? fmtP(Math.round(Number(r.total_amount) * 1.05)) : <span style={{ color: t.color.border }}>-</span>}
                   </span>
                 </div>
                 <div style={S.mobileCardRow}>
@@ -384,7 +390,8 @@ export default function StockIn() {
                     <th style={thStyle}>進貨單號</th>
                     <th style={thStyle}>日期</th>
                     <th style={thStyle}>廠商</th>
-                    <th style={{ ...thStyle, textAlign: 'right' }}>金額</th>
+                    <th style={{ ...thStyle, textAlign: 'right' }}>未稅金額</th>
+                    <th style={{ ...thStyle, textAlign: 'right' }}>含稅金額</th>
                     <th style={{ ...thStyle, textAlign: 'center', width: 80 }}>狀態</th>
                     <th style={thStyle}>備註</th>
                     <th style={{ ...thStyle, textAlign: 'right', width: 100, borderRight: 'none' }}></th>
@@ -403,8 +410,11 @@ export default function StockIn() {
                       </td>
                       <td style={{ ...tdStyle, ...S.mono, fontSize: t.fontSize.body }}>{fmtDateOnly(r.stock_in_date)}</td>
                       <td style={{ ...tdStyle, fontSize: t.fontSize.body, color: t.color.textSecondary }}>{r.vendor_name || '-'}</td>
-                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.bold, fontSize: t.fontSize.h3 }}>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.semibold, fontSize: t.fontSize.body, color: t.color.textSecondary }}>
                         {r.total_amount ? fmtP(r.total_amount) : <span style={{ color: t.color.border }}>-</span>}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.bold, fontSize: t.fontSize.body, color: t.color.success }}>
+                        {r.total_amount ? fmtP(Math.round(Number(r.total_amount) * 1.05)) : <span style={{ color: t.color.border }}>-</span>}
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'center' }}>
                         <span style={S.tag(r.status === 'confirmed' ? 'green' : 'default')}>
