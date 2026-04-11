@@ -47,6 +47,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
   const [editingItemId, setEditingItemId] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [staffList, setStaffList] = useState([]);
+  const [localSalesPerson, setLocalSalesPerson] = useState(order.sales_person || '');
   const [showAddItem, setShowAddItem] = useState(false);
   const [addSearch, setAddSearch] = useState('');
   const [addResults, setAddResults] = useState([]);
@@ -1005,14 +1006,15 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={labelStyle}>負責業務</div>
               <select
-                value={order.sales_person || ''}
+                value={localSalesPerson}
                 onChange={async (e) => {
                   const val = e.target.value;
+                  setLocalSalesPerson(val);
                   try {
                     await apiPost({ action: 'update_order_sales_person', order_id: order.id, sales_person: val });
                     setMsg('業務已更新');
                     refreshOrderData();
-                  } catch (err) { setMsg(err.message || '更新失敗'); }
+                  } catch (err) { setMsg(err.message || '更新失敗'); setLocalSalesPerson(order.sales_person || ''); }
                 }}
                 style={{ ...S.input, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, padding: '4px 8px', width: '100%', cursor: 'pointer' }}
               >
