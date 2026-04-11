@@ -304,7 +304,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
               <span style={{ padding: '3px 10px', borderRadius: 10, fontSize: t.fontSize.tiny, fontWeight: t.fontWeight.bold, background: `${QUOTE_STATUS_COLOR[statusKey] || '#6b7280'}14`, color: QUOTE_STATUS_COLOR[statusKey] || '#6b7280', border: `1px solid ${QUOTE_STATUS_COLOR[statusKey] || '#6b7280'}30` }}>
                 {QUOTE_STATUS_MAP[statusKey] || statusKey}
               </span>
-              <span style={{ fontSize: t.fontSize.tiny, background: q.tax_inclusive ? '#f3f4f6' : '#fef3c7', color: q.tax_inclusive ? '#6b7280' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3 }}>{q.tax_inclusive ? '含稅' : '外加5%'}</span>
+              <span style={{ fontSize: t.fontSize.tiny, background: q.tax_inclusive ? '#dcfce7' : '#fef3c7', color: q.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3 }}>{q.tax_inclusive ? '含稅' : '外加5%'}</span>
             </div>
             <div style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginTop: 4, ...S.mono }}>{q.quote_date || '-'}</div>
           </div>
@@ -942,7 +942,7 @@ export default function Quotes({ setTab }) {
                     <input type="checkbox" checked={isChecked} onChange={() => { setCheckedIds(prev => { const next = new Set(prev); if (next.has(row.id)) next.delete(row.id); else next.add(row.id); return next; }); }} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#3b82f6' }} />
                   </div>
                   <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.textMuted, ...S.mono }}>{((data.page - 1) * (data.limit || pageSize)) + idx + 1}</div>
-                  <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', gap: 4 }}>{row.quote_no || '-'}<span style={{ fontSize: t.fontSize.tiny, background: row.tax_inclusive ? '#f3f4f6' : '#fef3c7', color: row.tax_inclusive ? '#6b7280' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '外加5%'}</span></div>
+                  <div style={{ ...cCenter, fontSize: t.fontSize.body, color: t.color.link, fontWeight: t.fontWeight.bold, ...S.mono, whiteSpace: 'nowrap', textOverflow: 'ellipsis', gap: 4 }}>{row.quote_no || '-'}<span style={{ fontSize: t.fontSize.tiny, background: row.tax_inclusive ? '#dcfce7' : '#fef3c7', color: row.tax_inclusive ? '#15803d' : '#92400e', padding: '1px 5px', borderRadius: 4, fontWeight: t.fontWeight.semibold, letterSpacing: 0.3, flexShrink: 0 }}>{row.tax_inclusive ? '含稅' : '外加5%'}</span></div>
                   <div style={cell}>
                     <span style={{ fontSize: t.fontSize.body, color: t.color.textPrimary, fontWeight: t.fontWeight.semibold, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.customer?.company_name || row.customer?.name || '未綁定客戶'}</span>
                   </div>
