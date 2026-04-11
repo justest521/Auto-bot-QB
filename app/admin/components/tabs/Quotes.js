@@ -598,7 +598,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                   </div>
                 </>
               ) : (
-                {(() => {
+                (() => {
                   const rawSubtotal = Number(q.subtotal || items.reduce((s, i) => s + (i.line_total || 0), 0));
                   const isTaxInc = q.tax_inclusive;
                   const noTaxTotal = isTaxInc ? Math.round(rawSubtotal / 1.05) : rawSubtotal;
@@ -619,7 +619,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                       <span style={{ ...S.mono, fontSize: 28, fontWeight: 900, color: '#059669', letterSpacing: -1 }}>{fmtP(grandTotal)}</span>
                     </div>
                   </>);
-                })()}
+                })()
               )}
             </div>
           </div>
