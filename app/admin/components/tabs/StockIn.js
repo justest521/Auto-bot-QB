@@ -223,6 +223,8 @@ export default function StockIn() {
   const [form, setForm] = useState({ vendor_id: '', po_id: '', remark: '' });
   const [items, setItems] = useState([{ item_number: '', description: '', qty_received: 1, unit_cost: 0, line_total: 0, unit: '' }]);
   const [detailId, setDetailId] = useState(null);
+  const [checkedIds, setCheckedIds] = useState(new Set());
+  const [vendorF, setVendorF] = useState('');
   const [vendors, setVendors] = useState([]);
   const [newVendorMode, setNewVendorMode] = useState(false);
   const [newVendorForm, setNewVendorForm] = useState({ vendor_name: '', contact_name: '', phone: '', mobile: '', tax_id: '', address: '', email: '', remark: '' });
@@ -251,10 +253,10 @@ export default function StockIn() {
     else { const range = getPresetDateRange(preset); setDateFrom(range.from); setDateTo(range.to); }
   };
 
-  const load = useCallback(async (page = 1, q = search, st = statusF, df = dateFrom, dt = dateTo) => {
+  const load = useCallback(async (page = 1, q = search, st = statusF, df = dateFrom, dt = dateTo, vf = vendorF) => {
     setLoading(true);
-    try { setData(await apiGet({ action: 'stock_ins', page: String(page), search: q, status: st, date_from: df, date_to: dt })); } finally { setLoading(false); }
-  }, [search, statusF, dateFrom, dateTo]);
+    try { setData(await apiGet({ action: 'stock_ins', page: String(page), search: q, status: st, date_from: df, date_to: dt, vendor_id: vf || undefined })); setCheckedIds(new Set()); } finally { setLoading(false); }
+  }, [search, statusF, dateFrom, dateTo, vendorF]);
   useEffect(() => { load(); }, []);
 
   const updateItem = (idx, key, val) => setItems(prev => { const next = [...prev]; next[idx] = { ...next[idx], [key]: val }; if (key === 'qty_received' || key === 'unit_cost') next[idx].line_total = Number(next[idx].qty_received || 0) * Number(next[idx].unit_cost || 0); return next; });
@@ -278,14 +280,22 @@ export default function StockIn() {
 
   const handleExport = async () => {
     try {
-      const result = await apiGet({ action: 'stock_ins', page: '1', search: search, status: statusF, date_from: dateFrom, date_to: dateTo, limit: '9999', export: 'true' });
-      const rows = result.rows || [];
+      let rows;
+      if (checkedIds.size > 0) {
+        // Export selected rows only
+        rows = data.rows.filter(r => checkedIds.has(r.id));
+      } else {
+        const result = await apiGet({ action: 'stock_ins', page: '1', search, status: statusF, date_from: dateFrom, date_to: dateTo, vendor_id: vendorF || undefined, limit: '9999', export: 'true' });
+        rows = result.rows || [];
+      }
       const columns = [
         { key: 'stock_in_no', label: '進貨單號' },
         { key: 'po_no', label: '採購單號' },
         { key: 'vendor_name', label: '廠商名稱' },
         { key: (row) => row.status === 'confirmed' ? '已入庫' : '待確認', label: '狀態' },
         { key: (row) => fmtDate(row.stock_in_date), label: '進貨日期' },
+        { key: 'total_amount', label: '未稅金額' },
+        { key: (row) => row.total_amount ? Math.round(Number(row.total_amount) * 1.05) : 0, label: '含稅金額' },
         { key: 'remark', label: '備註' },
       ];
       exportCsv(rows, columns, `進貨_${new Date().toISOString().slice(0, 10)}.csv`);
@@ -307,7 +317,7 @@ export default function StockIn() {
     <div>
       <PageLead eyebrow="Stock In" title="進貨單" description="記錄廠商進貨入庫，確認後自動增加庫存。"
         action={<div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <button onClick={handleExport} style={S.btnGhost}>匯出 CSV</button>
+          <button onClick={handleExport} style={S.btnGhost}>{checkedIds.size > 0 ? `匯出 ${checkedIds.size} 筆` : '匯出 CSV'}</button>
           <button onClick={() => setCreateOpen(true)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}) }}>+ 新增進貨</button>
         </div>} />
       <div style={{ ...S.statGrid, gridTemplateColumns: isMobile ? '1fr 1fr' : S.statGrid.gridTemplateColumns }}>
@@ -324,13 +334,17 @@ export default function StockIn() {
           <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: '6px 10px', ...S.mono }} />
           <span style={{ color: t.color.textMuted, fontSize: t.fontSize.body, display: isMobile ? 'none' : 'inline' }}>~</span>
           <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setDatePreset(''); }} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: '6px 10px', ...S.mono }} />
-          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 150, fontSize: t.fontSize.body, padding: '6px 10px' }}>
+          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 120, fontSize: t.fontSize.body, padding: '6px 10px' }}>
             <option value="">全部狀態</option>
             <option value="pending">待確認</option>
             <option value="confirmed">已入庫</option>
           </select>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo)} placeholder="搜尋..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: t.fontSize.body, padding: '6px 10px' }} />
-          <button onClick={() => load(1, search, statusF, dateFrom, dateTo)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: '6px 18px', fontSize: t.fontSize.body }}>查詢</button>
+          <select value={vendorF} onChange={(e) => setVendorF(e.target.value)} style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), width: isMobile ? '100%' : 160, fontSize: t.fontSize.body, padding: '6px 10px' }}>
+            <option value="">全部廠商</option>
+            {vendors.map(v => <option key={v.id} value={v.id}>{v.vendor_name}</option>)}
+          </select>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load(1, search, statusF, dateFrom, dateTo, vendorF)} placeholder="搜尋..." style={{ ...S.input, ...(isMobile ? S.mobile.input : {}), flex: 1, minWidth: 160, fontSize: t.fontSize.body, padding: '6px 10px' }} />
+          <button onClick={() => load(1, search, statusF, dateFrom, dateTo, vendorF)} style={{ ...S.btnPrimary, ...(isMobile ? S.mobile.btnPrimary : {}), padding: '6px 18px', fontSize: t.fontSize.body }}>查詢</button>
         </div>
       </div>
 
@@ -387,6 +401,9 @@ export default function StockIn() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ background: t.color.bgMuted }}>
+                    <th style={{ ...thStyle, width: 36, textAlign: 'center' }}>
+                      <input type="checkbox" checked={data.rows.length > 0 && data.rows.every(r => checkedIds.has(r.id))} onChange={(e) => { if (e.target.checked) setCheckedIds(new Set(data.rows.map(r => r.id))); else setCheckedIds(new Set()); }} style={{ cursor: 'pointer', width: 16, height: 16 }} />
+                    </th>
                     <th style={thStyle}>進貨單號</th>
                     <th style={thStyle}>日期</th>
                     <th style={thStyle}>廠商</th>
@@ -405,6 +422,9 @@ export default function StockIn() {
                       onMouseEnter={e => e.currentTarget.style.background = t.color.infoBg}
                       onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? t.color.bgCard : t.color.bgMuted}
                     >
+                      <td style={{ ...tdStyle, textAlign: 'center', width: 36 }} onClick={e => e.stopPropagation()}>
+                        <input type="checkbox" checked={checkedIds.has(r.id)} onChange={() => setCheckedIds(prev => { const next = new Set(prev); if (next.has(r.id)) next.delete(r.id); else next.add(r.id); return next; })} style={{ cursor: 'pointer', width: 16, height: 16 }} />
+                      </td>
                       <td style={tdStyle}>
                         <span style={{ fontWeight: t.fontWeight.bold, color: t.color.link, ...S.mono, fontSize: t.fontSize.body }}>{r.stock_in_no || '-'}</span>
                       </td>
