@@ -119,7 +119,7 @@ function OrderDetailView({ order: orderProp, onBack, onRefresh, setTab, erpFeatu
         try {
           const payRes = await apiGet({ action: 'order_payments', order_id: order.id });
           setOrderPayments(payRes.payments || []);
-          const staffRes = await apiGet({ action: 'list_admin_users' });
+          const staffRes = await apiGet({ action: 'list_staff' });
           setStaffList(staffRes.users || []);
         } catch (_) { /* ignore */ }
       } catch (e) {

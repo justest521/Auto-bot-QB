@@ -44,6 +44,16 @@ export async function GET(request) {
     });
   }
 
+  // Staff list for dropdowns (all authenticated users can access)
+  if (action === 'list_staff') {
+    const { data } = await supabase
+      .from('admin_users')
+      .select('id, username, display_name, role:admin_roles(code, label)')
+      .eq('status', 'active')
+      .order('display_name', { ascending: true });
+    return Response.json({ users: data || [] });
+  }
+
   // User management (admin only)
   if (action === 'list_admin_users') {
     if (auth.role.code !== 'admin' && !auth.legacy) {

@@ -85,7 +85,7 @@ export function QuoteCreateModal({ open, onClose, onCreated, tableReady = true }
   });
 
   useEffect(() => {
-    apiGet({ action: 'list_admin_users' }).then(res => setStaffList(res.users || [])).catch(() => {});
+    apiGet({ action: 'list_staff' }).then(res => setStaffList(res.users || [])).catch(() => {});
   }, []);
 
   // Only clear error when reopening — keep all other state (customer, items, form) intact

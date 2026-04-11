@@ -738,7 +738,7 @@ export default function Quotes({ setTab }) {
     window.localStorage.removeItem('qb_quote_focus');
   }, [load]);
   useEffect(() => {
-    apiGet({ action: 'list_admin_users' }).then(res => {
+    apiGet({ action: 'list_staff' }).then(res => {
       setSalesUsers((res.users || []).map(u => ({ id: u.id, display_name: u.display_name || u.username, username: u.username })));
     }).catch(() => {});
   }, []);
