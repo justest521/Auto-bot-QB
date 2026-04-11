@@ -447,7 +447,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
           ) : (
             // Desktop table layout
             <div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 90px 70px 90px 100px 70px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 110px 80px 110px 100px 70px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
                 <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>料號</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>單價</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>數量</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>庫存</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>未稅金額</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>稅金</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>含稅金額</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>備註</div><div style={{ padding: '8px 10px' }}></div>
               </div>
               {items.map((item) => {
@@ -457,7 +457,7 @@ function QuoteDetailView({ quote, onBack, onRefresh, salesUsers, setTab }) {
                 const rowBg = isEditing ? '#fffbeb' : '#fff';
                 return (
                   <div key={item.id || item.item_number_snapshot}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 90px 70px 90px 100px 70px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', fontSize: t.fontSize.body, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 100px 110px 80px 110px 100px 70px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', fontSize: t.fontSize.body, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
                     <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number_snapshot || '-'} — ${item.description_snapshot || ''}`}>
                       {item.item_number_snapshot || '-'}
                     </div>
