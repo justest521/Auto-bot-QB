@@ -300,6 +300,13 @@ export async function GET(req) {
         }
       }
 
+      // 取發票日期
+      let invoiceDate = '';
+      if (sale.invoice_number) {
+        const { data: invRow } = await supabase.from('erp_invoices').select('invoice_date').eq('invoice_no', sale.invoice_number).limit(1).maybeSingle();
+        invoiceDate = invRow?.invoice_date || '';
+      }
+
       // 公司資訊（header 右欄）
       const companyBlock = `
         ${logoUrl ? `<img class="logo" src="${esc(logoUrl)}" crossorigin="anonymous" alt="Logo" onerror="this.style.display='none'" />` : ''}
@@ -320,6 +327,7 @@ export async function GET(req) {
             <div style="font-size:16px;font-weight:700;color:#1c2740;">${esc(sale.slip_number)}</div>
             <div>銷貨日期：${fmtDate(sale.sale_date)}</div>
             ${sale.invoice_number ? `<div>發票號碼：${esc(sale.invoice_number)}</div>` : ''}
+            ${invoiceDate ? `<div>發票日期：${fmtDate(invoiceDate)}</div>` : ''}
             <div>負責業務：${esc(sale.sales_person || '-')}</div>
           </div>
         </div>
