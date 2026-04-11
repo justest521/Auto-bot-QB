@@ -54,6 +54,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
   const [vendorSearch, setVendorSearch] = useState('');
   const [showVendorPicker, setShowVendorPicker] = useState(false);
   const [savingVendor, setSavingVendor] = useState(false);
+  const [customerName, setCustomerName] = useState('');
 
   const statusKey = String(po.status || 'draft').toLowerCase();
   const PO_STATUS_MAP = { draft: '草稿', pending_approval: '待審核', sent: '已寄出', confirmed: '已核准', shipped: '已出貨', received: '已到貨', rejected: '已駁回', cancelled: '已取消' };
@@ -82,6 +83,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
         const [result, approvalRes, vpRes] = results;
         setDetail(result);
         setTimeline(result.timeline || []);
+        setCustomerName(result.customer_name || '');
         setVendorPayments(vpRes?.rows || []);
         // Find approval for this PO
         const poApprovals = (approvalRes.rows || []).filter(a => String(a.doc_id) === String(po.id));
@@ -443,8 +445,8 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
 {items.length > 0 ? (
   <div>
     {/* Table header */}
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 65px 100px 100px 120px 70px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
-      <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>料號</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>單價</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>數量</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>到貨</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>庫存</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>小計</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>備註</div><div style={{ padding: '8px 10px' }}></div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 65px 100px 110px 80px 110px 100px 70px', gap: 0, background: '#f8f9fb', fontSize: t.fontSize.caption, fontWeight: t.fontWeight.bold, color: t.color.textDisabled, letterSpacing: 0.5, textTransform: 'uppercase', borderBottom: '2px solid #dde0e7' }}>
+      <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>料號</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>單價</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>數量</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>到貨</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'center' }}>庫存</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>未稅金額</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>稅金</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', textAlign: 'right' }}>含稅金額</div><div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb' }}>備註</div><div style={{ padding: '8px 10px' }}></div>
     </div>
     {items.map((item) => {
       const badge = STOCK_BADGE[item.stock_status] || STOCK_BADGE.no_stock;
@@ -453,7 +455,7 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
       const rowBg = isEditing ? '#fffbeb' : '#fff';
       return (
         <div key={item.id || item.item_number}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 65px 100px 100px 120px 70px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', fontSize: t.fontSize.body, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(100px,1fr) 95px 50px 65px 100px 110px 80px 110px 100px 70px', gap: 0, borderTop: '1px solid #e5e7eb', alignItems: 'center', fontSize: t.fontSize.body, background: rowBg, transition: 'background 0.1s' }} onMouseEnter={e => !isEditing && (e.currentTarget.style.background='#f8fafc')} onMouseLeave={e => !isEditing && (e.currentTarget.style.background=rowBg)}>
           <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: t.color.textSecondary, fontWeight: t.fontWeight.semibold, ...S.mono, fontSize: t.fontSize.h3 }} title={`${item.item_number || '-'} — ${item.description || ''}`}>
             {item.item_number || '-'}
           </div>
@@ -490,7 +492,15 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
               {badge.label}
             </span>}
           </div>
-          <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: t.color.success, fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(item.line_total)}</div>
+          {(() => {
+            const total = Number(item.line_total || 0);
+            const tax = Math.round(total * 0.05);
+            return (<>
+              <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: t.color.textSecondary, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(total)}</div>
+              <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: t.color.textMuted, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(tax)}</div>
+              <div style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', color: t.color.success, fontWeight: t.fontWeight.bold, textAlign: 'right', ...S.mono, fontSize: t.fontSize.h3, whiteSpace: 'nowrap' }}>{fmtP(total + tax)}</div>
+            </>);
+          })()}
           <div onClick={(e) => isEditable && !isEditing && startEditItem(item, e)} style={{ padding: '8px 10px', borderRight: '1px solid #e5e7eb', fontSize: t.fontSize.h3, color: t.color.textMuted, cursor: isEditable && !isEditing ? 'pointer' : 'default', overflow: 'hidden' }} onMouseEnter={e => isEditable && !isEditing && (e.currentTarget.style.background='#f3f4f6')} onMouseLeave={e => isEditable && !isEditing && (e.currentTarget.style.background='transparent')}>
             {isEditing ? (
               <input type="text" value={editValues.item_note} onChange={e => setEditValues({ ...editValues, item_note: e.target.value })} style={{ ...inputStyle, textAlign: 'left' }} onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') saveEditItem(e); if (e.key === 'Escape') cancelEdit(e); }} placeholder="備註" />
@@ -580,14 +590,20 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
     {items.length > 0 && (
       <div style={{ padding: '14px 16px', background: 'linear-gradient(135deg, #eff6ff, #eef2ff)', borderTop: '2px solid #bfdbfe' }}>
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', gap: 24 }}>
-          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
-            <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(totalAmount)}</strong></span>
-            <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>({items.length} 項)</span>
-          </div>
-          <div style={{ borderLeft: '2px solid #93c5fd', paddingLeft: 20, textAlign: 'right' }}>
-            <span style={{ fontSize: t.fontSize.caption, color: '#2563eb', fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>採購合計</span>
-            <span style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: '#1d4ed8', letterSpacing: -1 }}>{fmtP(totalAmount)}</span>
-          </div>
+          {(() => {
+            const taxTotal = Math.round(totalAmount * 0.05);
+            return (<>
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
+                <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>未稅小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(totalAmount)}</strong></span>
+                <span style={{ fontSize: t.fontSize.h3, color: t.color.textMuted }}>稅金 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(taxTotal)}</strong></span>
+                <span style={{ fontSize: t.fontSize.caption, color: t.color.textDisabled }}>({items.length} 項)</span>
+              </div>
+              <div style={{ borderLeft: '2px solid #93c5fd', paddingLeft: 20, textAlign: 'right' }}>
+                <span style={{ fontSize: t.fontSize.caption, color: '#2563eb', fontWeight: t.fontWeight.semibold, display: 'block', marginBottom: 2 }}>含稅合計</span>
+                <span style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: t.fontWeight.bold, color: '#1d4ed8', letterSpacing: -1 }}>{fmtP(totalAmount + taxTotal)}</span>
+              </div>
+            </>);
+          })()}
         </div>
       </div>
     )}
@@ -680,14 +696,17 @@ function PODetailView({ po, onBack, onRefresh, setTab }) {
             {/* 1. PDF button */}
             <button onClick={() => openPdf('po', po.id)} style={{ ...S.btnGhost, width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold, justifyContent: 'center' }}>下載 PDF</button>
 
-            {/* Receive goods button */}
-            {canReceive && (
-              <button onClick={openReceiving} style={{ width: '100%', padding: '10px 16px', fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, border: 'none', borderRadius: t.radius.md, background: showReceiving ? '#94a3b8' : '#059669', color: '#fff', cursor: 'pointer' }}>
-                收貨登記
-              </button>
+            {/* 收貨登記已移除，統一使用「轉進貨」 */}
+
+            {/* 2. Customer info (from source order) */}
+            {customerName && (
+              <div style={{ ...cardStyle, padding: '10px 16px' }}>
+                <div style={labelStyle}>訂購客戶</div>
+                <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{customerName}</div>
+              </div>
             )}
 
-            {/* 2. Vendor card */}
+            {/* 3. Vendor card */}
             <div style={{ ...cardStyle, padding: '10px 16px' }}>
               <div style={{ ...labelStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>廠商資訊</span>
