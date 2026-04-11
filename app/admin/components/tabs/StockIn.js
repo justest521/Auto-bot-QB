@@ -15,6 +15,9 @@ function StockInDetailView({ id, onBack }) {
   const [si, setSi] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showConfirmForm, setShowConfirmForm] = useState(false);
+  const [confirmQtys, setConfirmQtys] = useState({});
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -28,13 +31,26 @@ function StockInDetailView({ id, onBack }) {
     })();
   }, [id]);
 
+  const openConfirmForm = () => {
+    const qtys = {};
+    items.forEach(it => { qtys[it.id || it.item_number] = Number(it.qty_received || 1); });
+    setConfirmQtys(qtys);
+    setShowConfirmForm(true);
+  };
+
   const handleConfirm = async () => {
-    if (!confirm('確認進貨將自動增加庫存，確定？')) return;
+    if (!confirm('確認入庫後將自動增加庫存，確定？')) return;
+    setConfirming(true);
     try {
+      // Update quantities before confirming
+      await apiPost({ action: 'update_stock_in_quantities', stock_in_id: id, items: Object.entries(confirmQtys).map(([itemId, qty]) => ({ id: itemId, qty_received: Number(qty) })) });
       await apiPost({ action: 'confirm_stock_in', stock_in_id: id });
       const res = await apiGet({ action: 'stock_in_detail', id });
       setSi(res.stock_in || null);
+      setItems(res.items || []);
+      setShowConfirmForm(false);
     } catch (e) { alert(e.message); }
+    setConfirming(false);
   };
 
   const cardStyle = { ...S.card, borderRadius: t.radius.lg, border: `1px solid ${t.color.border}` };
@@ -60,7 +76,7 @@ function StockInDetailView({ id, onBack }) {
           {si.status === 'confirmed' ? '已入庫' : '待確認'}
         </span>
         {si.status === 'pending' && (
-          <button onClick={handleConfirm} style={{ ...S.btnPrimary, ...(isMobile ? { minHeight: 44 } : {}), padding: '8px 20px', fontSize: t.fontSize.caption }}>確認入庫</button>
+          <button onClick={openConfirmForm} style={{ ...S.btnPrimary, ...(isMobile ? { minHeight: 44 } : {}), padding: '8px 20px', fontSize: t.fontSize.caption }}>{showConfirmForm ? '收起' : '確認入庫'}</button>
         )}
       </div>
 
@@ -106,6 +122,32 @@ function StockInDetailView({ id, onBack }) {
           </div>
         )}
       </div>
+
+      {/* 確認入庫表單 */}
+      {showConfirmForm && si.status === 'pending' && (
+        <div style={{ ...cardStyle, marginBottom: 16, padding: '16px 20px', background: '#f0fdf4', border: '2px solid #86efac' }}>
+          <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.brand, marginBottom: 12 }}>確認入庫數量</div>
+          <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted, marginBottom: 12 }}>請核對每個品項的實際到貨數量，確認無誤後按「確認入庫」</div>
+          {items.map((item, idx) => (
+            <div key={item.id || idx} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: idx < items.length - 1 ? `1px solid ${t.color.borderLight}` : 'none' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: t.fontSize.body, fontWeight: t.fontWeight.semibold, ...S.mono }}>{item.item_number || '-'}</div>
+                <div style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>{item.description || ''}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                <span style={{ fontSize: t.fontSize.caption, color: t.color.textMuted }}>原數量: {item.qty_received}</span>
+                <button onClick={() => setConfirmQtys(p => ({ ...p, [item.id || item.item_number]: Math.max(0, (Number(p[item.id || item.item_number]) || 0) - 1) }))} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#fff', cursor: 'pointer', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                <input type="number" value={confirmQtys[item.id || item.item_number] || 0} onChange={(e) => setConfirmQtys(p => ({ ...p, [item.id || item.item_number]: Math.max(0, Number(e.target.value) || 0) }))} style={{ ...S.input, width: 60, textAlign: 'center', ...S.mono, fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, padding: '4px 6px' }} min="0" />
+                <button onClick={() => setConfirmQtys(p => ({ ...p, [item.id || item.item_number]: (Number(p[item.id || item.item_number]) || 0) + 1 }))} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${t.color.border}`, background: '#fff', cursor: 'pointer', fontSize: t.fontSize.h2, fontWeight: t.fontWeight.bold, color: t.color.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+              </div>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
+            <button onClick={() => setShowConfirmForm(false)} style={{ ...S.btnGhost, padding: '8px 16px' }}>取消</button>
+            <button onClick={handleConfirm} disabled={confirming} style={{ ...S.btnPrimary, padding: '8px 24px', opacity: confirming ? 0.7 : 1 }}>{confirming ? '處理中...' : '確認入庫'}</button>
+          </div>
+        </div>
+      )}
 
       {/* 品項表格 */}
       <div style={{ ...cardStyle, padding: '16px 20px' }}>
