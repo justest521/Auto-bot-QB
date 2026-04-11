@@ -92,6 +92,12 @@ function StockInDetailView({ id, onBack }) {
             <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>狀態</div>
             <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.semibold }}>{si.status === 'confirmed' ? '已入庫' : '待確認'}</div>
           </div>
+          {si.vendor_name && (
+            <div>
+              <div style={{ fontSize: t.fontSize.tiny, color: t.color.textMuted, marginBottom: 2 }}>廠商</div>
+              <div style={{ fontSize: t.fontSize.h3, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{si.vendor_name}</div>
+            </div>
+          )}
         </div>
         {si.remark && (
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${t.color.borderLight}` }}>
@@ -158,7 +164,9 @@ function StockInDetailView({ id, onBack }) {
                     <th style={{ ...thStyle, textAlign: 'center', width: 60 }}>單位</th>
                     <th style={{ ...thStyle, textAlign: 'right', width: 80 }}>數量</th>
                     <th style={{ ...thStyle, textAlign: 'right', width: 100 }}>單價</th>
-                    <th style={{ ...thStyle, textAlign: 'right', width: 120 }}>小計</th>
+                    <th style={{ ...thStyle, textAlign: 'right', width: 110 }}>未稅金額</th>
+                    <th style={{ ...thStyle, textAlign: 'right', width: 80 }}>稅金</th>
+                    <th style={{ ...thStyle, textAlign: 'right', width: 110 }}>含稅金額</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -177,9 +185,16 @@ function StockInDetailView({ id, onBack }) {
                           : fmtP(item.unit_cost)
                         }
                       </td>
-                      <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.bold, color: (Number(item.unit_cost) || 0) === 0 ? '#a855f7' : t.color.success }}>
-                        {(Number(item.unit_cost) || 0) === 0 ? '$0' : fmtP(item.line_total)}
-                      </td>
+                      {(() => {
+                        const lt = Number(item.line_total || 0);
+                        const isGift = (Number(item.unit_cost) || 0) === 0;
+                        const tax = isGift ? 0 : Math.round(lt * 0.05);
+                        return (<>
+                          <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, color: isGift ? '#a855f7' : t.color.textSecondary }}>{isGift ? '$0' : fmtP(lt)}</td>
+                          <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, color: t.color.textMuted }}>{isGift ? '$0' : fmtP(tax)}</td>
+                          <td style={{ ...tdStyle, textAlign: 'right', ...S.mono, fontWeight: t.fontWeight.bold, color: isGift ? '#a855f7' : t.color.success }}>{isGift ? '$0' : fmtP(lt + tax)}</td>
+                        </>);
+                      })()}
                     </tr>
                   ))}
                 </tbody>
@@ -191,16 +206,20 @@ function StockInDetailView({ id, onBack }) {
         {/* 合計 */}
         {items.length > 0 && (
           <div style={{ padding: '12px 8px 4px', borderTop: `2px solid ${t.color.link}`, marginTop: 4, display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'flex-end', alignItems: isMobile ? 'flex-end' : 'center', gap: 20 }}>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>
-                小計 <span style={{ ...S.mono, fontWeight: t.fontWeight.bold, color: t.color.textPrimary }}>{fmtP(totalAmount)}</span>
-                <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled, marginLeft: 6 }}>({items.length} 項 / {totalQty} 件)</span>
-              </div>
-            </div>
-            <div style={{ borderLeft: isMobile ? 'none' : `3px solid ${t.color.brand}`, borderTop: isMobile ? `3px solid ${t.color.brand}` : 'none', paddingLeft: isMobile ? 0 : 16, paddingTop: isMobile ? 8 : 0, textAlign: 'right' }}>
-              <div style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>進貨合計</div>
-              <div style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalAmount)}</div>
-            </div>
+            {(() => {
+              const taxTotal = Math.round(totalAmount * 0.05);
+              return (<>
+                <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>未稅小計 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(totalAmount)}</strong></span>
+                  <span style={{ fontSize: t.fontSize.body, color: t.color.textMuted }}>稅金 <strong style={{ ...S.mono, fontSize: t.fontSize.h2, color: t.color.textSecondary, fontWeight: t.fontWeight.semibold }}>{fmtP(taxTotal)}</strong></span>
+                  <span style={{ fontSize: t.fontSize.tiny, color: t.color.textDisabled }}>({items.length} 項 / {totalQty} 件)</span>
+                </div>
+                <div style={{ borderLeft: isMobile ? 'none' : `3px solid ${t.color.brand}`, borderTop: isMobile ? `3px solid ${t.color.brand}` : 'none', paddingLeft: isMobile ? 0 : 16, paddingTop: isMobile ? 8 : 0, textAlign: 'right' }}>
+                  <div style={{ fontSize: t.fontSize.tiny, color: t.color.brand, fontWeight: t.fontWeight.semibold, marginBottom: 2 }}>含稅合計</div>
+                  <div style={{ ...S.mono, fontSize: t.fontSize.h1, fontWeight: 900, color: '#15803d', letterSpacing: -0.5 }}>{fmtP(totalAmount + taxTotal)}</div>
+                </div>
+              </>);
+            })()}
           </div>
         )}
       </div>
